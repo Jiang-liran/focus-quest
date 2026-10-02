@@ -44,6 +44,8 @@
   <link rel="stylesheet" href="/performance.css">
   <link rel="stylesheet" href="/interface-switch.css">
   <link rel="stylesheet" href="/shop-expansion.css">
+  <link rel="stylesheet" href="/shop-collection-v2.css">
+  <link rel="stylesheet" href="/lottery-collection-art.css">
   <link rel="stylesheet" href="/lottery.css">
   <link rel="stylesheet" href="/interface-adaptation.css">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
@@ -215,6 +217,7 @@
       <div class="shop-browser-heading"><p id="shop-market-description"></p><span id="shop-result-count"></span></div>
       <div class="shop-areas" role="group" aria-label="选择收藏区域"><button type="button" data-shop-area="all" aria-pressed="true" class="active">全部收藏</button><button type="button" data-shop-area="journey" aria-pressed="false">远征装扮</button><button type="button" data-shop-area="interface" aria-pressed="false">界面主题 <small>10 套可收藏风格</small></button><button type="button" data-shop-area="camp" aria-pressed="false">篝火营地 <small>8 类布置</small></button><button type="button" id="campfire-shop-return" class="text-button">到篝火旁看看 ↗</button></div>
       <div class="shop-filter" role="group" aria-label="外观分类"><button class="active" data-shop-filter="all" aria-pressed="true">全部</button><button data-shop-filter="bar" aria-pressed="false">进度条</button><button data-shop-filter="fx" aria-pressed="false">星岛特效</button><button data-shop-filter="avatar" aria-pressed="false">我的时装</button><button data-shop-filter="banner" aria-pressed="false">旅人铭牌</button><button data-shop-filter="theme" aria-pressed="false">星岛环境</button><button data-shop-filter="interface" aria-pressed="false">界面主题</button><button data-shop-filter="companion" aria-pressed="false">随行伙伴</button><button data-shop-filter="relic" aria-pressed="false">星岛圣物</button><button data-shop-filter="portal" aria-pressed="false">远征之门</button><button data-shop-filter="island" aria-pressed="false">主岛布置</button><button data-shop-filter="camp" aria-pressed="false">营地地貌</button><button data-shop-filter="fire" aria-pressed="false">篝火样式</button><button data-shop-filter="tent" aria-pressed="false">歇脚帐篷</button><button data-shop-filter="campgear" aria-pressed="false">营地陈设</button><button data-shop-filter="campglow" aria-pressed="false">营地氛围</button><button data-shop-filter="chatframe" aria-pressed="false">对话外观</button><button data-shop-filter="camptrail" aria-pressed="false">营地小径</button><button data-shop-filter="campmark" aria-pressed="false">营地地标</button></div>
+      <nav id="shop-pagination" class="shop-pagination" aria-label="商品分页" hidden><button type="button" class="secondary-button" id="shop-page-prev" aria-controls="shop-catalog">← 上一页</button><span><strong id="shop-page-count" aria-live="polite">第 1 / 1 页</strong><small>每页 24 件收藏</small></span><button type="button" class="secondary-button" id="shop-page-next" aria-controls="shop-catalog">下一页 →</button></nav>
       <div id="shop-catalog" class="shop-catalog" aria-label="商店商品"></div>
       <p class="q-shop-note">每类可装备一款，<span id="shop-slot-count">18</span> 类自由搭配。购买后永久收藏；关闭动态光效后保留静态外观。</p>
     </div>
@@ -308,6 +311,8 @@
     </div>
   </section>
   <script src="/record-time.js"></script>
+  <script src="/shop-collection-v2.js"></script>
+  <script src="/lottery-collection-art.js"></script>
   <script src="/shop-expansion.js"></script>
   <script src="/audio.js"></script>
   <script src="/ambience.js"></script>

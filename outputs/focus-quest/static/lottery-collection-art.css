@@ -1,0 +1,63 @@
+/* Limited collections use bounded SVG layers; no timers, blur filters, or layout animations. */
+.lca-svg{display:block;max-width:100%;overflow:hidden}
+.lca-art{isolation:isolate}
+.lca-bob{animation:lca-bob 7s ease-in-out infinite}
+.lca-core,.lca-glimmer,.lca-lantern-glow,.lca-window-glow{animation:lca-light 4.8s ease-in-out infinite;animation-delay:var(--lca-delay,0s)}
+.lca-tail,.lca-fin,.lca-fox-tail{transform-box:fill-box;transform-origin:75% 50%;animation:lca-tail 5s ease-in-out infinite}
+.lca-orbit-a,.lca-orbit-b,.lca-orbit-c{transform-box:fill-box;transform-origin:center;animation:lca-orbit 12s ease-in-out infinite}
+.lca-orbit-b{animation-duration:9s;animation-direction:reverse}.lca-orbit-c{animation-duration:17s}
+.lca-clock-hands{transform-box:fill-box;transform-origin:0% 72%;animation:lca-clock 30s linear infinite}
+.lca-whale-swim{animation:lca-swim 8s ease-in-out infinite}
+.lca-infinity-loop{transform-box:fill-box;transform-origin:center;animation:lca-infinity 13s ease-in-out infinite}
+.lca-cloud-lift,.lca-palace-lift{animation:lca-bob 9s ease-in-out infinite}
+.lca-garden-breathe,.lca-fountain,.lca-crown-breathe,.lca-weaver-crown{animation:lca-light 7s ease-in-out infinite}
+.lca-leaf-cloak,.lca-aurora-wings{transform-box:fill-box;transform-origin:50% 20%;animation:lca-cloak 7s ease-in-out infinite}
+.lca-forest-spirits,.lca-weaver-orbit,.lca-observatory-orbit,.lca-gate-orbits{transform-box:fill-box;transform-origin:center;animation:lca-orbit 11s ease-in-out infinite}
+.lca-weaver-shuttles,.lca-whale-spout{animation:lca-bob 4s ease-in-out infinite}
+.lca-tidal-current{animation:lca-tide 6s linear infinite}
+.lca-current-spark{animation:lca-water-dashes 7s linear infinite}
+.lca-jump-stream{animation:lca-jump 4.5s linear infinite}
+.lca-gate-pulse{animation:lca-light 3.5s ease-in-out infinite;animation-delay:var(--lca-delay,0s)}
+.lca-jump-craft{animation:lca-craft 5s ease-in-out infinite}
+.lca-wharf-current{animation:lca-water-dashes 9s linear infinite}
+.lca-canopy-lights,.lca-water-lights{animation:lca-light 8s ease-in-out infinite}
+.lca-moon-suspension{animation:lca-bob 14s ease-in-out infinite}
+.lca-firefly{animation:lca-firefly 8s ease-in-out infinite;animation-delay:var(--lca-delay,0s)}
+.lca-rift-drift,.lca-rift-counter{animation:lca-rift 18s ease-in-out infinite}.lca-rift-counter{animation-duration:23s;animation-direction:reverse}
+.lca-rift-crystals{animation:lca-bob 15s ease-in-out infinite}
+@keyframes lca-bob{50%{transform:translateY(-2px)}}
+@keyframes lca-light{0%,100%{opacity:.72}50%{opacity:1}}
+@keyframes lca-tail{50%{transform:rotate(3deg)}}
+@keyframes lca-orbit{50%{transform:rotate(7deg)}}
+@keyframes lca-clock{to{transform:rotate(360deg)}}
+@keyframes lca-swim{50%{transform:translate(1px,-2px)}}
+@keyframes lca-infinity{50%{transform:rotate(-5deg) scale(.98,1.02);opacity:.82}}
+@keyframes lca-cloak{50%{transform:scaleX(.97)}}
+@keyframes lca-tide{to{transform:translateX(120px)}}
+@keyframes lca-water-dashes{to{stroke-dashoffset:-100}}
+@keyframes lca-jump{to{stroke-dashoffset:-180}}
+@keyframes lca-craft{50%{transform:translateX(2px)}}
+@keyframes lca-firefly{0%,100%{opacity:.25}40%{opacity:.95;transform:translate(2px,-3px)}70%{opacity:.65;transform:translate(-1px,1px)}}
+@keyframes lca-rift{50%{opacity:.7;transform:translate(0,-3px)}}
+.no-motion .lca-art *,.no-motion .lca-art,
+html.focus-runtime-hidden .lca-art *,html.focus-runtime-hidden .lca-art,
+[hidden] .lca-art *,[hidden] .lca-art{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.lca-art,.lca-art *{animation:none!important;transition:none!important}}
+/* Equip only changes corresponding layers, preserving other purchased effects. */
+:root[data-avatar="avatar-forestcrown"]{--avatar-coat:#84aa83;--avatar-shade:#406659;--avatar-hat:#9cb784;--avatar-hat-shade:#577c66}
+:root[data-avatar="avatar-auroraweaver"]{--avatar-coat:#b5b3e6;--avatar-shade:#6969a4;--avatar-hat:#cecefa;--avatar-hat-shade:#8d84c0}
+:root:is([data-avatar="avatar-forestcrown"],[data-avatar="avatar-auroraweaver"]) :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root:is([data-avatar="avatar-forestcrown"],[data-avatar="avatar-auroraweaver"]) #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root:is([data-avatar="avatar-forestcrown"],[data-avatar="avatar-auroraweaver"]) :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root:is([data-avatar="avatar-forestcrown"],[data-avatar="avatar-auroraweaver"]) #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root:is([data-relic="relic-cloudorrery"],[data-relic="relic-infinitygarden"]) .crystal-shrine>.crystal{visibility:hidden}
+:root[data-theme="theme-fireflygrove"]{--theme-ground-top:#3a6b57;--theme-ground-bottom:#29443f;--theme-rock-top:#233f46;--theme-rock-bottom:#142a2b;--theme-rock-side:#233f46;--theme-leaf-light:#b2d29a;--theme-leaf-mid:#527962;--theme-leaf-dark:#294d45}
+:root[data-theme="theme-astralrift"]{--theme-ground-top:#466387;--theme-ground-bottom:#2c3e63;--theme-rock-top:#25385d;--theme-rock-bottom:#152441;--theme-rock-side:#25385d;--theme-leaf-light:#b9ddf5;--theme-leaf-mid:#718eb9;--theme-leaf-dark:#344c73}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) #ground stop:first-child{stop-color:var(--theme-ground-top)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) #ground stop:last-child{stop-color:var(--theme-ground-bottom)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) #rock stop:first-child{stop-color:var(--theme-rock-top)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) #rock stop:last-child{stop-color:var(--theme-rock-bottom)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}
+:root:is([data-theme="theme-fireflygrove"],[data-theme="theme-astralrift"]) .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}

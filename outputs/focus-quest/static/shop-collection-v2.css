@@ -1,0 +1,78 @@
+/* Equipment remains keyed to purchased IDs; all drawing is bounded SVG, without animation loops. */
+.collection-v2-shop-art{display:block;width:100%;height:auto;stroke:none}
+.collection-v2-breathe{transform-box:fill-box;transform-origin:50% 100%;animation:collection-v2-breathe 7s ease-in-out infinite}
+.collection-v2-tail{transform-box:fill-box;transform-origin:80% 70%;animation:collection-v2-tail 6s ease-in-out infinite}
+.collection-v2-wing{transform-box:fill-box;transform-origin:center;animation:collection-v2-wing 7s ease-in-out infinite}
+.collection-v2-flame{transform-box:fill-box;transform-origin:50% 100%;animation:collection-v2-flame 3.2s ease-in-out infinite alternate}
+.collection-v2-wheel{transform-box:fill-box;transform-origin:center;animation:collection-v2-wheel 18s linear infinite}
+.collection-v2-pendulum{transform-box:fill-box;transform-origin:50% -100%;animation:collection-v2-pendulum 4s ease-in-out infinite}
+.collection-v2-stream{animation:collection-v2-stream 5s ease-in-out infinite}
+.collection-v2-current{stroke-dasharray:16 8;animation:collection-v2-current 8s linear infinite}
+.collection-v2-particle{animation:collection-v2-particle 13s ease-in-out infinite;animation-delay:var(--collection-v2-delay,0s)}
+.collection-v2-softscape{opacity:.38}.collection-v2-city-theme{opacity:.23;pointer-events:none}
+@keyframes collection-v2-breathe{50%{transform:scale(1.012,1.025)}}
+@keyframes collection-v2-tail{50%{transform:rotate(3deg)}}
+@keyframes collection-v2-wing{50%{transform:scale(.985,1.012)}}
+@keyframes collection-v2-flame{to{transform:scale(.98,1.045)}}
+@keyframes collection-v2-wheel{to{transform:rotate(360deg)}}
+@keyframes collection-v2-pendulum{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes collection-v2-stream{50%{transform:translateY(1.5px);opacity:.75}}
+@keyframes collection-v2-current{to{stroke-dashoffset:-48}}
+@keyframes collection-v2-particle{50%{transform:translate(3px,-4px);opacity:.6}}
+.no-motion :is(.collection-v2-art,.collection-v2-avatar,.collection-v2-theme,.collection-v2-shop-art) *,
+html.focus-runtime-hidden :is(.collection-v2-art,.collection-v2-avatar,.collection-v2-theme,.collection-v2-shop-art) *,
+[hidden] :is(.collection-v2-art,.collection-v2-avatar,.collection-v2-theme,.collection-v2-shop-art) *,
+dialog:not([open]) :is(.collection-v2-art,.collection-v2-avatar,.collection-v2-theme,.collection-v2-shop-art) *,
+.no-motion :is(.collection-v2-current,.collection-v2-tail,.collection-v2-wing,.collection-v2-flame,.collection-v2-wheel,.collection-v2-pendulum,.collection-v2-stream,.collection-v2-particle,.collection-v2-breathe),
+html.focus-runtime-hidden :is(.collection-v2-current,.collection-v2-tail,.collection-v2-wing,.collection-v2-flame,.collection-v2-wheel,.collection-v2-pendulum,.collection-v2-stream,.collection-v2-particle,.collection-v2-breathe),
+[hidden] :is(.collection-v2-current,.collection-v2-tail,.collection-v2-wing,.collection-v2-flame,.collection-v2-wheel,.collection-v2-pendulum,.collection-v2-stream,.collection-v2-particle,.collection-v2-breathe){animation:none!important;transition:none!important}
+dialog:not([open]) :is(.collection-v2-current,.collection-v2-tail,.collection-v2-wing,.collection-v2-flame,.collection-v2-wheel,.collection-v2-pendulum,.collection-v2-stream,.collection-v2-particle,.collection-v2-breathe){animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){:is(.collection-v2-art,.collection-v2-avatar,.collection-v2-theme,.collection-v2-shop-art) *,:is(.collection-v2-current,.collection-v2-tail,.collection-v2-wing,.collection-v2-flame,.collection-v2-wheel,.collection-v2-pendulum,.collection-v2-stream,.collection-v2-particle,.collection-v2-breathe){animation:none!important;transition:none!important}}
+:root[data-banner="banner-fieldnote"] :is(.level-pill,.equipped-player-card){border:1px solid var(--ui-accent,#a2bbc0);border-left:6px double var(--ui-accent,#a2bbc0);border-radius:6px 12px 12px 6px;background:radial-gradient(circle at 8px 10px,var(--ui-line,#435968) 2px,transparent 3px) 0 0/16px 17px repeat-y,linear-gradient(135deg,transparent 94%,var(--ui-line,#435968) 94%),var(--ui-surface,#191d2b);box-shadow:inset 12px 0 0 var(--ui-soft,#a4bec012)}
+:root[data-banner="banner-compassrose"] :is(.level-pill,.equipped-player-card){border:2px double var(--ui-accent,#b8bcb5);border-radius:18px;background:radial-gradient(circle at 10px 10px,transparent 5px,var(--ui-accent,#b8bcb5) 6px,transparent 7px),radial-gradient(circle at calc(100% - 10px) calc(100% - 10px),transparent 5px,var(--ui-accent,#b8bcb5) 6px,transparent 7px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px var(--ui-soft,#a4bec012)}
+:root[data-banner="banner-woodcarving"] :is(.level-pill,.equipped-player-card){border:3px double var(--ui-accent,#b7bea7);border-radius:6px;background:repeating-linear-gradient(175deg,transparent 0 11px,var(--ui-soft,#a4bec012) 12px 14px),linear-gradient(35deg,var(--ui-soft,#a4bec012) 0 16px,transparent 17px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 2px var(--ui-line,#435968)}
+:root[data-banner="banner-origamiframe"] :is(.level-pill,.equipped-player-card){border:1px solid var(--ui-accent,#baaac3);border-radius:2px 20px 2px 20px;background:linear-gradient(135deg,var(--ui-line,#435968) 0 12px,transparent 13px),linear-gradient(-45deg,var(--ui-soft,#a4bec026) 0 20px,transparent 21px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 5px var(--ui-soft,#a4bec012)}
+:root[data-banner="banner-tideglass"] :is(.level-pill,.equipped-player-card){border:2px solid var(--ui-accent,#9cbfc7);border-radius:23px;background:radial-gradient(circle at 12px 12px,transparent 5px,var(--ui-line,#435968) 6px,transparent 7px),repeating-linear-gradient(170deg,transparent 0 18px,var(--ui-soft,#a4bec012) 19px 21px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px var(--ui-soft,#a4bec012)}
+:root[data-banner="banner-sunarchive"] :is(.level-pill,.equipped-player-card){border:3px double var(--ui-accent,#c8b58c);border-radius:22px 22px 6px 6px;background:radial-gradient(circle at 50% 0,var(--ui-soft,#a4bec026) 0 15px,transparent 16px),linear-gradient(90deg,transparent 49.7%,var(--ui-line,#435968) 50%,transparent 50.3%),var(--ui-surface,#191d2b);box-shadow:inset 0 -5px 0 var(--ui-soft,#a4bec012)}
+:root:is([data-avatar="avatar-postrider"],[data-avatar="avatar-teakeeper"],[data-avatar="avatar-windscout"],[data-avatar="avatar-potter"],[data-avatar="avatar-gardener"],[data-avatar="avatar-stargazer"],[data-avatar="avatar-catwalker"],[data-avatar="avatar-mariner"],[data-avatar="avatar-snowweaver"],[data-avatar="avatar-mothsage"],[data-avatar="avatar-cloudsmith"],[data-avatar="avatar-tidesinger"]) #scene-traveler>:not(#equipped-player-regalia){visibility:hidden}
+:root[data-avatar="avatar-postrider"]{--avatar-coat:#b6c68a;--avatar-shade:#536c58;--avatar-hat:#b6c68a;--avatar-hat-shade:#536c58}
+:root[data-avatar="avatar-postrider"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-teakeeper"]{--avatar-coat:#d2b684;--avatar-shade:#726b61;--avatar-hat:#d2b684;--avatar-hat-shade:#726b61}
+:root[data-avatar="avatar-teakeeper"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-windscout"]{--avatar-coat:#8fbfc3;--avatar-shade:#465e83;--avatar-hat:#8fbfc3;--avatar-hat-shade:#465e83}
+:root[data-avatar="avatar-windscout"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-potter"]{--avatar-coat:#cba8ba;--avatar-shade:#635b7c;--avatar-hat:#cba8ba;--avatar-hat-shade:#635b7c}
+:root[data-avatar="avatar-potter"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-gardener"]{--avatar-coat:#92c9ae;--avatar-shade:#355e63;--avatar-hat:#92c9ae;--avatar-hat-shade:#355e63}
+:root[data-avatar="avatar-gardener"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-stargazer"]{--avatar-coat:#cf9d88;--avatar-shade:#725665;--avatar-hat:#cf9d88;--avatar-hat-shade:#725665}
+:root[data-avatar="avatar-stargazer"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-catwalker"]{--avatar-coat:#9bc4d3;--avatar-shade:#3b647e;--avatar-hat:#9bc4d3;--avatar-hat-shade:#3b647e}
+:root[data-avatar="avatar-catwalker"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-mariner"]{--avatar-coat:#b1abd6;--avatar-shade:#555979;--avatar-hat:#b1abd6;--avatar-hat-shade:#555979}
+:root[data-avatar="avatar-mariner"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-snowweaver"]{--avatar-coat:#b6c68a;--avatar-shade:#536c58;--avatar-hat:#b6c68a;--avatar-hat-shade:#536c58}
+:root[data-avatar="avatar-snowweaver"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-mothsage"]{--avatar-coat:#d2b684;--avatar-shade:#726b61;--avatar-hat:#d2b684;--avatar-hat-shade:#726b61}
+:root[data-avatar="avatar-mothsage"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-cloudsmith"]{--avatar-coat:#8fbfc3;--avatar-shade:#465e83;--avatar-hat:#8fbfc3;--avatar-hat-shade:#465e83}
+:root[data-avatar="avatar-cloudsmith"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-tidesinger"]{--avatar-coat:#cba8ba;--avatar-shade:#635b7c;--avatar-hat:#cba8ba;--avatar-hat-shade:#635b7c}
+:root[data-avatar="avatar-tidesinger"] :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-theme="theme-canalnight"]{--theme-ground-top:#578290;--theme-ground-bottom:#294958;--theme-rock-top:#294958;--theme-rock-bottom:#172d40;--theme-rock-side:#294958;--theme-leaf-light:#d4dac7;--theme-leaf-mid:#578290;--theme-leaf-dark:#294958;--theme-sky:#57829020;--theme-halo:#d4dac720}
+:root[data-theme="theme-mossvalley"]{--theme-ground-top:#61857b;--theme-ground-bottom:#355457;--theme-rock-top:#355457;--theme-rock-bottom:#1b3439;--theme-rock-side:#355457;--theme-leaf-light:#cdd5ad;--theme-leaf-mid:#61857b;--theme-leaf-dark:#355457;--theme-sky:#61857b20;--theme-halo:#cdd5ad20}
+:root[data-theme="theme-rooftoprain"]{--theme-ground-top:#667e94;--theme-ground-bottom:#33465e;--theme-rock-top:#33465e;--theme-rock-bottom:#1c2c41;--theme-rock-side:#33465e;--theme-leaf-light:#d9cba8;--theme-leaf-mid:#667e94;--theme-leaf-dark:#33465e;--theme-sky:#667e9420;--theme-halo:#d9cba820}
+:root[data-theme="theme-goldharvest"]{--theme-ground-top:#a59475;--theme-ground-bottom:#62525b;--theme-rock-top:#62525b;--theme-rock-bottom:#332f3d;--theme-rock-side:#62525b;--theme-leaf-light:#e8d39e;--theme-leaf-mid:#a59475;--theme-leaf-dark:#62525b;--theme-sky:#a5947520;--theme-halo:#e8d39e20}
+:root[data-theme="theme-tidalglass"]{--theme-ground-top:#6ca6b2;--theme-ground-bottom:#315b72;--theme-rock-top:#315b72;--theme-rock-bottom:#173146;--theme-rock-side:#315b72;--theme-leaf-light:#c6e9df;--theme-leaf-mid:#6ca6b2;--theme-leaf-dark:#315b72;--theme-sky:#6ca6b220;--theme-halo:#c6e9df20}
+:root[data-theme="theme-inkmountains"]{--theme-ground-top:#65827f;--theme-ground-bottom:#344f59;--theme-rock-top:#344f59;--theme-rock-bottom:#182c32;--theme-rock-side:#344f59;--theme-leaf-light:#d1d9c6;--theme-leaf-mid:#65827f;--theme-leaf-dark:#344f59;--theme-sky:#65827f20;--theme-halo:#d1d9c620}
+:root[data-theme="theme-snowlantern"]{--theme-ground-top:#9cb4c0;--theme-ground-bottom:#526984;--theme-rock-top:#526984;--theme-rock-bottom:#25334b;--theme-rock-side:#526984;--theme-leaf-light:#f1dfad;--theme-leaf-mid:#9cb4c0;--theme-leaf-dark:#526984;--theme-sky:#9cb4c020;--theme-halo:#f1dfad20}
+:root[data-theme="theme-skyterraces"]{--theme-ground-top:#7eaaa7;--theme-ground-bottom:#3d6473;--theme-rock-top:#3d6473;--theme-rock-bottom:#213047;--theme-rock-side:#3d6473;--theme-leaf-light:#ecdfb7;--theme-leaf-mid:#7eaaa7;--theme-leaf-dark:#3d6473;--theme-sky:#7eaaa720;--theme-halo:#ecdfb720}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) #ground stop:first-child{stop-color:var(--theme-ground-top)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) #ground stop:last-child{stop-color:var(--theme-ground-bottom)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) #rock stop:first-child{stop-color:var(--theme-rock-top)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) #rock stop:last-child{stop-color:var(--theme-rock-bottom)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root:is([data-theme="theme-canalnight"],[data-theme="theme-mossvalley"],[data-theme="theme-rooftoprain"],[data-theme="theme-goldharvest"],[data-theme="theme-tidalglass"],[data-theme="theme-inkmountains"],[data-theme="theme-snowlantern"],[data-theme="theme-skyterraces"]) .scene-theme-backdrop{background:radial-gradient(ellipse at 50% 30%,var(--theme-halo),transparent 65%),linear-gradient(180deg,transparent,var(--theme-sky))}

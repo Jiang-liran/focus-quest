@@ -10,7 +10,8 @@
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
   const statuses={locked:'尚未发布',available:'可以接取',active:'进行中',ready:'可以交付',expired:'今日已结束',claimed:'已交付'};
   const mentors={morning:{name:'司晨',title:'晨间导师',quote:'「先以数学磨砺思路，再用政治梳理脉络。把上午交给扎实的理解。」',hours:'00:00 — 12:00',grace:'12:30',subjects:'数学 · 政治'},afternoon:{name:'逐光',title:'午后领航员',quote:'「让知识连成网络，让语言打开远方。午后的航程，由你来选择。」',hours:'12:00 — 18:00',grace:'18:30',subjects:'408 · 英语'}};
-  let data=null,bridge=null,filter='all',market='coins',area='all',busy=false,intent=null,lastStamp=-Infinity,shopCatalogKey=null;
+  const SHOP_PAGE_SIZE=24;
+  let data=null,bridge=null,filter='all',market='coins',area='all',busy=false,intent=null,lastStamp=-Infinity,shopCatalogKey=null,shopPage=0,shopPageCount=1,shopFocus=null;
   const markupCache=new Map();
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -155,7 +156,7 @@
     const inMarket=(i,m)=>m==='owned'?i.owned:m==='limited'?i.lotteryOnly:currency(i)===m&&!i.lotteryOnly;
     const marketItems=data.catalog.filter(i=>inArea(i)&&inMarket(i,market));
     document.querySelectorAll('[data-shop-area]').forEach(b=>{b.classList.toggle('active',b.dataset.shopArea===area);b.setAttribute('aria-pressed',String(b.dataset.shopArea===area));});
-    if(filter!=='all'&&!marketItems.some(i=>i.slot===filter))filter='all';
+    if(filter!=='all'&&!marketItems.some(i=>i.slot===filter)){filter='all';shopPage=0;}
     document.querySelectorAll('[data-shop-filter]').forEach(b=>{
       const selected=b.dataset.shopFilter===filter;
       b.hidden=b.dataset.shopFilter!=='all'&&!marketItems.some(i=>i.slot===b.dataset.shopFilter);
@@ -166,17 +167,46 @@
       b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
     });
     for(const m of ['coins','diamonds','owned','limited'])if($('market-'+m+'-count'))$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&inMarket(i,m)).length);
-    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。',limited:'只能通过星海抽奖机获得的特别收藏。金币机30抽、钻石机20抽保底；提前遇见限定藏品会重置对应计数，优先获得尚未拥有的款式。'}[market];
+    const pityLimit=id=>data.lottery?.machines?.find(machine=>machine.id===id)?.pity?.limit||(id==='coin'?40:25);
+    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。',limited:`只能通过星海抽奖机获得的特别收藏。金币机${pityLimit('coin')}抽、钻石机${pityLimit('diamond')}抽保底；提前遇见限定藏品会重置对应计数，优先获得尚未拥有的款式。`}[market];
     if(market!=='limited'&&area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
     if(market!=='limited'&&(area==='interface'||filter==='interface'))$('shop-market-description').textContent='从配色到边框、纹理与按钮，给整间书房换一种气质。界面主题独立装备，你已有的星岛环境、装饰和特效照常搭配。';
     if(market!=='limited'&&filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
-    $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
-    const catalogKey=JSON.stringify([area,market,filter,items,data.wallet,data.equipped,busy]);
+    shopPageCount=Math.max(1,Math.ceil(items.length/SHOP_PAGE_SIZE));
+    shopPage=Math.max(0,Math.min(shopPage,shopPageCount-1));
+    const start=shopPage*SHOP_PAGE_SIZE,visibleItems=items.slice(start,start+SHOP_PAGE_SIZE);
+    $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}${shopPageCount>1?` · 本页 ${start+1}–${start+visibleItems.length}`:''}`;
+    if($('shop-pagination'))$('shop-pagination').hidden=shopPageCount<=1;
+    if($('shop-page-count'))$('shop-page-count').textContent=`第 ${shopPage+1} / ${shopPageCount} 页`;
+    if($('shop-page-prev'))$('shop-page-prev').disabled=busy||shopPage===0;
+    if($('shop-page-next'))$('shop-page-next').disabled=busy||shopPage===shopPageCount-1;
+    const catalogKey=JSON.stringify([area,market,filter,shopPage,visibleItems,data.wallet,data.equipped,busy]);
     if(catalogKey!==shopCatalogKey){
-      replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
+      const focused=document.activeElement?.closest?.('[data-shop-action]');
+      if(focused&&$('shop-catalog').contains?.(focused))rememberShopFocus(focused.dataset.shopAction,focused.dataset.item);
+      replace('shop-catalog',visibleItems.length?visibleItems.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
       shopCatalogKey=catalogKey;
     }
+    restoreShopFocus();
+  }
+  function rememberShopFocus(action,id){shopFocus={action,id,page:shopPage,market,area,filter};}
+  function restoreShopFocus(){
+    if(!shopFocus||busy||$('quest-action-dialog').open)return;
+    const origin=shopFocus;shopFocus=null;
+    if(origin.page!==shopPage||origin.market!==market||origin.area!==area||origin.filter!==filter)return;
+    const controls=Array.from($('shop-catalog').querySelectorAll?.('[data-shop-action]')||[]).filter(button=>button.dataset.item===origin.id);
+    const target=controls.find(button=>button.dataset.shopAction===origin.action&&!button.disabled)
+      ||controls.find(button=>button.dataset.shopAction==='equip'&&!button.disabled)
+      ||controls.find(button=>button.dataset.shopAction==='preview');
+    target?.focus?.();
+  }
+  function changeShopPage(direction){
+    if(!data||busy)return;
+    const next=Math.max(0,Math.min(shopPage+direction,shopPageCount-1));
+    if(next===shopPage)return;
+    shopPage=next;shopFocus=null;renderShop();
+    $('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});
   }
   function exchangeAmount(){
     const amount=Number($('exchange-amount').value);
@@ -263,17 +293,18 @@
   }
   function browseCamp(){
     if(!data)return;
-    area='camp';market='coins';filter='all';renderShop();
+    area='camp';market='coins';filter='all';shopPage=0;renderShop();
   }
   function browseCollection(slot){
     if(!data)return;
-    market='owned';area='all';filter=Object.hasOwn(names,slot)?slot:'all';renderShop();
+    market='owned';area='all';filter=Object.hasOwn(names,slot)?slot:'all';shopPage=0;renderShop();
     $('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});
   }
   function openItem(action,id){
     if(busy)return;
     const item=data?.catalog.find(item=>item.id===id);if(!item)return;
     if(item.slot==='interface'&&!window.FocusInterfaceThemes?.has(item.id))return;
+    rememberShopFocus(action,id);
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.lotteryOnly||item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
@@ -314,15 +345,17 @@
     if(bridge)return;bridge=callbacks;
     $('quest-board').addEventListener('click',event=>{const b=event.target.closest('[data-quest-action]');if(b)openQuest(b.dataset.questAction,b.dataset.subject);});
     $('shop-catalog').addEventListener('click',event=>{const b=event.target.closest('[data-shop-action]');if(b)openItem(b.dataset.shopAction,b.dataset.item);});
-    document.querySelectorAll('[data-shop-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.shopFilter;render(data);}));
-    document.querySelectorAll('[data-shop-area]').forEach(button=>button.addEventListener('click',()=>{area=button.dataset.shopArea;filter='all';render(data);}));
-    document.querySelectorAll('[data-shop-market]').forEach(button=>button.addEventListener('click',()=>{market=button.dataset.shopMarket;filter='all';render(data);}));
-    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;area=filter==='interface'?'interface':campSlots.has(filter)?'camp':'journey';render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
+    document.querySelectorAll('[data-shop-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.shopFilter;shopPage=0;render(data);}));
+    document.querySelectorAll('[data-shop-area]').forEach(button=>button.addEventListener('click',()=>{area=button.dataset.shopArea;filter='all';shopPage=0;render(data);}));
+    document.querySelectorAll('[data-shop-market]').forEach(button=>button.addEventListener('click',()=>{market=button.dataset.shopMarket;filter='all';shopPage=0;render(data);}));
+    $('shop-page-prev')?.addEventListener('click',()=>changeShopPage(-1));
+    $('shop-page-next')?.addEventListener('click',()=>changeShopPage(1));
+    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;area=filter==='interface'?'interface':campSlots.has(filter)?'camp':'journey';shopPage=0;render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
     $('exchange-amount').addEventListener('input',()=>{if(data)renderExchange();});
     $('exchange-open').addEventListener('click',openExchange);
     $('exchange-reverse-open').addEventListener('click',openReverseExchange);
     $('quest-action-confirm').addEventListener('click',()=>perform(intent));
-    $('quest-action-dialog').addEventListener('close',()=>{intent=null;});
+    $('quest-action-dialog').addEventListener('close',()=>{intent=null;restoreShopFocus();});
   }
   return {init,render,actionFor,taskMarkup,itemMarkup,browseCamp,browseCollection};
 });

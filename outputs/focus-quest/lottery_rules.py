@@ -13,13 +13,13 @@ import secrets
 PURCHASE_LIMIT = 10
 PRICES = {"coin": {"coins": 80, "diamonds": 0},
           "diamond": {"coins": 0, "diamonds": 4}}
-# Ordinary items occupy 19%, lottery-only items 1%, and currency 80%.
+# Ordinary items occupy 24%, lottery-only items 1%, and currency 75%.
 # Cross-currency chances match between machines; ordinary item ratios are kept.
-# A 70,000-position wheel keeps currency ratios exactly 97:15 and coin-machine
-# ordinary item ratios exactly 95:5, without rounding the disclosed 19% / 1%.
-ODDS = {"coin": (("coins", 48500), ("diamonds", 7500), ("coinItem", 12635), ("diamondItem", 665), ("lotteryOnly", 700)),
-        "diamond": (("diamonds", 48500), ("coins", 7500), ("diamondItem", 13300), ("lotteryOnly", 700))}
-PITY_LIMITS = {"coin": 30, "diamond": 20}
+# A 56,000-position wheel keeps currency ratios exactly 97:15 and coin-machine
+# ordinary item ratios exactly 95:5, without rounding the disclosed 24% / 1%.
+ODDS = {"coin": (("coins", 36375), ("diamonds", 5625), ("coinItem", 12768), ("diamondItem", 672), ("lotteryOnly", 560)),
+        "diamond": (("diamonds", 36375), ("coins", 5625), ("diamondItem", 13440), ("lotteryOnly", 560))}
+PITY_LIMITS = {"coin": 40, "diamond": 25}
 LIMITED_FALLBACK = {"coin": {"coins": 120, "diamonds": 0},
                     "diamond": {"coins": 0, "diamonds": 8}}
 # Weight, minimum, maximum; each interval is sampled uniformly.

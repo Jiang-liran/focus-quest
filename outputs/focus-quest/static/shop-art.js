@@ -218,9 +218,9 @@
     for(const [slot,id] of Object.entries(valid))if(doc.documentElement.dataset[slot]!==id)doc.documentElement.dataset[slot]=id;
     dressTravelers(doc,valid.avatar);
     let regalia=doc.getElementById('equipped-player-regalia');
-    const limitedAvatar=expansion?.item(valid.avatar)?.lotteryOnly===true;
-    if(limitedAvatar)regalia=mount(doc,'equipped-player-regalia','#scene-traveler',true);
-    if(regalia)put(regalia,valid.avatar,limitedAvatar?expansion.avatar(valid.avatar,4).replace(/^<svg[^>]*>|<\/svg>$/g,''):'','translate(142 158) scale(.9)');
+    const fullOutfit=expansion?.item(valid.avatar)?.lotteryOnly===true||expansion?.fullOutfit?.(valid.avatar)===true;
+    if(fullOutfit)regalia=mount(doc,'equipped-player-regalia','#scene-traveler',true);
+    if(regalia)put(regalia,valid.avatar,fullOutfit?expansion.avatar(valid.avatar,4).replace(/^<svg[^>]*>|<\/svg>$/g,''):'','translate(142 158) scale(.9)');
     // The keyed mounts survive ordinary state polls and preserve their animation phase.
     const companion=mount(doc,'equipped-companion','.floating-island',true);
     const island=mount(doc,'equipped-island','.floating-island',true);
