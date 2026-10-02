@@ -29,6 +29,8 @@
   function cost(value){return number(value?.diamonds)?`${count(value.diamonds)} 钻石`:`${count(value?.coins)} 金币`;}
   function priceEnough(item){return count(data?.wallet?.coins)>=count(item?.price?.coins)&&count(data?.wallet?.diamonds)>=count(item?.price?.diamonds);}
   function canBuy(){const item=model();return Boolean(item&&!busy&&!retry&&item.canBuy===true&&number(item.purchasesRemaining)>0&&priceEnough(item));}
+  function exchangeCost(item=model()){const value=item?.exchange?.cost;return Number.isInteger(value)&&value>0?value:0;}
+  function canExchange(){return Boolean(exchangeCost()&&!busy&&!retry&&model()?.exchange?.canExchange===true&&Number.isInteger(data?.playTickets?.available)&&data.playTickets.available>=exchangeCost());}
   function canDraw(){return Boolean(model()?.canDraw===true&&number(data?.tickets?.[machine])>0&&!busy&&!retry);}
   function ticketArt(kind){
     return `<svg viewBox="0 0 78 52" aria-hidden="true" fill="none"><path d="M8 8h62v11a7 7 0 0 0 0 14v11H8V33a7 7 0 0 0 0-14Z" fill="${kind==='coin'?'#eacb83':'#c6b5f3'}"/><path d="M56 10v32" stroke="${kind==='coin'?'#807042':'#796698'}" stroke-dasharray="3 3"/><path d="M13 13h35v26H13z" stroke="${kind==='coin'?'#9d874f':'#9a80bd'}"/><path d="${kind==='coin'?'M30 18a8 8 0 1 0 0 16 8 8 0 0 0 0-16ZM30 21v10M27 23h6m-6 6h6':'m30 17 10 9-10 10-10-10 10-9Zm0 0-4 9 4 10 4-10-4-9Zm-10 9h20'}" stroke="${kind==='coin'?'#fff7cd':'#fcf3ff'}" stroke-width="1.6" stroke-linejoin="round"/></svg>`;
@@ -111,7 +113,7 @@
       ['拾星星礼','「拾星」第 3、4 份星礼：各 1 张。'],
       ['首轮集齐','四科首轮加赠全部领齐：1 张。']
     ];
-    return `<p class="lottery-dialog-intro">专注带来的小票，可以留到想拆礼物的时候。以下奖励领取时会一起收好${labels[machine].ticket}。</p><section class="lottery-rule-section"><div class="lottery-rule-section-heading"><h3>随学习获得</h3><span>每次领取，都有迹可循</span></div><ol class="lottery-source-cards">${sources.map(([title,text],index)=>`<li><span class="lottery-source-index">${String(index+1).padStart(2,'0')}</span><div><h4>${esc(title)}</h4><p>${esc(text)}</p></div></li>`).join('')}</ol></section><section class="lottery-rule-guarantee"><span>也可以给幸运留一张小票</span><h3>${cost(item.price)} 换 1 张</h3><p>${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。</p><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次。回到机器旁即可购买，购券不会自动开奖。</p></section><section class="lottery-rule-section lottery-ticket-notes"><h3>收好以后，慢慢拆</h3><p>抽奖券永久保留，两种券各用各的。新领取的对应奖励会带上抽奖券，已经收好的旧奖励不补发。</p><p>普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。原有礼盒和时段加赠的抽奖券照常获得。</p></section>`;
+    return `<p class="lottery-dialog-intro">专注带来的小票，可以留到想拆礼物的时候。以下奖励领取时会一起收好${labels[machine].ticket}。</p><section class="lottery-rule-section"><div class="lottery-rule-section-heading"><h3>随学习获得</h3><span>每次领取，都有迹可循</span></div><ol class="lottery-source-cards">${sources.map(([title,text],index)=>`<li><span class="lottery-source-index">${String(index+1).padStart(2,'0')}</span><div><h4>${esc(title)}</h4><p>${esc(text)}</p></div></li>`).join('')}</ol></section>${exchangeCost(item)?`<section class="lottery-rule-guarantee lottery-rule-exchange"><span>把游玩券留给幸运</span><h3>${exchangeCost(item)} 张游玩券，换 1 张${labels[machine].ticket}</h3><p>累计游玩券 ${count(data?.playTickets?.available)} 张。游玩券与抽奖券都会跨日永久保留。</p><p>兑换不限次数，不占用每日购券额度，也不会自动开奖。剩余游玩券仍可用于游戏；游玩次数与游戏奖励仍按日限制。</p></section>`:''}<section class="lottery-rule-guarantee"><span>也可以给幸运留一张小票</span><h3>${cost(item.price)} 换 1 张</h3><p>${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。</p><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次。回到机器旁即可购买，购券不会自动开奖。</p></section><section class="lottery-rule-section lottery-ticket-notes"><h3>收好以后，慢慢拆</h3><p>抽奖券永久保留，两种券各用各的。新领取的对应奖励会带上抽奖券，已经收好的旧奖励不补发。</p><p>普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。原有礼盒和时段加赠的抽奖券照常获得。</p></section>`;
   }
   function closeRules(refresh=true){
     const dialog=rulesDialog,focus=rulesFocus;rulesDialog=null;rulesFocus='';
@@ -140,6 +142,11 @@
     dialog.addEventListener('click',ruleClick);dialog.addEventListener('cancel',ruleCancel);dialog.addEventListener('close',ruleClosed);dialog.addEventListener('keydown',ruleKey);
     try{dialog.showModal();dialog.querySelector('[data-lottery-close]')?.focus({preventScroll:true});}catch{closeRules();}
   }
+  function exchangeHTML(item){
+    const amount=exchangeCost(item);if(!amount)return '';
+    const available=count(data?.playTickets?.available),waiting=busy?.action==='exchange'&&busy.machine===machine;
+    return `<section class="lottery-exchange" aria-labelledby="lottery-exchange-title"><div class="lottery-exchange-heading"><span class="lottery-eyebrow">把留存的小票，换成一份期待</span><span class="lottery-play-balance">累计游玩券 <b>${available}</b> 张</span></div><div class="lottery-exchange-route"><span><b>${amount}</b> 张游玩券</span><i aria-hidden="true">⇢</i><span><b>1</b> 张${labels[machine].ticket}</span></div><h3 id="lottery-exchange-title" class="lottery-exchange-caption">游玩券也可以留给幸运</h3><button type="button" data-lottery-action="exchange" data-lottery-focus="exchange" aria-disabled="${!canExchange()}"${waiting?' aria-busy="true"':''}>${waiting?'正在兑换…':available<amount?`还差 ${amount-available} 张游玩券`:`用 ${amount} 张游玩券兑换`}</button><p>游玩券永久保留 · 兑换不限次数<br>收好抽奖券，再按自己的心情开奖。</p></section>`;
+  }
   function pendingGifts(){return (data?.starGifts||[]).filter(row=>row?.machine===machine&&row.claimed===false&&/^\d{4}-\d{2}-\d{2}$/.test(row.day)&&Number.isInteger(row.index)&&row.index>=1&&row.index<=4);}
   function starGiftsHTML(){
     const rows=pendingGifts();if(!rows.length)return '';
@@ -159,10 +166,10 @@
       ${pityHTML(item)}
       <div class="lottery-layout"><div class="lottery-main">${resultHTML()}
         <div class="lottery-draw"><button type="button" class="lottery-draw-button" data-lottery-action="draw" data-lottery-focus="draw" aria-disabled="${!canDraw()}"${busy?.action==='draw'?' aria-busy="true"':''}>${busy?.action==='draw'?'正在打开…':number(data.tickets[machine])>0?'投入 1 张券 · 打开惊喜':'还没有抽奖券'}</button><small>每次消耗 1 张${labels[machine].ticket}；进入这里不会消耗。</small></div>
-        <div class="lottery-status" role="status" ${error||loadError||retry?'':'hidden'}>${esc(error||loadError||'上次操作需要确认，请先收好它的结果。')}${retry&&!busy?`<button type="button" data-lottery-action="retry" data-lottery-focus="retry">确认上次${retry.action==='draw'?'抽奖':retry.action==='star-gift'?'开礼盒':'购券'}</button>`:''}</div>
+        <div class="lottery-status" role="status" ${error||loadError||retry?'':'hidden'}>${esc(error||loadError||'上次操作需要确认，请先收好它的结果。')}${retry&&!busy?`<button type="button" data-lottery-action="retry" data-lottery-focus="retry">确认上次${retry.action==='draw'?'抽奖':retry.action==='star-gift'?'开礼盒':retry.action==='exchange'?'兑换':'购券'}</button>`:''}</div>
       </div><aside class="lottery-aside">
         <section class="lottery-purchase" aria-labelledby="lottery-purchase-title"><div><span class="lottery-eyebrow">给幸运留一张小票</span><h3 id="lottery-purchase-title">${cost(item.price)} 换 1 张</h3><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次</p></div><button type="button" data-lottery-action="buy" data-lottery-focus="buy" aria-disabled="${!canBuy()}"${busy?.action==='buy'?' aria-busy="true"':''}>${busy?.action==='buy'?'正在收好…':!number(item.purchasesRemaining)?'今日已买满':!priceEnough(item)?`${labels[machine].currency}暂时不足`:`${cost(item.price)} · 购买 1 张`}</button><small>行囊：${count(data.wallet?.coins)} 金币 · ${count(data.wallet?.diamonds)} 钻石<br>购券不是开奖，买好后再按自己的心情拆开。${roundSummary()?`<br>${roundSummary()}`:''}</small></section>
-        ${starGiftsHTML()}${ruleLink('odds')}${ruleLink('sources')}${historyHTML()}<p class="lottery-rest-note">惊喜是额外的小礼，学习的收获已经属于你。</p>
+        ${exchangeHTML(item)}${starGiftsHTML()}${ruleLink('odds')}${ruleLink('sources')}${historyHTML()}<p class="lottery-rest-note">惊喜是额外的小礼，学习的收获已经属于你。</p>
       </aside></div>${collectionHTML(item)}
     </section>`;
     if(html===markup)return;
@@ -190,6 +197,7 @@
   }
   function validOutcome(result,operation){
     if(result?.machine!==operation.machine)return false;
+    if(operation.action==='exchange')return result.type==='ticket'&&result.amount===1&&result.source==='playTicketExchange'&&result.playTicketsSpent===operation.exchangeCost;
     if(operation.action==='buy')return result.type==='ticket'&&result.amount===1;
     if(operation.action==='star-gift')return result.type==='starGift'&&result.day===operation.day&&result.index===operation.index;
     if(result.type==='item')return Boolean(result.item&&/^[a-z0-9-]+$/.test(result.item.id||'')&&typeof result.item.name==='string');
@@ -197,28 +205,28 @@
     return typeof amount==='number'&&Number.isInteger(amount)&&amount>0;
   }
   async function mutate(action,confirm=false,gift=null){
-    if(busy||!visible()||!['draw','buy','star-gift'].includes(action))return;
+    if(busy||rulesDialog?.open||!visible()||!['draw','buy','star-gift','exchange'].includes(action))return;
     if(confirm){if(!retry||retry.action!==action)return;}
-    else if(retry||(action==='draw'?!canDraw():action==='buy'?!canBuy():!pendingGifts().some(row=>row.day===gift?.day&&row.index===gift?.index)))return;
-    try{busy=confirm?{...retry,viewId}:{machine,action,viewId,requestId:requestId(),...(action==='star-gift'?{day:gift.day,index:gift.index}:{})};}catch(e){error=e.message;paint();return;}
+    else if(retry||(action==='draw'?!canDraw():action==='buy'?!canBuy():action==='exchange'?!canExchange():!pendingGifts().some(row=>row.day===gift?.day&&row.index===gift?.index)))return;
+    try{busy=confirm?{...retry,viewId}:{machine,action,viewId,requestId:requestId(),...(action==='exchange'?{exchangeCost:exchangeCost()}:{}),...(action==='star-gift'?{day:gift.day,index:gift.index}:{})};}catch(e){error=e.message;paint();return;}
     const operation=busy,operationView=viewId;retry=operation;error='';loadError='';bridge.unlock?.();paint();
     try{
       const payload=action==='star-gift'?{day:operation.day,index:operation.index,requestId:operation.requestId}:{machine:operation.machine,requestId:operation.requestId};
       const result=await bridge.api(`/api/lottery/${action}`,payload);
       const outcome=result?.result;
-      if(!valid(result?.lottery)||!result?.quests||!validOutcome(outcome,operation)||(action==='star-gift'&&!result.lottery.starGifts?.some(row=>row.day===operation.day&&row.index===operation.index&&row.machine===operation.machine&&row.claimed===true)))throw new Error('这份礼物的回执还没有完整送到，请确认上次操作。');
+      if(!valid(result?.lottery)||!result?.quests||!validOutcome(outcome,operation)||(action==='exchange'&&(!Number.isInteger(result.arcade?.available)||result.arcade.available<0||result.arcade.persistentTickets!==true||result.lottery.playTickets?.available!==result.arcade.available))||(action==='star-gift'&&!result.lottery.starGifts?.some(row=>row.day===operation.day&&row.index===operation.index&&row.machine===operation.machine&&row.claimed===true)))throw new Error('这份礼物的回执还没有完整送到，请确认上次操作。');
       accept(result.lottery);retry=null;
       if(action==='draw'&&host&&machine===operation.machine&&viewId===operationView)results.set(operation.machine,outcome);
       if(bridge.acceptReceipt)bridge.acceptReceipt(result);else bridge.acceptQuests?.(result.quests);
       if(!announced.has(operation.requestId)){
         if(action==='draw'&&visible()&&machine===operation.machine&&viewId===operationView)pendingReveals.add(operation.machine);
         announced.add(operation.requestId);if(announced.size>96)announced.delete(announced.values().next().value);
-        if(!result.alreadyProcessed&&visible()&&machine===operation.machine&&viewId===operationView)bridge.playSound?.(action==='buy'?'purchase':outcome.limited||outcome.rarity==='jackpot'?'victory':'delivery',{key:`lottery:${operation.requestId}`});
-        bridge.toast?.(action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='star-gift'?`+1 ${labels[operation.machine].ticket} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?`${number(outcome.price?.coins)||number(outcome.price?.diamonds)?`已使用 ${cost(outcome.price)}。`:''}抽奖券会一直保留，想拆开时再来。`:outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
+        if(!result.alreadyProcessed&&visible()&&machine===operation.machine&&viewId===operationView)bridge.playSound?.(action==='buy'||action==='exchange'?'purchase':outcome.limited||outcome.rarity==='jackpot'?'victory':'delivery',{key:`lottery:${operation.requestId}`});
+        bridge.toast?.(action==='exchange'?`${labels[operation.machine].ticket}已兑换`:action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='exchange'?`已使用 ${operation.exchangeCost} 张游玩券，收下 1 张${labels[operation.machine].ticket}。抽奖券永久保留。`:action==='star-gift'?`+1 ${labels[operation.machine].ticket} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?`${number(outcome.price?.coins)||number(outcome.price?.diamonds)?`已使用 ${cost(outcome.price)}。`:''}抽奖券会一直保留，想拆开时再来。`:outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
       }
     }catch(e){
       if(Number(e?.status)>=400&&Number(e.status)<500&&Number(e.status)!==408&&Number(e.status)!==429)retry=null;
-      error=e?.message||'结果暂时没有送到，确认上次操作即可，不会再用一张券。';
+      error=e?.message||'结果暂时没有送到，确认上次操作即可，不会再次扣券。';
       if(!host)bridge.toast?.('机器替你保留着上次操作',error,true);
     }finally{busy=null;paint();}
     try{await bridge.refresh?.(true);}catch{/* The receipt remains authoritative if the next refresh is unavailable. */}
@@ -232,7 +240,7 @@
     if(action==='rules'){openRules(node.dataset.lotteryRule);return;}
     if(action==='retry'){if(retry)void mutate(retry.action,true);return;}
     if(action==='star-gift'){void mutate(action,false,{day:node.dataset.lotteryDay,index:Number(node.dataset.lotteryIndex)});return;}
-    if(action==='draw'||action==='buy')void mutate(action);
+    if(action==='draw'||action==='buy'||action==='exchange')void mutate(action);
   }
   function render(next){
     if(!next)return;accept(next.lottery||next.quests?.lottery);paint();

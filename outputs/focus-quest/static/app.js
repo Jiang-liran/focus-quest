@@ -647,8 +647,11 @@ function acceptLotteryReceipt(result){
   const incoming=stamp(result.quests.now||result.now),current=stamp(state.quests?.now);
   if(Number.isFinite(incoming)&&Number.isFinite(current)&&incoming<current)return;
   requestSequence++;inFlight=false;
-  state={...state,quests:result.quests,lottery:result.lottery||result.quests.lottery};
+  const arcadeStamp=stamp(result.arcade?.now),storedArcadeStamp=stamp(state.arcade?.now);
+  const arcade=result.arcade&&(!Number.isFinite(storedArcadeStamp)||Number.isFinite(arcadeStamp)&&arcadeStamp>=storedArcadeStamp)?result.arcade:null;
+  state={...state,quests:result.quests,lottery:result.lottery||result.quests.lottery,...(arcade?{arcade}:{})};
   globalThis.FocusQuests?.render(state.quests);globalThis.FocusQuickSkins?.render(state.quests);
+  if(arcade)globalThis.FocusArcade?.render(arcade,state.settings);
   globalThis.FocusCitadel?.applyEquipment(state.quests.equipped,state.quests.now);
 }
 globalThis.FocusMystery?.init({api,toast,refresh,playSound,acceptReceipt:acceptLotteryReceipt,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});

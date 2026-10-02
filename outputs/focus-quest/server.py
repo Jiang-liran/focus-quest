@@ -236,6 +236,8 @@ MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
 LOTTERY_START_META = "lottery:featureStartMs:v1"
 LOTTERY_ROUNDS_META = "lottery:roundTickets:v1"
+PLAY_TICKETS_START_META = "arcade:persistentTicketsStartDay:v1"
+PLAY_TICKET_EXCHANGE_COSTS = {"coin": 2, "diamond": 4}
 RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
 # These are historical upgrade prices, not purchasable catalog entries. Old
 # archives still need the v1.8 difference credited before the final net refund.
@@ -715,6 +717,10 @@ class FocusStore:
                 CHECK(kind IN ('buy','draw','starGift')), CHECK(machine IN ('coin','diamond'))
             );
             CREATE INDEX IF NOT EXISTS lottery_request_day ON lottery_requests(kind,machine,day);
+            CREATE TABLE IF NOT EXISTS lottery_play_ticket_exchanges (
+                request_id TEXT PRIMARY KEY, machine TEXT NOT NULL CHECK(machine IN ('coin','diamond')),
+                day TEXT NOT NULL, created_ms INTEGER NOT NULL, result TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS lottery_pity (
                 machine TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0,
                 CHECK(machine IN ('coin','diamond')), CHECK(count>=0)
@@ -771,6 +777,23 @@ class FocusStore:
                 coins INTEGER NOT NULL, created_ms INTEGER NOT NULL
             );
             CREATE INDEX IF NOT EXISTS arcade_ticket_purchase_day ON arcade_ticket_purchases(day);
+            CREATE TABLE IF NOT EXISTS arcade_play_ticket_ledger (
+                reference TEXT PRIMARY KEY, amount INTEGER NOT NULL CHECK(amount!=0),
+                created_ms INTEGER NOT NULL, source TEXT NOT NULL, label TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS arcade_ticket_earnings (
+                day TEXT PRIMARY KEY, issued INTEGER NOT NULL CHECK(issued>=0),
+                legacy_minutes REAL NOT NULL DEFAULT 0 CHECK(legacy_minutes>=0)
+            );
+            CREATE TABLE IF NOT EXISTS arcade_ticket_record_credits (
+                record_id TEXT PRIMARY KEY, day TEXT NOT NULL,
+                minutes REAL NOT NULL CHECK(minutes>=0),
+                credited_minutes REAL NOT NULL CHECK(credited_minutes>=0)
+            );
+            CREATE INDEX IF NOT EXISTS arcade_ticket_credit_day ON arcade_ticket_record_credits(day);
+            CREATE TABLE IF NOT EXISTS arcade_ticket_merge_credits (
+                removed_id TEXT PRIMARY KEY, canonical_id TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS arcade_moves (
                 session_id TEXT NOT NULL, version INTEGER NOT NULL,
                 move TEXT NOT NULL, PRIMARY KEY(session_id,version)
@@ -871,6 +894,7 @@ class FocusStore:
                 self.db.commit()
             except BaseException:
                 self.db.rollback()
+                self._play_ticket_sync_cache = None
                 raise
 
     def _wallet(self):
@@ -1004,6 +1028,7 @@ class FocusStore:
         with self.lock:
             current = quest_clock(now)
             day = current.date().isoformat()
+            play_tickets = self._sync_play_tickets(current)
             tickets = {machine: 0 for machine in lottery_rules.PRICES}
             for row in self.db.execute("SELECT machine,SUM(amount) FROM lottery_ticket_ledger GROUP BY machine"):
                 tickets[row[0]] = row[1]
@@ -1024,6 +1049,8 @@ class FocusStore:
                     "purchasesRemaining": remaining,
                     "canBuy": remaining > 0 and all(wallet[key] >= amount for key, amount in price.items()),
                     "canDraw": tickets[machine] > 0, "odds": lottery_rules.odds_for(machine),
+                    "exchange": {"cost": PLAY_TICKET_EXCHANGE_COSTS[machine],
+                                 "canExchange": play_tickets >= PLAY_TICKET_EXCHANGE_COSTS[machine]},
                     "pool": {"coinItems": len(pools["coinItem"]) if machine == "coin" else 0,
                              "diamondItems": len(pools["diamondItem"]), "exclusiveItems": 0,
                              "lotteryOnlyItems": len(pools[machine+"Limited"]), "lotteryOnlyTotal": limited_total},
@@ -1050,6 +1077,7 @@ class FocusStore:
                               ORDER BY g.day DESC,g.gift_index""", (int(self._meta(LOTTERY_START_META)),))]
             return {"day": day, "now": current.isoformat(), "revision": int(self._meta("revision") or 0),
                     "featureStartMs": int(self._meta(LOTTERY_START_META)), "tickets": tickets, "wallet": wallet,
+                    "playTickets": {"available": play_tickets, "persistent": True},
                     "machines": machines, "history": history, "grants": grants, "starGifts": star_gifts,
                     "roundTickets": self._round_ticket_state(),
                     "persistentTickets": True, "onlyUnownedItems": True, "shopExclusiveItemsExcluded": False}
@@ -1060,6 +1088,9 @@ class FocusStore:
         with self._quest_transaction():
             current = quest_clock(now)
             previous = self.db.execute("SELECT * FROM lottery_requests WHERE request_id=?", (request_id,)).fetchone()
+            if previous is None:
+                exchange = self.db.execute("SELECT * FROM lottery_play_ticket_exchanges WHERE request_id=?", (request_id,)).fetchone()
+                previous = dict(exchange, kind="exchange") if exchange else None
             if previous is not None:
                 if previous["kind"] != kind or previous["machine"] != machine:
                     raise ValueError("同一个抽奖请求标识不能更改机器或操作")
@@ -1079,6 +1110,16 @@ class FocusStore:
                                     (f"lottery-buy:{request_id}", -price["coins"], -price["diamonds"], stamp))
                     self.db.execute("INSERT INTO lottery_ticket_ledger VALUES (?,?,1,?,?,?)",
                                     (f"lottery-buy:{request_id}", machine, stamp, "purchase", "购买抽奖券"))
+                elif kind == "exchange":
+                    cost = PLAY_TICKET_EXCHANGE_COSTS[machine]
+                    if self._sync_play_tickets(current) < cost:
+                        raise ValueError(f"游玩券不足，需要 {cost} 张游玩券兑换一张对应抽奖券")
+                    result = {"type": "ticket", "machine": machine, "amount": 1,
+                              "source": "playTicketExchange", "playTicketsSpent": cost}
+                    self.db.execute("INSERT INTO arcade_play_ticket_ledger VALUES (?,?,?,?,?)",
+                                    (f"lottery-exchange:{request_id}", -cost, stamp, "exchange", "兑换抽奖券"))
+                    self.db.execute("INSERT INTO lottery_ticket_ledger VALUES (?,?,1,?,?,?)",
+                                    (f"lottery-exchange:{request_id}", machine, stamp, "play-ticket-exchange", "游玩券兑换"))
                 else:
                     balance = self.db.execute("SELECT COALESCE(SUM(amount),0) FROM lottery_ticket_ledger WHERE machine=?", (machine,)).fetchone()[0]
                     if balance < 1:
@@ -1096,10 +1137,17 @@ class FocusStore:
                     else:
                         self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                                         (f"lottery-draw:{request_id}", result["coins"], result["diamonds"], stamp))
-                self.db.execute("INSERT INTO lottery_requests VALUES (?,?,?,?,?,?)",
-                    (request_id, kind, machine, day, stamp, json.dumps(result, ensure_ascii=False, allow_nan=False)))
+                if kind == "exchange":
+                    self.db.execute("INSERT INTO lottery_play_ticket_exchanges VALUES (?,?,?,?,?)",
+                        (request_id, machine, day, stamp, json.dumps(result, ensure_ascii=False, allow_nan=False)))
+                else:
+                    self.db.execute("INSERT INTO lottery_requests VALUES (?,?,?,?,?,?)",
+                        (request_id, kind, machine, day, stamp, json.dumps(result, ensure_ascii=False, allow_nan=False)))
                 self._bump_revision()
+            if kind == "exchange":
+                self._arcade_expire(current)
             return {"lottery": self.lottery_state(current), "quests": self.quest_state(current),
+                    **({"arcade": self._arcade_snapshot(current)} if kind == "exchange" else {}),
                     "result": result, "alreadyProcessed": previous is not None, "now": current.isoformat()}
 
     def buy_lottery_ticket(self, machine, request_id, now=None):
@@ -1107,6 +1155,9 @@ class FocusStore:
 
     def draw_lottery(self, machine, request_id, now=None):
         return self._lottery_request(machine, request_id, "draw", now)
+
+    def exchange_play_tickets(self, machine, request_id, now=None):
+        return self._lottery_request(machine, request_id, "exchange", now)
 
     def open_lottery_star_gift(self, day, index, request_id, now=None):
         parse_day(day)
@@ -1116,6 +1167,8 @@ class FocusStore:
         machine = "coin" if index <= 2 else "diamond"
         with self._quest_transaction():
             current = quest_clock(now)
+            if self.db.execute("SELECT 1 FROM lottery_play_ticket_exchanges WHERE request_id=?", (request_id,)).fetchone():
+                raise ValueError("同一个抽奖请求标识不能更改机器或操作")
             previous = self.db.execute("SELECT * FROM lottery_requests WHERE request_id=?", (request_id,)).fetchone()
             result = {"type": "starGift", "machine": machine, "day": day, "index": index}
             ticket_grants, already_claimed = [], False
@@ -3373,6 +3426,7 @@ class FocusStore:
 
     def import_sources(self, *, only_if_changed=False):
         with self.lock:
+            self._sync_play_tickets(quest_clock())
             signature = self._source_poll_signature()
             cached = getattr(self, "_source_poll_cache", None)
             elapsed = time.monotonic() - cached[1] if cached else None
@@ -3390,6 +3444,7 @@ class FocusStore:
                 return 0
             before_files = signature[0]
             changed = self.import_source() + self.import_calendar()
+            self._sync_play_tickets(quest_clock())
             after = self._source_poll_signature()
             pending_desktop_deletion = self.db.execute("""SELECT 1 FROM source_presence
                 WHERE source='tomatodo' AND missing_count=1 LIMIT 1""").fetchone()
@@ -3651,6 +3706,103 @@ class FocusStore:
                 self._arcade_end(row, "expired", {"won": False, "score": 0, "medal": 0,
                     "reason": "休息时间到了。本轮已收起，下次再来岛上散步。"}, current)
 
+    def _play_ticket_balance(self):
+        return max(0, self.db.execute("SELECT COALESCE(SUM(amount),0) FROM arcade_play_ticket_ledger").fetchone()[0])
+
+    def _sync_play_tickets(self, current):
+        # Never commit the caller's game/lottery transaction early.
+        with self.lock:
+            if not self.db.in_transaction:
+                with self._quest_transaction():
+                    self._sync_play_ticket_issuance(current)
+            else:
+                self._sync_play_ticket_issuance(current)
+            return self._play_ticket_balance()
+
+    def _sync_play_ticket_issuance(self, current):
+        day, stamp = current.date().isoformat(), int(current.timestamp()*1000)
+        signature = (self.db.total_changes, self.db.execute("PRAGMA data_version").fetchone()[0], day)
+        cached = getattr(self, "_play_ticket_sync_cache", None)
+        if (cached and cached[0] == signature and stamp >= cached[1]
+                and (cached[2] is None or stamp < cached[2])):
+            return
+        rules, changed = arcade_rules.RULES, False
+        epoch = self._meta(PLAY_TICKETS_START_META)
+        if epoch is None:
+            # Only today's unused old admissions survive. Mark observed rows,
+            # including deleted ones, so restoring old study cannot remint.
+            rows = self.db.execute("""SELECT r.*, EXISTS(SELECT 1 FROM record_lifecycle l
+                WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL) AS deleted
+                FROM records r WHERE r.day=? AND r.end_ms<=?""", (day, stamp)).fetchall()
+            minutes = sum(max(0, float(row["minutes"])) for row in rows if not row["deleted"])
+            earned = min(rules["maxTickets"], math.floor((minutes+1e-8)/rules["ticketMinutes"]))
+            purchased = self.db.execute("SELECT COUNT(*) FROM arcade_ticket_purchases WHERE day=?", (day,)).fetchone()[0]
+            used = self.db.execute("SELECT COUNT(*) FROM arcade_sessions WHERE day=?", (day,)).fetchone()[0]
+            study_spent = min(rules["maxTickets"], max(0, used-purchased))
+            available = max(0, earned+purchased-used)
+            self._set_meta(PLAY_TICKETS_START_META, day)
+            self.db.execute("INSERT INTO arcade_ticket_earnings VALUES (?,?,?)",
+                            (day, max(earned, study_spent), max(0, study_spent*rules["ticketMinutes"]-minutes)))
+            for row in rows:
+                amount = max(0, float(row["minutes"]))
+                self.db.execute("INSERT INTO arcade_ticket_record_credits VALUES (?,?,?,?)",
+                                (row["id"], day, amount, 0 if row["deleted"] else amount))
+            if available:
+                self.db.execute("INSERT INTO arcade_play_ticket_ledger VALUES (?,?,?,?,?)",
+                                ("migration:"+day, available, stamp, "migration", "保留升级当日未使用游玩券"))
+            epoch, changed = day, True
+        # Source deduplication and history consolidation must inherit already
+        # credited duration, including chains of canonical record redirects.
+        transfers = self.db.execute("""SELECT c.*,m.canonical_id FROM arcade_ticket_record_credits c
+            JOIN record_merges m ON m.removed_id=c.record_id
+            WHERE NOT EXISTS (SELECT 1 FROM arcade_ticket_merge_credits t WHERE t.removed_id=c.record_id)""").fetchall()
+        for row in transfers:
+            canonical = self._history_canonical_id(row["canonical_id"])
+            saved = self.db.execute("SELECT 1 FROM arcade_ticket_record_credits WHERE record_id=?", (canonical,)).fetchone()
+            if saved:
+                self.db.execute("UPDATE arcade_ticket_record_credits SET minutes=minutes+? WHERE record_id=?", (row["minutes"], canonical))
+            else:
+                self.db.execute("INSERT INTO arcade_ticket_record_credits VALUES (?,?,?,0)", (canonical, row["day"], row["minutes"]))
+            self.db.execute("INSERT INTO arcade_ticket_merge_credits VALUES (?,?)", (row["record_id"], canonical))
+            changed = True
+        # A credited record keeps its first date even when corrected later.
+        rows = self.db.execute("""SELECT r.id,r.day,r.minutes,c.day AS credited_day,
+                c.minutes AS previous_minutes,c.credited_minutes
+            FROM records r LEFT JOIN arcade_ticket_record_credits c ON c.record_id=r.id
+            WHERE r.day>=? AND r.day<=? AND r.end_ms<=?
+                AND (c.record_id IS NULL OR r.minutes>c.minutes)
+                AND NOT EXISTS (SELECT 1 FROM record_lifecycle l
+                    WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""", (epoch, day, stamp)).fetchall()
+        affected = set()
+        for row in rows:
+            amount = max(0, float(row["minutes"]))
+            if row["previous_minutes"] is None:
+                self.db.execute("INSERT INTO arcade_ticket_record_credits VALUES (?,?,?,?)",
+                                (row["id"], row["day"], amount, amount))
+                affected.add(row["day"])
+            else:
+                self.db.execute("UPDATE arcade_ticket_record_credits SET minutes=?,credited_minutes=credited_minutes+? WHERE record_id=?",
+                                (amount, amount-row["previous_minutes"], row["id"]))
+                affected.add(row["credited_day"])
+            changed = True
+        for earned_day in affected:
+            saved = self.db.execute("SELECT issued,legacy_minutes FROM arcade_ticket_earnings WHERE day=?", (earned_day,)).fetchone()
+            issued, legacy = (saved[0], saved[1]) if saved else (0, 0)
+            minutes = self.db.execute("SELECT COALESCE(SUM(credited_minutes),0) FROM arcade_ticket_record_credits WHERE day=?", (earned_day,)).fetchone()[0]+legacy
+            earned = min(rules["maxTickets"], math.floor((minutes+1e-8)/rules["ticketMinutes"]))
+            for number in range(issued+1, earned+1):
+                self.db.execute("INSERT INTO arcade_play_ticket_ledger VALUES (?,?,?,?,?)",
+                                (f"study:{earned_day}:{number}", 1, stamp, "study", "学习获得游玩券"))
+            if not saved:
+                self.db.execute("INSERT INTO arcade_ticket_earnings VALUES (?,?,0)", (earned_day, earned))
+            elif earned > issued:
+                self.db.execute("UPDATE arcade_ticket_earnings SET issued=? WHERE day=?", (earned, earned_day))
+        if changed:
+            self._bump_revision()
+        future = self.db.execute("""SELECT MIN(r.end_ms) FROM records r WHERE r.day>=? AND r.end_ms>?
+            AND NOT EXISTS (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""", (epoch, stamp)).fetchone()[0]
+        self._play_ticket_sync_cache = ((self.db.total_changes, self.db.execute("PRAGMA data_version").fetchone()[0], day), stamp, future)
+
     def _arcade_budget(self, current):
         day = current.date().isoformat()
         minutes = self.db.execute("""SELECT COALESCE(SUM(r.minutes),0) FROM records r
@@ -3659,20 +3811,25 @@ class FocusStore:
             (day, int(current.timestamp()*1000))).fetchone()[0]
         minutes = max(0, float(minutes))
         rules = arcade_rules.RULES
-        earned = min(rules["maxTickets"], math.floor((minutes+1e-8)/rules["ticketMinutes"]))
-        # Spent admissions never disappear when a source record is deleted, merged,
-        # corrected or restored. Yesterday's rows never enter today's calculation.
+        available = self._sync_play_tickets(current)
+        earning_row = self.db.execute("SELECT issued FROM arcade_ticket_earnings WHERE day=?", (day,)).fetchone()
+        earned = earning_row[0] if earning_row else 0
+        progress = self.db.execute("""SELECT COALESCE(SUM(c.credited_minutes),0)+COALESCE(
+            (SELECT legacy_minutes FROM arcade_ticket_earnings WHERE day=?),0)
+            FROM arcade_ticket_record_credits c WHERE c.day=?""", (day, day)).fetchone()[0]
         used = self.db.execute("SELECT COUNT(*) FROM arcade_sessions WHERE day=?", (day,)).fetchone()[0]
         reward = self.db.execute("""SELECT COALESCE(SUM(l.coins),0),COALESCE(SUM(l.diamonds),0)
             FROM arcade_sessions s JOIN wallet_ledger l ON l.reference='arcade:'||s.id WHERE s.day=?""", (day,)).fetchone()
         purchased = self.db.execute("SELECT COUNT(*) FROM arcade_ticket_purchases WHERE day=?", (day,)).fetchone()[0]
-        study_spent = max(0, used-purchased)
+        plays_remaining = max(0, rules["maxTickets"]+rules["maxPurchasedTickets"]-used)
         return {"studyMinutes": round(minutes, 4), "earned": earned, "used": used,
                 "purchased": purchased, "purchasePrice": rules["purchasePrice"],
                 "purchaseRemaining": max(0, rules["maxPurchasedTickets"]-purchased),
-                "available": max(0, earned+purchased-used),
-                "nextTicketMinutes": 0 if max(earned, study_spent) >= rules["maxTickets"] else
-                    round(max(0, (max(earned, study_spent)+1)*rules["ticketMinutes"]-minutes), 4),
+                "available": available, "persistentTickets": True,
+                "playsRemaining": plays_remaining, "canPlay": available > 0 and plays_remaining > 0,
+                "ticketProgressMinutes": round(progress, 4),
+                "nextTicketMinutes": 0 if earned >= rules["maxTickets"] else
+                    round(max(0, (earned+1)*rules["ticketMinutes"]-progress), 4),
                 "rewardToday": {"coins": reward[0], "diamonds": reward[1]}}
 
     def _arcade_snapshot(self, current):
@@ -3729,7 +3886,8 @@ class FocusStore:
             if venue["type"] == "minesweeper":
                 venue.setdefault("bestSeconds", None)
         return {"today": current.date().isoformat(), "now": current.isoformat(timespec="microseconds"),
-                "rules": dict(arcade_rules.RULES), **self._arcade_budget(current),
+                "rules": dict(arcade_rules.RULES, maxDailyPlays=arcade_rules.RULES["maxTickets"]+arcade_rules.RULES["maxPurchasedTickets"]), **self._arcade_budget(current),
+                "revision": int(self._meta("revision") or 0),
                 "active": self._serialize_arcade(active, current) if active else None,
                 "lastResult": history[0] if history else None, "history": history, "venues": venues,
                 "collection": collection, "wallet": self._wallet()}
@@ -3814,6 +3972,8 @@ class FocusStore:
             if self.db.execute("SELECT 1 FROM arcade_sessions WHERE status='active'").fetchone():
                 raise ValueError("还有一局正在进行，先继续或结束它吧")
             budget = self._arcade_budget(current)
+            if budget["playsRemaining"] <= 0:
+                raise ValueError("今天的游玩次数已经全部用完，游玩券会保留，明天再来岛上散步吧")
             if budget["available"] <= 0:
                 if budget["used"] >= arcade_rules.RULES["maxTickets"] + arcade_rules.RULES["maxPurchasedTickets"]:
                     raise ValueError("今天的游玩次数已经全部用完，明天再来岛上散步吧")
@@ -3826,12 +3986,16 @@ class FocusStore:
                 state["_lastTick"] = current.timestamp()
             midnight = (current+timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
             expires = min(current+timedelta(seconds=arcade_rules.RULES["roundSeconds"]), midnight)
+            session_id = str(uuid.uuid4())
             self.db.execute("""INSERT INTO arcade_sessions
                 (id,request_id,day,venue,game_type,seed,started_at,expires_at,status,game_state,max_steps)
                 VALUES (?,?,?,?,?,?,?,?,'active',?,?)""",
-                (str(uuid.uuid4()), request_id, current.date().isoformat(), venue, arcade_rules.CATALOG[venue]["type"],
+                (session_id, request_id, current.date().isoformat(), venue, arcade_rules.CATALOG[venue]["type"],
                  seed, current.isoformat(timespec="microseconds"), "" if arcade_rules.CATALOG[venue]["type"] == "minesweeper" else expires.isoformat(timespec="microseconds"),
                  json.dumps(state, ensure_ascii=False), max_steps))
+            self.db.execute("INSERT INTO arcade_play_ticket_ledger VALUES (?,?,?,?,?)",
+                            ("game:"+session_id, -1, int(current.timestamp()*1000), "game", "使用一张游玩券"))
+            self._bump_revision()
             return self._arcade_snapshot(current)
 
     def buy_arcade_ticket(self, request_id, now=None):
@@ -3852,13 +4016,22 @@ class FocusStore:
                 (request_id, current.date().isoformat(), price, int(current.timestamp()*1000)))
             self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                 ("arcade-ticket:"+request_id, -price, 0, int(current.timestamp()*1000)))
+            self.db.execute("INSERT INTO arcade_play_ticket_ledger VALUES (?,?,?,?,?)",
+                            ("purchase:"+request_id, 1, int(current.timestamp()*1000), "purchase", "购买游玩券"))
+            self._bump_revision()
             return self._arcade_snapshot(current)
 
     def _arcade_reply(self, current, session_id=None, compact=False):
         if compact:
             row = self.db.execute("SELECT * FROM arcade_sessions WHERE id=? AND status='active'", (session_id,)).fetchone()
             if row:
+                available = self._play_ticket_balance()
+                used = self.db.execute("SELECT COUNT(*) FROM arcade_sessions WHERE day=?", (current.date().isoformat(),)).fetchone()[0]
+                plays_remaining = max(0, arcade_rules.RULES["maxTickets"]+arcade_rules.RULES["maxPurchasedTickets"]-used)
                 return {"compact": True, "today": current.date().isoformat(),
+                        "revision": int(self._meta("revision") or 0),
+                        "available": available, "persistentTickets": True,
+                        "playsRemaining": plays_remaining, "canPlay": available > 0 and plays_remaining > 0,
                         "now": current.isoformat(timespec="microseconds"), "active": self._serialize_arcade(row, current)}
         return self._arcade_snapshot(current)
 
@@ -3940,6 +4113,7 @@ class FocusStore:
         selected_day = selected_day or now.date().isoformat()
         selected = parse_day(selected_day)
         with self.lock:
+            self._sync_play_tickets(quest_clock(now))
             self._ensure_goal_days(now)
             self.revision = int(self._meta("revision") or 0)
             all_records = [dict(row) for row in self.db.execute("""SELECT r.* FROM records r
@@ -4205,6 +4379,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                   "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
                 lottery_actions = {"/api/lottery/buy": store.buy_lottery_ticket,
                                    "/api/lottery/draw": store.draw_lottery,
+                                   "/api/lottery/exchange": store.exchange_play_tickets,
                                    "/api/lottery/star-gift": store.open_lottery_star_gift}
                 city_actions = {"/api/city-life/note": store.city_life_note,
                                 "/api/city-life/note-update": store.city_life_note_update,
