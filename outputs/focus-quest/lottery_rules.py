@@ -14,15 +14,16 @@ PURCHASE_LIMIT = 5
 PRICES = {"coin": {"coins": 80, "diamonds": 0},
           "diamond": {"coins": 0, "diamonds": 4}}
 # Ordinary items occupy 15%, lottery-only items 1%, and currency 84%.
-# Integer weights preserve the original ratios within ordinary item/cash pools.
+# Cross-currency chances match between machines; ordinary item ratios are kept.
 ODDS = {"coin": (("coins", 7275), ("diamonds", 1125), ("coinItem", 1425), ("diamondItem", 75), ("lotteryOnly", 100)),
-        "diamond": (("diamonds", 8400), ("diamondItem", 1500), ("lotteryOnly", 100))}
+        "diamond": (("diamonds", 7275), ("coins", 1125), ("diamondItem", 1500), ("lotteryOnly", 100))}
 PITY_LIMITS = {"coin": 30, "diamond": 20}
 LIMITED_FALLBACK = {"coin": {"coins": 120, "diamonds": 0},
                     "diamond": {"coins": 0, "diamonds": 8}}
 # Weight, minimum, maximum; each interval is sampled uniformly.
 COIN_AMOUNTS = ((8500, 2, 45), (1400, 46, 80), (90, 120, 250), (10, 600, 1000))
 COIN_DIAMOND_AMOUNTS = ((9000, 1, 1), (900, 2, 3), (90, 4, 8), (10, 25, 40))
+DIAMOND_COIN_AMOUNTS = ((9900, 50, 100), (100, 600, 1000))
 DIAMOND_AMOUNTS = ((7500, 1, 2), (2200, 3, 4), (280, 6, 10), (20, 30, 50))
 FALLBACK = {"coinItem": {"coins": 35, "diamonds": 0},
             "diamondItem": {"coins": 0, "diamonds": 2}}
@@ -63,7 +64,7 @@ def currency_expectation(machine, *, exhausted=False):
             coins += probabilities["coinItem"]*FALLBACK["coinItem"]["coins"]
             diamonds += probabilities["diamondItem"]*FALLBACK["diamondItem"]["diamonds"]
     else:
-        coins, diamonds = 0, probabilities["diamonds"]*mean(DIAMOND_AMOUNTS)
+        coins, diamonds = probabilities["coins"]*mean(DIAMOND_COIN_AMOUNTS), probabilities["diamonds"]*mean(DIAMOND_AMOUNTS)
         if exhausted:
             diamonds += probabilities["diamondItem"]*FALLBACK["diamondItem"]["diamonds"]
     coins, diamonds = coins*scale, diamonds*scale
@@ -92,7 +93,10 @@ def draw(machine, pools, *, force_limited=False, randbelow=None):
               "item": None, "fallback": False, "rarity": "ordinary",
               "limited": kind == "lotteryOnly", "pityTriggered": force_limited}
     if kind in ("coins", "diamonds"):
-        ranges = COIN_AMOUNTS if kind == "coins" else COIN_DIAMOND_AMOUNTS if machine == "coin" else DIAMOND_AMOUNTS
+        if kind == "coins":
+            ranges = COIN_AMOUNTS if machine == "coin" else DIAMOND_COIN_AMOUNTS
+        else:
+            ranges = COIN_DIAMOND_AMOUNTS if machine == "coin" else DIAMOND_AMOUNTS
         amount = _amount(ranges, randbelow)
         result.update(type=kind, **{kind: amount})
         if amount >= (600 if kind == "coins" else 25):
@@ -125,8 +129,8 @@ def draw(machine, pools, *, force_limited=False, randbelow=None):
 
 def odds_for(machine):
     descriptions = {
-        "coins": {"label": "随机金币", "min": 2, "max": 1000,
-                  "typical": "85% 的金币结果为 2–45 金币；0.1% 的金币结果为 600–1000 金币"},
+        "coins": {"label": "随机金币", "min": 2 if machine == "coin" else 50, "max": 1000,
+                  "typical": "85% 的金币结果为 2–45 金币；0.1% 的金币结果为 600–1000 金币" if machine == "coin" else "99% 的金币结果为 50–100 金币；1% 的金币结果为 600–1000 金币"},
         "diamonds": {"label": "随机钻石", "min": 1, "max": 40 if machine == "coin" else 50,
                      "typical": "90% 的钻石结果为 1 钻石；0.1% 为 25–40 钻石" if machine == "coin" else "97% 的钻石结果为 1–4 钻石；0.2% 为 30–50 钻石"},
         "coinItem": {"label": "未拥有的金币商品", "fallback": dict(FALLBACK["coinItem"])},
