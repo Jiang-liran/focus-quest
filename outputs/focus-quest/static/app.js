@@ -304,19 +304,6 @@ function renderSubjects() {
 
 function renderAdvice() { FocusCampfire.render(state); }
 
-async function requestAdvice(reveal=false) {
-  if($('advice-request').disabled)return;
-  $('advice-request').disabled=true;
-  try {
-    const fresh=await refresh(true,true);
-    if(!fresh)throw new Error('暂时无法取得最新记录，请稍后再试。');
-    FocusCampfire.suggest(fresh);
-    if(currentView!=='today')switchView('today');
-    if(reveal){stopScenePreview();globalThis.FocusExpedition?.leave();globalThis.FocusCampfireRoom?.open();}
-  }catch(error){toast('向导暂时没有读到新记录',error.message,true);}
-  finally{$('advice-request').disabled=false;}
-}
-
 function renderWeek() {
   const w=state.weekly;
   const current=w.start<=state.today && state.today<=w.end;
@@ -538,7 +525,6 @@ $('all-records').addEventListener('click',()=>switchView('history'));
 $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-dialog').showModal();}});
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
-$('advice-request').addEventListener('click',()=>requestAdvice(true));
 function enterRoadsideCamp(event){
   if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||event.button>0)return;
   event.preventDefault();event.stopPropagation();

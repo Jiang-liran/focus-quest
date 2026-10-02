@@ -18,9 +18,8 @@ main {max-width:none;min-width:0}
   .wallet-side {font-size:14px}
   .topbar {font-size:var(--shell-font)}
   .topbar-right {gap:12px}
-  .date-button,.advice-request-button {font-size:calc(var(--shell-font) - 1px)}
+  .date-button {font-size:calc(var(--shell-font) - 1px)}
   .today-shortcut {font-size:calc(var(--shell-font) - 2px);padding:7px 10px}
-  .advice-request-button svg {width:16px;height:16px}
   .topbar .icon-button {width:35px;height:35px;font-size:24px}
   body:not([data-page=today]) .greeting {padding:30px 0}
   body:not([data-page=today]) .greeting h1 {font-size:32px}
