@@ -17,7 +17,61 @@
     return targets;
   }
   function parseWeekly(value){const n=Number(value);if(!Number.isFinite(n)||n<=0||n>168||Math.round(n*60)<1)throw new Error('周目标请填写 1 分钟至 168 小时之间的时长。');return Math.round(n*60);}
-  function portrait(){return `<svg viewBox="0 0 210 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><ellipse cx="108" cy="157" rx="77" ry="14" fill="currentColor" opacity=".09"/><path d="m28 137 76-29 74 27-69 30Z" fill="#405459"/><path d="m28 137 81 28 69-30v9l-69 29-81-28Z" fill="#293e44"/><path d="m37 128 62-23 69 24-61 23Z" fill="#aab9a3"/><path d="m37 128 70 24v7l-70-25Z" fill="#718f89"/><path d="m86 92-21 42 38 18 36-19-19-40Z" fill="#658d8d"/><path d="m99 94-15 47 19 11 15-44Z" fill="#a3b5a0"/><path d="m109 95 5 40 25-4-19-38Z" fill="#3f696f"/><circle cx="104" cy="76" r="19" fill="#dcc3a3"/><path d="M82 76q-3-31 23-29 29-2 22 33l-13-10-30 4Z" fill="#32494f"/><path d="m78 66 26-34 32 37-24-4Z" fill="#a8b59e"/><path d="m104 32 8 33 24 4Z" fill="#6f9592"/><path d="m84 69 37 3" stroke="#d7c298" stroke-width="4"/><circle cx="106" cy="78" r="2" fill="#33474b"/><path d="m92 85 11 5 13-3" fill="none" stroke="#bb9575" stroke-width="2"/><path d="m96 105 25-11 23 16-24 16Z" fill="#c3ae88"/><path d="m96 105 24 15 1 21-24-13Z" fill="#e5d5ad"/><path d="m121 94 23 16-1 23-23 8 1-22Z" fill="#b09a75"/><path d="m103 114 10 6m-10 2 10 6m13-17 11-4" stroke="#778c82" stroke-width="2"/><circle cx="95" cy="109" r="6" fill="#dcc3a3"/><circle cx="139" cy="119" r="5" fill="#dcc3a3"/><path d="m48 111 15-49 16 51M52 92h22" fill="none" stroke="#bda97c" stroke-width="3"/><path d="m40 77 44 7m-38-6-8 16h16Zm30 5-8 16h16Z" fill="#7d9e94" stroke="#bda97c" stroke-width="2"/><circle cx="64" cy="62" r="4" fill="#e2d5ac"/><path d="m159 123 10-16 10 17-9 5Z" fill="#617f78"/><path d="m169 107 1 22 9-5Z" fill="#93a999"/><circle cx="48" cy="48" r="2" fill="#d3c69f"/><path d="m154 61 3 7 7 3-7 2-3 8-2-8-7-2 7-3Z" fill="#cbd9bb" opacity=".8"/></svg>`;}
+  function portrait(){return `<svg class="goal-keeper-svg" viewBox="0 0 210 180" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <ellipse cx="108" cy="157" rx="77" ry="14" fill="#142b36" opacity=".22"/>
+    <path d="m28 137 76-29 74 27-69 30Z" fill="#405459"/>
+    <path d="m28 137 81 28 69-30v9l-69 29-81-28Z" fill="#293e44"/>
+    <path d="m37 128 62-23 69 24-61 23Z" fill="#aab9a3"/>
+    <path d="m37 128 70 24v7l-70-25Z" fill="#718f89"/>
+    <ellipse cx="111" cy="139" rx="31" ry="8" fill="#304e52" opacity=".25"/>
+    <g data-keeper-part="scales" fill="none" stroke="#c4b085" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M55 76v52m-11 3h22M33 85h44" stroke-width="2.8"/>
+      <path d="m38 86-8 16h16Zm33 0-8 16h16Z" stroke-width="1.3"/>
+      <path d="M29 102q9 9 18 0m15 0q9 9 18 0" fill="#819e92" stroke-width="1.6"/>
+      <circle cx="55" cy="77" r="3.7" fill="#e7d5ab" stroke="none"/>
+    </g>
+    <g data-keeper-part="robe">
+      <path d="M93 95q-13 6-17 42l34 15 35-16q-4-34-22-41Z" fill="#6e9992"/>
+      <path d="M111 99 110 152l35-16q-4-34-22-41Z" fill="#487973"/>
+      <path d="m100 92 11 7 10-7 6 7-16 12-17-12Z" fill="#ddcda4"/>
+      <path d="m110 108-13 35 13 9 12-6-9-38Z" fill="#a5bba2"/>
+      <path d="M91 103q-10 11-12 25l16 6 9-21Zm39 0q10 8 14 22l-12 9-12-23Z" fill="#7ea59b"/>
+      <circle cx="111" cy="107" r="3" fill="#e8d5a5"/>
+    </g>
+    <g data-keeper-part="face">
+      <path d="M91 76V65q0-23 20-23t20 23v13Z" fill="#405451"/>
+      <circle cx="93" cy="76" r="3.5" fill="#caa98b"/>
+      <circle cx="129" cy="76" r="3.5" fill="#caa98b"/>
+      <ellipse cx="111" cy="75" rx="17.5" ry="19.5" fill="#e4c7a5"/>
+      <path d="M94 66q8-2 11-8 8 8 23 8v-9H94Z" fill="#405451"/>
+      <circle cx="104" cy="76.5" r="1.75" fill="#3d4846"/>
+      <circle cx="118" cy="76.5" r="1.75" fill="#3d4846"/>
+      <ellipse cx="99" cy="83" rx="3.3" ry="1.6" fill="#ceaa8d" opacity=".6"/>
+      <ellipse cx="123" cy="83" rx="3.3" ry="1.6" fill="#ceaa8d" opacity=".6"/>
+      <path d="M107 86q4 3 8 0" fill="none" stroke="#a77f68" stroke-width="1.4" stroke-linecap="round"/>
+    </g>
+    <g data-keeper-part="hat">
+      <path d="m88 57 22-30 24 33-24 4Z" fill="#a8bba0"/>
+      <path d="m110 27 1 37 23-4Z" fill="#72988c"/>
+      <path d="M84 61q26-10 54 1-26 9-54-1Z" fill="#b8c9a9"/>
+      <path d="M87 63q23 8 48 0v4q-25 7-48-1Z" fill="#63877f"/>
+      <path d="M94 64q18 4 34 0" fill="none" stroke="#dfcba1" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <g data-keeper-part="book">
+      <path d="m101 111 22 7 22-7v26l-22 8-22-8Z" fill="#aa906b"/>
+      <path d="M102 108q11-1 21 7 11-8 21-7v25q-11 1-21 8-10-7-21-8Z" fill="#eddfbb"/>
+      <path d="M123 115q11-8 21-7v25q-11 1-21 8Z" fill="#d7c69e"/>
+      <path d="M123 116v23" fill="none" stroke="#b5a47e" stroke-width="1.1"/>
+      <path d="m107 117 10 4m-10 2 10 4m12-6 10-4m-10 10 7-3" fill="none" stroke="#7e9381" stroke-width="1.3" stroke-linecap="round"/>
+      <ellipse cx="101" cy="126" rx="4.7" ry="5.7" fill="#e4c7a5" transform="rotate(-18 101 126)"/>
+      <ellipse cx="144" cy="126" rx="4.5" ry="5.7" fill="#d6b596" transform="rotate(15 144 126)"/>
+    </g>
+    <path d="m160 131 9-18 10 18-9 5Z" fill="#617f78"/>
+    <path d="m169 113 1 23 9-5Z" fill="#93a999"/>
+    <circle cx="53" cy="50" r="1.8" fill="#d3c69f"/>
+    <path d="m155 64 2 6 6 2-6 2-2 6-2-6-6-2 6-2Z" fill="#cbd9bb" opacity=".8"/>
+  </svg>`;}
+
   let hooks={},state=null,goals=null,initialized=false,dailyBusy=false,weeklyBusy=false;
   let dailyRequest=null,weeklyRequest=null,renderKey='',dailyDay=null,weeklyWeek=null;
   const $=id=>document.getElementById(id);
