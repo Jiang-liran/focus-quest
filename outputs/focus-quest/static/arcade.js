@@ -7,6 +7,7 @@
   const cache=new Map();
   const sceneNames={survivor:'怪潮生存',trail:'雾中寻路',mirrors:'折光机关',garden:'口袋造景'};
   const survivor=()=>root.FocusSurvivor;
+  const pageVisible=()=>root.FocusRuntime?.isVisible?.()??!document.hidden;
   const advanced=type=>type==='survivor';
   const tileNames={flower:'铃花',water:'泉水',grove:'小树',stone:'星石'};
   const palettes={
@@ -23,6 +24,8 @@
   let lastStamp=-Infinity,clockServer=0,clockLocal=0,clock=null,expiryRequest=null,deferred=null;
   let startIntent=null,error='',abandon=false,latestResult=null,knownActive=null,announce='',initialized=false;
   const terminalIds=new Set();
+  // Keep recent terminal sessions to reject racing replies without retaining every game forever.
+  function rememberTerminal(id){if(!id)return;terminalIds.add(id);while(terminalIds.size>256)terminalIds.delete(terminalIds.values().next().value);}
   let pendingFocus=null,purchaseIntent=null;
   function put(id,html){const host=$(id);if(!host||cache.get(id)===html)return false;host.innerHTML=html;cache.set(id,html);return true;}
   function stamp(value){const part=String(value||'').match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/);return Date.parse(value)*1000+Number((part?.[1]||'').padEnd(6,'0').slice(3,6));}
@@ -277,7 +280,7 @@
     tick();
   }
   function tick(){
-    if(!data?.active)return;
+    if(!data?.active||!pageVisible())return;
     const left=secondsLeft(),clockNode=$('arcade-countdown');
     if(clockNode){clockNode.textContent=formatTime(left);clockNode.classList.toggle('ending',left<=30);}
     if($('arcade-pill-status'))$('arcade-pill-status').textContent=`${sceneNames[data.active.type]||'小岛游戏'} · ${formatTime(left)} 内归航`;
@@ -287,7 +290,11 @@
       sync(true);
     }
   }
-  function setClock(){if(clock)root.clearInterval(clock);clock=null;if(visible&&data?.active)clock=root.setInterval(tick,1000);}
+  function setClock(){
+    if(visible&&data?.active&&pageVisible()){if(clock===null)clock=root.setInterval(tick,1000);}
+    else{if(clock!==null)root.clearInterval(clock);clock=null;}
+  }
+  function clockVisibility(){setClock();if(pageVisible())tick();}
   function render(next,config){
     if(config)settings=config;
     if(!next)return;
@@ -302,8 +309,8 @@
     const was=knownActive;
     data=next;
     if(purchaseIntent&&purchaseIntent.day!==data.today)purchaseIntent=null;
-    if(data.lastResult?.id)terminalIds.add(data.lastResult.id);
-    for(const h of data.history||[])if(h.status!=='active')terminalIds.add(h.id);
+    if(data.lastResult?.id)rememberTerminal(data.lastResult.id);
+    for(const h of data.history||[])if(h.status!=='active')rememberTerminal(h.id);
     if(data.active){startIntent=null;knownActive=data.active.id;if(data.active.id!==was){handIndex=0;abandon=false;expiryRequest=null;}selected=data.active.venue;}
     else {
       if(was&&data.lastResult?.id===was){latestResult=data.lastResult;if(data.lastResult.status==='won')bridge.playSound?.('arcadeWin',{key:'arcade-result:'+was});}
@@ -402,8 +409,8 @@
     }
   }
   function enter(){visible=true;if(!data){sync();return;}repaint();setClock();if(data.active)$('arcade-play')?.scrollIntoView({block:'start',behavior:'auto'});}
-  function leave(){visible=false;survivor()?.suspend();if(clock)root.clearInterval(clock);clock=null;}
+  function leave(){visible=false;survivor()?.suspend();setClock();}
   function open(id){if(id&&venue(id)&&!data?.active)select(id);bridge.openPage?.('achievements');enter();}
-  function init(callbacks){bridge=callbacks||{};if(initialized)return;initialized=true;$('arcade-open')?.addEventListener('click',()=>open());$('arcade-root')?.addEventListener('click',onClick);$('arcade-root')?.addEventListener('keydown',onKey);visible=!!bridge.isVisible?.();}
+  function init(callbacks){bridge=callbacks||{};if(initialized)return;initialized=true;$('arcade-open')?.addEventListener('click',()=>open());$('arcade-root')?.addEventListener('click',onClick);$('arcade-root')?.addEventListener('keydown',onKey);document.addEventListener?.('visibilitychange',clockVisibility);document.addEventListener?.('focusquest:visibility',clockVisibility);visible=!!bridge.isVisible?.();}
   root.FocusArcade={init,render,open,enter,leave};
 })(typeof globalThis!=='undefined'?globalThis:this);

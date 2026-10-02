@@ -1,0 +1,26 @@
+/* Preserve each animation's phase while the native window cannot be seen. */
+html.focus-runtime-hidden,
+html.focus-runtime-hidden::before,
+html.focus-runtime-hidden::after,
+html.focus-runtime-hidden *,
+html.focus-runtime-hidden *::before,
+html.focus-runtime-hidden *::after {
+  animation-play-state: paused !important;
+}
+
+/* Camp and city cover the homepage, but keep their own foreground motion.
+   Pausing CSS animations leaves the camp's Web Animations slide untouched. */
+html.has-citadel-view body > main,
+html.has-citadel-view body > main::before,
+html.has-citadel-view body > main::after,
+html.has-citadel-view body > main *,
+html.has-citadel-view body > main *::before,
+html.has-citadel-view body > main *::after,
+html.has-campfire-room body > main,
+html.has-campfire-room body > main::before,
+html.has-campfire-room body > main::after,
+html.has-campfire-room body > main *,
+html.has-campfire-room body > main *::before,
+html.has-campfire-room body > main *::after {
+  animation-play-state: paused !important;
+}

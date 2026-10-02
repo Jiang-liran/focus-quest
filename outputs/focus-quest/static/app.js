@@ -18,6 +18,8 @@ let baselineReady = false, seenRecords = new Set();
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 let recordMutationBusy = false;
 let scenePreviewPercent = null, subjectRenderKey = null, sceneSubjectKey = null;
+const viewRenderKeys = new Map();
+function changedView(key,value){const next=JSON.stringify(value);if(viewRenderKeys.get(key)===next)return false;viewRenderKeys.set(key,next);return true;}
 let claimedEffects = null, celebrationQueue = [];
 let openingPending = true, openingBusy = false, openingReady = null, openingCheckedDay = null, openingRetryAt = 0;
 const subjectRewards = {math:['几何星图，已点亮。','思路一步步连起来，数学的今日目标已经完成。'],cs:['核心电路，已连通。','知识节点连接成网，408 的今日目标已经完成。'],politics:['信念旗帜，已升起。','一点一滴的理解，汇成了政治的今日成果。'],english:['语言之书，已展开。','每一次积累都在生长，英语的今日目标已经完成。']};
@@ -51,6 +53,7 @@ async function refresh(force=false, quietRewards=false) {
   try {
     const data=await api('/api/state'+(selectedDate?'?date='+encodeURIComponent(selectedDate):''));
     if(seq!==requestSequence)return;
+    if(globalThis.FocusRuntime?.isVisible()===false)return data;
     checkNewRecords(data, quietRewards);
     state=data;
     if(weekChartState?.start===data.weekly.start)weekChartState=null;
@@ -306,6 +309,7 @@ function renderAdvice() { FocusCampfire.render(state); }
 
 function renderWeek() {
   const w=state.weekly;
+  if(!changedView('week',[w,weekChartState,state.date,state.today,state.totals.target,weekChartLoading]))return;
   const current=w.start<=state.today && state.today<=w.end;
   $('weekly-goal-title').textContent=current?'本周远征':'该周远征';
   $('weekly-range').textContent=`${w.start.replaceAll('-','.')} — ${w.end.replaceAll('-','.')} · 周一至周日`;
@@ -328,6 +332,7 @@ function renderWeek() {
 }
 
 function renderActivities() {
+  if(!changedView('activities',state.activities))return;
   const a=state.activities;
   $('activity-summary').innerHTML=Object.entries(activityNames).map(([id,label])=>`<div class="activity-total ${id}"><span><i></i>${label}</span><strong>${durationHTML(a.totals[id])}</strong></div>`).join('');
   $('activity-rows').innerHTML=a.subjects.map(s=>`<article class="activity-row" aria-label="${esc(s.name)}学习方式统计"><div class="activity-subject"><span class="subject-icon" style="--subject-color:${meta(s.id).color}">${icon(meta(s.id).icon)}</span><div><strong>${esc(s.name)}</strong><small>${s.other?`另有 ${duration(s.other)}复习 / 其他`:`累计 ${duration(s.minutes)}`}</small></div></div><div class="activity-time lecture" role="group" aria-label="听课时长"><span>听课</span><strong>${duration(s.lecture)}</strong></div><div class="activity-time practice" role="group" aria-label="做题时长"><span>做题</span><strong>${duration(s.practice)}</strong></div><div class="activity-insight ${s.advice.tone}"><strong>${esc(s.advice.title)}</strong><p>${esc(s.advice.text)}</p></div></article>`).join('');
@@ -336,6 +341,7 @@ function renderActivities() {
 }
 
 function renderRecords() {
+  if(!changedView('records',[state.date,state.records,state.totals,state.dayRecordCount,state.trash?.count,recordMutationBusy]))return;
   const records=state.records;
   $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':r.source==='history_xlsx'?' · 历史导入':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
   $('history-stats').innerHTML=statCard('本日专注',durationHTML(state.totals.minutes))+statCard('完成任务',`${state.dayRecordCount??records.length}<small>个</small>`)+statCard('每日主线进度',`${pct(state.totals.percent)}`);
@@ -365,6 +371,7 @@ async function changeRecord(id, action) {
 
 function statCard(label,value) { return `<div class="stat-card"><span>${esc(label)}</span><strong>${value}</strong></div>`; }
 function renderAchievements() {
+  if(!changedView('achievements',[state.allTime,state.badges]))return;
   const a=state.allTime;
   $('achievement-stats').innerHTML=statCard('累计专注',`${hours(a.minutes)}<small>小时</small>`)+statCard('完成的专注',`${number(a.records,0)}<small>个</small>`)+statCard('留下足迹的日子',`${a.activeDays}<small>天</small>`);
   const symbols=['⚑','✧','✦','♜','❖','♕'];
@@ -570,7 +577,7 @@ $('celebration-done').addEventListener('click',()=>$('celebration-dialog').close
 $('celebration-dialog').addEventListener('cancel',()=>{celebrationQueue=[];});
 document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();globalThis.FocusExpedition?.resumeResonance?.();},0)));
 for(const gesture of ['pointerdown','keydown'])document.addEventListener(gesture,event=>{if(!event.repeat&&state?.settings.sound)ensureAudio();},{capture:true});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteOpeningArrival();refresh();}});
+document.addEventListener('visibilitychange',()=>{if(!globalThis.FocusRuntime&&!document.hidden){noteOpeningArrival();refresh();}});
 window.addEventListener('focus',noteOpeningArrival);
 window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
@@ -581,4 +588,5 @@ globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome
 globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
 globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 globalThis.FocusArcade?.init({api,toast,refresh,playSound,openPage:switchView,isVisible:()=>currentView==='achievements'});
-tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);
+if(globalThis.FocusRuntime)globalThis.FocusRuntime.start({tickClock,refresh,onWake:noteOpeningArrival,onSuspend:()=>{globalThis.FocusExpedition?.pause();globalThis.FocusExpedition?.deferResonance?.();}});
+else{tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);}

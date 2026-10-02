@@ -2331,8 +2331,55 @@ class FocusStore:
                 self.calendar_sync.update(connected=False, error=message)
                 return 0
 
-    def import_sources(self):
-        return self.import_source() + self.import_calendar()
+    def _source_poll_signature(self):
+        """Small invalidation token; never retain the source document/credentials."""
+        files = []
+        for path in (self.source, self.calendar_config, self.calendar_snapshot):
+            try:
+                stat = path.stat()
+                files.append((stat.st_dev, stat.st_ino, stat.st_size,
+                              stat.st_mtime_ns, stat.st_ctime_ns))
+            except FileNotFoundError:
+                files.append(None)
+            except OSError as error:
+                # Let the importer report/retry inaccessible source files rather
+                # than terminating the background polling thread here.
+                files.append(("unavailable", error.errno))
+        # Local writes and writes made by another connection both invalidate.
+        return (tuple(files), self.db.total_changes,
+                self.db.execute("PRAGMA data_version").fetchone()[0])
+
+    def import_sources(self, *, only_if_changed=False):
+        with self.lock:
+            signature = self._source_poll_signature()
+            cached = getattr(self, "_source_poll_cache", None)
+            elapsed = time.monotonic() - cached[1] if cached else None
+            calendar_fresh = not self.calendar_sync["enabled"]
+            if self.calendar_sync["connected"] and self.calendar_sync.get("snapshotAt"):
+                calendar_fresh = (datetime.now().astimezone().timestamp() * 1000
+                                  - calendar_timestamp(self.calendar_sync["snapshotAt"])
+                                  <= CALENDAR_STALE_SECONDS * 1000)
+            if (only_if_changed and cached and signature == cached[0]
+                    and 0 <= elapsed < 30 and calendar_fresh):
+                # The helper still writes a new snapshot every 30 seconds.
+                # Keep checking its files every three seconds, but avoid thousands
+                # of SQL reads/writes for an unchanged, already reconciled archive.
+                self.sync["lastCheck"] = self.calendar_sync["lastCheck"] = now_iso()
+                return 0
+            before_files = signature[0]
+            changed = self.import_source() + self.import_calendar()
+            after = self._source_poll_signature()
+            pending_desktop_deletion = self.db.execute("""SELECT 1 FROM source_presence
+                WHERE source='tomatodo' AND missing_count=1 LIMIT 1""").fetchone()
+            if (before_files == after[0] and self.sync["connected"]
+                    and self.calendar_sync["error"] is None
+                    and not self.calendar_sync["pendingCount"]
+                    and not self.calendar_sync["ignoredCount"]
+                    and not pending_desktop_deletion):
+                self._source_poll_cache = (after, time.monotonic())
+            else:
+                self._source_poll_cache = None
+            return changed
 
     def request_calendar_refresh(self):
         """Ask the native helper to read EventKit; ordinary archive polls do not."""
@@ -3111,7 +3158,7 @@ def main(argv=None):
 
     def poll():
         while not stop.wait(POLL_SECONDS):
-            store.import_sources()
+            store.import_sources(only_if_changed=True)
 
     poller = threading.Thread(target=poll, name="tomatodo-read-only-import", daemon=True)
     poller.start()
