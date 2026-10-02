@@ -13,8 +13,10 @@ import secrets
 PURCHASE_LIMIT = 5
 PRICES = {"coin": {"coins": 80, "diamonds": 0},
           "diamond": {"coins": 0, "diamonds": 4}}
-ODDS = {"coin": (("coins", 7760), ("diamonds", 1200), ("coinItem", 950), ("diamondItem", 50), ("lotteryOnly", 40)),
-        "diamond": (("diamonds", 8440), ("diamondItem", 1500), ("lotteryOnly", 60))}
+# Ordinary items occupy 15%, lottery-only items 1%, and currency 84%.
+# Integer weights preserve the original ratios within ordinary item/cash pools.
+ODDS = {"coin": (("coins", 7275), ("diamonds", 1125), ("coinItem", 1425), ("diamondItem", 75), ("lotteryOnly", 100)),
+        "diamond": (("diamonds", 8400), ("diamondItem", 1500), ("lotteryOnly", 100))}
 PITY_LIMITS = {"coin": 30, "diamond": 20}
 LIMITED_FALLBACK = {"coin": {"coins": 120, "diamonds": 0},
                     "diamond": {"coins": 0, "diamonds": 8}}
@@ -48,19 +50,22 @@ def currency_expectation(machine, *, exhausted=False):
     item resale value or a promise for a particular draw at a particular count.
     """
     def mean(ranges):
-        return sum(weight*(low+high)/2 for weight, low, high in ranges)/10000
-    probability = .004 if machine == "coin" else .006
-    limited_rate = probability/(1-(1-probability)**PITY_LIMITS[machine])
+        return sum(weight*(low+high)/2 for weight, low, high in ranges)/sum(weight for weight, _, _ in ranges)
+    weights = dict(ODDS[machine])
+    total = sum(weights.values())
+    probabilities = {kind: weight/total for kind, weight in weights.items()}
+    probability = probabilities["lotteryOnly"]
+    limited_rate = 1/sum((1-probability)**index for index in range(PITY_LIMITS[machine]))
     scale = (1-limited_rate)/(1-probability)
     if machine == "coin":
-        coins, diamonds = .776*mean(COIN_AMOUNTS), .12*mean(COIN_DIAMOND_AMOUNTS)
+        coins, diamonds = probabilities["coins"]*mean(COIN_AMOUNTS), probabilities["diamonds"]*mean(COIN_DIAMOND_AMOUNTS)
         if exhausted:
-            coins += .095*FALLBACK["coinItem"]["coins"]
-            diamonds += .005*FALLBACK["diamondItem"]["diamonds"]
+            coins += probabilities["coinItem"]*FALLBACK["coinItem"]["coins"]
+            diamonds += probabilities["diamondItem"]*FALLBACK["diamondItem"]["diamonds"]
     else:
-        coins, diamonds = 0, .844*mean(DIAMOND_AMOUNTS)
+        coins, diamonds = 0, probabilities["diamonds"]*mean(DIAMOND_AMOUNTS)
         if exhausted:
-            diamonds += .15*FALLBACK["diamondItem"]["diamonds"]
+            diamonds += probabilities["diamondItem"]*FALLBACK["diamondItem"]["diamonds"]
     coins, diamonds = coins*scale, diamonds*scale
     if exhausted:
         coins += limited_rate*LIMITED_FALLBACK[machine]["coins"]
@@ -128,4 +133,5 @@ def odds_for(machine):
         "diamondItem": {"label": "未拥有的钻石商品", "fallback": dict(FALLBACK["diamondItem"])},
         "lotteryOnly": {"label": "抽奖限定藏品", "fallback": dict(LIMITED_FALLBACK[machine])},
     }
-    return [{"type": kind, "percent": weight/100, **descriptions[kind]} for kind, weight in ODDS[machine]]
+    total = sum(weight for _, weight in ODDS[machine])
+    return [{"type": kind, "percent": weight*100/total, **descriptions[kind]} for kind, weight in ODDS[machine]]
