@@ -107,6 +107,7 @@
     busy=true;preview=item;paint();list();$('quick-skin-status').textContent='正在换装…';
     try{
       const result=await bridge.api('/api/shop/equip',{itemId:item.id});
+      if(result.equipped?.[item.slot]===item.id)bridge.playSound?.('equip');
       preview=null;
       root.FocusQuests?.render(result);render(result);close();
       bridge.toast('外观已更新',state.catalog.find(i=>i.id===state.equipped[item.slot])?.name||item.name);

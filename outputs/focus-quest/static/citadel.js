@@ -45,6 +45,7 @@
     const stage=threshold/25;
     awakening={id:gateIds[stage-1],token:++awakeningToken,stage};moving=false;paint();
     if(!motionAllowed()){awakening=null;done();return;}
+    if(flowKind==='live'&&previewPercent===null&&state?.settings?.sound)bridge.playSound?.(stage===4?'victory':'milestone',{key:`daily:${state.date}:${state.totals.target}:${stage}`});
     const token=generation;
     awakeningTimer=root.setTimeout(()=>{if(token!==generation||!isOpen())return;awakeningTimer=null;awakening=null;paint();done();},4000);
   }

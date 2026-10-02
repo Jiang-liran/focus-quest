@@ -62,7 +62,7 @@
     const advertised=q.status==='available'||first&&q.status!=='ready'?q.baseReward:reward;
     const rewardLabel=q.status==='available'||first&&q.status!=='ready'?'首次达标基础奖励':'本次可交付收获';
     const note=q.status==='available'?'接取后开始累计，四科可同时接取。听课、做题均计入。':q.status==='ready'?'交付后继续累计；未满的金币与钻石进度会保留。':first?'先完成首次目标，再交付收获。跨天保留进度，按自己的节奏完成。':'首次目标已完成，新增专注继续产生奖励，有新收获就能再次交付。';
-    return `<article class="q-task continuous ${esc(q.status)}" data-subject="${esc(q.subject)}"><div class="q-task-heading"><h3>${esc(q.name)}</h3><span class="q-status">${esc(statuses[q.status]||'待同步')}</span></div><p class="q-progress-caption">${first?'首次目标与钻石进度':'下一份钻石进度'} · 每满 ${n(q.target)} 分钟得 2 钻石</p><div class="q-numbers"><strong>${n(progress)}<small>分钟</small></strong><span>/ ${n(q.target)} 分钟</span><b>${n(shownPercent)}%</b></div><div class="q-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${esc(q.name)}钻石进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,shownPercent)}" aria-valuetext="${n(shownPercent)}%"><i style="width:${Math.min(100,shownPercent)}%"></i></div><div class="q-study-account"><span>待交付专注 <b>${n(q.minutes)} 分钟</b></span><span>已交付专注 <b>${n(q.settledMinutes)} 分钟</b></span></div><div class="q-reward"><small>${rewardLabel}</small>${money(advertised?.coins||0,advertised?.diamonds||0)}</div>${firstRoundMarkup(q)}<p class="q-task-note">${note}</p><button class="${action.action==='submit'?'primary-button':'secondary-button'} q-task-button" ${action.action?`data-quest-action="${action.action}" data-subject="${esc(q.subject)}"`:''} ${!action.action||disabled?'disabled':''}>${esc(action.label)}</button></article>`;
+    return `<article class="q-task continuous ${esc(q.status)}" data-subject="${esc(q.subject)}"><div class="q-task-heading"><h3>${esc(q.name)}</h3><span class="q-status">${esc(statuses[q.status]||'待同步')}</span></div><p class="q-progress-caption">${first?'首次目标与钻石进度':'下一份钻石进度'} · 每满 ${n(q.target)} 分钟得 2 钻石</p><div class="q-numbers"><strong>${n(progress)}<small>分钟</small></strong><span>/ ${n(q.target)} 分钟</span><b>${n(shownPercent)}%</b></div><div class="q-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${esc(q.name)}钻石进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,shownPercent)}" aria-valuetext="${n(shownPercent)}%"><i style="width:${Math.min(100,shownPercent)}%"></i></div><div class="q-study-account"><span>待交付专注 <b>${n(q.minutes)} 分钟</b></span><span>今日已交付 <b>${n(q.todaySettledMinutes)} 分钟</b></span></div><div class="q-reward"><small>${rewardLabel}</small>${money(advertised?.coins||0,advertised?.diamonds||0)}</div>${firstRoundMarkup(q)}<p class="q-task-note">${note}</p><button class="${action.action==='submit'?'primary-button':'secondary-button'} q-task-button" ${action.action?`data-quest-action="${action.action}" data-subject="${esc(q.subject)}"`:''} ${!action.action||disabled?'disabled':''}>${esc(action.label)}</button></article>`;
   }
   function taskMarkup(q,disabled=false){
     if(q.continuous)return continuousTaskMarkup(q,disabled);
@@ -219,12 +219,17 @@
   }
   async function perform(job){
     if(busy||!job)return;
+    const item=data.catalog.find(item=>item.id===job.id),previousItem=item&&data.equipped[item.slot];
     busy=true;$('quest-action-confirm').disabled=true;render(data);
     try{
       const paths={accept:'/api/quests/accept',submit:'/api/quests/submit',buy:'/api/shop/buy',equip:'/api/shop/equip',exchange:'/api/shop/exchange'};
       const body=job.action==='exchange'?{diamonds:job.diamonds,requestId:job.requestId}:job.subject?{subject:job.subject,...(job.requestId?{requestId:job.requestId}:{})}:{itemId:job.id};
       const result=await bridge.api(paths[job.action],body);
       render(result);
+      if(job.action==='submit'&&result.receipt&&!result.receipt.alreadyClaimed)bridge.playSound?.('delivery',{key:`delivery:${result.receipt.requestId}`});
+      if(job.action==='buy'&&result.receipt&&!result.receipt.alreadyOwned)bridge.playSound?.('purchase',{key:`purchase:${result.receipt.itemId}`});
+      if(job.action==='exchange'&&result.receipt&&!result.receipt.alreadyExchanged)bridge.playSound?.('purchase',{key:`exchange:${result.receipt.requestId}`});
+      if(job.action==='equip'&&item&&previousItem!==item.id&&result.equipped?.[item.slot]===item.id)bridge.playSound?.('equip');
       if(intent===job){intent=null;$('quest-action-dialog').close();}
       if(job.action==='submit'){
         const reward=result.receipt||result.quests.find(q=>q.subject===job.subject).reward;

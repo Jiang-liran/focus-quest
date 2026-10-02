@@ -997,6 +997,20 @@ class FocusStore:
         return {"baseReward": {"coins": coins - bonus_reward["coins"], "diamonds": diamonds - bonus_reward["diamonds"]},
                 "bonusReward": bonus_reward, "bonuses": bonuses}
 
+    def _today_settled_minutes(self, subject, current):
+        # Delivery time defines the day, even when its study or legacy receipt
+        # belongs to an earlier date. Do not derive this from capped history.
+        day_start = current.replace(hour=0, minute=0, second=0, microsecond=0)
+        start_ms = int(day_start.timestamp() * 1000)
+        end_ms = int((day_start + timedelta(days=1)).timestamp() * 1000)
+        total = self.db.execute("""SELECT COALESCE(SUM(minutes),0) FROM (
+            SELECT minutes FROM quest_deliveries
+                WHERE subject=? AND submitted_ms>=? AND submitted_ms<?
+            UNION ALL SELECT minutes FROM quest_receipts
+                WHERE subject=? AND submitted_ms>=? AND submitted_ms<?
+            )""", (subject, start_ms, end_ms, subject, start_ms, end_ms)).fetchone()[0]
+        return round(total, 4)
+
     def _quest_row(self, definition, current):
         subject = definition["subject"]
         track = self.db.execute("SELECT * FROM quest_tracks WHERE subject=?", (subject,)).fetchone()
@@ -1031,6 +1045,7 @@ class FocusStore:
                   "lowerBound": "accepted", "eligibleFrom": iso_ms(track["accepted_ms"]) if track else None,
                   "status": "ready" if ready else "active" if track else "available",
                   "minutes": round(minutes, 4), "settledMinutes": round(settled, 4), "totalMinutes": round(total, 4),
+                  "todaySettledMinutes": self._today_settled_minutes(subject, current),
                   "progressMinutes": round(progress, 4), "progressPercent": percent(progress, definition["target"]),
                   "percent": percent(progress, definition["target"]), "firstCompleted": first_completed,
                   "paidCoins": paid_coins, "paidDiamonds": paid_diamonds,

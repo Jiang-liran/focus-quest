@@ -21,7 +21,7 @@ const levelRanks = [
 ];
 function levelRank(level) { return levelRanks.find(rank=>level>=rank.min && level<=rank.max)||levelRanks[0]; }
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
-let baselineReady = false, seenRecords = new Set(), audioContext = null;
+let baselineReady = false, seenRecords = new Set();
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 let recordMutationBusy = false;
 let scenePreviewPercent = null, subjectRenderKey = null, sceneSubjectKey = null;
@@ -84,6 +84,7 @@ async function refresh(force=false, quietRewards=false) {
 }
 
 function checkNewRecords(next, quietRewards=false) {
+  globalThis.FocusAudio?.setEnabled(Boolean(next.settings.sound));
   const recent=next.latestRecords || next.records;
   if(!baselineReady){recent.forEach(r=>seenRecords.add(r.id));baselineReady=true;seedEffectClaims(next);return;}
   if(state && state.date!==next.date)seedEffectClaims(next);
@@ -111,12 +112,18 @@ function checkNewRecords(next, quietRewards=false) {
     toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · +${number(gained)} XP${state && next.totals.level>state.totals.level?` · 升至 Lv. ${next.totals.level}`:''}`);
   }
   if(!quietRewards)globalThis.FocusExpedition?.noteArrival(fresh,next);
-  if(!quietRewards && next.settings.sound)playChime();
+  if(!quietRewards && next.settings.sound){
+    const milestone=unlocked.find(event=>event.type==='daily'&&!cityHandlesDaily);
+    const subject=unlocked.find(event=>event.type==='subject');
+    const cue=milestone?(milestone.stage===4?'victory':'milestone'):subject?'subject':'completion';
+    playSound(cue,{key:milestone?.key||subject?.key||`completion:${fresh.map(r=>r.id).sort().join(',')}`});
+  }
 }
 
 function render() {
   if(!state)return;
   const s=state,t=s.totals;
+  globalThis.FocusAudio?.setEnabled(Boolean(s.settings.sound));
   document.documentElement.classList.toggle('no-motion',!s.settings.motion);
   $('date-button').textContent=dateText(s.date)+(s.date===s.today?' · 今天':'');
   $('date-picker').value=s.date;
@@ -426,6 +433,9 @@ function updateTargetSum() { const sum=[...document.querySelectorAll('[data-targ
 
 async function saveSettings(event) {
   event.preventDefault();
+  // Unlock while the Save gesture is active; background events never resume audio.
+  globalThis.FocusAudio?.setEnabled($('sound-input').checked);
+  if($('sound-input').checked)ensureAudio();
   const targets={},mapping=Object.create(null),activityMapping=Object.create(null);
   document.querySelectorAll('[data-target]').forEach(el=>targets[el.dataset.target]=Math.round(Number(el.value)*60));
   document.querySelectorAll('[data-task-name]').forEach(el=>mapping[el.dataset.taskName]=el.value);
@@ -434,9 +444,8 @@ async function saveSettings(event) {
   try {
     await api('/api/settings',{targets,mapping,activityMapping,weeklyTarget:Math.round(Number($('weekly-target-input').value)*60),motion:$('motion-input').checked,sound:$('sound-input').checked});
     if(!$('motion-input').checked)celebrationQueue=[];
-    if($('sound-input').checked) { ensureAudio(); }
     $('settings-dialog').close();await refresh(true);toast('远征设置已保存','接下来的进度会按新目标计算。');
-  } catch(error){$('settings-error').textContent=error.message;$('settings-error').hidden=false;}
+  } catch(error){globalThis.FocusAudio?.setEnabled(Boolean(state?.settings.sound));$('settings-error').textContent=error.message;$('settings-error').hidden=false;}
   finally{$('save-settings').disabled=false;}
 }
 
@@ -519,10 +528,8 @@ function showCelebration({title,body,reward,preview=false,stage=4,subject=null})
   $('confetti').innerHTML=Array.from({length:30},(_,i)=>`<i style="left:${(i*37)%100}%;animation-delay:${-(i%13)*.29}s;animation-duration:${2.6+(i%7)*.2}s"></i>`).join('');
   if(!$('celebration-dialog').open)$('celebration-dialog').showModal();
 }
-function ensureAudio() {try{audioContext ||= new (window.AudioContext||window.webkitAudioContext)();if(audioContext.state==='suspended')audioContext.resume();}catch(_){} }
-function playChime() {
-  try{ensureAudio();if(!audioContext)return;[523.25,659.25,783.99].forEach((hz,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.10;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.035,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.55);osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.6);});}catch(_){}
-}
+function ensureAudio() { return globalThis.FocusAudio?.unlock(); }
+function playSound(cue,options) { try{return globalThis.FocusAudio?.play(cue,options)||false;}catch(_){return false;} }
 
 function chooseDate(value) { globalThis.FocusCampfireRoom?.close(false);globalThis.FocusCitadel?.close(false);stopScenePreview();globalThis.FocusExpedition?.leave();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
 async function browseWeek(date) {
@@ -589,20 +596,20 @@ $('preview-stop').addEventListener('click',stopScenePreview);
 document.querySelectorAll('[data-preview-progress]').forEach(button=>button.addEventListener('click',()=>previewScene(button.dataset.previewProgress)));
 document.querySelectorAll('[data-preview-subject]').forEach(button=>button.addEventListener('click',()=>{
   const id=button.dataset.previewSubject,subject=state?.subjects.find(s=>s.id===id);if(!subject)return;
-  showCelebration(celebrationFor({type:'subject',...subject},true));if(state.settings.sound)playChime();
+  showCelebration(celebrationFor({type:'subject',...subject},true));
 }));
 document.querySelector('.celebration-close').addEventListener('click',()=>{celebrationQueue=[];$('celebration-dialog').close();});
 $('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());
 $('celebration-dialog').addEventListener('cancel',()=>{celebrationQueue=[];});
 document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)));
-document.addEventListener('click',()=>{if(state?.settings.sound)ensureAudio();},{once:true});
+for(const gesture of ['pointerdown','keydown'])document.addEventListener(gesture,event=>{if(!event.repeat&&state?.settings.sound)ensureAudio();},{capture:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteOpeningArrival();refresh();}});
 window.addEventListener('focus',noteOpeningArrival);
 window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
-globalThis.FocusQuickSkins?.init({api,toast,refresh});
-globalThis.FocusQuests?.init({api,toast,switchView,refresh});
+globalThis.FocusQuickSkins?.init({api,toast,refresh,playSound});
+globalThis.FocusQuests?.init({api,toast,switchView,refresh,playSound});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
-globalThis.FocusCitadel?.init({getState:()=>state,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
+globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
 globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);
