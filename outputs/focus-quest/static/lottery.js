@@ -7,7 +7,7 @@
   const count=value=>Math.floor(number(value));
   const labels={coin:{name:'金币抽奖机',ticket:'金币抽奖券',currency:'金币'},diamond:{name:'钻石抽奖机',ticket:'钻石抽奖券',currency:'钻石'}};
   let bridge={},host=null,machine=null,data=null,markup='',loading=false,loadError='',busy=null,retry=null,error='';
-  const results=new Map(),announced=new Set();
+  const results=new Map(),announced=new Set(),previews=new Map(),pendingReveals=new Set();
   function visible(){
     if(!host||document.hidden||bridge.isVisible?.()===false||root.FocusRuntime?.isVisible?.()===false)return false;
     for(let node=host;node;node=node.parentElement)if(node.hidden||node.inert)return false;
@@ -37,10 +37,18 @@
     const gold=kind==='coin',base=gold?'#46746c':'#685985',edge=gold?'#91d7b7':'#c4adf6',accent=gold?'#f1cd7f':'#c6b9ff';
     return `<svg class="lottery-cabinet" viewBox="0 0 280 210" aria-hidden="true" fill="none"><ellipse cx="140" cy="192" rx="76" ry="10" fill="#070e1c" opacity=".3"/><path d="m85 61 23-19h75l17 19v119l-19 15H85Z" fill="${base}"/><path d="m200 61-19 14v120l19-15Z" fill="#151f34" opacity=".45"/><path d="M85 61h96v134H85Z" stroke="${edge}" stroke-opacity=".55" stroke-width="2"/><path d="M80 60h108l14 10H92Z" fill="${edge}" opacity=".8"/><rect x="99" y="81" width="67" height="64" rx="21" fill="#172737" stroke="${accent}" stroke-width="2"/><path d="M108 89q20-10 42-1" stroke="#f5fff8" stroke-width="4" stroke-linecap="round" opacity=".16"/><g class="lottery-orbs"><circle cx="114" cy="123" r="9" fill="${edge}"/><circle cx="137" cy="131" r="10" fill="${accent}"/><circle cx="152" cy="116" r="8" fill="${gold?'#dfacac':'#82cabd'}"/><circle cx="130" cy="108" r="8" fill="${gold?'#d6a260':'#928ed4'}"/><path d="m132 88 2 5 5 2-5 2-2 5-2-5-5-2 5-2Z" fill="${accent}"/></g><path d="M96 154h78v17H96z" fill="#172434"/><circle cx="114" cy="162" r="5" fill="${accent}"/><path d="M127 160h34m-34 5h25" stroke="${edge}" stroke-width="2" stroke-linecap="round"/><path d="M111 179h43v8h-43Z" fill="#101d2e"/><path d="M121 179h23" stroke="${accent}" stroke-width="2"/><path d="m48 65 2 5 5 2-5 2-2 5-2-5-5-2 5-2Zm182 73 2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill="${edge}" opacity=".75"/><path d="m212 44 1 3 3 1-3 1-1 3-1-3-3-1 3-1Z" fill="${accent}"/><path d="M108 47h55" stroke="${accent}" stroke-width="3" stroke-linecap="round"/><text x="132" y="73" text-anchor="middle" fill="#f4edda" font-size="8" letter-spacing="2">${gold?'GOLDEN LUCK':'MOONLIGHT'}</text></svg>`;
   }
-  function resultArt(result){
+  function resultArt(result,scope='result'){
     if(result.type==='item'&&/^[a-z0-9-]+$/.test(result.item?.id||'')){
       try{
-        const art=campSlots.has(result.item.slot)?root.FocusCampfireShopArt?.preview?.(result.item.id):root.ShopArt?.preview?.(result.item.id);
+        // SVG previews allocate unique gradient IDs. Keep each mounted preview
+        // stable, with separate IDs for the result and the collection below it.
+        const key=JSON.stringify([scope,result.item.id,result.item.slot]);
+        let art=previews.get(key);
+        if(art){previews.delete(key);previews.set(key,art);}
+        else{
+          art=campSlots.has(result.item.slot)?root.FocusCampfireShopArt?.preview?.(result.item.id):root.ShopArt?.preview?.(result.item.id);
+          if(art){previews.set(key,art);if(previews.size>64)previews.delete(previews.keys().next().value);}
+        }
         if(art)return `<div class="lottery-item-preview">${art}</div>`;
       }catch{/* A missing thumbnail never hides the saved reward. */}
       return '<svg viewBox="0 0 100 80" aria-hidden="true" fill="none"><path d="m20 36 30 12v25L20 59Z" fill="#7dceba"/><path d="m50 48 30-12v23L50 73Z" fill="#9582cb"/><path d="m15 30 35-15 35 15-35 15Z" fill="#deb28a"/><path d="m15 30 35 15v8L15 39Z" fill="#8ac9d1"/><path d="m50 45 35-15v9L50 53Z" fill="#aea1e0"/><path d="m33 23 35 15-9 4-35-15Z" fill="#f1d795"/><path d="m67 23-35 15 9 4 35-15Z" fill="#ffe2a6"/><path d="m34 42 10 4v24l-10-4Zm22 4 10-4v24l-10 4Z" fill="#f7dfb0"/><path d="M50 24C28 24 23 7 33 7c9 0 17 17 17 17Zm0 0c22 0 27-17 17-17-9 0-17 17-17 17Z" fill="#f4d497" stroke="#fff1ca" stroke-width="1.4"/></svg>';
@@ -70,7 +78,7 @@
   function collectionHTML(item){
     const items=(item.collection||[]).filter(row=>row?.lotteryOnly===true&&row.lotteryMachine===machine).slice(0,12);if(!items.length)return '';
     const owned=items.filter(row=>row.owned===true).length;
-    return `<section class="lottery-collection" aria-labelledby="lottery-collection-title"><header><div><span class="lottery-eyebrow">ONLY HERE · 只在这台机器里</span><h3 id="lottery-collection-title">${machine==='coin'?'金色奇遇藏品':'月光限定藏品'}</h3></div><span>${owned} / ${items.length} 已收藏</span></header><p>这些外观无法购买，每次抽中都会是一件未拥有的。拿到后可以一直留着。</p><div class="lottery-collection-grid">${items.map(row=>`<article class="lottery-collection-card${row.owned?' is-owned':''}" title="${esc(row.description||row.name)}"><div class="lottery-collection-art" aria-hidden="true">${resultArt({type:'item',item:row})}</div><span class="lottery-collection-status">${row.owned?'✓ 已收藏':'✦ 等待相遇'}</span><h4>${esc(row.name)}</h4><p>${esc(row.description||'只在这里，等待下一次相遇。')}</p></article>`).join('')}</div></section>`;
+    return `<section class="lottery-collection" aria-labelledby="lottery-collection-title"><header><div><span class="lottery-eyebrow">ONLY HERE · 只在这台机器里</span><h3 id="lottery-collection-title">${machine==='coin'?'金色奇遇藏品':'月光限定藏品'}</h3></div><span>${owned} / ${items.length} 已收藏</span></header><p>这些外观无法购买，每次抽中都会是一件未拥有的。拿到后可以一直留着。</p><div class="lottery-collection-grid">${items.map(row=>`<article class="lottery-collection-card${row.owned?' is-owned':''}" title="${esc(row.description||row.name)}"><div class="lottery-collection-art" aria-hidden="true">${resultArt({type:'item',item:row},'collection')}</div><span class="lottery-collection-status">${row.owned?'✓ 已收藏':'✦ 等待相遇'}</span><h4>${esc(row.name)}</h4><p>${esc(row.description||'只在这里，等待下一次相遇。')}</p></article>`).join('')}</div></section>`;
   }
   function roundSummary(){
     const rounds=data?.roundTickets;
@@ -122,6 +130,13 @@
     </section>`;
     if(html===markup)return;
     host.innerHTML=html;markup=html;
+    if(pendingReveals.has(machine)&&!busy&&visible()){
+      const stage=host.querySelector('.lottery-stage.is-result');
+      if(stage){
+        if(!document.documentElement?.classList.contains('no-motion')&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches)stage.classList.add('is-revealing');
+        pendingReveals.delete(machine);
+      }
+    }
     for(const id of openDetails){const node=host.querySelector(`[data-lottery-details="${id}"]`);if(node)node.open=true;}
     if(focus&&visible())host.querySelector(`[data-lottery-focus="${focus}"]`)?.focus({preventScroll:true});
   }
@@ -160,6 +175,7 @@
       if(action==='draw')results.set(operation.machine,outcome);
       if(bridge.acceptReceipt)bridge.acceptReceipt(result);else bridge.acceptQuests?.(result.quests);
       if(!announced.has(operation.requestId)){
+        if(action==='draw'&&visible()&&machine===operation.machine)pendingReveals.add(operation.machine);
         announced.add(operation.requestId);if(announced.size>96)announced.delete(announced.values().next().value);
         if(!result.alreadyProcessed&&visible()&&machine===operation.machine)bridge.playSound?.(action==='buy'?'purchase':outcome.limited||outcome.rarity==='jackpot'?'victory':'delivery',{key:`lottery:${operation.requestId}`});
         bridge.toast?.(action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='star-gift'?`+1 ${labels[operation.machine].ticket} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?`${number(outcome.price?.coins)||number(outcome.price?.diamonds)?`已使用 ${cost(outcome.price)}。`:''}抽奖券会一直保留，想拆开时再来。`:outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
@@ -184,12 +200,18 @@
   function render(next){
     if(!next)return;accept(next.lottery||next.quests?.lottery);paint();
   }
-  function unmount(){if(host)host.removeEventListener('click',click);host=null;machine=null;markup='';error='';loadError='';}
+  function finishReveal(event){
+    if(event.animationName==='lottery-reveal'&&host?.contains(event.target))event.target.classList.remove('is-revealing');
+  }
+  function unmount(){
+    if(host){host.removeEventListener('click',click);host.removeEventListener('animationend',finishReveal);host.removeEventListener('animationcancel',finishReveal);}
+    pendingReveals.clear();host=null;machine=null;markup='';error='';loadError='';
+  }
   function mount(kind,container,next){
     if(!kinds.has(kind)||!container)return;
     render(next);
     if(host===container&&machine===kind){paint();return;}
-    unmount();host=container;machine=kind;host.addEventListener('click',click);paint();void load();
+    unmount();host=container;machine=kind;host.addEventListener('click',click);host.addEventListener('animationend',finishReveal);host.addEventListener('animationcancel',finishReveal);paint();void load();
   }
   function init(callbacks={}){bridge={...bridge,...callbacks};}
   function ticketText(grants){

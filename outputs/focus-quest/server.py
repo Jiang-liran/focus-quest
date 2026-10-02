@@ -1070,7 +1070,7 @@ class FocusStore:
                     count = self.db.execute("SELECT COUNT(*) FROM lottery_requests WHERE kind='buy' AND machine=? AND day=?",
                                             (machine, day)).fetchone()[0]
                     if count >= lottery_rules.PURCHASE_LIMIT:
-                        raise ValueError("这台机器今天已购买三张抽奖券，明天再来看看吧")
+                        raise ValueError(f"这台机器今天已购买 {lottery_rules.PURCHASE_LIMIT} 张抽奖券，明天再来看看吧")
                     price, wallet = lottery_rules.PRICES[machine], self._wallet()
                     if any(wallet[key] < amount for key, amount in price.items()):
                         raise ValueError("金币或钻石不足，先收下学习奖励再来吧")
