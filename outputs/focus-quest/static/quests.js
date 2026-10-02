@@ -139,6 +139,7 @@
     for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&(m==='owned'?i.owned:currency(i)===m)).length);
     $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。'}[market];
     if(area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
+    if(filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
     replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
@@ -196,7 +197,7 @@
   }
   function itemPreview(item){
     if(campSlots.has(item.slot))return campPreview(item);
-    if(item.slot==='island'&&window.ShopArt?.islandPreview)return `<div class="island-full-preview">${window.ShopArt.islandPreview(item.id,data.equipped)}<p>首页主岛布置 · 保留其余当前搭配</p></div>`;
+    if(item.slot==='island'&&window.ShopArt?.islandPreview)return `<div class="island-full-preview">${window.ShopArt.islandPreview(item.id,data.equipped)}<p>首页主岛整套布置 · 替换当前布置，保留其余装备与篝火入口</p></div>`;
     if(citadelSlots.has(item.slot)){
       const scene=window.FocusCitadel?.preview?.(item.id,{...data.equipped});
       if(typeof scene==='string'&&scene)return scene;
@@ -213,7 +214,8 @@
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
-    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
+    const placement=item.slot==='island'?'<p>一套布置包含配套的前景与建筑；装备时整套替换，多套收藏不会自动叠加。素岛原貌随时可免费恢复。</p>':'';
+    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p>${placement}<div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
   }
   async function perform(job){
     if(busy||!job)return;

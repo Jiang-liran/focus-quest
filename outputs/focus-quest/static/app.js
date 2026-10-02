@@ -553,7 +553,18 @@ $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-d
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
 $('advice-request').addEventListener('click',()=>requestAdvice(true));
-$('campfire-room-open').addEventListener('click',()=>{stopScenePreview();globalThis.FocusExpedition?.leave();globalThis.FocusCampfireRoom?.open();});
+function enterRoadsideCamp(event){
+  if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||event.button>0)return;
+  event.preventDefault();event.stopPropagation();
+  stopScenePreview();globalThis.FocusExpedition?.leave();globalThis.FocusCampfireRoom?.open($('campfire-room-open'));
+}
+$('campfire-room-open').addEventListener('click',enterRoadsideCamp);
+$('campfire-room-open').addEventListener('keydown',event=>{
+  if(event.key==='Enter'||event.key===' '){
+    if(event.repeat){event.preventDefault();return;}
+    enterRoadsideCamp(event);
+  }
+});
 $('campfire-shop-open').addEventListener('click',()=>{switchView('shop');FocusQuests.browseCamp();});
 $('campfire-shop-return').addEventListener('click',()=>{switchView('today');globalThis.FocusCampfireRoom?.open();});
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);

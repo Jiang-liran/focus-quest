@@ -178,6 +178,12 @@
     const eq=normalize(equipment), p=palettes[variant(eq,'camp')];
     return `<svg class="camp-world-entrance-art" viewBox="0 0 160 110" width="160" height="110" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" data-fire="${eq.fire}" data-camp="${eq.camp}"><ellipse cx="80" cy="95" rx="63" ry="10" fill="#111b2c" opacity=".24"/><path d="m14 76 43-22 79 18-31 29-73-8Z" fill="${p.side}"/><path d="m14 70 43-22 79 18-31 29-73-8Z" fill="${p.grass}" stroke="${p.edge}" stroke-width="1.5"/><ellipse cx="78" cy="75" rx="32" ry="14" fill="#a8997d" opacity=".5"/><g transform="translate(79 75) scale(.51)">${fire(eq,true)}</g><path d="m19 79 22 7 13-5-23-7Z" fill="#b5a187"/><path d="m19 79 0 6 22 8 13-6v-6l-13 5Z" fill="#7d7565"/><path d="m105 84 20-8 11 4-20 9Z" fill="#b8a58a"/><path d="m105 84 0 6 11 5 20-9v-6l-20 9Z" fill="#7d7565"/></svg>`;
   }
+  // A ground-level hearth, shared by the home island and shop previews.
+  // This pocket stays clear in every purchased island layout.
+  function roadside(equipment) {
+    const eq=normalize(equipment);
+    return `<g class="island-roadside-camp" data-fire="${eq.fire}" transform="translate(338 241)" fill="none" stroke="none"><ellipse class="island-camp-warmth" cy="2" rx="32" ry="12" fill="#dda56d" opacity=".1"/><ellipse cy="5" rx="22" ry="7" fill="#282737" opacity=".3"/><path d="m-33 3 14 5 8-4-15-5Z" fill="#a3927b"/><path d="m-33 3 0 4 14 5 8-4v-4l-8 4Z" fill="#736b69"/><path d="m21 5 8-4 10 3-8 5Z" fill="#777786" opacity=".7"/><g class="island-camp-fire-scale" transform="scale(.3)">${fire(eq,true)}</g></g>`;
+  }
   function setSelection(container, id) {
     if(!container || typeof container.querySelectorAll!=='function') return '';
     const selected=characters.includes(id)?id:'';
@@ -198,5 +204,5 @@
     });
     return selected;
   }
-  return {scene, entrance, normalize, setSelection};
+  return {scene, entrance, roadside, normalize, setSelection};
 });

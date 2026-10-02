@@ -78,7 +78,7 @@
   .expedition-discovery strong {font-size:9px}.expedition-discovery small {font-size:8px}
   .expedition-hero .hero-content>.expedition-replay-controls {position:absolute;left:26px;right:248px;bottom:76px;max-width:none;margin:0;padding:9px 12px;z-index:9;background:#1a2135f7;box-shadow:0 6px 25px #0b102680}
   .expedition-replay-controls input {margin:8px 0 4px}
-  .home-shortcuts {flex-shrink:0;grid-template-columns:1.05fr 1fr 1fr;gap:10px;margin:10px 0 0}
+  .home-shortcuts {flex-shrink:0;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:10px 0 0}
   .home-shortcuts>button {display:flex;align-items:center;gap:10px;border:1px solid #72779033;border-radius:10px;background:#181e2c;padding:11px 12px;min-width:0;text-align:left;margin:0}
   .home-shortcuts .invitation-emblem {width:30px;height:30px;font-size:19px;flex-shrink:0}
   .home-shortcuts .invitation-emblem svg {width:16px;height:16px}

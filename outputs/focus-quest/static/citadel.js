@@ -248,7 +248,7 @@
   function init(callbacks={}){
     bridge=callbacks;if(initialized)return;initialized=true;
     $('citadel-enter').addEventListener('click',event=>{if(!event.ctrlKey)open(event.currentTarget);});
-    document.querySelector('.quest-scene').addEventListener('click',event=>{if(event.button===0&&!event.ctrlKey)open($('citadel-enter'));});
+    document.querySelector('.quest-scene').addEventListener('click',event=>{if(event.target.closest?.('#campfire-room-open'))return;if(event.button===0&&!event.ctrlKey)open($('citadel-enter'));});
     $('citadel-close').addEventListener('click',()=>close());
     $('citadel-shop').addEventListener('click',()=>{close(false);bridge.openShop?.();});
     $('citadel-replay').addEventListener('click',()=>{if(previewPercent!==null)return;close();bridge.replayDay?.();});

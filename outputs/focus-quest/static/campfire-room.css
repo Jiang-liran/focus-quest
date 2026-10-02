@@ -69,16 +69,21 @@ html.has-campfire-room body>main{transform:translateX(-105vw);opacity:.25}
 .campfire-study-stars i{grid-column:1/-1;height:4px;background:#c7bfd114;border-radius:3px;overflow:hidden}
 .campfire-study-stars b{display:block;height:100%;background:var(--study-star)}
 .campfire-study-stars small{grid-column:1/-1;font-size:.66em;color:#999aac;line-height:1.6}
-/* An actual small hearth sits at the edge of the home stage. */
-.home-shortcuts>#campfire-room-open{border:0;background:transparent;padding:0 10px 0 0;gap:6px;position:relative;overflow:visible}
-#campfire-entrance-art{display:block;width:90px;height:56px;flex-shrink:0;transition:filter .25s ease,transform .35s ease;filter:drop-shadow(0 4px 10px #e7a34b11)}
-#campfire-entrance-art svg{width:100%;height:100%;display:block}
-#campfire-room-open strong{color:#e6c596}#campfire-room-open small{color:#b3a38e;line-height:1.5}
-#campfire-room-open small i{font-style:normal;display:inline-block;transition:transform .3s}
-#campfire-room-open:hover #campfire-entrance-art,#campfire-room-open:focus-visible #campfire-entrance-art{transform:translateY(-5px) scale(1.09);filter:drop-shadow(0 0 13px #f1ad6270)}
-#campfire-room-open:hover small i{transform:translateX(5px)}
-#campfire-room-open:hover small,#campfire-room-open:focus-visible small{color:#edce9d}
-#campfire-room-open:focus-visible{outline:2px solid #d8b788;outline-offset:2px;border-radius:10px}
+/* The hearth is a hotspot on the island, positioned in SVG coordinates. */
+#campfire-room-open{cursor:pointer;pointer-events:all;outline:none}
+#campfire-entrance-art,#campfire-entrance-art *,#campfire-room-open .island-camp-focus,#campfire-room-open .island-camp-label{pointer-events:none}
+#campfire-entrance-art{transition:filter .25s ease;filter:drop-shadow(0 1px 3px #e7a34b16)}
+.island-roadside-camp .camp-world-smoke{display:none}
+.island-camp-focus{opacity:0;transition:opacity .25s ease}
+.island-camp-label{opacity:.65;transition:opacity .25s ease}
+.island-roadside-camp .island-camp-warmth{transition:opacity .25s ease}
+#campfire-room-open:is(:hover,:focus-visible) #campfire-entrance-art{filter:drop-shadow(0 0 5px #f1ad6290) brightness(1.15)}
+#campfire-room-open:is(:hover,:focus-visible) .island-camp-focus{opacity:.85}
+#campfire-room-open:is(:hover,:focus-visible) .island-camp-label{opacity:1}
+#campfire-room-open:is(:hover,:focus-visible) .island-camp-warmth{opacity:.28}
+#campfire-room-open:is(:hover,:focus-visible) .camp-world-flame{animation-duration:.85s}
+#campfire-room-open:is(:hover,:focus-visible) .camp-world-ember{animation-duration:1.6s}
+#campfire-room-open:focus-visible .island-camp-focus{stroke-width:2.5}
 /* The same dimensional camp is also used by store previews. */
 .campfire-preview-scene .camp-world-art{display:block;width:100%;height:auto;max-height:58vh}
 .campfire-shop-thumb .camp-world-art,.quick-skin-thumb .camp-world-art{width:100%;height:100%;display:block}
@@ -86,8 +91,6 @@ html.has-campfire-room body>main{transform:translateX(-105vw);opacity:.25}
   #campfire-room{--camp-font:15px;--camp-aside:350px;padding:24px 30px 20px}
   .campfire-world-layout{gap:28px}
   #campfire-room .campfire-card{padding:18px 0 12px 25px}
-  #campfire-entrance-art{width:110px;height:65px}
-  #campfire-room-open strong{font-size:13px}#campfire-room-open small{font-size:11px}
 }
 @media(min-width:1600px) and (min-height:950px){
   #campfire-room{--camp-font:clamp(16px,1vw,22px);--camp-aside:clamp(370px,24vw,560px);padding:28px 34px 24px}
@@ -97,7 +100,6 @@ html.has-campfire-room body>main{transform:translateX(-105vw);opacity:.25}
   #campfire-room .campfire-portrait,#campfire-room .campfire-portrait svg{width:70px;height:79px}
   #campfire-room .campfire-card{padding:24px 0 14px 30px}
   .campfire-duty{padding-top:26px;margin-top:30px}
-  #campfire-entrance-art{width:125px;height:72px}
   #quest-action-dialog.campfire-item-dialog{width:min(940px,90vw)}
   .campfire-item-dialog #quest-action-body>p,.campfire-item-dialog .campfire-preview-line p{font-size:16px}
 }
@@ -107,8 +109,6 @@ html.has-campfire-room body>main{transform:translateX(-105vw);opacity:.25}
   .campfire-room-bar button{padding:7px 9px}.campfire-world-status{padding:9px 0}
   .campfire-world-layout{gap:14px}#campfire-room .campfire-card{padding-left:15px}
   .campfire-place-caption{top:6px;left:8px}.campfire-place-caption>p{font-size:10px}
-  #campfire-entrance-art{width:75px;height:44px}
-  #campfire-room-open strong{font-size:10px}#campfire-room-open small{font-size:8px}
 }
 .no-motion #campfire-room *,.no-motion #campfire-room-open *{animation:none!important;transition:none!important}
 @media(prefers-reduced-motion:reduce){#campfire-room *,#campfire-room-open *{animation:none!important;transition:none!important}}

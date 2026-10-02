@@ -64,7 +64,7 @@
     if(sceneKey!==nextKey){
       $('campfire-scene').innerHTML=root.FocusCampWorldArt?root.FocusCampWorldArt.scene(worldEquipment,{interactive:true,selected:character}):decor?decor.scene(normalized):art().scene();
       const entrance=$('campfire-entrance-art');
-      if(entrance&&root.FocusCampWorldArt)entrance.innerHTML=root.FocusCampWorldArt.entrance(normalized);
+      if(entrance&&root.FocusCampWorldArt)entrance.innerHTML=root.FocusCampWorldArt.roadside?.(normalized)||root.FocusCampWorldArt.entrance(normalized);
       sceneKey=nextKey;
     }
     $('advice-card').dataset.chatframe=normalized.chatframe||'chatframe-default';

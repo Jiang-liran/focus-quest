@@ -120,6 +120,7 @@
   }
   function targetSlots(target){
     if(target.closest('[data-skin-block],.campfire-speaker,.campfire-character,.q-portrait,#shop-keeper'))return null;
+    const roadside=target.closest('#campfire-room-open');if(roadside)return roadside;
     return target.closest('[data-skin-slots]');
   }
   function init(callbacks){
