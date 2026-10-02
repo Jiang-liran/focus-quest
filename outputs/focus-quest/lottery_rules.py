@@ -23,7 +23,7 @@ LIMITED_FALLBACK = {"coin": {"coins": 120, "diamonds": 0},
 # Weight, minimum, maximum; each interval is sampled uniformly.
 COIN_AMOUNTS = ((8500, 2, 45), (1400, 46, 80), (90, 120, 250), (10, 600, 1000))
 COIN_DIAMOND_AMOUNTS = ((9000, 1, 1), (900, 2, 3), (90, 4, 8), (10, 25, 40))
-DIAMOND_COIN_AMOUNTS = ((9900, 50, 100), (100, 600, 1000))
+DIAMOND_COIN_AMOUNTS = ((8500, 50, 100), (1400, 101, 200), (90, 300, 500), (10, 600, 1000))
 DIAMOND_AMOUNTS = ((7500, 1, 2), (2200, 3, 4), (280, 6, 10), (20, 30, 50))
 FALLBACK = {"coinItem": {"coins": 35, "diamonds": 0},
             "diamondItem": {"coins": 0, "diamonds": 2}}
@@ -128,11 +128,17 @@ def draw(machine, pools, *, force_limited=False, randbelow=None):
 
 
 def odds_for(machine):
+    def amount_bands(ranges):
+        total = sum(weight for weight, _, _ in ranges)
+        return [{"min": low, "max": high, "percent": weight*100/total} for weight, low, high in ranges]
+
     descriptions = {
         "coins": {"label": "随机金币", "min": 2 if machine == "coin" else 50, "max": 1000,
-                  "typical": "85% 的金币结果为 2–45 金币；0.1% 的金币结果为 600–1000 金币" if machine == "coin" else "99% 的金币结果为 50–100 金币；1% 的金币结果为 600–1000 金币"},
+                  "amountBands": amount_bands(COIN_AMOUNTS if machine == "coin" else DIAMOND_COIN_AMOUNTS),
+                  "typical": "85% 的金币结果为 2–45 金币；14% 为 46–80 金币；0.9% 为 120–250 金币；0.1% 为 600–1000 金币" if machine == "coin" else "85% 的金币结果为 50–100 金币；14% 为 101–200 金币；0.9% 为 300–500 金币；0.1% 为 600–1000 金币"},
         "diamonds": {"label": "随机钻石", "min": 1, "max": 40 if machine == "coin" else 50,
-                     "typical": "90% 的钻石结果为 1 钻石；0.1% 为 25–40 钻石" if machine == "coin" else "97% 的钻石结果为 1–4 钻石；0.2% 为 30–50 钻石"},
+                     "amountBands": amount_bands(COIN_DIAMOND_AMOUNTS if machine == "coin" else DIAMOND_AMOUNTS),
+                     "typical": "90% 的钻石结果为 1 钻石；9% 为 2–3 钻石；0.9% 为 4–8 钻石；0.1% 为 25–40 钻石" if machine == "coin" else "75% 的钻石结果为 1–2 钻石；22% 为 3–4 钻石；2.8% 为 6–10 钻石；0.2% 为 30–50 钻石"},
         "coinItem": {"label": "未拥有的金币商品", "fallback": dict(FALLBACK["coinItem"])},
         "diamondItem": {"label": "未拥有的钻石商品", "fallback": dict(FALLBACK["diamondItem"])},
         "lotteryOnly": {"label": "抽奖限定藏品", "fallback": dict(LIMITED_FALLBACK[machine])},
