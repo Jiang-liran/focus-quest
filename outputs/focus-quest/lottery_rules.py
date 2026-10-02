@@ -14,7 +14,7 @@ PRICES = {"coin": {"coins": 100, "diamonds": 0},
           "diamond": {"coins": 0, "diamonds": 5}}
 ODDS = {"coin": (("coins", 7760), ("diamonds", 1200), ("coinItem", 950), ("diamondItem", 50), ("lotteryOnly", 40)),
         "diamond": (("diamonds", 8440), ("diamondItem", 1500), ("lotteryOnly", 60))}
-PITY_LIMITS = {"coin": 60, "diamond": 40}
+PITY_LIMITS = {"coin": 30, "diamond": 20}
 LIMITED_FALLBACK = {"coin": {"coins": 120, "diamonds": 0},
                     "diamond": {"coins": 0, "diamonds": 8}}
 # Weight, minimum, maximum; each interval is sampled uniformly.

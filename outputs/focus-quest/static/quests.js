@@ -146,7 +146,7 @@
       b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
     });
     for(const m of ['coins','diamonds','owned','limited'])if($('market-'+m+'-count'))$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&inMarket(i,m)).length);
-    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。',limited:'只能通过星海抽奖机获得的特别收藏。金币机60抽、钻石机40抽保底；提前遇见限定藏品会重置对应计数，优先获得尚未拥有的款式。'}[market];
+    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。',limited:'只能通过星海抽奖机获得的特别收藏。金币机30抽、钻石机20抽保底；提前遇见限定藏品会重置对应计数，优先获得尚未拥有的款式。'}[market];
     if(market!=='limited'&&area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
     if(market!=='limited'&&(area==='interface'||filter==='interface'))$('shop-market-description').textContent='从配色到边框、纹理与按钮，给整间书房换一种气质。界面主题独立装备，你已有的星岛环境、装饰和特效照常搭配。';
     if(market!=='limited'&&filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';

@@ -63,9 +63,9 @@
   }
   function pityHTML(item){
     const pity=item.pity;if(!pity||!Number.isInteger(pity.count)||!Number.isInteger(pity.limit)||pity.limit<1||!Number.isInteger(pity.remaining)||pity.remaining<1)return '';
-    const seen=Math.max(0,Math.min(pity.limit-1,pity.count)),remaining=pity.remaining,complete=pity.allCollected===true;
+    const accumulated=Math.max(0,pity.count),seen=Math.min(pity.limit,accumulated),remaining=pity.remaining,complete=pity.allCollected===true;
     const guarantee=complete?(machine==='coin'?'120 金币限定补给':'8 钻石限定补给'):'一件未拥有的限定藏品';
-    return `<section class="lottery-pity${remaining===1?' is-next':''}" aria-label="限定藏品保底"><div class="lottery-pity-copy"><span class="lottery-eyebrow">${complete?'限定已集齐 · 惊喜继续':'抽奖限定 · 每一抽都记得'}</span><strong>${remaining===1?`下一抽必得${guarantee}`:`最多再抽 ${remaining} 次，必得${guarantee}`}</strong><p>两台机器分别累计，跨天保留；提前抽中限定奖品后重新累计。</p></div><div class="lottery-pity-track"><span>保底积累 <b>${seen} / ${pity.limit}</b></span><div class="lottery-pity-meter" role="progressbar" aria-label="限定藏品保底进度" aria-valuemin="0" aria-valuemax="${pity.limit}" aria-valuenow="${seen}"><i style="width:${seen/pity.limit*100}%"></i></div></div></section>`;
+    return `<section class="lottery-pity${remaining===1?' is-next':''}" aria-label="限定藏品保底"><div class="lottery-pity-copy"><span class="lottery-eyebrow">${complete?'限定已集齐 · 惊喜继续':'抽奖限定 · 每一抽都记得'}</span><strong>${remaining===1?`下一抽必得${guarantee}`:`最多再抽 ${remaining} 次，必得${guarantee}`}</strong><p>两台机器分别累计，跨天保留；提前抽中限定奖品后重新累计。</p></div><div class="lottery-pity-track"><span>保底积累 <b>${accumulated>=pity.limit?`${accumulated} 抽`:`${accumulated} / ${pity.limit}`}</b></span><div class="lottery-pity-meter" role="progressbar" aria-label="限定藏品保底进度" aria-valuemin="0" aria-valuemax="${pity.limit}" aria-valuenow="${seen}"><i style="width:${seen/pity.limit*100}%"></i></div></div></section>`;
   }
   function collectionHTML(item){
     const items=(item.collection||[]).filter(row=>row?.lotteryOnly===true&&row.lotteryMachine===machine).slice(0,12);if(!items.length)return '';
