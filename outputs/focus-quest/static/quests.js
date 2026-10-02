@@ -160,7 +160,15 @@
     $('exchange-cost').textContent=amount?`花费 ${n(amount*rate)} 金币`:'请输入 1–1000 的整数';
     $('exchange-open').disabled=busy||!amount||amount>max;
     $('exchange-hint').textContent=max?`当前可兑换 ${n(max)} 颗钻石。兑换不设每日限额，按需要慢慢攒。`:`再攒 ${n(rate-data.wallet.coins)} 金币，就能兑换一颗钻石。`;
-    replace('exchange-history',(data.exchange?.history||[]).length?data.exchange.history.map(row=>`<div><time>${esc(new Date(row.createdAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}))}</time><span>−${n(row.coins)} 金币</span><strong>+${n(row.diamonds)} 钻石</strong></div>`).join(''):'<p>还没有兑换记录。每一次兑换都会记在这里。</p>');
+    const reverse=data.exchange?.reverse,remaining=Math.max(0,Number(reverse?.remaining)||0),limit=Number(reverse?.limit)||5;
+    $('exchange-reverse-open').textContent=`1 钻石换 ${n(rate)} 金币`;
+    $('exchange-reverse-open').disabled=busy||!reverse||remaining<=0||data.wallet.diamonds<1;
+    $('exchange-reverse-status').textContent=reverse?`今日剩余 ${n(remaining)} / ${n(limit)} 次${data.wallet.diamonds<1?' · 钻石不足':''}`:'正在同步今日兑换次数';
+    $('exchange-reverse-rate').textContent=`1 钻石 = ${n(rate)} 金币 · 每次 1 钻石，每天最多 ${n(limit)} 次`;
+    replace('exchange-history',(data.exchange?.history||[]).length?data.exchange.history.map(row=>{
+      const reverse=row.direction==='diamonds-to-coins';
+      return `<div><time>${esc(new Date(row.createdAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}))}</time><span>−${n(reverse?row.diamonds:row.coins)} ${reverse?'钻石':'金币'}</span><strong>+${n(reverse?row.coins:row.diamonds)} ${reverse?'金币':'钻石'}</strong></div>`;
+    }).join(''):'<p>还没有兑换记录。双向兑换都会记在这里。</p>');
   }
   function openExchange(){
     if(busy||!data)return;
@@ -168,6 +176,12 @@
     if(!amount||amount*rate>data.wallet.coins)return;
     intent={action:'exchange',diamonds:amount,requestId:window.crypto.randomUUID()};
     dialog('把积累，凝成星光','THE STAR EXCHANGE','<div class="exchange-art"><span>●</span><i>→</i><b>◆</b></div>',`<p>将 <strong>${n(amount*rate)} 金币</strong>兑换为 <strong>${n(amount)} 颗钻石</strong>。</p><div class="q-action-reward">${price({currency:'diamonds',diamonds:amount})}<small>兑换所得，立即入袋</small></div><p>兑换比例：${n(rate)} 金币 = 1 钻石。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins-amount*rate)} 金币 · ${n(data.wallet.diamonds+amount)} 钻石</p>`,'确认兑换','再攒一攒');
+  }
+  function openReverseExchange(){
+    if(busy||!data||!data.exchange?.reverse||data.exchange.reverse.remaining<=0||data.wallet.diamonds<1)return;
+    const rate=data.exchange.coinsPerDiamond||75,remaining=data.exchange.reverse.remaining;
+    intent={action:'reverseExchange',requestId:window.crypto.randomUUID()};
+    dialog('让星光，化作旅途盘缠','THE STAR EXCHANGE','<div class="exchange-art"><b>◆</b><i>→</i><span>●</span></div>',`<p>将 <strong>1 颗钻石</strong>兑换为 <strong>${n(rate)} 金币</strong>。</p><div class="q-action-reward">${price({currency:'coins',coins:rate})}<small>兑换所得，立即入袋</small></div><p>每天最多兑换 5 次，每次 1 钻石。确认后今天还可兑换 ${n(remaining-1)} 次。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins+rate)} 金币 · ${n(data.wallet.diamonds-1)} 钻石</p>`,'确认兑换','先保留星光');
   }
   function dialog(title,eyebrow,art,body,label,cancel='再想一想'){
     $('quest-action-dialog').classList.toggle('campfire-item-dialog',art.includes('campfire-full-preview'));
@@ -231,13 +245,13 @@
     const item=data.catalog.find(item=>item.id===job.id),previousItem=item&&data.equipped[item.slot];
     busy=true;$('quest-action-confirm').disabled=true;render(data);
     try{
-      const paths={accept:'/api/quests/accept',submit:'/api/quests/submit',buy:'/api/shop/buy',equip:'/api/shop/equip',exchange:'/api/shop/exchange'};
-      const body=job.action==='exchange'?{diamonds:job.diamonds,requestId:job.requestId}:job.subject?{subject:job.subject,...(job.requestId?{requestId:job.requestId}:{})}:{itemId:job.id};
+      const paths={accept:'/api/quests/accept',submit:'/api/quests/submit',buy:'/api/shop/buy',equip:'/api/shop/equip',exchange:'/api/shop/exchange',reverseExchange:'/api/shop/exchange-coins'};
+      const body=job.action==='exchange'?{diamonds:job.diamonds,requestId:job.requestId}:job.action==='reverseExchange'?{requestId:job.requestId}:job.subject?{subject:job.subject,...(job.requestId?{requestId:job.requestId}:{})}:{itemId:job.id};
       const result=await bridge.api(paths[job.action],body);
       render(result);
       if(job.action==='submit'&&result.receipt&&!result.receipt.alreadyClaimed)bridge.playSound?.('delivery',{key:`delivery:${result.receipt.requestId}`});
       if(job.action==='buy'&&result.receipt&&!result.receipt.alreadyOwned)bridge.playSound?.('purchase',{key:`purchase:${result.receipt.itemId}`});
-      if(job.action==='exchange'&&result.receipt&&!result.receipt.alreadyExchanged)bridge.playSound?.('purchase',{key:`exchange:${result.receipt.requestId}`});
+      if(['exchange','reverseExchange'].includes(job.action)&&result.receipt&&!result.receipt.alreadyExchanged)bridge.playSound?.('purchase',{key:`exchange:${result.receipt.requestId}`});
       if(job.action==='equip'&&item&&previousItem!==item.id&&result.equipped?.[item.slot]===item.id)bridge.playSound?.('equip');
       if(intent===job){intent=null;$('quest-action-dialog').close();}
       if(job.action==='submit'){
@@ -245,6 +259,7 @@
         const extra=reward.bonusReward,split=Number(extra?.coins)>0||Number(extra?.diamonds)>0?`；基础 ${rewardText(reward.baseReward)}，首轮加赠 ${rewardText(extra)}`:'';
         bridge.toast(reward.alreadyClaimed?'这次交付已确认':'委托交付 · 收获已入袋',`+${n(reward.coins)} 金币 · +${n(reward.diamonds)} 钻石${split}`);
       }else if(job.action==='exchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'星光已入袋',`+${n(job.diamonds)} 钻石 · ${n(result.receipt?.coins||job.diamonds*(result.exchange?.coinsPerDiamond||75))} 金币已兑换`);
+      else if(job.action==='reverseExchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'旅途盘缠已入袋',`+${n(result.receipt?.coins||result.exchange?.coinsPerDiamond||75)} 金币 · 使用 1 钻石，今日还可兑换 ${n(result.exchange?.reverse?.remaining)} 次`);
       else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，把收藏放进你的远征。',equip:item?.slot==='interface'?'整间书房已换上新气质，原有装饰与特效继续保留。':'已应用到你的星岛与营地。'}[job.action]);
       await bridge.refresh(true);
     }catch(error){
@@ -263,6 +278,7 @@
     $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;area=filter==='interface'?'interface':campSlots.has(filter)?'camp':'journey';render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
     $('exchange-amount').addEventListener('input',()=>{if(data)renderExchange();});
     $('exchange-open').addEventListener('click',openExchange);
+    $('exchange-reverse-open').addEventListener('click',openReverseExchange);
     $('quest-action-confirm').addEventListener('click',()=>perform(intent));
     $('quest-action-dialog').addEventListener('close',()=>{intent=null;});
   }

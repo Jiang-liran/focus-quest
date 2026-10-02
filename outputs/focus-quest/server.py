@@ -3,7 +3,7 @@
 
 No third-party packages are required. Records stay recoverable in a separate
 SQLite archive; confirmed source deletions move them out of active statistics.
-Targets are current settings, including when viewing previous days.
+Daily goals and confirmed weekly goals retain their date-specific history.
 """
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ import threading
 import time
 import tempfile
 import uuid
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -200,6 +200,11 @@ EXCHANGE_COINS_PER_DIAMOND = 75
 EXCHANGE_MAX_DIAMONDS = 1000
 SHOP_PRICING_MIGRATION = "shopPricing:v18"
 SHOP_NPC_REMOVAL_MIGRATION = "shopNpcRemoval:v1"
+GOAL_HISTORY_START_META = "goalHistory:featureStartMs:v1"
+GOAL_HISTORY_WEEKLY_META = "goalHistory:weeklySuggestion:v1"
+GOAL_HISTORY_DEFAULTS_META = "goalHistory:dailyDefaults:v1"
+DAILY_GOAL_CHANGE_LIMIT = 2
+REVERSE_EXCHANGE_DAILY_LIMIT = 5
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
 MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
@@ -711,6 +716,21 @@ class FocusStore:
                 move TEXT NOT NULL, PRIMARY KEY(session_id,version)
             );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
+            CREATE TABLE IF NOT EXISTS goal_days (
+                day TEXT PRIMARY KEY, targets TEXT NOT NULL, changes INTEGER NOT NULL DEFAULT 0,
+                created_ms INTEGER NOT NULL, updated_ms INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS goal_weeks (
+                week_start TEXT PRIMARY KEY, target INTEGER NOT NULL, confirmed_ms INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS goal_requests (
+                request_id TEXT PRIMARY KEY, kind TEXT NOT NULL, period TEXT NOT NULL,
+                payload TEXT NOT NULL, created_ms INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS shop_reverse_exchanges (
+                request_id TEXT PRIMARY KEY, day TEXT NOT NULL, created_ms INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS reverse_exchange_day ON shop_reverse_exchanges(day);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
         with self.db:
@@ -742,6 +762,8 @@ class FocusStore:
         self._initialize_mystery()
         self._migrate_mystery_diamond_cadence()
         self.revision = int(self._meta("revision") or 0)
+        self._initialize_goals()
+        self._ensure_goal_days(quest_clock())
         # Repair duplicates saved by older versions even when either source is
         # currently unavailable. Original rows remain in the merge journal.
         with self.db:
@@ -906,6 +928,220 @@ class FocusStore:
             self.db.execute("UPDATE mystery_tracks SET diamond_offset=-paid_diamonds/2 WHERE subject IN ('politics','english')")
             self._set_meta(MYSTERY_DIAMOND_CADENCE_META, "1")
 
+    def _initialize_goals(self, now=None):
+        """One-time forward-only goal migration; never mint or rewrite rewards."""
+        with self._quest_transaction():
+            if self._meta(GOAL_HISTORY_START_META) is not None:
+                return
+            current = quest_clock(now)
+            started = int(current.timestamp() * 1000)
+            self._set_meta(GOAL_HISTORY_START_META, started)
+            self._set_meta(GOAL_HISTORY_WEEKLY_META, self.settings["weeklyTarget"])
+            self._set_meta(GOAL_HISTORY_DEFAULTS_META, json.dumps(DEFAULT_SETTINGS["targets"], sort_keys=True))
+            self.db.execute("INSERT OR IGNORE INTO goal_days VALUES (?,?,0,?,?)",
+                (current.date().isoformat(), json.dumps(DEFAULT_SETTINGS["targets"], sort_keys=True), started, started))
+            effective = dict(self.settings, targets=dict(DEFAULT_SETTINGS["targets"]))
+            self._save_mystery_epoch(effective, started)
+
+    def _goal_defaults(self):
+        return json.loads(self._meta(GOAL_HISTORY_DEFAULTS_META) or json.dumps(DEFAULT_SETTINGS["targets"]))
+
+    def _ensure_goal_days(self, current):
+        """Freeze missed default days once, including when the app was closed."""
+        with self.lock:
+            started = datetime.fromtimestamp(int(self._meta(GOAL_HISTORY_START_META))/1000, current.tzinfo).date()
+            latest = self.db.execute("SELECT MAX(day) FROM goal_days").fetchone()[0]
+            cursor = max(started, parse_day(latest)+timedelta(days=1)) if latest else started
+            if cursor > current.date():
+                return
+            with nullcontext() if self.db.in_transaction else self.db:
+                encoded = json.dumps(self._goal_defaults(), sort_keys=True)
+                while cursor <= current.date():
+                    midnight = int(datetime.combine(cursor, datetime.min.time(), current.tzinfo).timestamp()*1000)
+                    self.db.execute("INSERT OR IGNORE INTO goal_days VALUES (?,?,0,?,?)", (cursor.isoformat(), encoded, midnight, midnight))
+                    cursor += timedelta(days=1)
+
+    @staticmethod
+    def _goal_week_start(day):
+        selected = parse_day(day)
+        return (selected - timedelta(days=selected.weekday())).isoformat()
+
+    def _daily_goal(self, day, current):
+        selected = parse_day(day)
+        row = self.db.execute("SELECT * FROM goal_days WHERE day=?", (day,)).fetchone()
+        started = int(self._meta(GOAL_HISTORY_START_META))
+        feature_day = datetime.fromtimestamp(started / 1000, current.tzinfo).date()
+        source, estimated, changes = "default", False, 0
+        if row:
+            targets, changes = json.loads(row["targets"]), row["changes"]
+            source = "recorded" if changes else "default"
+        elif selected >= feature_day:
+            targets = self._goal_defaults()
+        else:
+            # Old global settings did not record a daily snapshot. Only an
+            # actual goal epoch before that day's end supplies historical facts.
+            end = int(datetime.combine(selected + timedelta(days=1), datetime.min.time(), current.tzinfo).timestamp() * 1000)
+            epoch = self.db.execute("SELECT settings FROM mystery_goal_epochs WHERE effective_ms<? AND effective_ms<? ORDER BY effective_ms DESC LIMIT 1",
+                                    (end, started)).fetchone()
+            if epoch:
+                targets, source = json.loads(epoch[0])["targets"], "legacy-recorded"
+            else:
+                targets, source, estimated = dict(self.settings["targets"]), "estimated", True
+        return {"day": day, "targets": targets, "total": sum(targets.values()),
+                "changesUsed": changes, "changesRemaining": max(0, DAILY_GOAL_CHANGE_LIMIT-changes) if day == current.date().isoformat() else 0,
+                "changeLimit": DAILY_GOAL_CHANGE_LIMIT, "defaultTargets": self._goal_defaults(),
+                "targetEstimated": estimated, "targetSource": source}
+
+    def _weekly_goal(self, week_start, current):
+        start = parse_day(week_start)
+        row = self.db.execute("SELECT * FROM goal_weeks WHERE week_start=?", (week_start,)).fetchone()
+        suggested = int(self._meta(GOAL_HISTORY_WEEKLY_META) or self.settings["weeklyTarget"])
+        is_current = week_start == self._goal_week_start(current.date().isoformat())
+        return {"weekStart": week_start, "weekEnd": (start+timedelta(days=6)).isoformat(),
+                "target": row["target"] if row else suggested, "confirmed": bool(row), "locked": bool(row),
+                "confirmedAt": iso_ms(row["confirmed_ms"]) if row else None,
+                "targetEstimated": not bool(row), "targetSource": "confirmed" if row else "suggested" if is_current else "estimated"}
+
+    def goals_state(self, now=None):
+        with self.lock:
+            current = quest_clock(now)
+            self._ensure_goal_days(current)
+            today = current.date().isoformat()
+            weekly = self._weekly_goal(self._goal_week_start(today), current)
+            return {"today": today, "daily": self._daily_goal(today, current), "weekly": weekly,
+                    "weeklyRequired": not weekly["confirmed"]}
+
+    def _goal_request(self, request_id, kind, period, payload):
+        request_id = self._action_uuid(request_id)
+        encoded = json.dumps(payload, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        existing = self.db.execute("SELECT * FROM goal_requests WHERE request_id=?", (request_id,)).fetchone()
+        if existing and (existing["kind"] != kind or existing["period"] != period or existing["payload"] != encoded):
+            raise ValueError("同一个目标请求标识不能修改内容")
+        return request_id, encoded, existing
+
+    def set_daily_goal(self, targets, day, request_id, now=None):
+        if not isinstance(targets, dict) or set(targets) != SUBJECT_IDS:
+            raise ValueError("请同时填写四科的今日目标")
+        validated = validate_settings(DEFAULT_SETTINGS, {"targets": targets})["targets"]
+        parse_day(day)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            request_id, encoded, existing = self._goal_request(request_id, "daily", day, validated)
+            if not existing:
+                if day != current.date().isoformat():
+                    raise ValueError("日期已变化，请重新查看今天的目标；过去目标不能修改")
+                goal = self._daily_goal(day, current)
+                if goal["targets"] == validated:
+                    raise ValueError("目标没有变化，本次不占用调整次数")
+                if goal["changesUsed"] >= DAILY_GOAL_CHANGE_LIMIT:
+                    raise ValueError("今日已调整两次，明天会恢复默认目标")
+                now_ms = int(current.timestamp()*1000)
+                self.db.execute("""INSERT INTO goal_days VALUES (?,?,?,?,?) ON CONFLICT(day) DO UPDATE SET
+                    targets=excluded.targets,changes=excluded.changes,updated_ms=excluded.updated_ms""",
+                    (day, json.dumps(validated, sort_keys=True), goal["changesUsed"]+1, now_ms, now_ms))
+                self.db.execute("INSERT INTO goal_requests VALUES (?,?,?,?,?)", (request_id, "daily", day, encoded, now_ms))
+                self._save_mystery_epoch(dict(self.settings, targets=validated), now_ms)
+                self._bump_revision()
+            return dict(self.goals_state(current), receipt={"requestId": request_id, "kind": "daily", "alreadyApplied": bool(existing)})
+
+    def set_weekly_goal(self, target, week_start, request_id, now=None):
+        target = validate_settings(DEFAULT_SETTINGS, {"weeklyTarget": target})["weeklyTarget"]
+        if self._goal_week_start(week_start) != week_start:
+            raise ValueError("周目标必须从周一开始")
+        with self._quest_transaction():
+            current = quest_clock(now)
+            request_id, encoded, existing = self._goal_request(request_id, "weekly", week_start, target)
+            if not existing:
+                if week_start != self._goal_week_start(current.date().isoformat()):
+                    raise ValueError("已进入另一周，请重新填写本周目标；过去周目标不能修改")
+                if self.db.execute("SELECT 1 FROM goal_weeks WHERE week_start=?", (week_start,)).fetchone():
+                    raise ValueError("本周目标已经确认，不能再修改")
+                now_ms = int(current.timestamp()*1000)
+                self.db.execute("INSERT INTO goal_weeks VALUES (?,?,?)", (week_start, target, now_ms))
+                self.db.execute("INSERT INTO goal_requests VALUES (?,?,?,?,?)", (request_id, "weekly", week_start, encoded, now_ms))
+                self._bump_revision()
+            return dict(self.goals_state(current), receipt={"requestId": request_id, "kind": "weekly", "alreadyApplied": bool(existing)})
+
+    def _goal_mystery_epochs(self, current):
+        """Insert midnight resets into the temporal projection, including days
+        the app was closed. Actual intra-day epochs retain their exact times.
+        """
+        now_ms = int(current.timestamp()*1000)
+        rows = [(row["effective_ms"], json.loads(row["settings"])) for row in
+                self.db.execute("SELECT * FROM mystery_goal_epochs WHERE effective_ms<=? ORDER BY effective_ms", (now_ms,))]
+        started = int(self._meta(GOAL_HISTORY_START_META))
+        if now_ms <= started:
+            return rows
+        first = datetime.fromtimestamp(started / 1000, current.tzinfo).date() + timedelta(days=1)
+        reset = first
+        synthetic = []
+        defaults = self._goal_defaults()
+        cursor, mapping = 0, dict(self.settings["mapping"])
+        while reset <= current.date():
+            point = int(datetime.combine(reset, datetime.min.time(), current.tzinfo).timestamp()*1000)
+            while cursor < len(rows) and rows[cursor][0] < point:
+                mapping = rows[cursor][1]["mapping"]
+                cursor += 1
+            synthetic.append((point, {"targets": dict(defaults), "mapping": dict(mapping)}))
+            reset += timedelta(days=1)
+        # An actual update at midnight follows the reset at that same instant.
+        return sorted(synthetic + rows, key=lambda item: item[0])
+
+    def heatmap(self, period="month", anchor=None, now=None):
+        current = quest_clock(now)
+        selected = parse_day(anchor or current.date().isoformat())
+        if period == "week":
+            start = selected-timedelta(days=selected.weekday())
+            end = start+timedelta(days=6)
+        elif period == "month":
+            start = selected.replace(day=1)
+            end = (start.replace(day=28)+timedelta(days=4)).replace(day=1)-timedelta(days=1)
+        elif period == "year":
+            start, end = date(selected.year, 1, 1), date(selected.year, 12, 31)
+        else:
+            raise ValueError("热力图范围应为 week、month 或 year")
+        with self.lock:
+            self._ensure_goal_days(current)
+            totals, subjects = {}, {}
+            week_first = start-timedelta(days=start.weekday())
+            week_last = end+timedelta(days=6-end.weekday())
+            for row in self.db.execute("""SELECT r.day,r.name,r.minutes FROM records r WHERE r.day>=? AND r.day<=? AND r.end_ms<=?
+                AND NOT EXISTS (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+                (week_first.isoformat(), week_last.isoformat(), int(current.timestamp()*1000))):
+                day = row["day"]
+                totals[day] = totals.get(day, 0)+row["minutes"]
+                sid = classify(row["name"], self.settings["mapping"])
+                counts = subjects.setdefault(day, {})
+                counts[sid] = counts.get(sid, 0)+row["minutes"]
+            days = []
+            cursor = start
+            while cursor <= end:
+                day = cursor.isoformat()
+                goal = self._daily_goal(day, current)
+                minutes = round(totals.get(day, 0), 4)
+                unknown = goal["targetEstimated"] or cursor > current.date()
+                breakdown = [{"id": sid, "name": name, "minutes": round(subjects.get(day, {}).get(sid, 0), 4),
+                    "target": goal["targets"][sid], "percent": percent(subjects.get(day, {}).get(sid, 0), goal["targets"][sid]),
+                    "achieved": None if unknown else subjects.get(day, {}).get(sid, 0) >= goal["targets"][sid]} for sid, name, _ in SUBJECTS]
+                days.append({"date": day, "minutes": minutes, "target": goal["total"], "targets": goal["targets"],
+                    "percent": percent(minutes, goal["total"]), "achieved": None if unknown else minutes >= goal["total"],
+                    "targetEstimated": goal["targetEstimated"], "targetSource": goal["targetSource"],
+                    "future": cursor > current.date(), "subjects": breakdown})
+                cursor += timedelta(days=1)
+            weeks, cursor = [], week_first
+            while cursor <= week_last:
+                goal = self._weekly_goal(cursor.isoformat(), current)
+                minutes = round(sum(totals.get((cursor+timedelta(days=offset)).isoformat(), 0) for offset in range(7)), 4)
+                weeks.append(dict(goal, minutes=minutes, percent=percent(minutes, goal["target"]),
+                                  achieved=None if goal["targetEstimated"] or cursor > current.date() else minutes >= goal["target"]))
+                cursor += timedelta(days=7)
+            return {"period": period, "anchor": selected.isoformat(), "today": current.date().isoformat(),
+                    "start": start.isoformat(), "end": end.isoformat(), "days": days, "weeks": weeks,
+                    "revision": self.revision, "summary": {"minutes": round(sum(row["minutes"] for row in days if not row["future"]), 4),
+                        "activeDays": sum(row["minutes"] > 0 and not row["future"] for row in days), "achievedDays": sum(row["achieved"] is True for row in days),
+                        "knownGoalDays": sum(not row["targetEstimated"] and not row["future"] for row in days),
+                        "estimatedGoalDays": sum(row["targetEstimated"] and not row["future"] for row in days)}}
+
     @staticmethod
     def _unused_slices(slices, used):
         for used_start, used_end in used:
@@ -1011,8 +1247,7 @@ class FocusStore:
         today = current.date().isoformat()
         feature_day = datetime.fromtimestamp(feature_ms / 1000, current.tzinfo).date()
         day_start = datetime.combine(feature_day, datetime.min.time(), current.tzinfo)
-        epochs = [(row["effective_ms"], json.loads(row["settings"])) for row in
-                  self.db.execute("SELECT * FROM mystery_goal_epochs WHERE effective_ms<=? ORDER BY effective_ms", (now_ms,))]
+        epochs = self._goal_mystery_epochs(current)
         rows = self.db.execute("""SELECT r.* FROM records r WHERE r.end_ms<=? AND r.end_ms>?
             AND r.end_ms>r.start_ms AND r.minutes>0 AND NOT EXISTS
             (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
@@ -1033,6 +1268,8 @@ class FocusStore:
                         "source": row["source"], "start_ms": start, "end_ms": end, "minutes": density * (end - start)})
                 day += timedelta(days=1)
         candidates, unlocked_today = [], None
+        day_bounds = {key: (int(datetime.combine(parse_day(key), datetime.min.time(), current.tzinfo).timestamp()*1000),
+                            int(datetime.combine(parse_day(key)+timedelta(days=1), datetime.min.time(), current.tzinfo).timestamp()*1000)) for key in days}
         active_goals = self._mystery_goal_settings(self.settings)
         if epochs:
             active_goals = epochs[-1][1]
@@ -1043,6 +1280,9 @@ class FocusStore:
             until_ms = epochs[index + 1][0] if index + 1 < len(epochs) else now_ms
             for day_key, items in days.items():
                 if not items:
+                    continue
+                start_day, end_day = day_bounds[day_key]
+                if until_ms <= start_day or effective_ms >= end_day:
                     continue
                 if max(item["end_ms"] for item in items) <= max(feature_ms, effective_ms):
                     # Still inspect today's already-met target to show an
@@ -1203,12 +1443,19 @@ class FocusStore:
             result["receipt"] = receipt
             return result
 
-    def _exchange_state(self, wallet):
-        history = [{"diamonds": row["diamonds"], "coins": row["coins"], "createdAt": iso_ms(row["created_ms"])}
-                   for row in self.db.execute("SELECT * FROM shop_exchanges ORDER BY created_ms DESC,rowid DESC LIMIT 10")]
+    def _exchange_state(self, wallet, current=None):
+        current = quest_clock(current)
+        history = [{"diamonds": row["diamonds"], "coins": row["coins"], "direction": row["direction"], "createdAt": iso_ms(row["created_ms"])}
+                   for row in self.db.execute("""SELECT request_id,diamonds,coins,created_ms,'coins-to-diamonds' AS direction FROM shop_exchanges
+                       UNION ALL SELECT request_id,1,75,created_ms,'diamonds-to-coins' FROM shop_reverse_exchanges
+                       ORDER BY created_ms DESC,request_id DESC LIMIT 10""")]
+        used = self.db.execute("SELECT COUNT(*) FROM shop_reverse_exchanges WHERE day=?", (current.date().isoformat(),)).fetchone()[0]
+        remaining = max(0, REVERSE_EXCHANGE_DAILY_LIMIT-used)
         return {"coinsPerDiamond": EXCHANGE_COINS_PER_DIAMOND,
                 "maxDiamonds": wallet["coins"] // EXCHANGE_COINS_PER_DIAMOND,
-                "maxPerExchange": EXCHANGE_MAX_DIAMONDS, "history": history}
+                "maxPerExchange": EXCHANGE_MAX_DIAMONDS, "history": history,
+                "reverse": {"limit": REVERSE_EXCHANGE_DAILY_LIMIT, "used": used, "remaining": remaining,
+                            "coinsPerDiamond": EXCHANGE_COINS_PER_DIAMOND, "maxDiamonds": min(wallet["diamonds"], remaining)}}
 
     def _quest_definition(self, subject):
         if not isinstance(subject, str) or subject not in SUBJECT_IDS:
@@ -1494,7 +1741,7 @@ class FocusStore:
             return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": wallet,
                     "mystery": self._mystery_state(current, mystery_plan),
                     "quests": [self._quest_row(definition, current, mystery_plan)[0] for definition in QUEST_DEFINITIONS],
-                    "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet)}
+                    "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet, current)}
 
     def accept_quest(self, subject, now=None):
         self._quest_definition(subject)
@@ -1624,6 +1871,8 @@ class FocusStore:
             raise ValueError("兑换请求标识必须为 UUID 字符串")
         with self._quest_transaction():
             current = quest_clock(now)
+            if self.db.execute("SELECT 1 FROM shop_reverse_exchanges WHERE request_id=?", (canonical_id,)).fetchone():
+                raise ValueError("同一个兑换请求标识不能改变兑换方向")
             existing = self.db.execute("SELECT * FROM shop_exchanges WHERE request_id=?", (canonical_id,)).fetchone()
             if existing is not None:
                 if existing["diamonds"] != diamonds:
@@ -1639,8 +1888,31 @@ class FocusStore:
                                 (f"exchange:{canonical_id}", -coins, diamonds, created_ms))
             result = self.quest_state(current)
             result["receipt"] = {"requestId": canonical_id, "diamonds": diamonds, "coins": coins,
-                                 "createdAt": iso_ms(created_ms), "alreadyExchanged": existing is not None}
+                                 "createdAt": iso_ms(created_ms), "alreadyExchanged": existing is not None,
+                                 "direction": "coins-to-diamonds"}
             return result
+
+    def exchange_coins(self, request_id, now=None):
+        request_id = self._action_uuid(request_id)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            if self.db.execute("SELECT 1 FROM shop_exchanges WHERE request_id=?", (request_id,)).fetchone():
+                raise ValueError("同一个兑换请求标识不能改变兑换方向")
+            existing = self.db.execute("SELECT * FROM shop_reverse_exchanges WHERE request_id=?", (request_id,)).fetchone()
+            if existing:
+                created_ms = existing["created_ms"]
+            else:
+                day = current.date().isoformat()
+                used = self.db.execute("SELECT COUNT(*) FROM shop_reverse_exchanges WHERE day=?", (day,)).fetchone()[0]
+                if used >= REVERSE_EXCHANGE_DAILY_LIMIT:
+                    raise ValueError("今天已完成 5 次钻石兑换金币，明天再来吧")
+                if self._wallet()["diamonds"] < 1:
+                    raise ValueError("需要 1 颗钻石才能兑换金币")
+                created_ms = int(current.timestamp()*1000)
+                self.db.execute("INSERT INTO shop_reverse_exchanges VALUES (?,?,?)", (request_id, day, created_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)", (f"exchange-reverse:{request_id}", EXCHANGE_COINS_PER_DIAMOND, -1, created_ms))
+            return dict(self.quest_state(current), receipt={"requestId": request_id, "coins": EXCHANGE_COINS_PER_DIAMOND,
+                "diamonds": 1, "direction": "diamonds-to-coins", "createdAt": iso_ms(created_ms), "alreadyExchanged": bool(existing)})
 
     def _meta(self, key):
         item = self.db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
@@ -1650,7 +1922,7 @@ class FocusStore:
         self.db.execute("INSERT INTO meta(key,value) VALUES (?,?) ON CONFLICT(key) DO UPDATE SET value=excluded.value", (key, str(value)))
 
     def _bump_revision(self):
-        self.revision += 1
+        self.revision = int(self._meta("revision") or 0) + 1
         self._set_meta("revision", self.revision)
 
     def _opening_state(self, current):
@@ -1661,7 +1933,7 @@ class FocusStore:
                 (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
             (day, day)).fetchone()
         return {"day": day, "now": current.isoformat(), "minutes": round(row["minutes"], 4),
-                "target": sum(self.settings["targets"].values()), "seen": bool(row["seen"])}
+                "target": self._daily_goal(day, current)["total"], "seen": bool(row["seen"])}
 
     def opening(self, now=None):
         """Read today's greeting context without consuming its first opening."""
@@ -2412,7 +2684,11 @@ class FocusStore:
         with self.lock, self.db:
             updated = validate_settings(self.settings, patch)
             if self._mystery_goal_settings(updated) != self._mystery_goal_settings(self.settings):
-                self._save_mystery_epoch(updated, int(quest_clock().timestamp() * 1000))
+                current = quest_clock()
+                effective = updated
+                if "targets" not in patch:
+                    effective = dict(updated, targets=self._daily_goal(current.date().isoformat(), current)["targets"])
+                self._save_mystery_epoch(effective, int(current.timestamp() * 1000))
             self._set_meta("settings", json.dumps(updated, ensure_ascii=False, allow_nan=False))
             self._bump_revision()
             self.settings = updated
@@ -2472,7 +2748,7 @@ class FocusStore:
         choices = []
         for index, (subject, name, _) in enumerate(SUBJECTS):
             total = totals[subject]
-            target = self.settings["targets"][subject]
+            target = self._daily_goal(current.date().isoformat(), current)["targets"][subject]
             heavy = total["lecture"] >= 30 and total["practice"] < total["lecture"] / 2
             if heavy:
                 mode = "practice"
@@ -2914,14 +3190,20 @@ class FocusStore:
 
     def state(self, selected_day=None, now=None):
         now = now or datetime.now().astimezone()
+        if now.tzinfo is None:
+            now = now.astimezone()
         selected_day = selected_day or now.date().isoformat()
         selected = parse_day(selected_day)
         with self.lock:
+            self._ensure_goal_days(now)
+            self.revision = int(self._meta("revision") or 0)
             all_records = [dict(row) for row in self.db.execute("""SELECT r.* FROM records r
                 WHERE NOT EXISTS (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)
                 ORDER BY end_ms DESC,id DESC""")]
             task_names = sorted(row[0] for row in self.db.execute("SELECT DISTINCT name FROM records"))
             settings = json.loads(json.dumps(self.settings))
+            selected_goal = self._daily_goal(selected_day, now)
+            settings["targets"] = selected_goal["targets"]
             daily = [row for row in all_records if row["day"] == selected_day]
             minutes = round(sum(row["minutes"] for row in daily), 4)
             all_minutes = round(sum(row["minutes"] for row in all_records), 4)
@@ -2943,17 +3225,27 @@ class FocusStore:
             weekly_totals = {}
             for row in all_records:
                 weekly_totals[row["day"]] = weekly_totals.get(row["day"], 0) + row["minutes"]
-            week = [{"date": (selected - timedelta(days=offset)).isoformat(),
-                     "minutes": round(weekly_totals.get((selected - timedelta(days=offset)).isoformat(), 0), 4),
-                     "target": target} for offset in range(6, -1, -1)]
+            completed_week_totals = {}
+            for row in all_records:
+                if row["end_ms"] <= int(now.timestamp()*1000) and row["day"] <= now.date().isoformat():
+                    completed_week_totals[row["day"]] = completed_week_totals.get(row["day"], 0)+row["minutes"]
+            def week_day(day):
+                key = day.isoformat()
+                goal = self._daily_goal(key, now)
+                amount = round(completed_week_totals.get(key, 0), 4)
+                return {"date": key, "minutes": amount, "target": goal["total"], "targets": goal["targets"],
+                        "targetEstimated": goal["targetEstimated"], "targetSource": goal["targetSource"],
+                        "achieved": None if goal["targetEstimated"] or day > now.date() else amount >= goal["total"]}
+            week = [week_day(selected-timedelta(days=offset)) for offset in range(6, -1, -1)]
             week_start = selected - timedelta(days=selected.weekday())
-            week_days = [{"date": (week_start + timedelta(days=offset)).isoformat(),
-                          "minutes": round(weekly_totals.get((week_start + timedelta(days=offset)).isoformat(), 0), 4),
-                          "target": target} for offset in range(7)]
+            week_days = [week_day(week_start+timedelta(days=offset)) for offset in range(7)]
+            weekly_goal = self._weekly_goal(week_start.isoformat(), now)
+            settings["weeklyTarget"] = weekly_goal["target"]
             week_minutes = round(sum(item["minutes"] for item in week_days), 4)
-            weekly = {"date": selected_day, "start": week_days[0]["date"], "end": week_days[-1]["date"],
+            weekly = {**weekly_goal, "date": selected_day, "start": week_days[0]["date"], "end": week_days[-1]["date"],
                       "minutes": week_minutes, "target": settings["weeklyTarget"],
                       "percent": percent(week_minutes, settings["weeklyTarget"]), "days": week_days,
+                      "achieved": None if weekly_goal["targetEstimated"] or week_start > now.date() else week_minutes >= settings["weeklyTarget"],
                       "activeDays": sum(item["minutes"] > 0 for item in week_days)}
             badges = [
                 {"id": "first", "name": "初次出征", "description": "完成第一个专注任务", "earned": bool(all_records)},
@@ -2967,6 +3259,7 @@ class FocusStore:
                     "totals": {"minutes": minutes, "target": target, "percent": percent(minutes, target), "xp": xp,
                                "level": level, "levelXp": xp % 120, "levelTarget": 120},
                     "subjects": subjects, "records": serialized, "week": week, "weekly": weekly,
+                    "goals": self.goals_state(now), "selectedGoal": selected_goal, "heatmapRevision": self.revision,
                     "activities": activity_summary(selected_day, daily, settings, minutes, target, now, advice),
                     "activityTypes": [{"id": aid, "name": name} for aid, name in ACTIVITY_TYPES],
                     "taskActivities": {name: classify_activity(name, settings["activityMapping"])
@@ -3066,6 +3359,15 @@ def make_handler(store, static_dir=STATIC_DIR):
                 elif url.path == "/api/state":
                     query = parse_qs(url.query)
                     self._send(200, store.state(query.get("date", [None])[0]))
+                elif url.path == "/api/goals":
+                    if url.query:
+                        raise ValueError("目标管理只使用电脑当前日期，不接受查询参数")
+                    self._send(200, store.goals_state())
+                elif url.path == "/api/heatmap":
+                    query = parse_qs(url.query, keep_blank_values=True)
+                    if set(query) - {"period", "anchor"} or any(len(values) != 1 for values in query.values()):
+                        raise ValueError("热力图查询参数无效")
+                    self._send(200, store.heatmap(query.get("period", ["month"])[0], query.get("anchor", [None])[0]))
                 elif url.path == "/api/opening":
                     if url.query:
                         raise ValueError("开场使用电脑当前日期和时间，不接受查询参数")
@@ -3117,12 +3419,14 @@ def make_handler(store, static_dir=STATIC_DIR):
                                  "/api/actions/update": (("id", "version", "checked", "note"), store.update_action),
                                  "/api/actions/complete": (("id", "version"), store.complete_action),
                                  "/api/actions/park": (("id", "version"), store.park_action)}
+                goal_actions = {"/api/goals/daily": (("targets", "day", "requestId"), store.set_daily_goal),
+                                "/api/goals/weekly": (("target", "weekStart", "requestId"), store.set_weekly_goal)}
                 arcade_actions = {"/api/arcade/start": (("venue", "requestId"), store.start_arcade),
                                   "/api/arcade/move": (("id", "version", "move"), store.move_arcade),
                                   "/api/arcade/pulse": (("id", "version", "move"), store.pulse_arcade),
                                   "/api/arcade/tickets/buy": (("requestId",), store.buy_arcade_ticket),
                                   "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions and path not in arcade_actions:
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3136,7 +3440,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path in arcade_actions:
+                if path in goal_actions:
+                    fields, action = goal_actions[path]
+                    if url.query or set(payload) != set(fields):
+                        raise ValueError("目标参数无效；请仅提供目标、日期和请求标识")
+                    self._send(200, action(*(payload[field] for field in fields)))
+                elif path in arcade_actions:
                     fields, action = arcade_actions[path]
                     if url.query or set(payload) != set(fields):
                         raise ValueError("游乐参数无效；时间、次数与奖励由服务器决定")
@@ -3150,6 +3459,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != {"diamonds", "requestId"}:
                         raise ValueError("请仅提供兑换钻石数量和请求标识，价格与时间由服务器确定")
                     self._send(200, store.exchange_diamonds(payload["diamonds"], payload["requestId"]))
+                elif path == "/api/shop/exchange-coins":
+                    if url.query or set(payload) != {"requestId"}:
+                        raise ValueError("请仅提供请求标识；每次 1 钻石兑换 75 金币，每日最多 5 次")
+                    self._send(200, store.exchange_coins(payload["requestId"]))
                 elif path == "/api/quests/mystery/submit":
                     if url.query or set(payload) != {"requestId"}:
                         raise ValueError("请仅提供 UUID 请求标识；神秘委托时间、科目和奖励由服务器确定")
@@ -3165,6 +3478,8 @@ def make_handler(store, static_dir=STATIC_DIR):
                         raise ValueError("请仅提供操作标识；委托日期、时间和奖励由服务器确定")
                     self._send(200, action(payload[field]))
                 elif path == "/api/settings":
+                    if url.query or "targets" in payload or "weeklyTarget" in payload:
+                        raise ValueError("每日和每周目标请到目标向导处设定；设置页面不能修改目标")
                     store.update_settings(payload)
                     self._send(200, store.state())
                 elif path == "/api/opening/claim":

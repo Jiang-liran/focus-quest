@@ -30,10 +30,13 @@
   }
   function model(){return visualModel()||modelApi().build(latest);}
   function stop(shouldPaint=true){cancelTimer();clearResonance();resonancePending=false;mode='live';playing=false;replay=null;index=0;previewPercent=null;if(shouldPaint&&latest)paint();}
-  function render(next){
+  function render(next,options={}){
     if(!bridge||!next)return;
     if(latest&&next.date!==latest.date){stop(false);selected=null;discovery=null;clearArrival();resonanceKey=null;}
     latest=next;
+    // Editing a goal changes the visible baseline, not the amount of studying.
+    // Keep its completed scenery while discarding queued entrance ceremonies.
+    if(options.quiet){clearResonance();resonancePending=false;resonanceKey=`${latest.date}:${mode}:${model().resonance.active}`;}
     if(reduced()&&playing){playing=false;cancelTimer();}
     paint();
   }

@@ -17,11 +17,12 @@ let state = null, currentView = 'today', selectedDate = null, inFlight = false, 
 let baselineReady = false, seenRecords = new Set();
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 let recordMutationBusy = false;
-let scenePreviewPercent = null, subjectRenderKey = null, sceneSubjectKey = null;
+let scenePreviewPercent = null, sceneSubjectKey = null;
 const viewRenderKeys = new Map();
 function changedView(key,value){const next=JSON.stringify(value);if(viewRenderKeys.get(key)===next)return false;viewRenderKeys.set(key,next);return true;}
 let claimedEffects = null, celebrationQueue = [];
 let openingPending = true, openingBusy = false, openingReady = null, openingCheckedDay = null, openingRetryAt = 0;
+let renderedGoals = null, weeklyArcadeSuspended = false;
 const subjectRewards = {math:['几何星图，已点亮。','思路一步步连起来，数学的今日目标已经完成。'],cs:['核心电路，已连通。','知识节点连接成网，408 的今日目标已经完成。'],politics:['信念旗帜，已升起。','一点一滴的理解，汇成了政治的今日成果。'],english:['语言之书，已展开。','每一次积累都在生长，英语的今日目标已经完成。']};
 
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -36,6 +37,9 @@ function dateText(value) { const d=new Date(value+'T12:00:00'); return d.toLocal
 function stageOf(percent) { return Math.max(0,Math.min(4,Math.floor(percent/25))); }
 function meta(id) { return subjectsMeta[id]||subjectsMeta.other; }
 function localDay() { const d=new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function goalFingerprint(snapshot){return JSON.stringify([snapshot?.totals?.target,(snapshot?.subjects||[]).map(s=>[s.id,s.target]).sort((a,b)=>a[0].localeCompare(b[0]))]);}
+function dailyGoalsChanged(previous,next){return Boolean(previous&&next&&previous.date===next.date&&goalFingerprint(previous)!==goalFingerprint(next));}
+function clearGoalCelebrations(){celebrationQueue=[];const dialog=$('celebration-dialog');if(dialog?.open&&dialog.dataset.preview!=='true')dialog.close?.();}
 
 async function api(path, body) {
   const options={cache:'no-store'};
@@ -54,7 +58,9 @@ async function refresh(force=false, quietRewards=false) {
     const data=await api('/api/state'+(selectedDate?'?date='+encodeURIComponent(selectedDate):''));
     if(seq!==requestSequence)return;
     if(globalThis.FocusRuntime?.isVisible()===false)return data;
-    checkNewRecords(data, quietRewards);
+    const goalChange=dailyGoalsChanged(state,data);
+    if(goalChange){clearGoalCelebrations();seedEffectClaims(data);}
+    checkNewRecords(data, quietRewards||goalChange);
     state=data;
     if(weekChartState?.start===data.weekly.start)weekChartState=null;
     render();
@@ -119,22 +125,27 @@ function checkNewRecords(next, quietRewards=false) {
 function render() {
   if(!state)return;
   const s=state,t=s.totals;
+  const quietGoals=dailyGoalsChanged(renderedGoals,s);
+  renderedGoals={date:s.date,totals:{target:s.totals.target},subjects:(s.subjects||[]).map(subject=>({id:subject.id,target:subject.target}))};
+  if(quietGoals){clearGoalCelebrations();seedEffectClaims(s);}
   globalThis.FocusAudio?.setEnabled(Boolean(s.settings.sound));
   document.documentElement.classList.toggle('no-motion',!s.settings.motion);
   $('date-button').textContent=dateText(s.date)+(s.date===s.today?' · 今天':'');
   $('date-picker').value=s.date;
   $('header-today').disabled=s.date===s.today;
+  globalThis.FocusGoals?.render(s);
+  globalThis.FocusReviewHeatmap?.render(s);
   globalThis.FocusArcade?.render(s.arcade,s.settings);
   const phone=s.calendarSync;
   $('source-label').textContent=phone?.enabled ? (s.sync.connected&&phone.connected?'电脑 + 手机 · 已连接':phone.connected?'手机已连接 · 电脑待连接':s.sync.connected?'电脑已连接 · 手机待连接':'记录同步 · 等待连接') : (s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接');
   $('source-dot').classList.toggle('connected',s.sync.connected&&(!phone?.enabled||phone.connected));
   $('footer-sync').textContent=`本地存档 ${number(s.allTime.records,0)} 条 · ${phone?.enabled?(phone.connected?'手机日历自动同步中':'手机同步待恢复'):s.sync.connected?'每 '+s.sync.pollSeconds+' 秒自动捕获':'同步待恢复'}`;
   renderCalendarPending();
-  renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
+  renderHero();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
   if($('trash-dialog').open)renderTrash();
   globalThis.FocusQuests?.render(s.quests);
-  globalThis.FocusExpedition?.render(s);
+  globalThis.FocusExpedition?.render(s,{quiet:quietGoals});
   globalThis.FocusCitadel?.render(s);
   maybeDailyOpening();
 }
@@ -143,8 +154,17 @@ function noteOpeningArrival() {
   if(openingCheckedDay!==localDay())openingPending=true;
   maybeDailyOpening();
 }
+function pauseForWeeklyGoals(){
+  globalThis.FocusQuickSkins?.close(false);globalThis.FocusExpedition?.pause();
+  if(currentView==='achievements'){weeklyArcadeSuspended=true;globalThis.FocusArcade?.leave();}
+}
+function resumeAfterGoals(){
+  if(globalThis.FocusGoals?.required())return;
+  if(weeklyArcadeSuspended){weeklyArcadeSuspended=false;if(currentView==='achievements')globalThis.FocusArcade?.enter();}
+  setTimeout(()=>{maybeDailyOpening();playNextCelebration();globalThis.FocusExpedition?.resumeResonance?.();},0);
+}
 async function maybeDailyOpening() {
-  if(!state || currentView==='achievements' || document.hidden || openingBusy || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen() || globalThis.FocusCampfireRoom?.isOpen())return;
+  if(globalThis.FocusGoals?.required() || !state || currentView==='achievements' || document.hidden || openingBusy || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen() || globalThis.FocusCampfireRoom?.isOpen())return;
   if(openingReady){
     const ready=openingReady;openingReady=null;
     if(ready.day===localDay()){showOpening(ready);return;}
@@ -217,7 +237,7 @@ function updateViewTitle() {
     $('greeting-eyebrow').textContent=history?'EVERY STEP COUNTS':'YOUR NEXT CHAPTER';
   }else if(currentView==='review'){
     $('page-title').textContent='看清节奏，再从容出发。';
-    $('page-subtitle').textContent=state?`${dateText(state.date)} · 在这里查看周目标、科目分配与听课做题情况。`:'在这里查看周目标、科目分配与听课做题情况。';
+    $('page-subtitle').textContent=state?`${dateText(state.date)} · 在这里回看学习热力图、制定目标与观察听课做题节奏。`:'在这里回看学习热力图、制定目标与观察听课做题节奏。';
     $('greeting-eyebrow').textContent='REFLECT & REBALANCE';
   }else if(currentView==='history'){
     $('page-title').textContent='每一份努力，都有记录。';
@@ -300,26 +320,24 @@ function stopScenePreview() {
   if(state)renderScene(state.totals.minutes/state.totals.target*100);
 }
 
-function renderSubjects() {
-  const key=JSON.stringify(state.subjects);if(subjectRenderKey===key)return;subjectRenderKey=key;
-  $('subjects').innerHTML=state.subjects.map(s=>{const m=meta(s.id),over=s.minutes>=s.target;return `<article class="subject-card ${over?'over':''}" style="--subject-color:${m.color};--subject-energy:${Math.min(1,s.minutes/s.target)}"><div class="subject-head"><span class="subject-icon">${icon(m.icon)}</span><h3>${esc(s.name)}</h3><span class="subject-badge">${over?'✦ 已达成':s.minutes>0?'推进中':'等待启程'}</span></div><div class="subject-sigil">${FocusSubjectArt.markup(s.id)}</div><div class="subject-numbers"><strong>${durationHTML(s.minutes)}</strong><span>/ ${hours(s.target)} 小时</span></div><div class="subject-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${esc(s.name)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,s.percent)}" aria-valuetext="${pct(s.percent)}"><i style="width:${Math.min(100,s.percent)}%"></i></div><div class="subject-bottom"><span>${s.minutes>s.target?'超额 '+duration(s.minutes-s.target):s.minutes===s.target?'目标达成，收获满满':s.minutes>0?'还差 '+duration(s.target-s.minutes):m.subtitle}</span><strong>${pct(s.percent)}</strong></div></article>`;}).join('');
-}
-
 function renderAdvice() { FocusCampfire.render(state); }
 
 function renderWeek() {
   const w=state.weekly;
-  if(!changedView('week',[w,weekChartState,state.date,state.today,state.totals.target,weekChartLoading]))return;
+  if(!changedView('week',[w,weekChartState,state.date,state.today,state.goals?.weekly,weekChartLoading]))return;
   const current=w.start<=state.today && state.today<=w.end;
   $('weekly-goal-title').textContent=current?'本周远征':'该周远征';
   $('weekly-range').textContent=`${w.start.replaceAll('-','.')} — ${w.end.replaceAll('-','.')} · 周一至周日`;
   $('weekly-minutes').innerHTML=durationHTML(w.minutes);
   $('weekly-target').textContent=hours(w.target);
-  $('weekly-percent').textContent=pct(w.percent);
+  const pending=current && state.goals?.weeklyRequired;
+  const estimated=Boolean(w.targetEstimated);
+  $('weekly-target-status').textContent=pending?'本周目标待确认':estimated?'历史参考目标 · 未留存':current?'本周已锁定 · 下周再制定':'当周目标已封存';
+  $('weekly-percent').textContent=pending?'待确认':pct(w.percent)+(estimated?' · 参考':'');
   $('weekly-bar').style.width=Math.min(100,w.percent)+'%';
   $('weekly-progress').setAttribute('aria-valuenow',Math.min(100,w.percent));
   $('weekly-progress').setAttribute('aria-valuetext',pct(w.percent));
-  $('weekly-remaining').textContent=w.minutes>=w.target ? `周目标已达成${w.minutes>w.target?' · 超额 '+duration(w.minutes-w.target):''}，收下这周的积累。` : `已出征 ${w.activeDays} 天 · 距离周目标还差 ${duration(w.target-w.minutes)}`;
+  $('weekly-remaining').textContent=pending?'请先确认这周的学习目标，确认后本周不能再修改。':estimated?`已出征 ${w.activeDays} 天 · 这周没有留存目标，仅展示参考比例，不判断是否达成。`:w.minutes>=w.target ? `周目标已达成${w.minutes>w.target?' · 超额 '+duration(w.minutes-w.target):''}，收下这周的积累。` : `已出征 ${w.activeDays} 天 · 距离周目标还差 ${duration(w.target-w.minutes)}`;
   const chart=weekChartState||w;
   const chartIsCurrent=chart.start<=state.today && state.today<=chart.end;
   $('weekly-total').textContent='累计 '+duration(chart.minutes);
@@ -327,8 +345,8 @@ function renderWeek() {
   $('week-chart-range').textContent=`${chart.start.replaceAll('-','.')} — ${chart.end.slice(5).replaceAll('-','.')}`;
   $('week-reset').hidden=chartIsCurrent;
   $('prev-week').disabled=weekChartLoading;$('next-week').disabled=weekChartLoading;$('week-reset').disabled=weekChartLoading;
-  const max=Math.max(state.totals.target,...chart.days.map(d=>d.minutes),1);
-  $('week-chart').innerHTML=chart.days.map(d=>`<button class="chart-column ${d.date===state.date?'today':''} ${d.date>state.today?'future':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}" aria-label="查看${d.date}，学习${duration(d.minutes)}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
+  const max=Math.max(...chart.days.flatMap(d=>[d.minutes,d.target||0]),1);
+  $('week-chart').innerHTML=chart.days.map(d=>`<button class="chart-column ${d.date===state.date?'today':''} ${d.date>state.today?'future':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}${d.target?` · ${d.targetEstimated?'参考目标':'当日目标'} ${duration(d.target)}`:''}" aria-label="查看${d.date}，学习${duration(d.minutes)}${d.target?`，${d.targetEstimated?'参考目标':'当日目标'}${duration(d.target)}`:''}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
 }
 
 function renderActivities() {
@@ -379,7 +397,8 @@ function renderAchievements() {
 }
 
 function switchView(view) {
-  if(!viewNames[view])return;
+  if(!viewNames[view] || globalThis.FocusGoals?.required())return;
+  if(currentView==='review' && view!=='review')globalThis.FocusReviewHeatmap?.onLeave?.();
   globalThis.FocusQuickSkins?.close(false);
   globalThis.FocusCitadel?.close(false);
   globalThis.FocusCampfireRoom?.close(false);
@@ -388,17 +407,16 @@ function switchView(view) {
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
   document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===view);el.setAttribute('aria-current',el.dataset.view===view?'page':'false');});
   updateViewTitle();window.scrollTo({top:0,behavior:'auto'});
+  if(view==='review')globalThis.FocusReviewHeatmap?.onEnter();
   if(view==='achievements')globalThis.FocusArcade?.enter?.();else{globalThis.FocusArcade?.leave();setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);}
 }
 
 function showSettings() {
-  if(!state)return;
-  $('target-inputs').innerHTML=state.subjects.map(s=>`<label>${esc(s.name)}<input id="target-${s.id}" data-target="${s.id}" type="number" min="0.016666666666666666" max="24" step="any" required value="${s.target/60}" aria-label="${esc(s.name)}每日目标小时"></label>`).join('');
+  if(!state || globalThis.FocusGoals?.required())return;
   const taskNames=state.taskNames||[...new Set([...state.records.map(r=>r.name),...Object.keys(state.settings.mapping),...state.unmapped])];
   $('mapping-fields').innerHTML=taskNames.map((name,i)=>{const current=Object.prototype.hasOwnProperty.call(state.settings.mapping,name)?state.settings.mapping[name]:classifyLocally(name);const activity=Object.prototype.hasOwnProperty.call(state.taskActivities,name)?state.taskActivities[name]:'other';return `<div class="mapping-row"><label for="mapping-${i}" title="${esc(name)}">${esc(name)}</label><select id="mapping-${i}" data-task-name="${esc(name)}" aria-label="${esc(name)}归属科目">${Object.entries(subjectsMeta).map(([id,m])=>`<option value="${id}" ${id===current?'selected':''}>${m.name}</option>`).join('')}</select><select data-activity-task="${esc(name)}" aria-label="${esc(name)}学习方式">${Object.entries(activityNames).map(([id,label])=>`<option value="${id}" ${id===activity?'selected':''}>${label}</option>`).join('')}</select></div>`;}).join('')||'<p class="muted">捕获第一条完成记录后，可以在这里指定它的科目与学习方式。</p>';
-  $('weekly-target-input').value=state.settings.weeklyTarget/60;
   $('motion-input').checked=state.settings.motion;$('sound-input').checked=state.settings.sound;
-  $('settings-error').hidden=true;updateTargetSum();$('settings-dialog').showModal();
+  $('settings-error').hidden=true;$('settings-dialog').showModal();
 }
 function classifyLocally(name) {
   if(name.includes('数学'))return 'math';
@@ -407,22 +425,19 @@ function classifyLocally(name) {
   if(['英语','单词'].some(k=>name.includes(k)))return 'english';
   return 'other';
 }
-function updateTargetSum() { const sum=[...document.querySelectorAll('[data-target]')].reduce((a,el)=>a+Number(el.value||0),0);$('target-sum').textContent=number(sum,2)+' 小时'; if($('mystery-settings-note')){$('mystery-settings-note').dataset.enabled=String(sum>=8);$('mystery-settings-status').textContent=sum>=8?'神秘委托已启用 · 达标后拾星会到访':'神秘委托未开启 · 每日总目标需不少于 8 小时';} }
-
 async function saveSettings(event) {
   event.preventDefault();
   // Unlock while the Save gesture is active; background events never resume audio.
   globalThis.FocusAudio?.setEnabled($('sound-input').checked);
   if($('sound-input').checked)ensureAudio();
-  const targets={},mapping=Object.create(null),activityMapping=Object.create(null);
-  document.querySelectorAll('[data-target]').forEach(el=>targets[el.dataset.target]=Math.round(Number(el.value)*60));
+  const mapping=Object.create(null),activityMapping=Object.create(null);
   document.querySelectorAll('[data-task-name]').forEach(el=>mapping[el.dataset.taskName]=el.value);
   document.querySelectorAll('[data-activity-task]').forEach(el=>activityMapping[el.dataset.activityTask]=el.value);
   $('save-settings').disabled=true;$('settings-error').hidden=true;
   try {
-    await api('/api/settings',{targets,mapping,activityMapping,weeklyTarget:Math.round(Number($('weekly-target-input').value)*60),motion:$('motion-input').checked,sound:$('sound-input').checked});
+    await api('/api/settings',{mapping,activityMapping,motion:$('motion-input').checked,sound:$('sound-input').checked});
     if(!$('motion-input').checked)celebrationQueue=[];
-    $('settings-dialog').close();await refresh(true);toast('远征设置已保存','接下来的进度会按新目标计算。');
+    $('settings-dialog').close();await refresh(true);toast('远征设置已保存','任务归类、学习方式与反馈偏好已更新。');
   } catch(error){globalThis.FocusAudio?.setEnabled(Boolean(state?.settings.sound));$('settings-error').textContent=error.message;$('settings-error').hidden=false;}
   finally{$('save-settings').disabled=false;}
 }
@@ -487,7 +502,7 @@ function celebrationFor(event,preview=false) {
   return {title:stageTitles[event.stage],body:['','引路石被点亮了。每一段专注，都在把迷雾推远。','水晶正在苏醒，星岛已经记下你走过的一半路程。','星环与水晶开始共鸣。你已完成今日目标的四分之三。','四周的光汇聚到星岛。今天已经做得足够好了。'][event.stage],reward:`每日主线 ${event.stage*25}% · ${stageNames[event.stage]}`,stage:event.stage,preview};
 }
 function playNextCelebration() {
-  if(openingBusy || openingReady)return;
+  if(globalThis.FocusGoals?.required() || openingBusy || openingReady)return;
   if(state?.settings.motion===false){celebrationQueue=[];return;}
   if(!celebrationQueue.length || currentView==='achievements' || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen() || globalThis.FocusCampfireRoom?.isOpen())return;
   showCelebration(celebrationQueue.shift());
@@ -547,13 +562,13 @@ $('campfire-room-open').addEventListener('keydown',event=>{
 });
 $('campfire-shop-open').addEventListener('click',()=>{switchView('shop');FocusQuests.browseCamp();});
 $('campfire-shop-return').addEventListener('click',()=>{switchView('today');globalThis.FocusCampfireRoom?.open();});
-$('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
+$('settings-open').addEventListener('click',showSettings);
+$('settings-goals-open').addEventListener('click',()=>{$('settings-dialog').close();switchView('review');$('goal-keeper').scrollIntoView({block:'center',behavior:state?.settings.motion?'smooth':'auto'});globalThis.FocusGoals?.openDaily();});
 $('opening-preview').addEventListener('click',previewOpening);
 $('opening-close').addEventListener('click',()=>$('opening-dialog').close());
 $('opening-done').addEventListener('click',()=>$('opening-dialog').close());
-$('weekly-target-edit').addEventListener('click',()=>{showSettings();$('weekly-target-input').focus();});
 $('activity-settings').addEventListener('click',()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});});
-$('settings-form').addEventListener('submit',saveSettings);$('target-inputs').addEventListener('input',updateTargetSum);
+$('settings-form').addEventListener('submit',saveSettings);
 document.querySelectorAll('.close-dialog').forEach(el=>el.addEventListener('click',()=>el.closest('dialog').close()));
 $('source-open').addEventListener('click',()=>{if(state){renderSource();$('source-dialog').showModal();}});
 $('refresh').addEventListener('click',syncNow);$('sync-now').addEventListener('click',syncNow);
@@ -581,6 +596,8 @@ document.addEventListener('visibilitychange',()=>{if(!globalThis.FocusRuntime&&!
 window.addEventListener('focus',noteOpeningArrival);
 window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
+globalThis.FocusGoals?.init({api,toast,refresh,afterChange:()=>{if(state)seedEffectClaims(state);},beforeWeekly:pauseForWeeklyGoals,resume:resumeAfterGoals});
+globalThis.FocusReviewHeatmap?.init({api,chooseDate,getState:()=>state});
 globalThis.FocusQuickSkins?.init({api,toast,refresh,playSound});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh,playSound});
 globalThis.FocusMystery?.init({api,toast,refresh,playSound,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});

@@ -1,0 +1,168 @@
+/* Dated goal certificates sit on their own surface; purchased world art and
+   progress-bar skins are never restyled by this calendar. No recurring motion. */
+#review-heatmap {
+  --hm-bg:var(--ui-surface,#191c2b);--hm-raised:var(--ui-surface-raised,#23263a);
+  --hm-ink:var(--ui-ink,#e8e2f3);--hm-muted:var(--ui-muted,#a69ab8);
+  --hm-accent:var(--ui-accent,#bda4df);--hm-line:var(--ui-line,#49415c);
+  --hm-empty:color-mix(in srgb,var(--hm-accent) 5%,var(--hm-bg));
+  --hm-one:color-mix(in srgb,var(--hm-accent) 12%,var(--hm-bg));
+  --hm-two:color-mix(in srgb,var(--hm-accent) 23%,var(--hm-bg));
+  --hm-three:color-mix(in srgb,var(--hm-accent) 37%,var(--hm-bg));
+  --hm-four:color-mix(in srgb,var(--hm-accent) 53%,var(--hm-bg));
+  --hm-seal:var(--ui-accent,#cbb4ee);--hm-crown:var(--ui-accent,#e0c391);
+  margin:22px 0;padding:clamp(20px,1.8vw,34px);border:1px solid color-mix(in srgb,var(--hm-line) 75%,transparent);
+  border-radius:var(--ui-radius,15px);background:radial-gradient(ellipse at 100% 0,color-mix(in srgb,var(--hm-accent) 7%,transparent),transparent 42%),var(--hm-bg);color:var(--hm-ink);
+}
+#review-heatmap *{box-sizing:border-box}
+#review-heatmap button{font-family:inherit;color:inherit;cursor:pointer}
+#review-heatmap button:focus-visible{outline:2px solid var(--hm-accent);outline-offset:3px}
+#review-heatmap button:disabled{cursor:default}
+#review-heatmap .hm-header{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+#review-heatmap .hm-eyebrow{display:block;color:var(--hm-accent);font-size:10px;letter-spacing:2px;font-weight:600}
+#review-heatmap h2{font-size:clamp(20px,1.5vw,28px);font-weight:600;margin:9px 0 0;letter-spacing:.04em}
+#review-heatmap h2 small{font-size:11px;color:var(--hm-muted);font-weight:400;margin-left:12px;letter-spacing:0}
+#review-heatmap .hm-controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+#review-heatmap .hm-periods{display:flex;padding:4px;gap:3px;border:1px solid color-mix(in srgb,var(--hm-line) 75%,transparent);border-radius:9px;background:color-mix(in srgb,var(--hm-bg) 70%,var(--ui-bg,#10131e))}
+#review-heatmap .hm-periods button{padding:8px 12px;border:1px solid transparent;border-radius:6px;background:transparent;color:var(--hm-muted);font-size:12px;white-space:nowrap}
+#review-heatmap .hm-periods button[aria-pressed=true]{background:var(--hm-raised);border-color:color-mix(in srgb,var(--hm-accent) 40%,transparent);color:var(--hm-ink);box-shadow:0 2px 5px #00000010}
+#review-heatmap .hm-navigation{display:flex;align-items:center;gap:5px}
+#review-heatmap .hm-navigation button{border:0;background:transparent;color:var(--hm-muted);padding:8px;border-radius:5px;font-size:12px}
+#review-heatmap .hm-navigation button:is(:first-child,:last-child){font-size:24px;line-height:20px;min-width:27px}
+#review-heatmap .hm-navigation button:hover{background:var(--hm-raised);color:var(--hm-ink)}
+#review-heatmap .hm-status{padding:20px 0 0;color:var(--hm-muted);font-size:13px}
+#review-heatmap .hm-status button{margin-left:12px;padding:5px 10px;background:var(--hm-raised);border:1px solid var(--hm-line);border-radius:6px}
+#review-heatmap .hm-stats{display:flex;align-items:stretch;gap:clamp(24px,5vw,80px);padding:24px 0 23px;border-bottom:1px solid color-mix(in srgb,var(--hm-line) 50%,transparent)}
+#review-heatmap .hm-stats>span{position:relative;display:flex;align-items:baseline;gap:12px;font-size:11px;color:var(--hm-muted);flex-wrap:wrap}
+#review-heatmap .hm-stats strong{font-size:clamp(25px,2vw,38px);line-height:1.2;font-weight:600;font-variant-numeric:tabular-nums;color:var(--hm-ink)}
+#review-heatmap .hm-stats strong small{font-size:11px;font-weight:400;margin-left:5px;color:var(--hm-muted)}
+#review-heatmap .hm-stats i{font-style:normal;font-size:10px;border-left:1px solid var(--hm-line);padding-left:8px}
+#review-heatmap .hm-content{display:grid;grid-template-columns:minmax(0,1fr) minmax(215px,24%);gap:clamp(18px,2.4vw,42px);padding-top:24px}
+#review-heatmap .hm-map{min-width:0}
+#review-heatmap .hm-period-heading{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:22px;flex-wrap:wrap}
+#review-heatmap .hm-period-heading h3{margin:0;font-size:clamp(17px,1.2vw,23px);font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+#review-heatmap .hm-period-heading>span{color:var(--hm-muted);font-size:11px}
+#review-heatmap .hm-calendar-head,#review-heatmap .hm-calendar-week{display:grid;grid-template-columns:repeat(7,minmax(0,1fr)) 64px;gap:8px}
+#review-heatmap .hm-calendar-head{font-size:11px;color:var(--hm-muted);text-align:center;margin-bottom:10px;letter-spacing:1px}
+#review-heatmap .hm-calendar-head>span:last-child{letter-spacing:0}
+#review-heatmap .hm-calendar-week{margin-top:8px}
+#review-heatmap .hm-day{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;min-height:78px;padding:10px 10px 8px;border:1px solid color-mix(in srgb,var(--hm-line) 35%,transparent);border-radius:9px;background:var(--hm-empty);text-align:left;transition:transform .12s,border-color .12s,box-shadow .12s}
+#review-heatmap .hm-day[data-level="1"],#review-heatmap .hm-legend i[data-level="1"]{background:var(--hm-one)}
+#review-heatmap .hm-day[data-level="2"],#review-heatmap .hm-legend i[data-level="2"]{background:var(--hm-two)}
+#review-heatmap .hm-day[data-level="3"],#review-heatmap .hm-legend i[data-level="3"]{background:var(--hm-three)}
+#review-heatmap .hm-day[data-level="4"],#review-heatmap .hm-legend i[data-level="4"]{background:var(--hm-four)}
+#review-heatmap .hm-day:hover:not(:disabled){border-color:var(--hm-accent);transform:translateY(-2px);box-shadow:0 4px 10px #00000012}
+#review-heatmap .hm-day[aria-pressed=true]{outline:2px solid var(--hm-accent);outline-offset:2px;z-index:1}
+#review-heatmap .hm-day.is-today{border-color:var(--hm-accent)}
+#review-heatmap .hm-day-number{display:flex;align-items:center;gap:5px;font-size:11px;line-height:13px;color:var(--hm-muted);font-variant-numeric:tabular-nums}
+#review-heatmap .hm-day-number i{font-style:normal;font-size:8px;padding:0 3px;background:var(--hm-ink);color:var(--hm-bg);border-radius:2px}
+#review-heatmap .hm-day>strong{font-size:clamp(17px,1.45vw,24px);font-weight:500;line-height:1.15;font-variant-numeric:tabular-nums;color:var(--hm-ink)}
+#review-heatmap .hm-day>strong small{font-size:11px;font-weight:400;margin-left:3px;color:var(--hm-muted)}
+#review-heatmap .hm-day-state{font-size:9px;color:var(--hm-muted);line-height:12px;white-space:nowrap}
+#review-heatmap .hm-day[data-status=future]{background:transparent;border-style:dashed;border-color:color-mix(in srgb,var(--hm-line) 32%,transparent)}
+#review-heatmap .hm-day[data-status=future] .hm-day-number,#review-heatmap .hm-day[data-status=future]>strong{opacity:.46}
+#review-heatmap .hm-day:is([data-status=achieved],[data-status=surpassed]){border-color:color-mix(in srgb,var(--hm-seal) 75%,transparent);box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--hm-seal) 13%,transparent)}
+#review-heatmap .hm-day[data-status=surpassed]:after{content:'✦';position:absolute;right:7px;bottom:5px;color:var(--hm-crown);font-size:11px}
+#review-heatmap .hm-day-seal{display:block;position:absolute;right:5px;top:5px;width:18px;height:18px;color:var(--hm-seal)}
+#review-heatmap .hm-day-seal svg{width:100%;height:100%;fill:color-mix(in srgb,var(--hm-seal) 15%,transparent);stroke:currentColor;stroke-width:1.3}
+#review-heatmap .hm-estimate{position:absolute;right:8px;top:4px;color:var(--hm-muted);font-size:15px}
+#review-heatmap .hm-week-seal{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-width:0;color:var(--hm-muted);font-size:9px;line-height:1.2;text-align:center;border-left:1px solid color-mix(in srgb,var(--hm-line) 40%,transparent);padding:7px 0 7px 7px}
+#review-heatmap .hm-week-seal>svg{height:21px;width:21px;fill:color-mix(in srgb,var(--hm-crown) 10%,transparent);stroke:currentColor;stroke-width:1.4}
+#review-heatmap .hm-week-seal>b{font-size:15px;font-weight:500;font-variant-numeric:tabular-nums}
+#review-heatmap .hm-week-seal>b>small{font-size:9px;font-weight:400;margin-left:2px}
+#review-heatmap .hm-week-seal>i{font-size:19px;line-height:18px;font-style:normal}
+#review-heatmap .hm-week-seal.is-achieved{color:var(--hm-crown)}
+#review-heatmap .hm-week-seal.is-unknown>i{opacity:.65}
+#review-heatmap .hm-week-summary{display:flex;gap:15px;align-items:center;padding:16px;margin-bottom:22px;border:1px solid color-mix(in srgb,var(--hm-line) 50%,transparent);border-radius:10px;background:color-mix(in srgb,var(--hm-accent) 5%,transparent)}
+#review-heatmap .hm-week-summary .hm-week-seal{border:0;padding:0;min-width:60px}
+#review-heatmap .hm-week-summary>div{display:flex;gap:8px;flex-direction:column}
+#review-heatmap .hm-week-summary strong{font-size:14px;font-weight:500}
+#review-heatmap .hm-week-summary>div>span{font-size:11px;line-height:1.7;color:var(--hm-muted)}
+#review-heatmap [data-period=week] .hm-calendar-head,#review-heatmap [data-period=week] .hm-calendar-week{grid-template-columns:repeat(7,minmax(0,1fr))}
+#review-heatmap [data-period=week] .hm-day{min-height:125px;justify-content:space-between;padding:13px 10px}
+#review-heatmap .hm-legend{display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-top:19px;font-size:10px;color:var(--hm-muted)}
+#review-heatmap .hm-legend>div,#review-heatmap .hm-legend>span{display:flex;gap:5px;align-items:center}
+#review-heatmap .hm-legend i{width:12px;height:12px;border:1px solid color-mix(in srgb,var(--hm-line) 40%,transparent);border-radius:3px;background:var(--hm-empty)}
+#review-heatmap .hm-legend svg{height:16px;width:16px;fill:none;stroke:var(--hm-seal);stroke-width:1.3}
+#review-heatmap .hm-footnote{font-size:10px;line-height:1.7;color:var(--hm-muted);margin:12px 0 0}
+#review-heatmap .hm-detail{border-left:1px solid color-mix(in srgb,var(--hm-line) 50%,transparent);padding-left:clamp(18px,2.4vw,42px);display:flex;flex-direction:column;min-width:0;align-self:stretch}
+#review-heatmap .hm-detail-heading>span{color:var(--hm-muted);font-size:10px;letter-spacing:1px}
+#review-heatmap .hm-detail-heading h3{font-size:17px;font-weight:500;margin:8px 0 6px}
+#review-heatmap .hm-detail-heading>small{font-size:10px;color:var(--hm-muted);letter-spacing:1px;font-variant-numeric:tabular-nums}
+#review-heatmap .hm-detail-emblem{display:flex;align-items:center;gap:10px;margin:24px 0 18px;color:var(--hm-muted);font-size:10px;line-height:1.5}
+#review-heatmap .hm-detail-emblem[data-achieved=true]{color:var(--hm-seal)}
+#review-heatmap .hm-detail-emblem svg{width:32px;height:32px;flex-shrink:0;stroke:currentColor;fill:color-mix(in srgb,var(--hm-accent) 4%,transparent);stroke-width:1}
+#review-heatmap .hm-detail-total{display:flex;flex-direction:column;gap:9px;margin-bottom:22px}
+#review-heatmap .hm-detail-total>strong{font-size:32px;line-height:1;font-weight:500;font-variant-numeric:tabular-nums}
+#review-heatmap .hm-detail-total>strong small{font-size:12px;color:var(--hm-muted);font-weight:400;margin-left:6px}
+#review-heatmap .hm-detail-total>span{font-size:11px;color:var(--hm-muted)}
+#review-heatmap .hm-detail-subjects{display:flex;flex-direction:column;gap:15px}
+#review-heatmap .hm-detail-subjects>div{display:grid;grid-template-columns:40px 1fr auto;align-items:baseline;gap:3px 6px;position:relative;padding-left:10px}
+#review-heatmap .hm-detail-subjects>div:before{content:'';position:absolute;width:3px;height:13px;left:0;top:2px;border-radius:3px;background:var(--hm-accent)}
+#review-heatmap .hm-detail-subjects>div[data-subject=math]:before{background:#7aaf99}
+#review-heatmap .hm-detail-subjects>div[data-subject=cs]:before{background:#a095d0}
+#review-heatmap .hm-detail-subjects>div[data-subject=politics]:before{background:#c19b6c}
+#review-heatmap .hm-detail-subjects>div[data-subject=english]:before{background:#77aac4}
+#review-heatmap .hm-detail-subjects span{font-size:11px;color:var(--hm-muted)}
+#review-heatmap .hm-detail-subjects strong{font-size:12px;font-weight:500;text-align:right;white-space:nowrap}
+#review-heatmap .hm-detail-subjects small{grid-column:2;font-size:10px;color:var(--hm-muted);text-align:right;white-space:nowrap}
+#review-heatmap .hm-detail-subjects i{grid-column:3;grid-row:1 / span 2;font-style:normal;font-size:11px;align-self:center;color:var(--hm-seal)}
+#review-heatmap .hm-detail-note{font-size:10px;color:var(--hm-muted);line-height:1.8;margin:22px 0 18px}
+#review-heatmap .hm-open-day{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding:10px 12px;border:1px solid color-mix(in srgb,var(--hm-line) 80%,transparent);border-radius:7px;background:var(--hm-raised);font-size:11px}
+#review-heatmap .hm-open-day:hover{border-color:var(--hm-accent)}
+#review-heatmap .hm-detail-empty{font-size:13px;line-height:1.8;color:var(--hm-ink);margin:auto 0}
+#review-heatmap .hm-detail-empty span{display:block;margin-top:10px;font-size:11px;color:var(--hm-muted)}
+#review-heatmap .hm-year-scroll{overflow-x:auto;padding:4px 3px 8px;scrollbar-width:thin;scrollbar-color:var(--hm-line) transparent}
+#review-heatmap .hm-year-matrix{position:relative;min-width:530px;padding:0 0 0 22px}
+#review-heatmap .hm-year-months{display:grid;grid-template-columns:repeat(var(--hm-weeks),minmax(0,1fr));gap:3px;font-size:10px;color:var(--hm-muted);height:24px}
+#review-heatmap .hm-year-months span{white-space:nowrap;overflow:visible;z-index:1}
+#review-heatmap .hm-year-columns{display:grid;grid-template-columns:repeat(var(--hm-weeks),minmax(0,1fr));gap:3px}
+#review-heatmap .hm-year-column{display:grid;grid-template-rows:repeat(8,minmax(0,1fr));gap:3px;min-width:0}
+#review-heatmap .hm-year-day,#review-heatmap .hm-year-column>.hm-day-void{padding:0;min-height:0;aspect-ratio:1;border-radius:3px;width:100%}
+#review-heatmap .hm-year-day:hover:not(:disabled){transform:none;outline:2px solid var(--hm-accent);outline-offset:1px;z-index:2}
+#review-heatmap .hm-year-day .hm-day-seal{inset:1px;width:auto;height:auto}
+#review-heatmap .hm-year-day .hm-estimate{right:0;top:0;left:0;bottom:0;display:flex;align-items:center;justify-content:center;font-size:10px;line-height:1}
+#review-heatmap .hm-year-day[data-status=surpassed]:after{display:none}
+#review-heatmap .hm-year-weekdays{position:absolute;left:0;top:24px;bottom:0;display:grid;grid-template-rows:repeat(8,minmax(0,1fr));gap:3px;color:var(--hm-muted);font-size:9px;align-items:center}
+#review-heatmap .hm-year-column .hm-week-seal{border:0;padding:0;font-size:8px;aspect-ratio:1;gap:0;line-height:1}
+#review-heatmap .hm-year-column .hm-week-seal>span{display:none}
+#review-heatmap .hm-year-column .hm-week-seal>i{font-size:12px;line-height:1}
+#review-heatmap .hm-year-column .hm-week-seal>svg{width:100%;height:100%;max-width:17px}
+#review-heatmap .hm-month-summaries{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:22px}
+#review-heatmap .hm-month-summary{padding:10px 8px;min-width:0;background:color-mix(in srgb,var(--hm-accent) 5%,transparent);border:1px solid color-mix(in srgb,var(--hm-line) 40%,transparent);border-radius:7px;display:flex;align-items:flex-start;flex-direction:column;gap:6px;text-align:left}
+#review-heatmap .hm-month-summary:hover{border-color:var(--hm-accent);background:var(--hm-raised)}
+#review-heatmap .hm-month-summary>span{font-size:10px;color:var(--hm-muted)}
+#review-heatmap .hm-month-summary>strong{font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+#review-heatmap .hm-month-summary>strong>small{font-size:10px;font-weight:400;color:var(--hm-muted);margin-left:2px}
+#review-heatmap .hm-month-summary>small{font-size:9px;color:var(--hm-muted);white-space:nowrap}
+@media(min-width:1800px){
+  #review-heatmap .hm-eyebrow{font-size:12px}#review-heatmap h2 small{font-size:14px}
+  #review-heatmap .hm-controls button{font-size:15px}#review-heatmap .hm-period-heading>span{font-size:14px}
+  #review-heatmap .hm-calendar-head{font-size:14px}#review-heatmap .hm-calendar-week,#review-heatmap .hm-calendar-head{gap:11px;grid-template-columns:repeat(7,minmax(0,1fr)) 83px}
+  #review-heatmap .hm-day{min-height:104px;padding:13px 14px;gap:8px}#review-heatmap .hm-day-number{font-size:14px}#review-heatmap .hm-day-state{font-size:11px}
+  #review-heatmap .hm-day-seal{width:22px;height:22px;right:10px;top:10px}
+  #review-heatmap .hm-week-seal{font-size:12px}#review-heatmap .hm-week-seal>b{font-size:19px}#review-heatmap .hm-week-seal>svg{width:27px;height:27px}
+  #review-heatmap .hm-detail-heading h3{font-size:23px}#review-heatmap .hm-detail-heading>span,#review-heatmap .hm-detail-heading>small{font-size:12px}
+  #review-heatmap .hm-detail-total>strong{font-size:43px}#review-heatmap .hm-detail-total>strong small,#review-heatmap .hm-detail-total>span{font-size:14px}
+  #review-heatmap .hm-detail-subjects{gap:21px}#review-heatmap .hm-detail-subjects>div{grid-template-columns:48px 1fr auto}#review-heatmap .hm-detail-subjects span,#review-heatmap .hm-detail-subjects strong{font-size:15px}#review-heatmap .hm-detail-subjects small{font-size:12px}
+  #review-heatmap .hm-detail-note,#review-heatmap .hm-legend,#review-heatmap .hm-footnote,#review-heatmap .hm-detail-emblem{font-size:13px}
+  #review-heatmap .hm-open-day{font-size:14px;padding:13px 16px}#review-heatmap .hm-month-summary>strong{font-size:24px}#review-heatmap .hm-month-summary>span,#review-heatmap .hm-month-summary>small{font-size:12px}
+  #review-heatmap .hm-year-day{min-height:0;padding:0}#review-heatmap .hm-year-day .hm-day-seal{inset:1px;width:auto;height:auto}
+}
+@media(max-width:1199px){
+  #review-heatmap .hm-content{grid-template-columns:minmax(0,1fr) 200px;gap:18px}#review-heatmap .hm-detail{padding-left:18px}
+  #review-heatmap .hm-header{gap:16px}#review-heatmap .hm-controls{gap:8px}#review-heatmap h2 small{display:none}
+  #review-heatmap .hm-calendar-week,#review-heatmap .hm-calendar-head{gap:5px;grid-template-columns:repeat(7,minmax(0,1fr)) 50px}
+  #review-heatmap .hm-day{padding:8px 6px;min-height:74px}#review-heatmap .hm-day-seal{width:15px;height:15px;right:3px;top:5px}#review-heatmap .hm-day-number i{display:none}
+  #review-heatmap .hm-day-state{font-size:8px}#review-heatmap .hm-year-day{padding:0;min-height:0}#review-heatmap .hm-year-day .hm-day-seal{inset:1px;width:auto;height:auto}
+  #review-heatmap .hm-month-summaries{grid-template-columns:repeat(4,minmax(0,1fr))}#review-heatmap .hm-stats{gap:24px}#review-heatmap .hm-stats>span{gap:6px}
+}
+@media(max-width:899px){
+  #review-heatmap .hm-content{grid-template-columns:minmax(0,1fr)}
+  #review-heatmap .hm-detail{border-left:0;border-top:1px solid var(--hm-line);padding:20px 0 0;display:grid;grid-template-columns:1fr 1fr;gap:15px 22px}
+  #review-heatmap .hm-detail-heading{grid-column:1}#review-heatmap .hm-detail-emblem{grid-column:2;grid-row:1;margin:0}
+  #review-heatmap .hm-detail-total{grid-column:1;margin:0}#review-heatmap .hm-detail-subjects{grid-column:2;grid-row:2 / span 2}
+  #review-heatmap .hm-detail-note{grid-column:1;margin:0}#review-heatmap .hm-open-day{grid-column:1 / span 2}
+  #review-heatmap .hm-stats>span{flex-direction:column}#review-heatmap .hm-stats i{border:0;padding:0}
+  #review-heatmap .hm-period-heading{margin-bottom:16px}#review-heatmap .hm-month-summaries{grid-template-columns:repeat(6,minmax(0,1fr))}
+}
+@media(prefers-reduced-motion:reduce){#review-heatmap .hm-day{transition:none}}
