@@ -1,0 +1,32 @@
+{
+  "build": 13,
+  "version": "1.8.2",
+  "tag": "v1.8.2",
+  "recovery_type": "exact released runtime source; recovered commit, not original development commit",
+  "source_location": "work/v19-upgrade/before-app.zip",
+  "source_kind": "app-zip",
+  "runtime_source_digest_sha256": "421940735f1c26943a1581d2f5f0f3ac93dc334ba80dc29923d9bc2a8bfd5041",
+  "runtime_source_files_sha256": {
+    "server.py": "378b1c953739de062a55a84d2bf42e621aa759a63617a5a0e55a86c11555042b",
+    "static/opening.js": "47d5bee62c1f01074242cf486fefa12159544995e6acb9447cc9127e4c4c6d60",
+    "static/quests.js": "e8cebcf55a28f93ab2f715373f76825e82a5c3ac3095e7bea8f2bcc34596b1b8",
+    "static/index.html": "a751485ab4fc2dc65a9977e54d575a068c5ee347d0b138b0fd5fa695dce9c2c8",
+    "static/effects.js": "d8e433e59f0ba906b19ff44be3303c1b80d76e9a550187ab66d3cd4d5a651091",
+    "static/subject-art.js": "23f172b10276f7d7a300bd68a6b061d3cb36e3fc76d92b0bd435c0229849c6bc",
+    "static/shop-art.js": "9c2a24562a28832ad31c688e8835851bf416c4d2b6a56028d1878602c0f6f994",
+    "static/advice.js": "66d59cdbc984510d008c3ca58f6ca4024ef174018eb30ad86d41cab7e1912be6",
+    "static/quests.css": "a780dd2532120662f9f08e1f0e5808a9f33a3c97e384a3a25807f6333e4e6573",
+    "static/style.css": "4833d417a5ec3f11c60fadca8979c625f8189adec48958dec568aa142ca0f689",
+    "static/scene.css": "7bef05b3dfb8e29b2d63f15376c7d25f5c4e68c80a7063fa298ae81c0a1734ff",
+    "static/opening.css": "eef9ed3fda3500841003fee3941e05f94e29bedd15c355c2e7ed9cc71a1e2d06",
+    "static/quest-art.js": "e1d689dcaa3cf6c85663086e6ee4dde68c4598e9baaaa431180c814ca044bf3c",
+    "static/shop-art.css": "2ca96df5a76dcbef02e5c4e8dafd5423e623a00c974d90a4518900d76f053f46",
+    "static/cosmetics.css": "46b63d5e055595687698231f0e1e9d6190a45d15ef23a4cbf9f944f3d144059f",
+    "static/app.js": "24ff1f31786b4301e0178ee2854ef78b15a5bb5e47b7ad8a57168a0494cff934",
+    "static/subject-art.css": "08ea168f0690cd399543e5d2bcffc08d160868c71856e7caab87fd3334fd6b09"
+  },
+  "native_executable_sha256": "72369ad846ea97ac87610c05c488a2467a98525330221247448c9a3055954687",
+  "info_plist_sha256": "9609beb09f8ea8cc76c0ee2745c55280a67acf8159114fafb883f49a50413194",
+  "native_swift_source_available": false,
+  "original_zip_sha256": "e15bceef443b03eb78153bde8b8c4ab8737fe96bae82cf46ba46bb66bcdfa4f7"
+}

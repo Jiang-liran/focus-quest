@@ -13,6 +13,13 @@ const stageTitles = ['每一分钟，都算数。','第一道迷雾，已散去�
 const stageMessages = ['今天的远征，从一小段专注开始。','第一座路标已点亮，脚步正在变成力量。','你的投入，正在慢慢变成看得见的积累。','已经走过四分之三，按自己的节奏完成。','今天已经做得足够好了，安心收下这份成就。'];
 const viewNames = {today:'今日远征',quests:'委托广场',shop:'星织商店',history:'专注档案',achievements:'成长图鉴'};
 const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
+const levelRanks = [
+  {min:1,max:9,name:'启程学徒',range:'Lv. 1–9'},
+  {min:10,max:49,name:'知识游侠',range:'Lv. 10–49'},
+  {min:50,max:149,name:'远征守护者',range:'Lv. 50–149'},
+  {min:150,max:Infinity,name:'长期主义者',range:'Lv. 150 及以上'}
+];
+function levelRank(level) { return levelRanks.find(rank=>level>=rank.min && level<=rank.max)||levelRanks[0]; }
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set(), audioContext = null;
 let activeDialogue = null, dialogueDate = null;
@@ -107,7 +114,7 @@ function render() {
   $('date-picker').value=s.date;
   $('header-today').disabled=s.date===s.today;
   $('level').textContent=`Lv. ${t.level}`;
-  $('level-name').textContent=t.level<10?'启程学徒':t.level<50?'知识游侠':t.level<150?'远征守护者':'长期主义者';
+  $('level-name').textContent=levelRank(t.level).name;
   $('level-xp').textContent=`${t.levelXp} / ${t.levelTarget} XP · 下一级`;
   $('level-bar').style.width=(t.levelXp/t.levelTarget*100)+'%';
   const phone=s.calendarSync;
@@ -373,6 +380,13 @@ function statCard(label,value) { return `<div class="stat-card"><span>${esc(labe
 function renderAchievements() {
   const a=state.allTime;
   $('achievement-stats').innerHTML=statCard('累计专注',`${hours(a.minutes)}<small>小时</small>`)+statCard('完成的专注',`${number(a.records,0)}<small>个</small>`)+statCard('留下足迹的日子',`${a.activeDays}<small>天</small>`);
+  const t=state.totals;
+  $('level-guide-current').textContent=`累计 ${number(t.xp,0)} XP · 当前 Lv. ${t.level}，本级 ${t.levelXp} / ${t.levelTarget} XP。再积累 ${t.levelTarget-t.levelXp} XP，升至 Lv. ${t.level+1}。`;
+  const rankKey=String(levelRanks.indexOf(levelRank(t.level)));
+  if($('level-ranks').dataset.current!==rankKey){
+    $('level-ranks').dataset.current=rankKey;
+    $('level-ranks').innerHTML=levelRanks.map(rank=>`<li class="${rank===levelRank(t.level)?'current':''}"><small>${rank.range}</small><strong>${rank.name}</strong>${rank===levelRank(t.level)?'<span>当前称号</span>':''}</li>`).join('');
+  }
   const symbols=['⚑','✧','✦','♜','❖','♕'];
   $('badges').innerHTML=state.badges.map((b,i)=>`<article class="badge-card ${b.earned?'':'locked'}"><div class="badge-icon">${symbols[i%symbols.length]}</div><h3>${esc(b.name)}</h3><p>${esc(b.description)}</p><span class="badge-status">${b.earned?'✦ 已点亮':'待解锁'}</span></article>`).join('');
 }
@@ -524,6 +538,11 @@ function stepDate(amount) { if(!state)return;const d=new Date(state.date+'T12:00
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();chooseDate(localDay());switchView('today');});
 $('all-records').addEventListener('click',()=>switchView('history'));
+$('level-help').addEventListener('click',()=>{
+  switchView('achievements');
+  $('level-guide').scrollIntoView({behavior:'auto',block:'start'});
+  $('level-guide-title').focus({preventScroll:true});
+});
 $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-dialog').showModal();}});
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});

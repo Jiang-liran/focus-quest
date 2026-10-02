@@ -22,3 +22,24 @@
 .calendar-pending{margin-top:20px;padding:14px 18px;border:1px solid #6f90a337;border-radius:10px;background:#17232e;color:#a6c3d4}.calendar-pending>strong{font-size:12px;font-weight:550}.calendar-pending p{margin-top:8px;font-size:12px;line-height:1.6;color:#97abbf}.calendar-pending p b{font-weight:500;color:#c8d8e4}.calendar-pending small{display:block;margin-top:8px;font-size:11px;color:#758e9f;line-height:1.6}
 
 .record-actions{flex-wrap:wrap}.record-remove{padding:6px 9px;border-radius:5px;font-size:11px;color:#ad859b;background:#ad759508}.record-remove:hover{background:#ad75951c;color:#e3b3cd}.trash-row{display:flex;justify-content:space-between;align-items:center;gap:16px;border-bottom:1px solid #ffffff0a;padding:17px 0}.trash-row strong{font-size:13px;font-weight:500}.trash-row strong span{margin-left:9px;color:#9fabc1;font-size:11px}.trash-row p{margin-top:7px;font-size:11px;color:#78849c;line-height:1.6}.trash-row button{flex-shrink:0}.trash-note{font-size:11px;color:#8390aa;line-height:1.8;margin-top:22px;padding-top:14px;border-top:1px solid #ffffff09}#trash-dialog{width:600px}
+
+/* Discoverable explanation of the existing cumulative level rules. */
+.level-help{display:block;padding:0;margin-top:7px;color:#bba0e3;font-size:10px;text-align:left}
+.level-help:hover{text-decoration:underline;text-underline-offset:3px}
+.level-guide{scroll-margin-top:100px;margin-bottom:26px}
+.level-guide h2{margin-top:9px;font-size:21px}
+.level-guide h3{margin:23px 0 12px;font-size:13px;font-weight:550;color:#c9bddb}
+.level-guide-current{margin:15px 0 20px;padding:13px 15px;border:1px solid #8b71b444;border-radius:8px;background:#ac85ee0b;color:#c9b8e5;font-size:12px;line-height:1.9;font-variant-numeric:tabular-nums}
+.level-rule-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:23px}
+.level-rule-grid strong{color:#d8d1e8;font-size:14px;font-weight:550}
+.level-rule-grid p,.level-guide-notes p{color:#949eb3;font-size:12px;line-height:1.95;margin-top:9px}
+.level-ranks{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.level-ranks li{padding:15px 12px;border:1px solid #343546;border-radius:9px;min-width:0;background:#171c2855}
+.level-ranks li.current{border-color:#9d7ac478;background:#a17bd116}
+.level-ranks small{display:block;font-size:10px;color:#8990a9;line-height:1.6}
+.level-ranks strong{display:block;margin-top:7px;color:#c6c7db;font-size:12px;font-weight:550}
+.level-ranks li>span{display:block;margin-top:8px;color:#c5a4ee;font-size:10px}
+.level-guide-notes{margin-top:22px;padding-top:9px;border-top:1px solid #ffffff0b}
+.level-guide-notes strong{font-weight:550;color:#bfc5d8;margin-right:6px}
+@media(max-width:1050px){.level-ranks{grid-template-columns:repeat(2,minmax(0,1fr))}.level-rule-grid{gap:18px}}
+@media(max-width:700px){.level-rule-grid{grid-template-columns:1fr}.level-guide h2{font-size:19px}.level-guide-current{font-size:11px}}
