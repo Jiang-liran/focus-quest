@@ -1,0 +1,25 @@
+html.has-campfire-room,html.has-campfire-room body{overflow:hidden}
+#campfire-room[hidden]{display:none!important}
+#campfire-room{position:fixed;inset:0;z-index:135;display:grid;place-items:center;padding:24px;background:#080d19bf;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);overscroll-behavior:contain;color:#e8dfd7}
+.campfire-room-panel{width:min(1060px,100%);max-height:calc(100vh - 48px);max-height:calc(100dvh - 48px);min-width:0;overflow:auto;overscroll-behavior:contain;scrollbar-width:thin;border:1px solid #9d826052;border-radius:21px;background:radial-gradient(ellipse at 15% 60%,#86602c14,transparent 55%),#20212f;box-shadow:0 24px 100px #0008,0 0 65px #b58a3210;animation:campfire-room-arrive .24s ease-out both}
+.campfire-room-bar,.campfire-room-toolbar{position:sticky;top:0;z-index:3;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:16px 25px 12px;border-bottom:1px solid #bfa4751c;background:#20212ff5;backdrop-filter:blur(12px)}
+.campfire-room-bar>span,.campfire-room-toolbar>span{font-size:10px;letter-spacing:.1em;color:#bca78e}
+#campfire-room-close{flex-shrink:0;border:1px solid #a88f675e;background:#c3a5720a;border-radius:8px;padding:9px 13px;font:inherit;font-size:11px;color:#e1c7a4;cursor:pointer}
+#campfire-room-close:hover{background:#c3a5721d;border-color:#c8a77799}
+#campfire-room-close:focus-visible{outline:2px solid #e9c589;outline-offset:3px}
+#campfire-room .campfire-card{margin:0;border:0;border-radius:0;background:transparent;box-shadow:none}
+#campfire-room .campfire-heading{padding-top:20px}
+#campfire-room .campfire-body{grid-template-columns:minmax(250px,43%) minmax(0,1fr);padding-top:13px;padding-bottom:22px}
+#campfire-room .campfire-body>.campfire-landscape{min-height:260px}
+#campfire-room #campfire-scene{width:110%;margin-left:-5%}
+#campfire-room #campfire-scene svg{max-height:280px}
+#campfire-room .campfire-line{min-height:118px}
+#campfire-room .campfire-line p{font-size:14px;line-height:1.9}
+#campfire-room .campfire-characters{padding-block:13px 16px}
+#campfire-room .campfire-character{min-height:57px}
+@keyframes campfire-room-arrive{from{opacity:0;transform:translateY(8px) scale(.985)}to{opacity:1;transform:none}}
+@media(min-width:821px) and (max-height:720px){#campfire-room{padding:14px}.campfire-room-panel{max-height:calc(100vh - 28px);max-height:calc(100dvh - 28px)}.campfire-room-bar,.campfire-room-toolbar{padding-block:10px}#campfire-room .campfire-heading{padding-top:15px}#campfire-room .campfire-body{padding-block:8px 15px}#campfire-room .campfire-body>.campfire-landscape{min-height:220px}#campfire-room #campfire-scene svg{max-height:235px}#campfire-room .campfire-speaker{margin-bottom:10px}#campfire-room .campfire-topics{margin-bottom:12px}#campfire-room .campfire-line{min-height:95px}#campfire-room .campfire-characters{padding-block:10px}}
+@media(max-width:820px){#campfire-room{padding:16px}.campfire-room-panel{max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);width:min(660px,100%)}.campfire-room-bar,.campfire-room-toolbar{padding:12px 20px}#campfire-room .campfire-body{grid-template-columns:1fr;padding:4px 21px 18px}#campfire-room .campfire-body>.campfire-landscape{min-height:150px;max-height:170px}#campfire-room #campfire-scene{width:100%;margin-left:0}#campfire-room #campfire-scene svg{max-height:185px}#campfire-room .campfire-talk{padding-top:9px}#campfire-room .campfire-speaker{margin-bottom:10px}#campfire-room .campfire-topics{margin-bottom:12px}#campfire-room .campfire-line{min-height:90px}#campfire-room .campfire-line p{font-size:13px}#campfire-room .campfire-characters{padding-block:11px}#campfire-room .campfire-character{min-height:50px}}
+@media(max-width:500px){#campfire-room{padding:8px}.campfire-room-panel{max-height:calc(100vh - 16px);max-height:calc(100dvh - 16px);border-radius:16px}.campfire-room-bar,.campfire-room-toolbar{padding:10px 15px;gap:8px}.campfire-room-bar>span,.campfire-room-toolbar>span{font-size:9px;letter-spacing:0}#campfire-room-close{font-size:10px;padding:8px 10px}#campfire-room .campfire-heading{padding:15px 16px 0;gap:8px}#campfire-room .campfire-heading h2{font-size:15px;white-space:nowrap}#campfire-room .campfire-header-actions{gap:9px}#campfire-room .campfire-header-actions .text-button{font-size:9px}#campfire-room .campfire-body{padding-inline:16px}#campfire-room .campfire-body>.campfire-landscape{min-height:125px;max-height:145px}#campfire-room #campfire-scene svg{max-height:155px}#campfire-room .campfire-characters{padding:10px}#campfire-room .campfire-character{min-height:48px;padding:5px 9px}#campfire-room .campfire-talk-footer{padding-top:12px}}
+.no-motion .campfire-room-panel{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.campfire-room-panel{animation:none!important;transition:none!important}}

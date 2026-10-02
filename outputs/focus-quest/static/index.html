@@ -17,8 +17,10 @@
   <link rel="stylesheet" href="/citadel-art.css">
   <link rel="stylesheet" href="/citadel.css">
 <link rel="stylesheet" href="/expedition-art.css"/><link rel="stylesheet" href="/expedition.css"/>
+  <link rel="stylesheet" href="/campfire-room.css">
+  <link rel="stylesheet" href="/screen-layout.css">
 </head>
-<body>
+<body data-page="today">
   <svg class="svg-defs" aria-hidden="true"><defs>
     <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5Z"/></symbol>
     <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
@@ -74,7 +76,8 @@
         </div>
         <div class="hero-content">
           <div class="hero-copy"><span class="stage-tag" id="stage-tag">整装出发</span><h2 id="hero-heading">每一分钟，<br>都算数。</h2><p id="hero-message">今天的远征，从一小段专注开始。</p><div class="hero-numbers"><strong id="total-time">—</strong><span>/ <b id="total-target">8</b> 小时目标</span></div><div class="total-progress-label"><span id="remaining">正在读取学习记录</span><strong id="total-percent">—%</strong></div><div class="total-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="每日总进度" aria-valuemin="0" aria-valuemax="100"><i id="total-bar"></i></div></div>
-          <div class="expedition-canvas" id="expedition-canvas" aria-label="学习驱动的星海群岛">
+          <div class="expedition-map-frame" data-scene-frame>
+          <div data-scene-ratio="1.851851852" class="expedition-canvas" id="expedition-canvas" aria-label="学习驱动的星海群岛">
             <div class="expedition-world" id="expedition-world"></div>
             <div class="expedition-map-heading"><span>THE ISLES OF YOUR EFFORT</span><strong id="expedition-map-title">雾中的群岛，正等待第一束光。</strong></div>
             <div class="expedition-scene-state" id="expedition-scene-state" role="status" hidden></div>
@@ -105,6 +108,7 @@
             <div class="expedition-map-footer"><span id="expedition-map-caption">点击四座岛屿，看看今天的建设。</span><span id="expedition-world-count">四科共鸣 0 / 4</span></div>
             <div class="expedition-arrival" id="expedition-arrival" role="status" aria-live="polite" hidden></div>
           </div>
+          </div>
             <div id="expedition-replay-controls" class="expedition-replay-controls" hidden>
               <div><button type="button" id="expedition-play" aria-label="播放或暂停回放">暂停</button><button type="button" id="expedition-step" aria-label="回放下一幕">下一幕 →</button><span id="expedition-frame-number">0 / 0</span><button type="button" id="expedition-live">返回实时 ×</button></div>
               <input type="range" id="expedition-scrub" min="0" max="1" step="1" value="0" aria-label="选择远征回放画面"/>
@@ -129,23 +133,10 @@
       </section>
 
       <nav class="home-shortcuts" aria-label="营地快捷入口">
+        <button type="button" class="campfire-invitation" id="campfire-room-open" aria-haspopup="dialog" aria-controls="campfire-room"><span class="invitation-emblem campfire-door-mark" aria-hidden="true">♨</span><span><strong>回营歇一会儿</strong><small>火还温着，伙伴在等你。</small></span><span class="invitation-link">篝火夜话 ↗</span></button>
         <button type="button" class="review-shortcut" data-view="review" aria-label="打开学习复盘"><span class="invitation-emblem"><svg aria-hidden="true"><use href="#i-grid"/></svg></span><span><strong>学习复盘</strong><small>周目标、四科详情与听课做题分析</small></span><span class="invitation-link">查看复盘 ↗</span></button>
       <button class="quest-invitation" aria-label="打开委托广场" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>委托广场</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
       </nav>
-
-      <section class="campfire-card" id="advice-card" aria-labelledby="campfire-heading">
-        <header class="campfire-heading"><h2 id="campfire-heading">篝火夜话 <span>BY THE CAMPFIRE</span></h2><div class="campfire-header-actions"><p>坐一会儿，听伙伴说说话。</p><button type="button" class="text-button" data-skin-open="camp fire tent campgear campglow chatframe">快速换装</button><button type="button" class="text-button" id="campfire-shop-open">布置营地 ↗</button></div></header>
-        <div class="campfire-body">
-          <div class="campfire-landscape" data-skin-slots="camp fire tent campgear campglow" aria-hidden="true"><div id="campfire-scene"></div><p>风经过树梢，火光落在杯沿。</p></div>
-          <div class="campfire-talk">
-            <div class="campfire-speaker"><div class="campfire-portrait" id="campfire-portrait" aria-hidden="true"></div><div><strong id="campfire-name">阿榆</strong><small id="campfire-role">守火人</small><p id="campfire-description">照看炉火、热茶和一锅慢慢变香的汤。</p></div></div>
-            <div class="campfire-topics" role="group" aria-label="选择聊天话题"><button type="button" data-campfire-topic="relax" aria-pressed="true">歇一会儿</button><button type="button" data-campfire-topic="story" aria-pressed="false">听段见闻</button><button type="button" data-campfire-topic="advice" aria-pressed="false">聊聊学习</button></div>
-            <div class="campfire-line" data-skin-slots="chatframe" tabindex="0" title="右键更换对话外观" id="advice-line" role="status" aria-live="polite" aria-atomic="true"><span id="advice-topic" hidden>歇一会儿</span><strong id="advice-title">火边留了一个位置</strong><p id="advice-text">水快热了，先坐下吧。</p></div>
-            <div class="campfire-talk-footer"><span id="campfire-context">火还温着，慢慢聊就好。</span><button type="button" class="campfire-next" id="advice-next">再聊一句 <span aria-hidden="true">↻</span></button></div>
-          </div>
-        </div>
-        <div class="campfire-characters" id="campfire-characters" role="group" aria-label="选择篝火伙伴"></div>
-      </section>
 
     </div>
 
@@ -216,19 +207,39 @@
   <g class="opening-lanterns"><circle cx="209" cy="174" r="2"/><circle cx="223" cy="124" r="1.7"/><circle cx="316" cy="131" r="2"/><circle cx="329" cy="162" r="1.5"/></g>
 </svg></div><div class="opening-copy"><div id="opening-eyebrow" class="eyebrow"></div><p id="opening-time" class="opening-time"></p><h2 id="opening-title"></h2><p id="opening-body"></p><p id="opening-closing"></p><p id="opening-note"></p><button id="opening-done" class="primary-button">开启今日远征</button></div></dialog>
   <div class="toast-stack" id="toasts" role="status" aria-live="polite"></div>
+  <section id="campfire-room" class="campfire-room" role="dialog" aria-modal="true" aria-labelledby="campfire-heading" hidden>
+    <div class="campfire-room-panel">
+    <header class="campfire-room-bar"><span>远征途中的一盏暖光</span><button type="button" id="campfire-room-close">返回远征 ×</button></header>
+      <section class="campfire-card" id="advice-card" aria-labelledby="campfire-heading">
+        <header class="campfire-heading"><h2 id="campfire-heading">篝火夜话 <span>BY THE CAMPFIRE</span></h2><div class="campfire-header-actions"><p>坐一会儿，听伙伴说说话。</p><button type="button" class="text-button" data-skin-open="camp fire tent campgear campglow chatframe">快速换装</button><button type="button" class="text-button" id="campfire-shop-open">布置营地 ↗</button></div></header>
+        <div class="campfire-body">
+          <div class="campfire-landscape" data-skin-slots="camp fire tent campgear campglow" aria-hidden="true"><div id="campfire-scene"></div><p>风经过树梢，火光落在杯沿。</p></div>
+          <div class="campfire-talk">
+            <div class="campfire-speaker"><div class="campfire-portrait" id="campfire-portrait" aria-hidden="true"></div><div><strong id="campfire-name">阿榆</strong><small id="campfire-role">守火人</small><p id="campfire-description">照看炉火、热茶和一锅慢慢变香的汤。</p></div></div>
+            <div class="campfire-topics" role="group" aria-label="选择聊天话题"><button type="button" data-campfire-topic="relax" aria-pressed="true">歇一会儿</button><button type="button" data-campfire-topic="story" aria-pressed="false">听段见闻</button><button type="button" data-campfire-topic="advice" aria-pressed="false">聊聊学习</button></div>
+            <div class="campfire-line" data-skin-slots="chatframe" tabindex="0" title="右键更换对话外观" id="advice-line" role="status" aria-live="polite" aria-atomic="true"><span id="advice-topic" hidden>歇一会儿</span><strong id="advice-title">火边留了一个位置</strong><p id="advice-text">水快热了，先坐下吧。</p></div>
+            <div class="campfire-talk-footer"><span id="campfire-context">火还温着，慢慢聊就好。</span><button type="button" class="campfire-next" id="advice-next">再聊一句 <span aria-hidden="true">↻</span></button></div>
+          </div>
+        </div>
+        <div class="campfire-characters" id="campfire-characters" role="group" aria-label="选择篝火伙伴"></div>
+      </section>
+    </div>
+  </section>
   <section id="citadel-view" class="citadel-view" role="dialog" aria-modal="true" aria-labelledby="citadel-title" hidden>
     <header class="citadel-header"><button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button><div class="citadel-heading"><span>星海群岛 / INNER WORLD</span><h2 id="citadel-title">星辉城 <small id="citadel-theme">晨雾星岛</small></h2></div><div class="citadel-header-actions"><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">前往商店 ↗</button></div></header>
     <div class="citadel-status"><p id="citadel-mode"></p><strong id="citadel-summary"></strong></div>
     <div class="citadel-layout">
       <div class="citadel-map-column">
-        <div class="citadel-stage" id="citadel-stage" data-skin-slots="theme fx companion relic portal avatar">
+        <div class="citadel-map-frame" data-scene-frame>
+        <div data-scene-ratio="1.666666667" class="citadel-stage" id="citadel-stage" data-skin-slots="theme fx companion relic portal avatar">
           <div id="citadel-camera" class="citadel-camera"><div id="citadel-scene" class="citadel-scene"></div></div>
           <div class="citadel-map-controls"><button type="button" id="citadel-overview">全景</button><button type="button" id="citadel-zoom-out" aria-label="缩小星辉城">−</button><span id="citadel-zoom">100%</span><button type="button" id="citadel-zoom-in" aria-label="放大星辉城">＋</button></div>
+        </div>
         </div>
         <div class="citadel-route-readout"><div id="citadel-awakening" class="citadel-awakening" role="status" aria-live="polite" hidden><span id="citadel-awakening-copy"></span><strong id="citadel-awakening-title"></strong></div><div class="citadel-route-text"><span>顺时针远征</span><strong id="citadel-route-value">0%</strong><p id="citadel-route-copy"></p></div><div id="citadel-route-total" class="citadel-route-total" role="progressbar" aria-label="星辉城行进进度" aria-valuemin="0" aria-valuemax="100"><i id="citadel-route-fill"></i><b style="left:25%"></b><b style="left:50%"></b><b style="left:75%"></b></div></div>
         <nav id="citadel-locations" class="citadel-locations" aria-label="星辉城区域"></nav>
         <div class="citadel-preview-row"><button type="button" id="citadel-demo" aria-pressed="false">演示完整旅程 ▷</button><button type="button" id="citadel-preview-toggle" aria-pressed="false">预览城市生长</button><div id="citadel-preview-controls" hidden><input type="range" id="citadel-preview-range" min="0" max="100" step="1" value="0" aria-label="预览星辉城学习进度"><b id="citadel-preview-value">0%</b></div></div>
-        <p class="citadel-map-hint">点击建筑靠近探访 · 放大后可拖动地图 · 右键更换外观</p>
+        <p class="citadel-map-hint">滚轮缩放 · 拖动探索 · 点击建筑探访 · 右键更换外观</p>
       </div>
       <aside class="citadel-inspector" aria-labelledby="citadel-place-name"><span class="citadel-eyebrow">A PLACE BUILT BY YOUR EFFORT</span><span id="citadel-place-state" class="citadel-place-state"></span><h3 id="citadel-place-name">圣物广场</h3><p id="citadel-place-copy"></p><div id="citadel-place-data" class="citadel-place-data"></div><p id="citadel-place-progress" class="citadel-place-progress"></p><button type="button" id="citadel-interact" class="citadel-interact">触碰晶核</button><button type="button" id="citadel-replay" class="citadel-replay" hidden>回放这一天 ▷</button><p id="citadel-feedback" class="citadel-feedback" role="status" aria-live="polite"></p><small class="citadel-aside-note">设施随所选日期的学习进度苏醒。<br>外观收藏在每一天的城市中都可使用。</small></aside>
     </div>
@@ -251,5 +262,7 @@
   <script src="/citadel-route.js"></script>
   <script src="/citadel-art.js"></script>
   <script src="/citadel.js"></script>
+  <script src="/campfire-room.js"></script>
+  <script src="/screen-layout.js"></script>
   <script src="/app.js"></script>
 </body></html>

@@ -101,8 +101,6 @@
 .citadel-art .citadel-route-actors[data-moving=true] .citadel-step-left{animation:citadel-footstep .52s ease-in-out infinite}
 .citadel-art .citadel-route-actors[data-moving=true] .citadel-step-right{animation:citadel-footstep .52s ease-in-out infinite reverse}
 .citadel-art .citadel-route-actors[data-moving=true] .citadel-companion-walk{animation:citadel-traveler-step .6s ease-in-out infinite;animation-delay:-.18s}
-.citadel-art .citadel-core-percent{font-family:ui-rounded,"SF Pro Rounded","PingFang SC",system-ui,sans-serif;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-1.8px;paint-order:stroke;stroke:#253249;stroke-width:2px}
-.citadel-art .citadel-core-duration,.citadel-art .citadel-core-overflow{font-family:"PingFang SC",system-ui,sans-serif;font-weight:500;letter-spacing:.7px}
 .citadel-art .citadel-core-energy{pointer-events:none}
 .citadel-art .citadel-charge-arc{filter:drop-shadow(0 0 3px #dcd8c155)}
 .citadel-art .citadel-construction{pointer-events:none}

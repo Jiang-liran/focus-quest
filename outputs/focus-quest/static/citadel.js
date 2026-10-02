@@ -12,7 +12,7 @@
     {id:'gate',name:'远征之门',icon:'◎',threshold:1,x:924,y:562,action:'唤起门扉共鸣',copy:'当今日目标达成，门扉完全苏醒。此后的学习化作城上余辉；回到营地休息，也是一段完整旅程。'}
   ];
   let bridge={},state=null,equipped={},equipmentStamp=-Infinity,equipmentPreview=null;
-  let anchor=null,inertBefore=[],selected='core',zoom=1,panX=0,panY=0,previewPercent=null,pulse=null,pulseTimer=null,pulseGeneration=0,artKey='',detailKey='',drag=null,suppressClickUntil=0,initialized=false;
+  let anchor=null,inertBefore=[],selected='core',zoom=1,panX=0,panY=0,previewPercent=null,pulse=null,pulseTimer=null,pulseGeneration=0,artKey='',detailKey='',drag=null,suppressClickUntil=0,wheelTimer=null,initialized=false;
   const isOpen=()=>!!$('citadel-view')&&!$('citadel-view').hidden;
   let motionPercent=null,moving=false,flowTarget=null,flowGates=[],flowKind=null,pendingProgress=null,awakening=null,raf=null,awakeningTimer=null,generation=0,awakeningToken=0;
   const gateIds=['workshop','archive','observatory','gate'];
@@ -80,7 +80,7 @@
     if(flowKind==='demo'){const at=currentModel().percent;cancelJourney();previewPercent=at;paint();return;}
     cancelJourney();clearPulse();previewPercent=100;
     if(!motionAllowed()){paint();return;}
-    motionPercent=0;flowKind='demo';flowTarget=100;flowGates=[25,50,75,100];zoom=1;panX=panY=0;camera();paint();advanceFlow();
+    motionPercent=0;flowKind='demo';flowTarget=100;flowGates=[25,50,75,100];clearCameraGesture();zoom=1;panX=panY=0;camera();paint();advanceFlow();
   }
   function routeUI(model){
     const route=root.FocusCitadelRoute?.build(model.percent);
@@ -110,6 +110,40 @@
   }
   function previewEquipment(override){equipmentPreview=override?{...override}:null;if(isOpen())paint();}
   function clearPulse(){pulseGeneration++;if(pulseTimer!==null)root.clearTimeout(pulseTimer);pulseTimer=null;pulse=null;}
+  function finishDrag(){
+    const previous=drag;drag=null;
+    if(previous?.moved)suppressClickUntil=Date.now()+250;
+    const stage=$('citadel-stage');stage.classList.remove('dragging');
+    if(previous&&stage.hasPointerCapture?.(previous.id))stage.releasePointerCapture?.(previous.id);
+  }
+  function finishWheel(){
+    if(wheelTimer!==null)root.clearTimeout(wheelTimer);wheelTimer=null;
+    $('citadel-stage').classList.remove('wheeling');
+  }
+  function clearCameraGesture(){finishDrag();finishWheel();}
+  function wheelCamera(event){
+    if(!isOpen()||event.defaultPrevented)return;
+    event.preventDefault();
+    if(document.querySelector('dialog[open]')||($('quick-skins')&&!$('quick-skins').hidden)||event.target.closest('button,input,select,textarea'))return;
+    const stage=$('citadel-stage'),rect=stage.getBoundingClientRect();
+    if(!(rect.width>0&&rect.height>0)||!Number.isFinite(event.deltaY)||!Number.isFinite(event.clientX)||!Number.isFinite(event.clientY))return;
+    const pixels=event.deltaY*(event.deltaMode===1?16:event.deltaMode===2?rect.height:1);
+    if(!pixels)return;
+    // A wheel gesture can interrupt a button's eased transition. Start from
+    // the visible camera, rather than jumping to that transition's endpoint.
+    if(!stage.classList.contains('wheeling')&&root.DOMMatrixReadOnly&&root.getComputedStyle){
+      const matrix=new root.DOMMatrixReadOnly(root.getComputedStyle($('citadel-camera')).transform);
+      if(matrix.a>=1&&matrix.a<=2.4&&matrix.b===0&&matrix.c===0&&matrix.a===matrix.d){zoom=matrix.a;panX=matrix.e/rect.width*100;panY=matrix.f/rect.height*100;}
+    }
+    const next=Math.max(1,Math.min(2.4,zoom*Math.exp(-Math.max(-240,Math.min(240,pixels))*.002)));
+    if(next===zoom)return;
+    finishDrag();finishWheel();
+    // Keep the world point under the cursor stationary as the camera scales.
+    const x=(event.clientX-rect.left)/rect.width*100-50,y=(event.clientY-rect.top)/rect.height*100-50,ratio=next/zoom;
+    panX=x-(x-panX)*ratio;panY=y-(y-panY)*ratio;zoom=next;
+    stage.classList.add('wheeling');camera();
+    const timer=root.setTimeout(()=>{if(wheelTimer!==timer)return;wheelTimer=null;stage.classList.remove('wheeling');},160);wheelTimer=timer;
+  }
   function clampCamera(){const limit=(zoom-1)*50;panX=Math.max(-limit,Math.min(limit,panX));panY=Math.max(-limit,Math.min(limit,panY));}
   function camera(){
     clampCamera();$('citadel-camera').style.transform=`translate(${panX}%,${panY}%) scale(${zoom})`;
@@ -117,7 +151,7 @@
     setText('citadel-zoom',Math.round(zoom*100)+'%');$('citadel-zoom-out').disabled=zoom<=1;$('citadel-zoom-in').disabled=zoom>=2.4;
   }
   function center(place){panX=(50-place.x/12)*zoom;panY=(50-place.y/7.2)*zoom;camera();}
-  function select(id,approach=true){if(!places.some(p=>p.id===id))return;selected=id;clearPulse();setText('citadel-feedback','');if(approach){zoom=2;center(places.find(p=>p.id===id));}paint();}
+  function select(id,approach=true){if(!places.some(p=>p.id===id))return;clearCameraGesture();selected=id;clearPulse();setText('citadel-feedback','');if(approach){zoom=2;center(places.find(p=>p.id===id));}paint();}
   function records(){return (Array.isArray(state?.records)?state.records:[]).filter(r=>!r.deleted&&(!(r.day||r.date)||(r.day||r.date)===state.date)).slice().sort((a,b)=>String(b.end||'').localeCompare(String(a.end||'')));}
   function recordCount(){return Math.max(records().length,Number(state?.dayRecordCount)||0);}
   function detail(model){
@@ -167,7 +201,7 @@
     if(!next)return;
     const previous=state,changedDate=state&&state.date!==next.date;
     const reset=state&&(changedDate||state.totals.target!==next.totals.target||next.totals.minutes<state.totals.minutes);
-    if(changedDate){clearPulse();previewPercent=null;selected='core';zoom=1;panX=panY=0;artKey=detailKey='';if(isOpen())camera();}
+    if(changedDate){clearCameraGesture();clearPulse();previewPercent=null;selected='core';zoom=1;panX=panY=0;artKey=detailKey='';if(isOpen())camera();}
     if(reset)cancelJourney();state=next;
     if(!motionAllowed())cancelJourney();
     const pending=pendingProgress;pendingProgress=null;
@@ -186,7 +220,7 @@
     const latest=bridge.getState?.();if(latest)render(latest);
     if(!state||isOpen()||document.querySelector('dialog[open]'))return;
     bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);cancelJourney();
-    anchor=from||document.activeElement;selected='core';zoom=1;panX=panY=0;previewPercent=null;artKey=detailKey='';clearPulse();setText('citadel-feedback','');
+    clearCameraGesture();anchor=from||document.activeElement;selected='core';zoom=1;panX=panY=0;previewPercent=null;artKey=detailKey='';clearPulse();setText('citadel-feedback','');
     inertBefore=Array.from(document.querySelectorAll('body > main, body > .sidebar')).map(element=>[element,element.inert]);
     for(const [element] of inertBefore)element.inert=true;
     $('citadel-view').hidden=false;document.documentElement.classList.add('has-citadel-view');
@@ -194,7 +228,7 @@
   }
   function close(restoreFocus=true){
     if(!isOpen())return;
-    root.FocusQuickSkins?.close(false);cancelJourney();clearPulse();drag=null;previewPercent=null;equipmentPreview=null;
+    root.FocusQuickSkins?.close(false);cancelJourney();clearPulse();clearCameraGesture();previewPercent=null;equipmentPreview=null;
     $('citadel-view').hidden=true;document.documentElement.classList.remove('has-citadel-view');
     for(const [element,previous] of inertBefore)element.inert=previous;inertBefore=[];
     if(restoreFocus&&anchor?.isConnected)anchor.focus?.({preventScroll:true});anchor=null;
@@ -223,16 +257,17 @@
     $('citadel-locations').addEventListener('click',event=>{const button=event.target.closest('[data-citadel-select]');if(button)select(button.dataset.citadelSelect);});
     $('citadel-scene').addEventListener('click',event=>{if(event.ctrlKey||event.button!==0||Date.now()<suppressClickUntil)return;const place=event.target.closest('[data-citadel-place]');if(place)select(place.dataset.citadelPlace);});
     $('citadel-scene').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){const place=event.target.closest('[data-citadel-place]');if(place){event.preventDefault();select(place.dataset.citadelPlace);}}});
-    $('citadel-overview').addEventListener('click',()=>{zoom=1;panX=panY=0;camera();});
-    for(const [id,delta] of [['citadel-zoom-in',.4],['citadel-zoom-out',-.4]])$(id).addEventListener('click',()=>{zoom=Math.round(Math.max(1,Math.min(2.4,zoom+delta))*10)/10;if(zoom===1){panX=panY=0;camera();}else center(places.find(p=>p.id===selected));});
+    $('citadel-overview').addEventListener('click',()=>{clearCameraGesture();zoom=1;panX=panY=0;camera();});
+    for(const [id,delta] of [['citadel-zoom-in',.4],['citadel-zoom-out',-.4]])$(id).addEventListener('click',()=>{clearCameraGesture();zoom=Math.round(Math.max(1,Math.min(2.4,zoom+delta))*10)/10;if(zoom===1){panX=panY=0;camera();}else center(places.find(p=>p.id===selected));});
     $('citadel-preview-toggle').addEventListener('click',()=>{const at=currentModel().percent,enter=previewPercent===null;cancelJourney();clearPulse();previewPercent=enter?Math.min(100,Math.round(at)):null;paint();});
     $('citadel-demo').addEventListener('click',startDemo);
     $('citadel-preview-range').addEventListener('input',event=>{const before=currentModel().percent;cancelJourney();clearPulse();previewPercent=Math.max(0,Math.min(100,Number(event.target.value)||0));const stage=Math.min(4,Math.floor(previewPercent/25));paint();if(stage>Math.floor(before/25)&&motionAllowed())awaken(stage*25,()=>{});});
     root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(!motionAllowed()){cancelJourney();if(isOpen())paint();}});
     const stage=$('citadel-stage');
-    stage.addEventListener('pointerdown',event=>{if(zoom<=1||event.button!==0||event.ctrlKey||event.target.closest('button'))return;drag={id:event.pointerId,x:event.clientX,y:event.clientY,px:panX,py:panY,moved:false};});
+    stage.addEventListener('wheel',wheelCamera,{passive:false});
+    stage.addEventListener('pointerdown',event=>{if(zoom<=1||event.button!==0||event.ctrlKey||event.target.closest('button'))return;finishWheel();drag={id:event.pointerId,x:event.clientX,y:event.clientY,px:panX,py:panY,moved:false};});
     stage.addEventListener('pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<5)return;drag.moved=true;stage.setPointerCapture?.(event.pointerId);stage.classList.add('dragging');const rect=stage.getBoundingClientRect();panX=drag.px+dx/rect.width*100;panY=drag.py+dy/rect.height*100;camera();});
-    const finish=()=>{if(drag?.moved)suppressClickUntil=Date.now()+250;drag=null;stage.classList.remove('dragging');};stage.addEventListener('pointerup',finish);stage.addEventListener('pointercancel',finish);stage.addEventListener('lostpointercapture',finish);
+    stage.addEventListener('pointerup',finishDrag);stage.addEventListener('pointercancel',finishDrag);stage.addEventListener('lostpointercapture',finishDrag);
     document.addEventListener('keydown',event=>{
       if(!isOpen()||event.defaultPrevented||document.querySelector('dialog[open]'))return;
       if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();close();return;}

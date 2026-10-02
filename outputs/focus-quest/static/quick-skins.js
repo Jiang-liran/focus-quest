@@ -4,7 +4,7 @@
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let bridge=null,state=null,stamp=-Infinity,preview=null,slots=[],slot=null,busy=false,anchor=null,menuKey=null,inputMode='pointer';
+  let bridge=null,state=null,stamp=-Infinity,preview=null,slots=[],slot=null,busy=false,anchor=null,anchorCampfire=false,menuKey=null,inputMode='pointer';
   const visible=()=>$('quick-skins')&&!$('quick-skins').hidden;
   function paint(){
     if(!state)return;
@@ -74,6 +74,9 @@
       if(citadelArt&&root.FocusCitadel?.isOpen()){
         const replacement=citadelPlace&&Array.from($('citadel-scene').querySelectorAll('[data-citadel-place]')).find(el=>el.dataset.citadelPlace===citadelPlace);
         (replacement||$('citadel-close'))?.focus?.({preventScroll:true});
+      }else if(anchorCampfire&&root.FocusCampfireRoom?.isOpen()){
+        if(anchor?.isConnected)anchor.focus?.({preventScroll:true});
+        if(!anchor?.isConnected||document.activeElement!==anchor)$('campfire-room-close')?.focus?.({preventScroll:true});
       }else if(anchor?.isConnected)anchor.focus?.({preventScroll:true});
     }
   }
@@ -83,6 +86,8 @@
     if(!valid.length)return;
     const targetRect=position.anchor?.getBoundingClientRect?.();
     slots=[...new Set(valid)];slot=slots[0];preview=null;inputMode='pointer';anchor=position.anchor||document.activeElement;menuKey=null;
+    // A hover can replace the scene SVG and detach its hotspots before close().
+    anchorCampfire=!!anchor?.closest?.('#advice-card');
     paint();$('quick-skins').hidden=false;$('quick-skin-status').textContent='移到外观上预览，点击即可换上。';
     list();
     const menu=$('quick-skins'),rect=menu.getBoundingClientRect(),gap=12;

@@ -39,7 +39,7 @@
     for(const [slot,names] of Object.entries(variants))equipped[slot]=names.some(name=>equipment[slot]===`${slot}-${name}`)?equipment[slot]:`${slot}-default`;
     const ids=places.map(place=>place.id);
     const awakening=options.awakening&&['workshop','archive','observatory','gate'].includes(options.awakening.id)&&finite(options.awakening.token)?{id:options.awakening.id,token:Math.max(0,Math.floor(options.awakening.token))}:null;
-    return {progress,percent,route,stage:route.stage,minutes:finite(model.minutes)?Math.max(0,model.minutes):0,target:finite(model.target)?Math.max(0,model.target):0,moving:model.moving===true,equipped,interactive:options.interactive!==false,selected:ids.includes(options.selected)?options.selected:null,
+    return {progress,percent,route,stage:route.stage,moving:model.moving===true,equipped,interactive:options.interactive!==false,selected:ids.includes(options.selected)?options.selected:null,
       pulse:options.pulse===true?'core':ids.includes(options.pulse)?options.pulse:null,awakening,arriving:options.arriving===true,theme:equipped.theme.slice(6)};
   }
 
@@ -48,9 +48,6 @@
     return route?route.build(percent):{progress:clamp(percent/100),percent,stage:Math.min(4,Math.floor(percent/25)),fromId:'dock',toId:'workshop',segmentProgress:0,position:{x:245,y:588},direction:1};
   }
   const charge=(place,progress)=>place.threshold===0?.25+progress*.75:clamp((progress-place.threshold+.25)/.25);
-  const formatPercent=value=>value>=1e6?`${Number(value.toPrecision(4))}%`:`${value<100?Math.min(99.9,Math.round(value*10)/10):Math.round(value*10)/10}%`;
-  function timeLabel(value) { const total=Math.floor(value),hours=Math.floor(total/60),minutes=total%60;return hours?`${hours}小时${minutes?`${minutes}分`:''}`:`${minutes}分钟`; }
-  const goalLabel=state=>state.target?`${timeLabel(state.minutes)} / ${timeLabel(state.target)}`:'设置目标，启程远征';
   function arc(cx,cy,rx,ry,start,end) {
     const point=angle=>({x:cx+rx*Math.cos(angle*Math.PI/180),y:cy+ry*Math.sin(angle*Math.PI/180)}),a=point(start),b=point(end);
     return `M${n(a.x)} ${n(a.y)}A${rx} ${ry} 0 ${end-start>180?1:0} 1 ${n(b.x)} ${n(b.y)}`;
@@ -185,8 +182,7 @@
       <g class="citadel-core-tier citadel-core-orbit" data-core-tier="2" ${state.stage<2?'display="none"':''}><ellipse cy="-94" rx="67" ry="20" fill="none" stroke="${p.trim}" stroke-width="1.8" transform="rotate(-12 0 -94)"/><circle cx="-61" cy="-86" r="4" fill="${p.light}"/>${star(54,-109,4,p.light)}</g>
       <g class="citadel-core-tier" data-core-tier="3" ${state.stage<3?'display="none"':''}><path d="M-20-32-31-170H31L20-32Z" fill="${p.water}" opacity=".08"/><path d="M-7-35-11-157H11L7-35Z" fill="${p.light}" opacity=".13"/><path d="M0-57V-165" stroke="${p.light}" stroke-width="1" opacity=".5"/></g>
       <g class="citadel-core-tier" data-core-tier="4" ${state.stage<4?'display="none"':''}>${star(0,-171,13,p.light)}<circle cy="-171" r="25" fill="none" stroke="${p.trim}" stroke-width="1.3"/><ellipse cy="-17" rx="160" ry="76" fill="none" stroke="${p.trim}" stroke-width="1" stroke-dasharray="2 9" opacity=".65"/></g>
-      <g class="citadel-core-readout"><path d="M-125 28q125 33 250 0l-15 66q-110 31-220 0Z" fill="${p.rock}" opacity=".9"/><path d="M-111 34q111 28 222 0" fill="none" stroke="${p.edge}" opacity=".4"/>
-      <text class="citadel-core-percent" x="0" y="80" text-anchor="middle" font-size="56" fill="${p.light}">${formatPercent(state.percent)}</text><text class="citadel-core-duration" x="0" y="103" text-anchor="middle" font-size="13" fill="${p.edge}">${goalLabel(state)}</text><text class="citadel-core-overflow" x="0" y="-190" text-anchor="middle" font-size="12" fill="${p.trim}" opacity="${state.percent>100?1:0}">余辉 ${formatPercent(Math.max(0,state.percent-100))}</text></g></g>`;
+      </g>`;
   }
 
   function gate(p,power,theme,equipment) {
@@ -289,7 +285,6 @@
     if(!svgElement||typeof svgElement.querySelector!=='function')return null;
     const state=normalize(model,{},{}),route=state.route;
     const attr=(element,name,value)=>{if(element&&element.getAttribute(name)!==String(value))element.setAttribute(name,String(value));};
-    const text=(selector,value)=>{const el=svgElement.querySelector(selector);if(el&&el.textContent!==value)el.textContent=value;};
     const all=selector=>Array.from(svgElement.querySelectorAll(selector));
     attr(svgElement,'data-citadel-progress',n(state.progress));attr(svgElement,'data-citadel-percent',n(state.percent));attr(svgElement,'data-citadel-stage',state.stage);attr(svgElement,'data-moving',state.moving);
     const move=(selector,position,direction)=>{const actor=svgElement.querySelector(selector);if(!actor)return;attr(actor,'transform',`translate(${n(position.x)} ${n(position.y)})`);attr(actor.querySelector('.citadel-route-facing'),'transform',`scale(${direction} 1)`);};
@@ -299,7 +294,6 @@
     all('.citadel-route-travelled').forEach(el=>attr(el,'stroke-dashoffset',n((1-clamp(state.progress*4-Number(el.getAttribute('data-route-index'))))*100)));
     all('.citadel-charge-arc').forEach(el=>attr(el,'stroke-dashoffset',n((1-clamp(state.progress*4-Number(el.getAttribute('data-energy-index'))))*100)));
     all('.citadel-core-tier').forEach(el=>attr(el,'display',state.stage>=Number(el.getAttribute('data-core-tier'))?'inline':'none'));
-    text('.citadel-core-percent',formatPercent(state.percent));text('.citadel-core-duration',goalLabel(state));text('.citadel-core-overflow',`余辉 ${formatPercent(Math.max(0,state.percent-100))}`);attr(svgElement.querySelector('.citadel-core-overflow'),'opacity',state.percent>100?1:0);
     for(const place of places) {
       const el=svgElement.querySelector(`[data-citadel-place="${place.id}"]`);if(!el)continue;
       const power=charge(place,state.progress);attr(el,'data-charge',n(power));el.style.setProperty('--citadel-charge',n(power));

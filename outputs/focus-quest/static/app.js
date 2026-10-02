@@ -144,7 +144,7 @@ function noteOpeningArrival() {
   maybeDailyOpening();
 }
 async function maybeDailyOpening() {
-  if(!state || document.hidden || openingBusy || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen())return;
+  if(!state || document.hidden || openingBusy || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen() || globalThis.FocusCampfireRoom?.isOpen())return;
   if(openingReady){
     const ready=openingReady;openingReady=null;
     if(ready.day===localDay()){showOpening(ready);return;}
@@ -315,8 +315,7 @@ async function requestAdvice(reveal=false) {
     if(!fresh)throw new Error('暂时无法取得最新记录，请稍后再试。');
     FocusCampfire.suggest(fresh);
     if(currentView!=='today')switchView('today');
-    const motion=fresh.settings.motion&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if(reveal)$('advice-card').scrollIntoView({block:'center',behavior:motion?'smooth':'auto'});
+    if(reveal){stopScenePreview();globalThis.FocusExpedition?.leave();globalThis.FocusCampfireRoom?.open();}
   }catch(error){toast('向导暂时没有读到新记录',error.message,true);}
   finally{$('advice-request').disabled=false;}
 }
@@ -399,8 +398,9 @@ function switchView(view) {
   if(!viewNames[view])return;
   globalThis.FocusQuickSkins?.close(false);
   globalThis.FocusCitadel?.close(false);
+  globalThis.FocusCampfireRoom?.close(false);
   if(view!=='today'){stopScenePreview();globalThis.FocusExpedition?.leave();}
-  currentView=view;
+  currentView=view;document.body.dataset.page=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
   document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===view);el.setAttribute('aria-current',el.dataset.view===view?'page':'false');});
   updateViewTitle();window.scrollTo({top:0,behavior:'auto'});
@@ -502,7 +502,7 @@ function celebrationFor(event,preview=false) {
 function playNextCelebration() {
   if(openingBusy || openingReady)return;
   if(state?.settings.motion===false){celebrationQueue=[];return;}
-  if(!celebrationQueue.length || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen())return;
+  if(!celebrationQueue.length || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen() || globalThis.FocusCampfireRoom?.isOpen())return;
   showCelebration(celebrationQueue.shift());
 }
 function showCelebration({title,body,reward,preview=false,stage=4,subject=null}) {
@@ -524,7 +524,7 @@ function playChime() {
   try{ensureAudio();if(!audioContext)return;[523.25,659.25,783.99].forEach((hz,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.10;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.035,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.55);osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.6);});}catch(_){}
 }
 
-function chooseDate(value) { globalThis.FocusCitadel?.close(false);stopScenePreview();globalThis.FocusExpedition?.leave();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
+function chooseDate(value) { globalThis.FocusCampfireRoom?.close(false);globalThis.FocusCitadel?.close(false);stopScenePreview();globalThis.FocusExpedition?.leave();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
 async function browseWeek(date) {
   const request=++weekChartRequest;
   weekChartLoading=true;renderWeek();
@@ -553,8 +553,9 @@ $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-d
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
 $('advice-request').addEventListener('click',()=>requestAdvice(true));
+$('campfire-room-open').addEventListener('click',()=>{stopScenePreview();globalThis.FocusExpedition?.leave();globalThis.FocusCampfireRoom?.open();});
 $('campfire-shop-open').addEventListener('click',()=>{switchView('shop');FocusQuests.browseCamp();});
-$('campfire-shop-return').addEventListener('click',()=>{switchView('today');$('advice-card').scrollIntoView({block:'center',behavior:'auto'});});
+$('campfire-shop-return').addEventListener('click',()=>{switchView('today');globalThis.FocusCampfireRoom?.open();});
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
 $('opening-preview').addEventListener('click',previewOpening);
 $('opening-close').addEventListener('click',()=>$('opening-dialog').close());
@@ -592,4 +593,5 @@ globalThis.FocusQuickSkins?.init({api,toast,refresh});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
 globalThis.FocusCitadel?.init({getState:()=>state,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
+globalThis.FocusCampfireRoom?.init({afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);
