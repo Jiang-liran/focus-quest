@@ -1,0 +1,30 @@
+{
+  "build": 10,
+  "version": "1.7",
+  "tag": "v1.7",
+  "recovery_type": "exact released runtime source; recovered commit, not original development commit",
+  "source_location": "work/backups/before-v1.8-app.zip",
+  "source_kind": "app-zip",
+  "runtime_source_digest_sha256": "4dc0272a9b24455f889b6005bf5b6a80b787b32a521cb560386e741c4d0d9794",
+  "runtime_source_files_sha256": {
+    "server.py": "406fdf95ca7716e3e2160116fb10e93db883d42f272743f64c433bc8e5bb3d71",
+    "static/opening.js": "47d5bee62c1f01074242cf486fefa12159544995e6acb9447cc9127e4c4c6d60",
+    "static/quests.js": "c3ab435eb3a34d4cddf0a853c958958a3fd985026efc3ab62fbc91ef00c2f33d",
+    "static/index.html": "ca9e375c38f6721e0fd6d46bbbb0fb6362d4f5ca2690530a1d98ea9bcdc96825",
+    "static/effects.js": "d8e433e59f0ba906b19ff44be3303c1b80d76e9a550187ab66d3cd4d5a651091",
+    "static/subject-art.js": "23f172b10276f7d7a300bd68a6b061d3cb36e3fc76d92b0bd435c0229849c6bc",
+    "static/advice.js": "66d59cdbc984510d008c3ca58f6ca4024ef174018eb30ad86d41cab7e1912be6",
+    "static/quests.css": "2c3a52d95993e6702e6ac0b1c7424dbdfd4b70f875e505b0a8db9cb04dcc0ead",
+    "static/style.css": "63c5b2a47498f762a70592394a3940e8f8157581b6f819c32975bccfdb17509a",
+    "static/scene.css": "7bef05b3dfb8e29b2d63f15376c7d25f5c4e68c80a7063fa298ae81c0a1734ff",
+    "static/opening.css": "eef9ed3fda3500841003fee3941e05f94e29bedd15c355c2e7ed9cc71a1e2d06",
+    "static/quest-art.js": "925a36bae04a3390a3cb7a8755eddb30a462d2f96b9adcde41bc3a06442ab7c0",
+    "static/cosmetics.css": "1572fad098ac1b4a62f8bf0601234a828483d9a8db3699498e689419f2ba5d9e",
+    "static/app.js": "7ca576032748bd12972a46ddecfea812d63f73e5ecefb4f3bb45ede76bd51edc",
+    "static/subject-art.css": "08ea168f0690cd399543e5d2bcffc08d160868c71856e7caab87fd3334fd6b09"
+  },
+  "native_executable_sha256": "49386d4a9205a3b608a1ecbbe304e4efdf5ffe4844ab2b541b2c5e680a9afa18",
+  "info_plist_sha256": "e22d6fa9ee4c683c2c382b41bf94e0f32977378b699c2aa701c9034edc95dffa",
+  "native_swift_source_available": false,
+  "original_zip_sha256": "6064128f3a0dda28eb576ca58eb464df660ea40a927c1aa9515a911deb97a463"
+}

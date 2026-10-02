@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="/scene.css">
   <link rel="stylesheet" href="/subject-art.css">
   <link rel="stylesheet" href="/opening.css">
+  <link rel="stylesheet" href="/quests.css">
+  <link rel="stylesheet" href="/cosmetics.css">
 </head>
 <body>
   <svg class="svg-defs" aria-hidden="true"><defs>
@@ -30,11 +32,14 @@
     <div class="nav-label">你的冒险日志</div>
     <nav aria-label="主要导航">
       <button class="nav-item active" data-view="today"><svg><use href="#i-compass"/></svg>今日远征<span class="nav-dot"></span></button>
+      <button class="nav-item" data-view="quests"><svg><use href="#i-flag"/></svg>委托广场</button>
+      <button class="nav-item" data-view="shop"><svg><use href="#i-star"/></svg>星织商店</button>
       <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
       <button class="nav-item" data-view="achievements"><svg><use href="#i-trophy"/></svg>成长图鉴</button>
     </nav>
     <div class="side-note"><div class="small-orbit">✦</div><p>每一段专注，<br>都在让未来更近一点。</p><span>不必完美，持续向前。</span></div>
     <div class="sidebar-bottom">
+      <button class="wallet-side" data-view="shop" aria-label="查看钱包与商店"><span><i class="coin-mark">●</i> <b id="wallet-side-coins">0</b></span><span><i class="diamond-mark">◆</i> <b id="wallet-side-diamonds">0</b></span></button>
       <button class="nav-item" id="settings-open"><svg><use href="#i-settings"/></svg>远征设置</button>
       <button class="source-status" id="source-open" aria-label="学习记录同步信息"><i id="source-dot"></i><span id="source-label">正在连接番茄 ToDo</span><span>↗</span></button>
       <div class="local-label">本地保存 · 记录只属于你</div>
@@ -48,6 +53,7 @@
     <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill"><div class="level-emblem"><svg><use href="#i-star"/></svg></div><div><strong id="level">Lv. —</strong><span id="level-name">远征者</span><div class="mini-progress"><i id="level-bar"></i></div><small id="level-xp">正在读取经验…</small></div></div></section>
 
     <div id="view-today" class="view">
+      <button class="quest-invitation" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>来自营地的委托</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
       <section class="quest-hero" id="quest-hero" data-stage="0">
         <div class="hero-top"><span class="section-kicker"><i></i>每日主线 · 穿越迷雾之境</span><button class="ghost-button" id="preview-effects">✧ 预览成长动画</button></div>
         <div class="effects-preview" id="effects-preview" hidden>
@@ -60,6 +66,7 @@
         <div class="hero-content">
           <div class="hero-copy"><span class="stage-tag" id="stage-tag">整装出发</span><h2 id="hero-heading">每一分钟，<br>都算数。</h2><p id="hero-message">今天的远征，从一小段专注开始。</p><div class="hero-numbers"><strong id="total-time">—</strong><span>/ <b id="total-target">8</b> 小时目标</span></div><div class="total-progress-label"><span id="remaining">正在读取学习记录</span><strong id="total-percent">—%</strong></div><div class="total-progress" role="progressbar" aria-label="每日总进度" aria-valuemin="0" aria-valuemax="100"><i id="total-bar"></i></div></div>
           <div class="quest-scene" aria-hidden="true">
+            <div class="equipped-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="scene-readout"><span id="scene-mode">星岛能量</span><strong id="scene-energy">0%</strong></div><div class="scene-halo"></div><div class="stars"><i>✧</i><i>✦</i><i>·</i><i>✧</i><i>·</i><i>✦</i></div>
             <svg class="island-art" viewBox="0 0 590 350" fill="none">
               <defs><linearGradient id="rock" x1="200" y1="170" x2="320" y2="350" gradientUnits="userSpaceOnUse"><stop stop-color="#40396f"/><stop offset="1" stop-color="#191b38"/></linearGradient><linearGradient id="ground" x1="100" y1="80" x2="410" y2="280" gradientUnits="userSpaceOnUse"><stop stop-color="#48527e"/><stop offset="1" stop-color="#343253"/></linearGradient><linearGradient id="gem" x1="296" y1="45" x2="336" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#e5deff"/><stop offset=".35" stop-color="#bea0ff"/><stop offset="1" stop-color="#7050eb"/></linearGradient><linearGradient id="beam" x1="313" y1="0" x2="313" y2="165" gradientUnits="userSpaceOnUse"><stop stop-color="#b6a1ff" stop-opacity="0"/><stop offset="1" stop-color="#b6a1ff" stop-opacity=".5"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="4"/></filter></defs>
@@ -70,7 +77,7 @@
                 <g class="crystal-shrine"><ellipse cx="322" cy="159" rx="47" ry="22" fill="#9980f0" opacity=".15"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Z" fill="#675e92"/><path d="m322 175 38-23v13l-38 23Z" fill="#8d7caf"/><path d="m300 143 22-13 24 13-24 14Z" fill="#dfcdf5"/><path d="m300 143 22 14v10l-22-13Zm22 14 24-14v10l-24 14Z" fill="#9c85bd"/><path class="light-beam" d="m301 143-16-140h75l-15 140Z" fill="url(#beam)"/>
                   <g class="crystal"><path d="m321 63-24 38 24 44 25-44Z" fill="#b49cfb" opacity=".6" filter="url(#glow)"/><path d="m321 60-23 39 23 42 24-42Z" fill="url(#gem)"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ff" opacity=".65"/><path d="m321 60 24 39-21 3Z" fill="#9271ea"/><path d="m310 80-8 17" stroke="white" stroke-width="2" stroke-linecap="round"/></g>
                 </g>
-                <g class="path-beacons"><g class="path-beacon" data-checkpoint="25"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="50"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="75"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="100"><circle r="8"/><circle r="3"/></g></g><g class="traveler" id="scene-traveler"><ellipse cx="171" cy="220" rx="13" ry="6" fill="#13172d" opacity=".4"/><path d="m170 193-10 20 12 5 11-6-8-20Z" fill="#c3a4f9"/><path d="m170 193-3 22 5 3 11-6-8-20Z" fill="#8e6ad2"/><circle cx="172" cy="185" r="8" fill="#e4c0ae"/><path d="m171 169-14 20 27 1Z" fill="#d0b0ff"/><path d="m171 169 13 21-12-2Z" fill="#9c7ddb"/><path d="m188 191-3 28" stroke="#d7bd96" stroke-width="3" stroke-linecap="round"/><circle cx="188" cy="189" r="4" fill="#ead5ff"/></g>
+                <g class="path-beacons"><g class="path-beacon" data-checkpoint="25"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="50"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="75"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="100"><circle r="8"/><circle r="3"/></g></g><g class="traveler" id="scene-traveler"><ellipse cx="171" cy="220" rx="13" ry="6" fill="#13172d" opacity=".4"/><path d="m170 193-10 20 12 5 11-6-8-20Z" fill="#c3a4f9" class="traveler-cloak"/><path d="m170 193-3 22 5 3 11-6-8-20Z" fill="#8e6ad2" class="traveler-cloak-shade"/><circle cx="172" cy="185" r="8" fill="#e4c0ae"/><path d="m171 169-14 20 27 1Z" fill="#d0b0ff" class="traveler-hat"/><path d="m171 169 13 21-12-2Z" fill="#9c7ddb" class="traveler-hat-shade"/><path d="m188 191-3 28" stroke="#d7bd96" stroke-width="3" stroke-linecap="round"/><circle cx="188" cy="189" r="4" fill="#ead5ff"/></g>
                 <g fill="#9990cd"><path d="m244 255 6-5 7 3-2 5Z"/><path d="m376 128 9-4 9 7-12 3Z"/><path d="m130 202 5-6 9 4-4 7Z"/></g>
                 <g class="island-sparkles" fill="#ddd0ff"><path d="m256 157 2-6 2 6 6 2-6 2-2 6-2-6-6-2Z"/><path d="m377 210 2-5 2 5 5 2-5 2-2 5-2-5-5-2Z"/><circle cx="370" cy="91" r="2"/><circle cx="227" cy="197" r="2"/></g>
               </g>
@@ -96,9 +103,24 @@
     <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><button class="secondary-button" id="trash-open">回收站</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>学习方式</th><th>完成时间</th><th>专注时长</th><th>经验</th><th>操作</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">来源中删除的记录会在同步确认后移到回收站。这里的「移除」只影响专注远征，可在回收站恢复。</p></section></div>
     <div id="view-achievements" class="view" hidden><div class="stats-row" id="achievement-stats"></div><section class="panel growth-panel"><div><div class="eyebrow">A LITTLE, EVERY DAY</div><h2>你走过的路，<br>都成为了你的力量。</h2><p>每专注 1 分钟，积累 1 XP。每 120 XP 升一级。<br>今天的进度会重置，积累的成长不会。</p></div><div class="growth-orb"><svg><use href="#i-trophy"/></svg></div></section><div class="section-heading"><h2>远征勋章 <span>YOUR COLLECTION</span></h2><span class="muted">投入与均衡，都值得被看见</span></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。不设断签惩罚，也没有超时经验倍率。</p></div>
 
+    <div id="view-quests" class="view" hidden>
+      <div class="q-topline"><div><span class="eyebrow">TODAY’S COMMISSIONS</span><p id="quest-today-label">今日委托</p></div><div class="q-wallet" aria-label="委托钱包"><span><i class="coin-mark">●</i><b id="quest-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="quest-diamonds">0</b><small>钻石</small></span><button class="text-button" data-view="shop">去商店 ↗</button></div></div>
+      <div id="quest-board" class="quest-board"></div>
+      <details class="q-rules"><summary>委托规则与超额奖励 <span>按考试时段安排，让额外投入也有回响</span></summary><div><p>每天可接数学、政治、408、英语各一项。数学与政治在上午接取，408 与英语在 12:00 后接取。只计算接取后、学习截止前的有效专注，听课和做题均计入。</p><p>上午学习截止 12:00，最晚 12:30 交付；下午学习截止 18:00，最晚 18:30 交付。半小时用于记录同步和提交，不延长学习累计窗口。请在提交前确认手机记录已同步。</p><p>达到任务目标后，每有效分钟奖励 2 金币；每完整一倍任务目标奖励 2 钻石。比如 60 分钟任务学到 180 分钟，可领 360 金币与 6 钻石。可以多学再交付，每项每天只结算一次，提交后不再追加。</p><p>过期或未完成的委托不扣钱、不扣经验。交付时按当前有效记录结算，已结算奖励保留；重复同步、删改或恢复旧记录不会再次发奖。金币和钻石仅用于本地外观收藏。</p></div></details>
+      <section class="q-ledger panel"><div class="section-heading"><h2>交付手记 <span>RECENT REWARDS</span></h2><span class="muted">最近 20 次委托收获</span></div><div id="quest-history"></div></section>
+    </div>
+    <div id="view-shop" class="view" hidden>
+      <section class="shop-welcome"><div class="shop-keeper" id="shop-keeper" aria-hidden="true"></div><div class="shop-words"><span class="eyebrow">THE STARWEAVER’S ATELIER</span><h2>星织的收藏铺</h2><p>「把一路收集的星光，缝进你的下一次出发。」</p><small>用委托奖励兑换外观，购买后永久收藏，可随时换装。</small></div><div class="q-wallet"><span><i class="coin-mark">●</i><b id="shop-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="shop-diamonds">0</b><small>钻石</small></span></div></section>
+      <section class="q-loadout"><div id="player-outfit" class="player-outfit" aria-hidden="true"></div><div><span class="eyebrow">YOUR ADVENTURER</span><h3>我的远征装扮</h3><p id="equipped-summary"></p></div><button class="text-button" data-view="today">到星岛看看 ↗</button></section>
+      <div class="shop-filter" role="group" aria-label="外观分类"><button class="active" data-shop-filter="all" aria-pressed="true">全部收藏</button><button data-shop-filter="bar" aria-pressed="false">进度条</button><button data-shop-filter="fx" aria-pressed="false">星岛特效</button><button data-shop-filter="npc" aria-pressed="false">NPC 时装</button><button data-shop-filter="avatar" aria-pressed="false">我的时装</button></div>
+      <div id="shop-catalog" class="shop-catalog"></div>
+      <p class="q-shop-note">四类外观各装备一款，购买不增加学习时长或 XP。关闭动态光效时，已装备的外观保留静态样式。</p>
+    </div>
+
     <footer><span>✧ 专注远征</span><span id="footer-sync">正在连接本地记录…</span><span>让努力有回响。</span></footer>
   </main>
 
+  <dialog id="quest-action-dialog" aria-labelledby="quest-action-title"><div class="dialog-heading"><div><span class="eyebrow" id="quest-action-eyebrow">CAMP COMMISSION</span><h2 id="quest-action-title"></h2></div><button class="icon-button close-dialog" aria-label="关闭委托详情">×</button></div><div id="quest-action-art" class="q-action-art" aria-hidden="true"></div><div id="quest-action-body"></div><p class="form-error" id="quest-action-error" role="status" hidden></p><div class="dialog-footer"><button class="secondary-button close-dialog" id="quest-action-cancel">再想一想</button><button class="primary-button" id="quest-action-confirm">确认</button></div></dialog>
   <dialog id="settings-dialog"><form id="settings-form"><div class="dialog-heading"><div><span class="eyebrow">MAKE IT YOURS</span><h2>设置你的远征</h2></div><button type="button" class="icon-button close-dialog" aria-label="关闭设置">×</button></div><p class="dialog-intro">目标用来指引方向。根据实际状态调整，也是一种进步。</p><div class="settings-label">每日各科目标 <span>单位：小时 · 总目标自动相加</span></div><div class="target-inputs" id="target-inputs"></div><div class="target-summary">每日主线 <strong id="target-sum">8 小时</strong></div><div class="weekly-setting"><div><label for="weekly-target-input">每周学习目标</label><p>周一至周日累计 · 独立于每日目标</p></div><div class="weekly-setting-input"><input id="weekly-target-input" type="number" min="0.016666666666666666" max="168" step="any" value="50" required aria-label="每周学习目标小时"><span>小时</span></div></div><div class="settings-label">任务归类与学习方式 <span>修改后同步应用到同名历史记录</span></div><p class="mapping-help">「复习数学／408／政治／英语」按听课统计；背单词等保留为复习 / 其他，可在这里调整。</p><div class="mapping-table-head"><span>任务</span><span>科目</span><span>学习方式</span></div><div id="mapping-fields" class="mapping-fields"></div><div class="opening-settings"><div><strong>每日开场</strong><p>每天首次进入时，听一句属于此刻的开场白。</p><small>预览按当前时间和今日学习情况展示，不占用每日首次开场。</small></div><button type="button" class="secondary-button" id="opening-preview">预览此刻开场</button></div><div class="settings-label">反馈偏好</div><label class="toggle-row"><div>动态光效与庆祝<span>可随时关闭，系统减少动态效果设置也会生效</span></div><input type="checkbox" id="motion-input" role="switch"></label><label class="toggle-row"><div>完成提示音<span>收到新完成记录时播放轻提示音</span></div><input type="checkbox" id="sound-input" role="switch"></label><p id="settings-error" class="form-error" hidden></p><div class="dialog-footer"><button type="button" class="secondary-button close-dialog">取消</button><button type="submit" class="primary-button" id="save-settings">保存设置</button></div></form></dialog>
 
   <dialog id="trash-dialog"><div class="dialog-heading"><div><span class="eyebrow">RESTORE YOUR RECORDS</span><h2>回收站</h2></div><button class="icon-button close-dialog" aria-label="关闭回收站">×</button></div><p class="dialog-intro" id="trash-summary"></p><div id="trash-records"></div><p class="trash-note">恢复后会在本机保留这条记录，不再随来源删除而自动移除，也不会写回番茄 ToDo 或日历。</p></dialog>
@@ -124,5 +146,7 @@
   <script src="/effects.js"></script>
   <script src="/subject-art.js"></script>
   <script src="/opening.js"></script>
+  <script src="/quest-art.js"></script>
+  <script src="/quests.js"></script>
   <script src="/app.js"></script>
 </body></html>

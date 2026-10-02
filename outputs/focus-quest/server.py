@@ -21,6 +21,7 @@ import threading
 import time
 import tempfile
 import uuid
+from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -52,6 +53,42 @@ DEFAULT_SETTINGS = {
     "weeklyTarget": 3000,
     "mapping": {}, "activityMapping": {}, "motion": True, "sound": False,
 }
+QUEST_DEFINITIONS = (
+    {"subject": "math", "name": "数学 · 推演晨光", "period": "morning", "target": 60, "openHour": 0, "deadlineHour": 12},
+    {"subject": "politics", "name": "政治 · 思辨札记", "period": "morning", "target": 30, "openHour": 0, "deadlineHour": 12},
+    {"subject": "cs", "name": "408 · 解构星图", "period": "afternoon", "target": 60, "openHour": 12, "deadlineHour": 18},
+    {"subject": "english", "name": "英语 · 译读回响", "period": "afternoon", "target": 30, "openHour": 12, "deadlineHour": 18},
+)
+SHOP_CATALOG = (
+    ("bar-default", "bar", "初旅刻度", "营地原有的进度刻度", 0, 0),
+    ("bar-aurora", "bar", "极光流转", "让学习进度泛起极光", 300, 0),
+    ("bar-comet", "bar", "彗星轨迹", "循着彗星推进远征", 700, 4),
+    ("fx-default", "fx", "初旅星光", "记录每一次普通而珍贵的完成", 0, 0),
+    ("fx-fireflies", "fx", "萤火微光", "让轻盈萤火常驻你的星岛", 400, 0),
+    ("fx-meteor", "fx", "流星庆典", "让星岛上空不时划过流星", 900, 6),
+    ("npc-default", "npc", "营地向导", "陪你开启每日委托", 0, 0),
+    ("npc-scholar", "npc", "博学旅人", "让书卷中的同伴加入营地", 250, 0),
+    ("npc-astral", "npc", "星界使者", "来自星空的委托同伴", 700, 6),
+    ("avatar-default", "avatar", "初旅行装", "第一次出征时的模样", 0, 0),
+    ("avatar-ranger", "avatar", "知识游侠", "为持续前行换上新行装", 300, 0),
+    ("avatar-star", "avatar", "星辉旅者", "披上属于你的积累与星辉", 800, 8),
+)
+SHOP_ITEMS = {item[0]: dict(zip(("id", "slot", "name", "description", "coins", "diamonds"), item))
+              for item in SHOP_CATALOG}
+
+
+def quest_clock(now=None):
+    current = now or datetime.now().astimezone()
+    if not isinstance(current, datetime) or current.tzinfo is None or current.utcoffset() is None:
+        raise ValueError("委托时间必须包含时区")
+    return current
+
+
+def quest_window(definition, current):
+    midnight = current.replace(hour=0, minute=0, second=0, microsecond=0)
+    opens = midnight + timedelta(hours=definition["openHour"])
+    deadline = midnight + timedelta(hours=definition["deadlineHour"])
+    return opens, deadline, deadline + timedelta(minutes=30)
 
 
 def finite_number(value, *, minimum=0, maximum=10**16):
@@ -371,7 +408,10 @@ def activity_summary(day, daily, settings, daily_minutes, daily_target, now, ove
 
 
 class FocusStore:
-    def __init__(self, data_dir=DEFAULT_DATA, source=DEFAULT_SOURCE):
+    def __init__(self, data_dir=DEFAULT_DATA, source=DEFAULT_SOURCE, *, quest_lower_bound="accepted"):
+        if quest_lower_bound not in ("accepted", "opens"):
+            raise ValueError("委托计时下界无效")
+        self.quest_lower_bound = quest_lower_bound
         self.data_dir = Path(data_dir).expanduser()
         self.source = Path(source).expanduser()
         self.data_dir.mkdir(parents=True, exist_ok=True)
@@ -407,10 +447,38 @@ class FocusStore:
             CREATE TABLE IF NOT EXISTS daily_openings (
                 day TEXT PRIMARY KEY, shown_at TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS quest_acceptances (
+                day TEXT NOT NULL, subject TEXT NOT NULL, accepted_ms INTEGER NOT NULL,
+                lower_ms INTEGER NOT NULL, lower_bound TEXT NOT NULL,
+                PRIMARY KEY(day,subject)
+            );
+            CREATE TABLE IF NOT EXISTS quest_receipts (
+                day TEXT NOT NULL, subject TEXT NOT NULL, name TEXT NOT NULL,
+                minutes REAL NOT NULL, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
+                submitted_ms INTEGER NOT NULL, PRIMARY KEY(day,subject)
+            );
+            CREATE TABLE IF NOT EXISTS quest_allocations (
+                day TEXT NOT NULL, subject TEXT NOT NULL, record_id TEXT NOT NULL,
+                start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL, minutes REAL NOT NULL,
+                PRIMARY KEY(day,subject,record_id,start_ms,end_ms)
+            );
+            CREATE TABLE IF NOT EXISTS wallet_ledger (
+                reference TEXT PRIMARY KEY, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
+                created_ms INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS shop_purchases (
+                item_id TEXT PRIMARY KEY, purchased_ms INTEGER NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS shop_equipment (
+                slot TEXT PRIMARY KEY, item_id TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
         with self.db:
+            for item in SHOP_ITEMS.values():
+                if not item["coins"] and not item["diamonds"]:
+                    self.db.execute("INSERT OR IGNORE INTO shop_equipment VALUES (?,?)", (item["slot"], item["id"]))
             for row in self.db.execute("SELECT * FROM records").fetchall():
                 key = row["source_id"] if row["source"] == "calendar" else f'{row["source_id"]}:{row["start_ms"]}'
                 self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (row["source"], key, row["id"]))
@@ -443,6 +511,210 @@ class FocusStore:
                               "snapshotAt": None, "error": None, "importedCount": 0,
                               "ignoredCount": 0, "pollSeconds": 30,
                               "pendingCount": 0, "pendingRecords": []}
+
+    @contextmanager
+    def _quest_transaction(self):
+        """Serialize the check and write across threads AND SQLite connections."""
+        with self.lock:
+            self.db.execute("BEGIN IMMEDIATE")
+            try:
+                yield
+                self.db.commit()
+            except BaseException:
+                self.db.rollback()
+                raise
+
+    def _wallet(self):
+        row = self.db.execute("SELECT COALESCE(SUM(coins),0),COALESCE(SUM(diamonds),0) FROM wallet_ledger").fetchone()
+        return {"coins": row[0], "diamonds": row[1]}
+
+    def _quest_definition(self, subject):
+        if not isinstance(subject, str) or subject not in SUBJECT_IDS:
+            raise ValueError("请选择有效的委托科目")
+        return next(item for item in QUEST_DEFINITIONS if item["subject"] == subject)
+
+    def _quest_contributions(self, subject, lower_ms, upper_ms, now_ms):
+        """Allocate only finished, active canonical records to unused time slices.
+
+        A paused timer's effective minutes are distributed proportionally over
+        its actual span, and cannot exceed that span. Persisting the intervals
+        also prevents a later remapping from spending the same study twice.
+        """
+        if upper_ms <= lower_ms:
+            return []
+        merges = {row[0]: row[1] for row in self.db.execute("SELECT removed_id,canonical_id FROM record_merges")}
+        def canonical(record_id):
+            seen = set()
+            while record_id in merges and record_id not in seen:
+                seen.add(record_id)
+                record_id = merges[record_id]
+            return record_id
+        allocated = {}
+        for row in self.db.execute("SELECT record_id,start_ms,end_ms FROM quest_allocations WHERE end_ms>? AND start_ms<?",
+                                   (lower_ms, upper_ms)):
+            allocated.setdefault(canonical(row["record_id"]), []).append((row["start_ms"], row["end_ms"]))
+        rows = self.db.execute("""SELECT r.* FROM records r WHERE r.end_ms<=? AND r.end_ms>?
+            AND r.start_ms<? AND r.end_ms>r.start_ms AND NOT EXISTS
+            (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+            (now_ms, lower_ms, upper_ms)).fetchall()
+        contributions = []
+        for row in rows:
+            if classify(row["name"], self.settings["mapping"]) != subject:
+                continue
+            span = row["end_ms"] - row["start_ms"]
+            valid_minutes = min(row["minutes"], span / 60_000)
+            slices = [(max(lower_ms, row["start_ms"]), min(upper_ms, row["end_ms"], now_ms))]
+            for used_start, used_end in allocated.get(row["id"], []):
+                remainder = []
+                for start, end in slices:
+                    if used_end <= start or used_start >= end:
+                        remainder.append((start, end))
+                    else:
+                        if start < used_start:
+                            remainder.append((start, used_start))
+                        if used_end < end:
+                            remainder.append((used_end, end))
+                slices = remainder
+            for start, end in slices:
+                if end > start:
+                    contributions.append({"record_id": row["id"], "start_ms": start, "end_ms": end,
+                                          "minutes": valid_minutes * (end - start) / span})
+        return contributions
+
+    def _quest_row(self, definition, current):
+        day, subject = current.date().isoformat(), definition["subject"]
+        opens, deadline, submit_deadline = quest_window(definition, current)
+        acceptance = self.db.execute("SELECT * FROM quest_acceptances WHERE day=? AND subject=?", (day, subject)).fetchone()
+        receipt = self.db.execute("SELECT * FROM quest_receipts WHERE day=? AND subject=?", (day, subject)).fetchone()
+        now_ms = int(current.timestamp() * 1000)
+        contributions = []
+        if receipt:
+            minutes = receipt["minutes"]
+            reward = {"coins": receipt["coins"], "diamonds": receipt["diamonds"]}
+            status = "claimed"
+        else:
+            if acceptance:
+                contributions = self._quest_contributions(subject, acceptance["lower_ms"], int(deadline.timestamp() * 1000), now_ms)
+            minutes = round(sum(item["minutes"] for item in contributions), 8)
+            reward = {"coins": math.floor(minutes * 2 + 1e-8),
+                      "diamonds": math.floor(minutes / definition["target"] + 1e-10) * 2}
+            if current < opens:
+                status = "locked"
+            elif not acceptance:
+                status = "available" if current < deadline else "expired"
+            elif current > submit_deadline:
+                status = "expired"
+            elif minutes + 1e-8 >= definition["target"]:
+                status = "ready"
+            else:
+                status = "active"
+        result = {"subject": subject, "name": definition["name"], "period": definition["period"],
+                  "target": definition["target"], "opensAt": opens.isoformat(), "deadline": deadline.isoformat(),
+                  "submitDeadline": submit_deadline.isoformat(),
+                  "acceptedAt": iso_ms(acceptance["accepted_ms"]) if acceptance else None,
+                  "submittedAt": iso_ms(receipt["submitted_ms"]) if receipt else None,
+                  "lowerBound": acceptance["lower_bound"] if acceptance else self.quest_lower_bound,
+                  "eligibleFrom": iso_ms(acceptance["lower_ms"]) if acceptance else None,
+                  "status": status, "minutes": round(minutes, 4), "percent": percent(minutes, definition["target"]),
+                  "reward": reward, "baseReward": {"coins": definition["target"] * 2, "diamonds": 2}}
+        return result, contributions, minutes
+
+    def quest_state(self, now=None):
+        current = quest_clock(now)
+        with self.lock:
+            owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
+            equipped = {row[0]: row[1] for row in self.db.execute("SELECT slot,item_id FROM shop_equipment")}
+            catalog = [dict(item, owned=item["id"] in owned or (item["coins"] == 0 and item["diamonds"] == 0),
+                            equipped=equipped.get(item["slot"]) == item["id"]) for item in SHOP_ITEMS.values()]
+            history = [{"day": row["day"], "subject": row["subject"], "name": row["name"],
+                        "minutes": round(row["minutes"], 4), "coins": row["coins"], "diamonds": row["diamonds"],
+                        "submittedAt": iso_ms(row["submitted_ms"])}
+                       for row in self.db.execute("SELECT * FROM quest_receipts ORDER BY submitted_ms DESC,day DESC,subject LIMIT 20")]
+            return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": self._wallet(),
+                    "quests": [self._quest_row(definition, current)[0] for definition in QUEST_DEFINITIONS],
+                    "catalog": catalog, "equipped": equipped, "history": history}
+
+    def accept_quest(self, subject, now=None):
+        definition = self._quest_definition(subject)
+        with self._quest_transaction():
+            # Sample the production clock after waiting for the write lock so
+            # a queued request cannot carry an earlier deadline check forward.
+            current = quest_clock(now)
+            day = current.date().isoformat()
+            opens, deadline, _ = quest_window(definition, current)
+            existing = self.db.execute("SELECT 1 FROM quest_acceptances WHERE day=? AND subject=?", (day, subject)).fetchone()
+            if not existing:
+                if not opens <= current < deadline:
+                    raise ValueError("这项委托当前不可接取，请查看发布时间与截止时间")
+                accepted_ms = int(current.timestamp() * 1000)
+                lower_ms = accepted_ms if self.quest_lower_bound == "accepted" else int(opens.timestamp() * 1000)
+                self.db.execute("INSERT INTO quest_acceptances VALUES (?,?,?,?,?)",
+                                (day, subject, accepted_ms, lower_ms, self.quest_lower_bound))
+            return self.quest_state(current)
+
+    def submit_quest(self, subject, now=None):
+        definition = self._quest_definition(subject)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            day = current.date().isoformat()
+            row, contributions, minutes = self._quest_row(definition, current)
+            already_claimed = row["status"] == "claimed"
+            if not already_claimed:
+                if row["status"] != "ready":
+                    raise ValueError("委托尚未达标、未接取或已超过提交时限，暂不能领取奖励")
+                submitted_ms = int(current.timestamp() * 1000)
+                reward = row["reward"]
+                self.db.execute("INSERT INTO quest_receipts VALUES (?,?,?,?,?,?,?)",
+                                (day, subject, definition["name"], minutes, reward["coins"], reward["diamonds"], submitted_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                (f"quest:{day}:{subject}", reward["coins"], reward["diamonds"], submitted_ms))
+                self.db.executemany("INSERT INTO quest_allocations VALUES (?,?,?,?,?,?)",
+                                    [(day, subject, item["record_id"], item["start_ms"], item["end_ms"], item["minutes"])
+                                     for item in contributions])
+            result = self.quest_state(current)
+            receipt = self.db.execute("SELECT * FROM quest_receipts WHERE day=? AND subject=?", (day, subject)).fetchone()
+            result["receipt"] = {"day": day, "subject": subject, "name": receipt["name"],
+                                 "minutes": round(receipt["minutes"], 4), "coins": receipt["coins"],
+                                 "diamonds": receipt["diamonds"], "submittedAt": iso_ms(receipt["submitted_ms"]),
+                                 "alreadyClaimed": already_claimed}
+            return result
+
+    def _shop_item(self, item_id):
+        if not isinstance(item_id, str) or item_id not in SHOP_ITEMS:
+            raise ValueError("商品不存在")
+        return SHOP_ITEMS[item_id]
+
+    def buy_item(self, item_id, now=None):
+        current = quest_clock(now)
+        item = self._shop_item(item_id)
+        with self._quest_transaction():
+            already_owned = (item["coins"] == 0 and item["diamonds"] == 0) or self.db.execute(
+                "SELECT 1 FROM shop_purchases WHERE item_id=?", (item_id,)).fetchone() is not None
+            if not already_owned:
+                wallet = self._wallet()
+                if wallet["coins"] < item["coins"] or wallet["diamonds"] < item["diamonds"]:
+                    raise ValueError("金币或钻石不足，完成并提交委托后再来看看")
+                purchased_ms = int(current.timestamp() * 1000)
+                self.db.execute("INSERT INTO shop_purchases VALUES (?,?)", (item_id, purchased_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                (f"purchase:{item_id}", -item["coins"], -item["diamonds"], purchased_ms))
+            result = self.quest_state(current)
+            result["receipt"] = {"itemId": item_id, "alreadyOwned": already_owned,
+                                 "coins": 0 if already_owned else item["coins"],
+                                 "diamonds": 0 if already_owned else item["diamonds"]}
+            return result
+
+    def equip_item(self, item_id, now=None):
+        current = quest_clock(now)
+        item = self._shop_item(item_id)
+        with self._quest_transaction():
+            owned = (item["coins"] == 0 and item["diamonds"] == 0) or self.db.execute(
+                "SELECT 1 FROM shop_purchases WHERE item_id=?", (item_id,)).fetchone() is not None
+            if not owned:
+                raise ValueError("请先购买这件装扮")
+            self.db.execute("INSERT INTO shop_equipment VALUES (?,?) ON CONFLICT(slot) DO UPDATE SET item_id=excluded.item_id",
+                            (item["slot"], item_id))
+            return self.quest_state(current)
 
     def _meta(self, key):
         item = self.db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
@@ -987,7 +1259,7 @@ class FocusStore:
                     "sync": dict(self.sync, importedCount=len(all_records)),
                     "calendarSync": dict(self.calendar_sync, importedCount=self._active_count("calendar")), "settings": settings,
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
-                    "trash": self.trash(), "revision": self.revision}
+                    "trash": self.trash(), "quests": self.quest_state(now.astimezone()), "revision": self.revision}
 
     def export_csv(self):
         with self.lock:
@@ -1011,6 +1283,7 @@ class FocusStore:
 
 class FocusHTTPServer(ThreadingHTTPServer):
     daemon_threads = True
+    request_queue_size = 32
 
 
 def make_handler(store, static_dir=STATIC_DIR):
@@ -1075,6 +1348,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query:
                         raise ValueError("开场使用电脑当前日期和时间，不接受查询参数")
                     self._send(200, store.opening())
+                elif url.path == "/api/quests":
+                    if url.query:
+                        raise ValueError("委托使用电脑当前日期和时间，不接受查询参数")
+                    self._send(200, store.quest_state())
                 elif url.path == "/api/export":
                     self._send(200, store.export_csv(), "text/csv; charset=utf-8", "focus-quest-records.csv")
                 elif url.path == "/api/trash":
@@ -1103,7 +1380,11 @@ def make_handler(store, static_dir=STATIC_DIR):
             try:
                 url = urlsplit(self.path)
                 path = url.path
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim"):
+                quest_actions = {"/api/quests/accept": ("subject", store.accept_quest),
+                                 "/api/quests/submit": ("subject", store.submit_quest),
+                                 "/api/shop/buy": ("itemId", store.buy_item),
+                                 "/api/shop/equip": ("itemId", store.equip_item)}
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim") and path not in quest_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -1117,7 +1398,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path == "/api/settings":
+                if path in quest_actions:
+                    field, action = quest_actions[path]
+                    if url.query or set(payload) != {field}:
+                        raise ValueError("请仅提供操作标识；委托日期、时间和奖励由服务器确定")
+                    self._send(200, action(payload[field]))
+                elif path == "/api/settings":
                     store.update_settings(payload)
                     self._send(200, store.state())
                 elif path == "/api/opening/claim":

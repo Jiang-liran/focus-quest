@@ -11,7 +11,7 @@ const subjectsMeta = {
 const stageNames = ['整装出发','突破外围','深入核心','决战在即','今日通关'];
 const stageTitles = ['每一分钟，都算数。','第一道迷雾，已散去。','路程过半，稳步向前。','光就在前方，继续前行。','今日远征，圆满通关。'];
 const stageMessages = ['今天的远征，从一小段专注开始。','第一座路标已点亮，脚步正在变成力量。','你的投入，正在慢慢变成看得见的积累。','已经走过四分之三，按自己的节奏完成。','今天已经做得足够好了，安心收下这份成就。'];
-const viewNames = {today:'今日远征',history:'专注档案',achievements:'成长图鉴'};
+const viewNames = {today:'今日远征',quests:'委托广场',shop:'星织商店',history:'专注档案',achievements:'成长图鉴'};
 const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set(), audioContext = null;
@@ -118,6 +118,7 @@ function render() {
   renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
   if($('trash-dialog').open)renderTrash();
+  globalThis.FocusQuests?.render(s.quests);
   maybeDailyOpening();
 }
 
@@ -189,6 +190,9 @@ function renderCalendarPending() {
 
 function updateViewTitle() {
   $('page-crumb').textContent=viewNames[currentView];
+  const campView=currentView==='quests'||currentView==='shop';
+  $('date-button').hidden=campView;$('header-today').hidden=campView;
+  if(campView)$('date-picker').classList.remove('visible');
   if(currentView==='today'){
     const history=state && state.date!==state.today;
     $('page-title').textContent=history?'回看走过的每一步。':'今天，也向前一点。';
@@ -198,6 +202,14 @@ function updateViewTitle() {
     $('page-title').textContent='每一份努力，都有记录。';
     $('page-subtitle').textContent='那些安静专注的时刻，已经成为了你的积累。';
     $('greeting-eyebrow').textContent='YOUR FOCUS ARCHIVE';
+  }else if(currentView==='quests'){
+    $('page-title').textContent='接一份委托，踏实地出发。';
+    $('page-subtitle').textContent='跟着考试的时段练习，把专注换成属于你的收藏。';
+    $('greeting-eyebrow').textContent='MEET YOUR COMPANIONS';
+  }else if(currentView==='shop'){
+    $('page-title').textContent='让努力，拥有自己的模样。';
+    $('page-subtitle').textContent='每一件收藏，都来自你认真走过的时间。';
+    $('greeting-eyebrow').textContent='EARNED THROUGH FOCUS';
   }else{
     $('page-title').textContent='成长，是日积月累的事。';
     $('page-subtitle').textContent='不和别人比较，只看见自己走过的路。';
@@ -550,4 +562,5 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteOpeni
 window.addEventListener('focus',noteOpeningArrival);
 window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
+globalThis.FocusQuests?.init({api,toast,switchView,refresh});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);
