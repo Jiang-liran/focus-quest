@@ -23,11 +23,11 @@
     }
   }
   function open(direction){
-    if(blocked()||time()<lockedUntil)return false;
-    const target=direction==='left'?root.FocusCampfireRoom:root.FocusCitadel;
+    if(direction!=='left'||blocked()||time()<lockedUntil)return false;
+    const target=root.FocusCampfireRoom;
     if(!target?.open)return false;
     bridge.beforeOpen?.();
-    const anchor=document().getElementById(direction==='left'?'campfire-room-open':'citadel-enter');
+    const anchor=document().getElementById('campfire-room-open');
     if(target.open(anchor)===false)return false;
     lockedUntil=time()+1000;
     reset();
@@ -41,9 +41,10 @@
     const scale=event.deltaMode===1?16:event.deltaMode===2?surface.clientWidth:1;
     const x=Number(event.deltaX)*scale,y=Number(event.deltaY)*scale;
     if(!Number.isFinite(x)||!Number.isFinite(y)||Math.abs(x)<=Math.abs(y)*1.7||Math.abs(x)<1){wheel=null;return;}
+    if(x<0){wheel=null;return;}
     if(event.target.closest?.('input,textarea,select,[contenteditable="true"],[role="slider"],[data-horizontal-scroll],[data-island-gift]')){wheel=null;return;}
     event.preventDefault();
-    const direction=x>0?'left':'right';
+    const direction='left';
     if(!wheel||stamp-wheel.at>200||direction!==wheel.direction)wheel={direction,amount:0,at:stamp};
     wheel.amount+=Math.abs(x);wheel.at=stamp;
     if(wheel.amount>=105)open(direction);
@@ -60,15 +61,16 @@
     if(blocked()){reset();return;}
     const dx=event.clientX-pointer.x,dy=event.clientY-pointer.y;
     if(!pointer.dragging&&Math.abs(dy)>16&&Math.abs(dy)>Math.abs(dx)*.75){reset();return;}
-    if(Math.abs(dx)>20&&Math.abs(dx)>Math.abs(dy)*1.7)pointer.dragging=true;
+    if(!pointer.dragging&&dx>20){reset();return;}
+    if(dx < -20&&Math.abs(dx)>Math.abs(dy)*1.7)pointer.dragging=true;
     if(pointer.dragging){event.preventDefault();suppressClickUntil=time()+450;}
   }
   function onUp(event){
     if(!pointer||pointer.id!==event.pointerId)return;
     const gesture=pointer;pointer=null;
     const dx=event.clientX-gesture.x,dy=event.clientY-gesture.y;
-    if(time()-gesture.at>1400||Math.abs(dx)<95||Math.abs(dx)<=Math.abs(dy)*1.7)return;
-    if(open(dx<0?'left':'right')){event.preventDefault();suppressClickUntil=time()+450;}
+    if(time()-gesture.at>1400||dx > -95||Math.abs(dx)<=Math.abs(dy)*1.7)return;
+    if(open('left')){event.preventDefault();suppressClickUntil=time()+450;}
   }
   function onClick(event){
     if(time()<suppressClickUntil){event.preventDefault();event.stopImmediatePropagation();}

@@ -13,7 +13,7 @@
   ];
   const teaLines=['先坐一会儿吧。雨会自己慢慢下，不需要你做什么。','窗上这一滴雨走得很慢，也没有落下。','有些晚上，安安静静地喝完一杯茶，就很好。','今天读过的、想过的，先留在今天。现在可以松一松肩膀。','远处还有几扇亮着的窗。今晚，你并不是独自一个人。','杯子还温着。想再坐一会儿，或现在回去，都可以。'];
   let bridge={},state=null,equipped={},equipmentStamp=-Infinity,equipmentPreview=null,initialized=false;
-  let anchor=null,inertBefore=[],background=null,closing=false,pageAnimations=[],pageGeneration=0,pageFinish=null;
+  let anchor=null,inertBefore=[];
   let selected=null,streetKey='',roomKey='',contentKey='',zoom=1,panX=0,panY=0,drag=null,suppressClickUntil=0,wheelTimer=null;
   let teaLine=0,windowMode='rain',rooftopMode='rain';
   const places=()=>root.FocusRainCityArt?.places||fallbackPlaces;
@@ -32,21 +32,6 @@
     equipped={...(next||{})};if(isOpen())paint();
   }
   function previewEquipment(override){equipmentPreview=override?{...override}:null;if(isOpen())paint();}
-  function cancelPageSlide(){
-    if(pageAnimations.length)document.documentElement.classList.remove('citadel-page-moving');
-    pageGeneration++;pageAnimations.forEach(animation=>animation.cancel());pageAnimations=[];pageFinish=null;
-  }
-  function finishPageSlide(){if(!pageAnimations.length&&!pageFinish)return;const done=pageFinish;cancelPageSlide();done?.();}
-  function slidePage(enter,done){
-    cancelPageSlide();pageFinish=done||null;const view=$('citadel-view'),token=pageGeneration;
-    if(!motionAllowed()||!isVisible()||!view.animate){finishPageSlide();return;}
-    document.documentElement.classList.add('citadel-page-moving');
-    const options={duration:520,easing:'cubic-bezier(.22,.75,.2,1)'};
-    const page=view.animate([{transform:enter?'translateX(-105%)':'translateX(0)'},{transform:enter?'translateX(0)':'translateX(-105%)'}],options);
-    pageAnimations.push(page);
-    if(background?.animate){const behind=background.animate([{transform:enter?'translateX(0)':'translateX(105vw)',opacity:enter?1:.25},{transform:enter?'translateX(105vw)':'translateX(0)',opacity:enter?.25:1}],options);behind.finished.catch(()=>{});pageAnimations.push(behind);}
-    page.finished.then(()=>{if(token===pageGeneration)finishPageSlide();},()=>{});
-  }
   function focusEntry(node){
     if(!node?.isConnected||node.disabled||!node.getClientRects?.().length)return false;
     for(let parent=node;parent;parent=parent.parentElement)if(parent.hidden||parent.inert)return false;
@@ -87,7 +72,7 @@
       }
     }
   }
-  function render(next){if(!next)return;state=next;applyEquipment(next.quests?.equipped||equipped,next.quests?.now);if(!motionAllowed())finishPageSlide();if(isOpen())paint();}
+  function render(next){if(!next)return;state=next;applyEquipment(next.quests?.equipped||equipped,next.quests?.now);if(isOpen())paint();}
   // Milestones and rewards continue to belong to the homepage; the city is a quiet place to visit.
   function acceptProgress(){return false;}
   function finishDrag(){const previous=drag;drag=null;if(previous?.moved)suppressClickUntil=Date.now()+250;const stage=$('citadel-stage');stage.classList.remove('dragging');if(previous&&stage.hasPointerCapture?.(previous.id))stage.releasePointerCapture?.(previous.id);}
@@ -107,25 +92,28 @@
   }
   function open(from){
     const latest=bridge.getState?.();if(latest)render(latest);
-    if(!state||(isOpen()&&!closing)||document.querySelector('dialog[open]'))return false;
+    if(!state||isOpen()||document.querySelector('dialog[open]'))return false;
     root.FocusCampfireRoom?.close(false);bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);
-    if(!isOpen()){anchor=from||document.activeElement;inertBefore=Array.from(document.querySelectorAll('body > main')).map(element=>[element,element.inert]);background=document.querySelector('body > main')||inertBefore[0]?.[0];}
-    closing=false;clearCameraGesture();selected=null;zoom=1;panX=panY=0;streetKey=roomKey=contentKey='';
+    anchor=from||document.activeElement;inertBefore=Array.from(document.querySelectorAll('body > main')).map(element=>[element,element.inert]);
+    clearCameraGesture();selected=null;zoom=1;panX=panY=0;streetKey=roomKey=contentKey='';
     for(const [element] of inertBefore)element.inert=true;
     $('citadel-view').inert=false;$('citadel-view').hidden=false;document.documentElement.classList.add('has-citadel-view');
-    camera();paint();slidePage(true);$('citadel-close').focus({preventScroll:true});bridge.onOpen?.();return true;
+    camera();paint();$('citadel-close').focus({preventScroll:true});bridge.onOpen?.();return true;
   }
   function close(restoreFocus=true){
-    if(!isOpen()||(closing&&restoreFocus))return false;
-    closing=true;$('citadel-view').inert=true;root.FocusQuickSkins?.close(false);clearCameraGesture();equipmentPreview=null;
+    if(!isOpen())return false;
+    $('citadel-view').inert=true;root.FocusQuickSkins?.close(false);clearCameraGesture();equipmentPreview=null;
     document.documentElement.classList.remove('has-citadel-view');
-    const finish=()=>{$('citadel-view').hidden=true;$('citadel-view').inert=false;for(const [element,previous] of inertBefore)element.inert=previous;inertBefore=[];const from=anchor;anchor=null;background=null;closing=false;selected=null;if(restoreFocus&&!focusEntry(from))focusEntry($('citadel-enter'));bridge.afterClose?.();};
-    if(restoreFocus)slidePage(false,finish);else{cancelPageSlide();finish();}return true;
+    $('citadel-view').hidden=true;$('citadel-view').inert=false;
+    for(const [element,previous] of inertBefore)element.inert=previous;
+    inertBefore=[];const from=anchor;anchor=null;selected=null;
+    if(restoreFocus&&!focusEntry(from))focusEntry($('citadel-enter'));
+    bridge.afterClose?.();return true;
   }
-  function openPlace(id){if(!place(id)||!isOpen()||closing||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();selected=id;roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
+  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();selected=id;roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
   function backToStreet(){if(!selected||!isOpen())return false;const previous=selected;root.FocusQuickSkins?.close(false);selected=null;paint();focusEntry($('citadel-scene').querySelector(`[data-city-place="${previous}"]`))||focusEntry($('citadel-close'));return true;}
   function action(id){
-    if(!selected||!isOpen()||closing)return;
+    if(!selected||!isOpen())return;
     if(id==='tea-chat'){teaLine=(teaLine+1)%teaLines.length;paint();return;}
     if(id==='tea-window'){windowMode=windowMode==='rain'?'lamplight':'rain';paint();return;}
     if(id==='sky'){rooftopMode=rooftopMode==='rain'?'stars':'rain';paint();return;}
@@ -151,10 +139,10 @@
     $('city-room-content').addEventListener('click',event=>{const button=event.target.closest('[data-city-action]');if(button)action(button.dataset.cityAction);});
     $('citadel-overview').addEventListener('click',()=>{clearCameraGesture();zoom=1;panX=panY=0;camera();});
     for(const [id,delta] of [['citadel-zoom-in',.4],['citadel-zoom-out',-.4]])$(id).addEventListener('click',()=>{clearCameraGesture();zoom=Math.round(Math.max(1,Math.min(2.4,zoom+delta))*10)/10;if(zoom===1)panX=panY=0;camera();});
-    root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(!motionAllowed())finishPageSlide();if(isOpen())paint();});
-    const visibility=()=>{if(!isVisible()){finishPageSlide();clearCameraGesture();}if(isOpen())paint();};
+    root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(isOpen())paint();});
+    const visibility=()=>{if(!isVisible()){clearCameraGesture();}if(isOpen())paint();};
     document.addEventListener('visibilitychange',visibility);
-    document.addEventListener('focusquest:visibility',event=>{if(event.detail?.visible===false){finishPageSlide();clearCameraGesture();}if(isOpen())$('citadel-view').dataset.paused=String(event.detail?.visible===false||!isVisible());});
+    document.addEventListener('focusquest:visibility',event=>{if(event.detail?.visible===false){clearCameraGesture();}if(isOpen())$('citadel-view').dataset.paused=String(event.detail?.visible===false||!isVisible());});
     const stage=$('citadel-stage');stage.addEventListener('wheel',wheelCamera,{passive:false});
     stage.addEventListener('pointerdown',event=>{if(selected||!isOpen()||zoom<=1||event.button!==0||event.ctrlKey||event.target.closest('button'))return;finishWheel();drag={id:event.pointerId,x:event.clientX,y:event.clientY,px:panX,py:panY,moved:false};});
     stage.addEventListener('pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<5)return;const rect=stage.getBoundingClientRect();if(!rect.width||!rect.height)return;drag.moved=true;stage.setPointerCapture?.(event.pointerId);stage.classList.add('dragging');panX=drag.px+dx/rect.width*100;panY=drag.py+dy/rect.height*100;camera();});
