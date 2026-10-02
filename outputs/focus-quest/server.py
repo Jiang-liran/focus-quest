@@ -119,6 +119,8 @@ LEGACY_SHOP_ITEM_IDS = ("bar-aurora", "bar-comet", "fx-fireflies", "fx-meteor", 
 EXCHANGE_COINS_PER_DIAMOND = 75
 EXCHANGE_MAX_DIAMONDS = 1000
 SHOP_PRICING_MIGRATION = "shopPricing:v18"
+HISTORY_SOURCE = "history_xlsx"
+HISTORY_FIELDS = ("name", "minutes", "start_ms", "end_ms", "day")
 
 
 def quest_clock(now=None):
@@ -520,6 +522,24 @@ class FocusStore:
                 request_id TEXT PRIMARY KEY, diamonds INTEGER NOT NULL,
                 coins INTEGER NOT NULL, created_ms INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS history_rows (
+                source_key TEXT PRIMARY KEY, name TEXT NOT NULL, minutes REAL NOT NULL,
+                start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL, day TEXT NOT NULL,
+                last_batch TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS history_links (
+                source_key TEXT NOT NULL, record_id TEXT NOT NULL,
+                PRIMARY KEY(source_key,record_id)
+            );
+            CREATE INDEX IF NOT EXISTS history_links_record ON history_links(record_id);
+            CREATE TABLE IF NOT EXISTS history_overrides (
+                record_id TEXT PRIMARY KEY, name TEXT NOT NULL, minutes REAL NOT NULL,
+                start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL, day TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS history_batches (
+                batch_id TEXT PRIMARY KEY, filename TEXT NOT NULL, input_hash TEXT NOT NULL,
+                imported_at TEXT NOT NULL, prefer_history INTEGER NOT NULL, receipt TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
@@ -528,6 +548,11 @@ class FocusStore:
                 if not item["coins"] and not item["diamonds"]:
                     self.db.execute("INSERT OR IGNORE INTO shop_equipment VALUES (?,?)", (item["slot"], item["id"]))
             for row in self.db.execute("SELECT * FROM records").fetchall():
+                # A confirmed history correction may change canonical times.
+                # Existing source aliases still identify the original session.
+                if self.db.execute("SELECT 1 FROM record_aliases WHERE source=? AND record_id=?",
+                                   (row["source"], row["id"])).fetchone():
+                    continue
                 key = row["source_id"] if row["source"] == "calendar" else f'{row["source_id"]}:{row["start_ms"]}'
                 self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (row["source"], key, row["id"]))
             self.db.execute("""INSERT OR IGNORE INTO source_presence(source,source_key)
@@ -545,7 +570,7 @@ class FocusStore:
         # Repair duplicates saved by older versions even when either source is
         # currently unavailable. Original rows remain in the merge journal.
         with self.db:
-            if self._reconcile_sources():
+            if self._reconcile_sources() + self._reconcile_history_sources():
                 self._bump_revision()
         self.sync = {"connected": False, "sourcePath": str(self.source), "lastCheck": None,
                      "lastImport": self._meta("lastImport"), "error": None,
@@ -876,6 +901,284 @@ class FocusStore:
             sql += " AND EXISTS (SELECT 1 FROM record_aliases a WHERE a.record_id=r.id AND a.source=?)"
         return self.db.execute(sql, (source,) if source else ()).fetchone()[0]
 
+    def _history_canonical_id(self, record_id):
+        if not isinstance(record_id, str) or not record_id or len(record_id) > 5000:
+            raise ValueError("历史匹配记录标识无效")
+        visited = set()
+        while record_id not in visited:
+            visited.add(record_id)
+            redirect = self.db.execute("SELECT canonical_id FROM record_merges WHERE removed_id=?", (record_id,)).fetchone()
+            if not redirect:
+                break
+            record_id = redirect[0]
+        if not self.db.execute("SELECT 1 FROM records WHERE id=?", (record_id,)).fetchone():
+            raise ValueError("历史匹配指向不存在的记录")
+        return record_id
+
+    def _history_redirect(self, removed_id, survivor_id):
+        self.db.execute("""INSERT OR IGNORE INTO history_links(source_key,record_id)
+            SELECT source_key,? FROM history_links WHERE record_id=?""", (survivor_id, removed_id))
+        self.db.execute("DELETE FROM history_links WHERE record_id=?", (removed_id,))
+        removed = self.db.execute("SELECT * FROM history_overrides WHERE record_id=?", (removed_id,)).fetchone()
+        if removed:
+            self.db.execute("INSERT OR IGNORE INTO history_overrides VALUES (?,?,?,?,?,?)",
+                            (survivor_id,) + tuple(removed[field] for field in HISTORY_FIELDS))
+            self.db.execute("DELETE FROM history_overrides WHERE record_id=?", (removed_id,))
+
+    def _history_overlay(self, record):
+        override = self.db.execute("SELECT * FROM history_overrides WHERE record_id=?", (record[0],)).fetchone()
+        if not override:
+            return record
+        existing = self.db.execute("SELECT * FROM records WHERE id=?", (record[0],)).fetchone()
+        # Keep provenance stable; aliases retain each live source's true keys.
+        source_id, source = (existing["source_id"], existing["source"]) if existing else (record[1], record[7])
+        return (record[0], source_id, override["name"], override["minutes"],
+                override["start_ms"], override["end_ms"], override["day"], source)
+
+    def _set_history_override(self, record_id, fields):
+        values = tuple(fields[field] for field in HISTORY_FIELDS)
+        self.db.execute("""INSERT INTO history_overrides VALUES (?,?,?,?,?,?)
+            ON CONFLICT(record_id) DO UPDATE SET name=excluded.name,minutes=excluded.minutes,
+            start_ms=excluded.start_ms,end_ms=excluded.end_ms,day=excluded.day""", (record_id,) + values)
+        self.db.execute("UPDATE records SET name=?,minutes=?,start_ms=?,end_ms=?,day=? WHERE id=?", values + (record_id,))
+
+    def _history_has_allocations(self, record_ids):
+        record_ids = set(record_ids)
+        for row in self.db.execute("SELECT DISTINCT record_id FROM quest_allocations"):
+            try:
+                if self._history_canonical_id(row[0]) in record_ids:
+                    return True
+            except ValueError:
+                # An orphaned allocation cannot safely establish a new match.
+                if row[0] in record_ids:
+                    return True
+        return False
+
+    def _merge_history_records(self, record_ids, authority=None, *, preserve_override=True):
+        """Merge reviewed copies, retaining the oldest identity and all tombstones."""
+        ids = sorted({self._history_canonical_id(record_id) for record_id in record_ids})
+        if len(ids) == 1:
+            return ids[0], 0
+        if self._history_has_allocations(ids):
+            raise ValueError("待合并记录已有委托结算分配，不能自动合并")
+        marks = ",".join("?" for _ in ids)
+        rows = self.db.execute(f"SELECT rowid AS arrival_order,* FROM records WHERE id IN ({marks}) ORDER BY rowid", ids).fetchall()
+        lifecycle = self.db.execute(f"SELECT * FROM record_lifecycle WHERE record_id IN ({marks})", ids).fetchall()
+        manual = [row for row in lifecycle if row["manual_action"] in ("delete", "keep")]
+        if len({row["manual_action"] for row in manual}) > 1:
+            raise ValueError("待合并记录存在人工删除与保留冲突")
+        deleted = [row for row in lifecycle if row["deleted_at"] is not None]
+        if deleted and any(row["manual_action"] == "keep" for row in manual):
+            raise ValueError("待合并记录的删除状态与人工保留冲突")
+        survivor = rows[0]
+        if authority is None:
+            authority = dict(survivor)
+        old_overrides = self.db.execute(f"SELECT * FROM history_overrides WHERE record_id IN ({marks})", ids).fetchall()
+        journal = json.dumps({"records": [dict(row) for row in rows], "lifecycle": [dict(row) for row in lifecycle],
+                              "history_overrides": [dict(row) for row in old_overrides]}, ensure_ascii=False, allow_nan=False)
+        for removed in rows[1:]:
+            self.db.execute("INSERT INTO record_merges VALUES (?,?,?,?)", (removed["id"], survivor["id"], now_iso(), journal))
+            self.db.execute("UPDATE record_aliases SET record_id=? WHERE record_id=?", (survivor["id"], removed["id"]))
+            self._history_redirect(removed["id"], survivor["id"])
+            self.db.execute("DELETE FROM records WHERE id=?", (removed["id"],))
+        self.db.execute(f"DELETE FROM record_lifecycle WHERE record_id IN ({marks})", ids)
+        if deleted:
+            selected = next((row for row in deleted if row["manual_action"] == "delete"), deleted[0])
+            self.db.execute("INSERT INTO record_lifecycle VALUES (?,?,?,?)",
+                            (survivor["id"], selected["deleted_at"], selected["reason"], selected["manual_action"]))
+        elif manual:
+            self.db.execute("INSERT INTO record_lifecycle VALUES (?,NULL,NULL,?)", (survivor["id"], manual[0]["manual_action"]))
+        if preserve_override:
+            self._set_history_override(survivor["id"], authority)
+        else:
+            self.db.execute("UPDATE records SET name=?,minutes=?,start_ms=?,end_ms=?,day=? WHERE id=?",
+                            tuple(authority[field] for field in HISTORY_FIELDS) + (survivor["id"],))
+        return survivor["id"], len(rows) - 1
+
+    @staticmethod
+    def _validated_history_rows(records):
+        if not isinstance(records, (list, tuple)) or len(records) > 100_000:
+            raise ValueError("历史记录列表无效")
+        normalized, keys = [], set()
+        for row in records:
+            if not isinstance(row, dict):
+                raise ValueError("历史记录字段无效")
+            name, key = row.get("name"), row.get("source_key")
+            if not isinstance(name, str) or not name.strip() or len(name) > 500:
+                raise ValueError("历史任务名称无效")
+            if not isinstance(key, str) or not key or len(key) > 5000 or key in keys:
+                raise ValueError("历史记录 source_key 无效或重复")
+            minutes = finite_number(row.get("minutes"), minimum=0, maximum=525600)
+            if minutes <= 0:
+                raise ValueError("历史学习分钟必须大于零")
+            times = {}
+            for field in ("start_ms", "end_ms"):
+                value = finite_number(row.get(field), minimum=1, maximum=32503680000000)
+                if int(value) != value:
+                    raise ValueError("历史时间必须为整数毫秒")
+                times[field] = int(value)
+                iso_ms(times[field])
+            if times["end_ms"] < times["start_ms"]:
+                raise ValueError("历史结束时间不能早于开始时间")
+            day = parse_day(row.get("day")).isoformat()
+            normalized.append(dict(source_key=key, name=name.strip(), minutes=float(minutes), day=day, **times))
+            keys.add(key)
+        return normalized
+
+    def import_history(self, records, resolutions, batch_id, filename, prefer_history=False):
+        """Import a reviewed, normalized spreadsheet batch without reading it.
+
+        Exact history links take precedence over resolutions and conservative
+        mutually-unique minute-bucket matches. Evidence attached to an existing
+        live record is deliberately not an additional source-presence vote.
+        """
+        rows = self._validated_history_rows(records)
+        if not isinstance(resolutions, dict) or set(resolutions) - {row["source_key"] for row in rows}:
+            raise ValueError("历史匹配清单无效")
+        for key, ids in resolutions.items():
+            if not isinstance(ids, (list, tuple)) or not ids or any(not isinstance(value, str) or not value for value in ids):
+                raise ValueError("历史匹配必须列出有效记录标识")
+        if type(prefer_history) is not bool:
+            raise ValueError("历史优先策略必须为布尔值")
+        if not isinstance(batch_id, str) or not batch_id or len(batch_id) > 500:
+            raise ValueError("历史批次标识无效")
+        if not isinstance(filename, str) or not filename or len(filename) > 1000:
+            raise ValueError("历史文件名无效")
+        payload = {"records": sorted(rows, key=lambda row: row["source_key"]),
+                   "resolutions": {key: sorted(set(ids)) for key, ids in sorted(resolutions.items())},
+                   "filename": filename, "prefer_history": prefer_history}
+        digest = hashlib.sha256(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
+        with self._quest_transaction():
+            previous = self.db.execute("SELECT * FROM history_batches WHERE batch_id=?", (batch_id,)).fetchone()
+            if previous:
+                if previous["input_hash"] != digest:
+                    raise ValueError("同一历史批次不能更改导入内容或策略")
+                return dict(json.loads(previous["receipt"]), alreadyImported=True)
+            before_minutes = self.db.execute("""SELECT COALESCE(SUM(r.minutes),0) FROM records r WHERE NOT EXISTS
+                (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""").fetchone()[0]
+            existing = [dict(row) for row in self.db.execute("SELECT * FROM records")]
+            bucket_index = {}
+            for item in existing:
+                bucket_index.setdefault((item["name"], item["start_ms"] // 60000, item["end_ms"] // 60000), []).append(item["id"])
+            targets, used, unassigned = {}, {}, []
+            for row in rows:
+                key = row["source_key"]
+                linked = [item[0] for item in self.db.execute("SELECT record_id FROM history_links WHERE source_key=?", (key,))]
+                selected = sorted({self._history_canonical_id(value) for value in (linked or resolutions.get(key, []))})
+                if linked and key in resolutions and set(selected) != {self._history_canonical_id(value) for value in resolutions[key]}:
+                    raise ValueError("已导入历史的匹配关系与新清单冲突")
+                if selected:
+                    targets[key] = selected
+                    for record_id in selected:
+                        if record_id in used and used[record_id] != key:
+                            raise ValueError("多条历史记录匹配到同一旧记录，请先核对")
+                        used[record_id] = key
+                else:
+                    unassigned.append(row)
+            candidates, reverse = {}, {}
+            for row in unassigned:
+                key = row["source_key"]
+                matches = bucket_index.get((row["name"], row["start_ms"] // 60000, row["end_ms"] // 60000), [])
+                candidates[key] = matches
+                for record_id in matches:
+                    reverse.setdefault(record_id, []).append(key)
+            for row in unassigned:
+                key, matches = row["source_key"], candidates[row["source_key"]]
+                if matches and (len(matches) != 1 or len(reverse[matches[0]]) != 1 or matches[0] in used):
+                    raise ValueError("历史自动匹配存在歧义，请提供明确匹配清单")
+                targets[key] = matches
+                if matches:
+                    used[matches[0]] = key
+            receipt = {"batchId": batch_id, "filename": filename, "preferHistory": prefer_history,
+                       "rows": len(rows), "added": 0, "matched": 0, "revised": 0, "merged": 0,
+                       "ignoredDeleted": 0, "alreadyImported": False, "beforeMinutes": round(before_minutes, 8)}
+            for row in rows:
+                key, ids = row["source_key"], targets[row["source_key"]]
+                self.db.execute("""INSERT INTO history_rows VALUES (?,?,?,?,?,?,?) ON CONFLICT(source_key) DO UPDATE SET
+                    name=excluded.name,minutes=excluded.minutes,start_ms=excluded.start_ms,end_ms=excluded.end_ms,
+                    day=excluded.day,last_batch=excluded.last_batch""",
+                    (key,) + tuple(row[field] for field in HISTORY_FIELDS) + (batch_id,))
+                if not ids:
+                    identity = HISTORY_SOURCE + ":" + hashlib.sha256(key.encode()).hexdigest()
+                    record_id = f"{identity}:{row['start_ms']}"
+                    self._upsert_record((record_id, identity, row["name"], row["minutes"], row["start_ms"], row["end_ms"], row["day"], HISTORY_SOURCE))
+                    ids = [record_id]
+                    receipt["added"] += 1
+                else:
+                    receipt["matched"] += 1
+                    marks = ",".join("?" for _ in ids)
+                    deleted = self.db.execute(f"SELECT 1 FROM record_lifecycle WHERE record_id IN ({marks}) AND deleted_at IS NOT NULL LIMIT 1", ids).fetchone()
+                    if deleted:
+                        receipt["ignoredDeleted"] += 1
+                    elif prefer_history:
+                        originals = self.db.execute(f"SELECT rowid AS arrival_order,* FROM records WHERE id IN ({marks}) ORDER BY rowid", ids).fetchall()
+                        fields = dict(row)
+                        # Preserve sub-minute precision only when a single old
+                        # session is in exactly the spreadsheet's minute bucket.
+                        if len(originals) == 1:
+                            for field in ("start_ms", "end_ms"):
+                                if originals[0][field] // 60000 == row[field] // 60000:
+                                    fields[field] = originals[0][field]
+                        changed = len(originals) > 1 or any(originals[0][field] != fields[field] for field in HISTORY_FIELDS)
+                        if len(ids) > 1:
+                            survivor, merged = self._merge_history_records(ids, fields)
+                            ids = [survivor]
+                            receipt["merged"] += merged
+                        else:
+                            self._set_history_override(ids[0], fields)
+                        receipt["revised"] += int(changed)
+                for record_id in ids:
+                    self.db.execute("INSERT OR IGNORE INTO history_links VALUES (?,?)", (key, record_id))
+            after_minutes = self.db.execute("""SELECT COALESCE(SUM(r.minutes),0) FROM records r WHERE NOT EXISTS
+                (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""").fetchone()[0]
+            receipt.update(afterMinutes=round(after_minutes, 8), minuteDelta=round(after_minutes - before_minutes, 8), importedAt=now_iso())
+            self.db.execute("INSERT INTO history_batches VALUES (?,?,?,?,?,?)",
+                            (batch_id, filename, digest, receipt["importedAt"], int(prefer_history), json.dumps(receipt, ensure_ascii=False, allow_nan=False)))
+            self._bump_revision()
+            return receipt
+
+    def _reconcile_history_sources(self):
+        """Join new live echoes only when history-minute candidates are unique."""
+        # Keep live timestamps bare so records_match(source,name,start_ms)
+        # supports range probes instead of a full records x history scan.
+        pairs = {tuple(row) for row in self.db.execute("""SELECT DISTINCT l.record_id,r.id
+            FROM history_rows h JOIN history_links l USING(source_key)
+            JOIN records r INDEXED BY records_match ON r.source IN ('tomatodo','calendar') AND r.name=h.name
+                AND r.start_ms BETWEEN (h.start_ms/60000)*60000 AND (h.start_ms/60000)*60000+59999
+                AND r.end_ms BETWEEN (h.end_ms/60000)*60000 AND (h.end_ms/60000)*60000+59999
+            WHERE r.id<>l.record_id AND (r.source='calendar' OR ABS(r.minutes-h.minutes)<=0.00000001)
+                AND NOT EXISTS (SELECT 1 FROM history_links already WHERE already.record_id=r.id)
+                AND NOT EXISTS (SELECT 1 FROM history_links other
+                                WHERE other.source_key=h.source_key AND other.record_id<>l.record_id)""")}
+        candidates = {}
+        for old, incoming in pairs:
+            candidates.setdefault(old, set()).add(incoming)
+            candidates.setdefault(incoming, set()).add(old)
+        changed = 0
+        for old, incoming in sorted(pairs):
+            if len(candidates[old]) != 1 or len(candidates[incoming]) != 1:
+                continue
+            original = self.db.execute("SELECT * FROM records WHERE id=?", (old,)).fetchone()
+            if not original or not self.db.execute("SELECT 1 FROM records WHERE id=?", (incoming,)).fetchone():
+                continue
+            override = self.db.execute("SELECT 1 FROM history_overrides WHERE record_id=?", (old,)).fetchone()
+            try:
+                survivor, count = self._merge_history_records([old, incoming], dict(original),
+                    preserve_override=original["source"] == HISTORY_SOURCE or bool(override))
+                # A history-only archive needs a durable presence vote. Once
+                # a live source confirms the same session, its aliases take
+                # over deletion tracking, including later desktop/phone trash.
+                self.db.execute("""UPDATE source_presence SET active=0,missing_count=0
+                    WHERE source=? AND source_key IN
+                        (SELECT source_key FROM record_aliases WHERE source=? AND record_id=?)""",
+                    (HISTORY_SOURCE, HISTORY_SOURCE, survivor))
+                changed += count
+            except ValueError:
+                # Conflicting explicit lifecycle choices or settled intervals
+                # remain separate for a reviewed resolution, never a guess.
+                continue
+        return changed
+
     def _reset_missing(self, source):
         self.db.execute("UPDATE source_presence SET missing_count=0 WHERE source=? AND missing_count<>0", (source,))
 
@@ -959,9 +1262,9 @@ class FocusStore:
         self.db.execute("INSERT OR IGNORE INTO source_presence(source,source_key) VALUES (?,?)", (source, source_key))
         # A matching desktop record includes Tomato's measured focus minutes,
         # which are more authoritative than a calendar event's elapsed span.
-        if previous is not None and source == "calendar" and previous["source"] == "tomatodo":
+        if previous is not None and source == "calendar" and previous["source"] in ("tomatodo", HISTORY_SOURCE):
             return 0
-        record = (record_id,) + record[1:]
+        record = self._history_overlay((record_id,) + record[1:])
         if previous is not None and tuple(previous) == record:
             return 0
         self.db.execute("""INSERT INTO records VALUES (?,?,?,?,?,?,?,?)
@@ -979,6 +1282,7 @@ class FocusStore:
         for record in records:
             self._upsert_record(record)
         self._reconcile_sources()
+        self._reconcile_history_sources()
         after = {row[0]: tuple(row) for row in self.db.execute(query)}
         return sum(before.get(key) != after.get(key) for key in before.keys() | after.keys())
 
@@ -1017,6 +1321,10 @@ class FocusStore:
             if len({row['manual_action'] for row in manual}) > 1:
                 # Conflicting explicit actions need a human choice, not a guess.
                 continue
+            overrides = self.db.execute("SELECT * FROM history_overrides WHERE record_id IN (?,?)",
+                                        (desktop_id, calendar_id)).fetchall()
+            if len({tuple(row[field] for field in HISTORY_FIELDS) for row in overrides}) > 1:
+                continue
             survivor, removed = rows
             desktop = next(row for row in rows if row['source'] == 'tomatodo')
             journal = json.dumps({'records': [dict(row) for row in rows],
@@ -1025,6 +1333,7 @@ class FocusStore:
                             (removed['id'], survivor['id'], now_iso(), journal))
             self.db.execute("UPDATE record_aliases SET record_id=? WHERE record_id=?",
                             (survivor['id'], removed['id']))
+            self._history_redirect(removed['id'], survivor['id'])
             # Keep source_presence unchanged: each source retains its own
             # confirmed presence/absence and last-observed snapshot.
             active = self.db.execute("""SELECT 1 FROM record_aliases a JOIN source_presence p
@@ -1041,6 +1350,9 @@ class FocusStore:
                             tuple(desktop[key] for key in ('source_id', 'name', 'minutes', 'start_ms', 'end_ms', 'day', 'source'))
                             + (survivor['id'],))
             self.db.execute("DELETE FROM records WHERE id=?", (removed['id'],))
+            override = self.db.execute("SELECT * FROM history_overrides WHERE record_id=?", (survivor['id'],)).fetchone()
+            if override:
+                self._set_history_override(survivor['id'], override)
             merged += 1
         return merged
 
