@@ -13,10 +13,12 @@ import secrets
 PURCHASE_LIMIT = 5
 PRICES = {"coin": {"coins": 80, "diamonds": 0},
           "diamond": {"coins": 0, "diamonds": 4}}
-# Ordinary items occupy 15%, lottery-only items 1%, and currency 84%.
+# Ordinary items occupy 19%, lottery-only items 1%, and currency 80%.
 # Cross-currency chances match between machines; ordinary item ratios are kept.
-ODDS = {"coin": (("coins", 7275), ("diamonds", 1125), ("coinItem", 1425), ("diamondItem", 75), ("lotteryOnly", 100)),
-        "diamond": (("diamonds", 7275), ("coins", 1125), ("diamondItem", 1500), ("lotteryOnly", 100))}
+# A 70,000-position wheel keeps currency ratios exactly 97:15 and coin-machine
+# ordinary item ratios exactly 95:5, without rounding the disclosed 19% / 1%.
+ODDS = {"coin": (("coins", 48500), ("diamonds", 7500), ("coinItem", 12635), ("diamondItem", 665), ("lotteryOnly", 700)),
+        "diamond": (("diamonds", 48500), ("coins", 7500), ("diamondItem", 13300), ("lotteryOnly", 700))}
 PITY_LIMITS = {"coin": 30, "diamond": 20}
 LIMITED_FALLBACK = {"coin": {"coins": 120, "diamonds": 0},
                     "diamond": {"coins": 0, "diamonds": 8}}
