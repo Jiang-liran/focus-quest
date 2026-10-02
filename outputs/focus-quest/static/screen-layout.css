@@ -1,7 +1,7 @@
 /* The desktop is a viewport, with fixed places for the map and its controls. */
 @media (min-width: 880px) {
   body[data-page=today] {height:100dvh;overflow:hidden}
-  body[data-page=today] main {height:100%;display:flex;flex-direction:column;padding-bottom:14px}
+  body[data-page=today] main {height:100%;max-width:none;display:flex;flex-direction:column;padding-bottom:14px}
   body[data-page=today] .topbar {height:50px;flex-shrink:0}
   body[data-page=today] .greeting {padding:15px 0;flex-shrink:0}
   body[data-page=today] .greeting h1 {font-size:22px;margin-top:0}
@@ -93,6 +93,7 @@
 /* The city has a flexible map row and permanently visible travel controls. */
 @media (min-width:880px) {
   .citadel-view {inset:10px;padding:16px 22px;display:flex;flex-direction:column;overflow:hidden}
+  .citadel-header,.citadel-status,.citadel-layout,.citadel-map-column {max-width:none}
   .citadel-header {position:static;padding:0;width:100%;flex-shrink:0;gap:20px}
   .citadel-heading h2 {font-size:23px;margin-top:3px}
   .citadel-heading h2 small {display:inline;margin-left:10px}
