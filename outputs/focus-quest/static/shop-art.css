@@ -1,0 +1,67 @@
+/* Small original illustrations are shared between shop tiles and the island. */
+.shop-art-svg{display:block;width:100%;height:100%;min-height:96px;max-width:220px;stroke:none;overflow:visible}
+.cosmetic-swatch>.shop-art-svg{position:relative;z-index:1}
+.cosmetic-swatch:has(>.shop-art-svg)::before,.cosmetic-swatch:has(>.shop-art-svg)::after{display:none}
+.shop-nebula-haze{filter:blur(5px)}
+.shop-gentle-float{animation:shop-gentle-float 6s ease-in-out infinite}
+.shop-pet-breathe{transform-origin:50px 86px;animation:shop-pet-breathe 7s ease-in-out infinite}
+.shop-orbit-slow{transform-origin:50px 43px;animation:shop-orbit-slow 44s linear infinite}
+.shop-portal-glimmer{animation:shop-portal-glimmer 5.5s ease-in-out infinite}
+.shop-sand-fall{animation:shop-sand-fall 1.8s linear infinite}
+.shop-meteor-preview{animation:shop-meteor-preview 5s ease-in-out infinite}
+@keyframes shop-gentle-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-2.5px)}}
+@keyframes shop-pet-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.015,1.025)}}
+@keyframes shop-orbit-slow{to{transform:rotate(360deg)}}
+@keyframes shop-portal-glimmer{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes shop-sand-fall{to{stroke-dashoffset:-9}}
+@keyframes shop-meteor-preview{0%,100%{transform:translate(4px,-3px);opacity:.4}45%{transform:translate(-4px,3px);opacity:.95}}
+
+/* Layer positions are SVG transforms set once by ShopArt.apply. */
+#equipped-companion,#equipped-portal,#equipped-relic{pointer-events:none;stroke:none}
+#equipped-companion{filter:drop-shadow(0 3px 2px #0c15262b)}
+#equipped-portal{opacity:.9;filter:drop-shadow(0 0 4px #b4a1d238)}
+:root:is([data-relic="relic-lotus"],[data-relic="relic-orrery"],[data-relic="relic-hourglass"]) .crystal-shrine>.crystal{visibility:hidden}
+#equipped-relic .shop-relic-core{transform:scale(var(--crystal-scale,.8));transform-origin:50px 128px;filter:drop-shadow(0 0 var(--crystal-glow,4px) color-mix(in srgb,var(--scene-color,#bba5e4) 55%,transparent));transition:transform 1.3s ease,filter 1.3s ease}
+#equipped-relic .shop-relic-core>g{animation-duration:var(--crystal-tempo,5s)}
+#equipped-relic .shop-relic-core>.shop-orbit-slow{animation-duration:44s}
+.scene-theme-backdrop{position:absolute;inset:0 0 36px;pointer-events:none;z-index:0;border-radius:24px;transition:background 1.3s ease}
+.scene-theme-backdrop>.shop-scene-backdrop-art{display:block;width:100%;height:100%;stroke:none;overflow:visible}
+.shop-aurora-veil{animation:shop-aurora-veil 17s ease-in-out infinite alternate}
+@keyframes shop-aurora-veil{from{transform:translate(-4px,2px);opacity:.6}to{transform:translate(6px,-4px);opacity:1}}
+
+/* Themes change the native ground, rock, foliage and the sky around the island. */
+:root[data-theme="theme-forest"]{--theme-ground-top:#568577;--theme-ground-bottom:#355b58;--theme-rock-top:#334f54;--theme-rock-bottom:#182c36;--theme-rock-side:#24414a;--theme-leaf-light:#92b296;--theme-leaf-mid:#527c69;--theme-leaf-dark:#315749;--theme-sky:#77916c19;--theme-halo:#b2c09024}
+:root[data-theme="theme-ocean"]{--theme-ground-top:#51899f;--theme-ground-bottom:#345873;--theme-rock-top:#35516e;--theme-rock-bottom:#172839;--theme-rock-side:#233d58;--theme-leaf-light:#9dbabc;--theme-leaf-mid:#679a9c;--theme-leaf-dark:#386773;--theme-sky:#719fb124;--theme-halo:#9dcbd32a}
+:root[data-theme="theme-sakura"]{--theme-ground-top:#a58196;--theme-ground-bottom:#705c7c;--theme-rock-top:#705772;--theme-rock-bottom:#30263e;--theme-rock-side:#4b3b5a;--theme-leaf-light:#d3a5ba;--theme-leaf-mid:#aa829e;--theme-leaf-dark:#775a7d;--theme-sky:#ae809e20;--theme-halo:#ddb4c528}
+:root[data-theme="theme-aurora"]{--theme-ground-top:#628991;--theme-ground-bottom:#53557a;--theme-rock-top:#4b4c75;--theme-rock-bottom:#20223c;--theme-rock-side:#313752;--theme-leaf-light:#adc6bc;--theme-leaf-mid:#799ba5;--theme-leaf-dark:#4b627f;--theme-sky:#84a8bd1c;--theme-halo:#b8b3e327}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) .scene-theme-backdrop{background:radial-gradient(ellipse at 53% 39%,var(--theme-halo),transparent 66%),linear-gradient(175deg,transparent 8%,var(--theme-sky) 75%,transparent)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) #ground stop:first-child{stop-color:var(--theme-ground-top)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) #ground stop:last-child{stop-color:var(--theme-ground-bottom)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) #rock stop:first-child{stop-color:var(--theme-rock-top)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) #rock stop:last-child{stop-color:var(--theme-rock-bottom)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}
+:root:is([data-theme="theme-forest"],[data-theme="theme-ocean"],[data-theme="theme-sakura"],[data-theme="theme-aurora"]) .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+
+/* Portrait frames affect both the level plaque and the wardrobe character card. */
+:root[data-banner="banner-leaf"]{--banner-edge:#96b49c;--banner-wash:#6282751a;--banner-highlight:#d0d8ae;--banner-shadow:#8baa8124}
+:root[data-banner="banner-parchment"]{--banner-edge:#c8b28c;--banner-wash:#ab927322;--banner-highlight:#ecdbb8;--banner-shadow:#d3b89420}
+:root[data-banner="banner-obsidian"]{--banner-edge:#8e96a9;--banner-wash:#090f1955;--banner-highlight:#c4cbda;--banner-shadow:#acb7cc12}
+:root[data-banner="banner-celestial"]{--banner-edge:#9caed4;--banner-wash:#6a7fac22;--banner-highlight:#d8d7f0;--banner-shadow:#a8b8e22b}
+:root[data-banner="banner-sovereign"]{--banner-edge:#d1b47f;--banner-wash:#8b69952b;--banner-highlight:#f2d89e;--banner-shadow:#ddbf852e}
+:root:is([data-banner="banner-leaf"],[data-banner="banner-parchment"],[data-banner="banner-obsidian"],[data-banner="banner-celestial"],[data-banner="banner-sovereign"]) :is(.level-pill,.equipped-player-card){position:relative;border-color:var(--banner-edge);background:linear-gradient(130deg,var(--banner-wash),transparent 80%),#171b2a;box-shadow:inset 0 0 18px var(--banner-shadow),0 0 12px var(--banner-shadow);transition:border-color .3s,box-shadow .3s,background .3s}
+:root:is([data-banner="banner-leaf"],[data-banner="banner-parchment"],[data-banner="banner-obsidian"],[data-banner="banner-celestial"],[data-banner="banner-sovereign"]) :is(.level-pill,.equipped-player-card)::after{content:'';position:absolute;inset:5px;border:1px solid var(--banner-edge);border-radius:inherit;opacity:.2;pointer-events:none}
+:root[data-banner="banner-leaf"] :is(.level-pill,.equipped-player-card){border-radius:17px 7px 17px 7px}
+:root[data-banner="banner-leaf"] :is(.level-pill,.equipped-player-card)::after{border:0;background:radial-gradient(ellipse at 0 0,#b8cda34d,transparent 25%),radial-gradient(ellipse at 100% 100%,#a0c2a23d,transparent 25%);opacity:.6}
+:root[data-banner="banner-parchment"] :is(.level-pill,.equipped-player-card){border-left-width:3px;border-right-width:3px;border-radius:7px;box-shadow:inset 0 0 25px #aa947918}
+:root[data-banner="banner-parchment"] :is(.level-pill,.equipped-player-card)::after{inset:5px 3px;border-left:0;border-right:0;border-radius:0;opacity:.35}
+:root[data-banner="banner-obsidian"] :is(.level-pill,.equipped-player-card){border-radius:3px 13px 3px 13px;background:linear-gradient(135deg,#b3bfd108,transparent 42%),#171c27}
+:root[data-banner="banner-obsidian"] :is(.level-pill,.equipped-player-card)::after{border-style:dashed;opacity:.2}
+:root[data-banner="banner-celestial"] :is(.level-pill,.equipped-player-card)::after{border-color:#acbce171;background:radial-gradient(circle at 17% 0,#e0dcf0 0 1.5px,transparent 2px),radial-gradient(circle at 80% 100%,#c9d5ed 0 1.5px,transparent 2px),radial-gradient(circle at 100% 24%,#dfd4ef 0 1.5px,transparent 2px);opacity:.65}
+:root[data-banner="banner-sovereign"] :is(.level-pill,.equipped-player-card){border-width:3px;border-style:double}
+:root[data-banner="banner-sovereign"] :is(.level-pill,.equipped-player-card)::after{inset:4px;border-color:#dfc891;border-radius:7px;background:linear-gradient(135deg,#efd7a917,transparent 35%,transparent 70%,#cba1db0d);opacity:.5}
+
+/* Static art remains fully visible when motion is disabled. */
+.no-motion :is(.shop-gentle-float,.shop-pet-breathe,.shop-orbit-slow,.shop-portal-glimmer,.shop-sand-fall,.shop-meteor-preview,.shop-aurora-veil),.no-motion #equipped-relic .shop-relic-core{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){:is(.shop-gentle-float,.shop-pet-breathe,.shop-orbit-slow,.shop-portal-glimmer,.shop-sand-fall,.shop-meteor-preview,.shop-aurora-veil),#equipped-relic .shop-relic-core{animation:none!important;transition:none!important}}

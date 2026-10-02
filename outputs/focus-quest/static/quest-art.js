@@ -6,8 +6,8 @@
   'use strict';
 
   const roles = new Set(['morning', 'afternoon', 'shop', 'player', 'guide']);
-  const npcOutfits = new Set(['npc-default', 'npc-scholar', 'npc-astral']);
-  const playerOutfits = new Set(['avatar-default', 'avatar-ranger', 'avatar-star']);
+  const npcOutfits = new Set(['npc-default', 'npc-scholar', 'npc-tea', 'npc-copper', 'npc-astral', 'npc-phoenix']);
+  const playerOutfits = new Set(['avatar-default', 'avatar-ranger', 'avatar-voyager', 'avatar-alchemist', 'avatar-star', 'avatar-royal']);
   const palettes = {
     morning: {coat: '#67978b', shade: '#426f69', hat: '#8fb7a1', hatShade: '#5f8979', trim: '#edd3a1', hair: '#746458'},
     afternoon: {coat: '#788fc4', shade: '#526596', hat: '#9fa9d6', hatShade: '#6e7cab', trim: '#d6d7f2', hair: '#57546e'},
@@ -15,9 +15,15 @@
     guide: {coat: '#8f9eaf', shade: '#687c95', hat: '#b99bd8', hatShade: '#896bb0', trim: '#e5cff5', hair: '#77657d'},
     player: {coat: '#b69cdd', shade: '#8067b2', hat: '#cdb6eb', hatShade: '#977ec3', trim: '#e8d8f5', hair: '#77718b'},
     'npc-scholar': {coat: '#729c95', shade: '#487b7c', hat: '#8bb4a0', hatShade: '#567f78', trim: '#f2dda4'},
+    'npc-tea': {coat: '#acaa83', shade: '#747e62', hat: '#d1c8a0', hatShade: '#989c74', trim: '#f0e0bf'},
+    'npc-copper': {coat: '#b48a70', shade: '#805f57', hat: '#ceac86', hatShade: '#9b775f', trim: '#f1d5a3'},
     'npc-astral': {coat: '#7a79b9', shade: '#505483', hat: '#979ad2', hatShade: '#68669e', trim: '#e5d6ff'},
+    'npc-phoenix': {coat: '#bf7e80', shade: '#874f67', hat: '#d9a191', hatShade: '#a46679', trim: '#f5d59d'},
     'avatar-ranger': {coat: '#6e9c8b', shade: '#416e67', hat: '#adbf91', hatShade: '#668773', trim: '#e4c58e'},
+    'avatar-voyager': {coat: '#709caf', shade: '#486d86', hat: '#a7c7d2', hatShade: '#6d94ad', trim: '#f0d9a6'},
+    'avatar-alchemist': {coat: '#a08db2', shade: '#68647f', hat: '#c5acd1', hatShade: '#8d789f', trim: '#c0debd'},
     'avatar-star': {coat: '#879fce', shade: '#526992', hat: '#b5c8ec', hatShade: '#7d92bd', trim: '#f2d7a3'},
+    'avatar-royal': {coat: '#9b83bb', shade: '#614e80', hat: '#dabf84', hatShade: '#a28960', trim: '#f4dfa5'},
   };
   const star = (x, y, size, color) => `<path d="M${x} ${y - size}l${size * .28} ${size * .72} ${size * .72} ${size * .28}-${size * .72} ${size * .28}-${size * .28} ${size * .72}-${size * .28}-${size * .72}-${size * .72}-${size * .28} ${size * .72}-${size * .28}Z" fill="${color}"/>`;
 
@@ -36,7 +42,11 @@
       <path d="M32 44h8c7 5 10 14 12 25H32Z" fill="${palette.shade}"/>
       <path d="m23 46 9 8 9-8-3-3H26Z" fill="${palette.trim}"/>
       <circle cx="32" cy="54" r="2" fill="${palette.trim}"/>
-      ${astral ? star(24, 60, 2, palette.trim) + star(40, 64, 1.8, palette.trim) : ''}`;
+      ${astral ? star(24, 60, 2, palette.trim) + star(40, 64, 1.8, palette.trim) : ''}
+      ${outfit === 'npc-tea' ? `<path d="M22 65q1-8 7-10m-4 5q-7 0-5-5 5-1 5 5m1-2q0-6 5-5 2 4-5 5" fill="none" stroke="${palette.trim}" stroke-width="1.1"/>` : ''}
+      ${outfit === 'npc-copper' ? `<circle cx="22" cy="60" r="3.2" fill="none" stroke="${palette.trim}" stroke-width="1.3"/><path d="M22 55v2m0 6v2m-5-5h2m6 0h2" stroke="${palette.trim}" stroke-width="1.2"/>` : ''}
+      ${outfit === 'npc-phoenix' ? `<path d="M25 64q-8-7-7-13 8 3 7 13m0 0q-2-9 4-14 2 9-4 14" fill="${palette.trim}" opacity=".8"/>` : ''}
+      ${outfit === 'avatar-royal' ? `<path d="m17 53 3 13m27-13-3 13M20 66h24" fill="none" stroke="${palette.trim}" stroke-width="1.6"/>` : ''}`;
   }
 
   function hat(role, palette, outfit) {
@@ -47,7 +57,7 @@
       <path d="m48 31 2-2 2 2v5h-4Z" fill="${palette.trim}"/>
       <path d="M21 28q11-3 22 0" fill="none" stroke="${palette.trim}" stroke-width="2"/>
       ${star(30, 19, 3, palette.trim)}`;
-    if (role === 'afternoon') return `<path d="M19 25c1-11 6-16 13-16s12 5 13 16Z" fill="${palette.hat}"/>
+    if (role === 'afternoon' || outfit === 'avatar-voyager') return `<path d="M19 25c1-11 6-16 13-16s12 5 13 16Z" fill="${palette.hat}"/>
       <path d="M32 9c7 0 12 5 13 16H32Z" fill="${palette.hatShade}"/>
       <path d="M10 25q10 1 14-4l8 4 8-4q4 5 14 4l-7 7H17Z" fill="${palette.hat}" stroke="${palette.trim}" stroke-width="1.3" stroke-linejoin="round"/>
       <circle cx="32" cy="26" r="4.7" fill="${palette.hatShade}"/>
@@ -60,6 +70,16 @@
     if (outfit === 'avatar-ranger') return `<path d="M16 31C17 18 23 8 32 5c9 3 15 13 16 26l-7-5-9-7-9 7Z" fill="${palette.hat}"/>
       <path d="M32 5c9 3 15 13 16 26l-7-5-9-7Z" fill="${palette.hatShade}"/>
       <path d="m22 27 10-8 10 8" fill="none" stroke="${palette.trim}" stroke-width="1.6" stroke-linecap="round"/>`;
+    if (outfit === 'avatar-royal') return `<path d="M18 27 15 13l10 6 7-13 7 13 10-6-3 14Z" fill="${palette.hat}" stroke="${palette.trim}" stroke-width="1.2"/>
+      <path d="M32 6v21h14l3-14-10 6Z" fill="${palette.hatShade}"/>
+      <rect x="18" y="25" width="28" height="4" rx="1.5" fill="${palette.trim}"/>
+      <path d="m32 16 3 4-3 4-3-4Z" fill="#b19bd8"/>
+      <circle cx="15" cy="12" r="1.7" fill="${palette.trim}"/><circle cx="49" cy="12" r="1.7" fill="${palette.trim}"/>`;
+    if (outfit === 'avatar-alchemist') return `<path d="M17 27 28 7q4-5 8 0l11 20Z" fill="${palette.hat}"/>
+      <path d="M32 4v23h15L36 7q-2-3-4-3Z" fill="${palette.hatShade}"/>
+      <ellipse cx="32" cy="28" rx="21" ry="3.8" fill="${palette.hat}" stroke="${palette.trim}" stroke-width="1.3"/>
+      <path d="M21 24h22" stroke="${palette.hatShade}" stroke-width="3"/>
+      <circle cx="27" cy="24" r="4" fill="#aec6be" stroke="${palette.trim}" stroke-width="1.5"/><circle cx="37" cy="24" r="4" fill="#aec6be" stroke="${palette.trim}" stroke-width="1.5"/>`;
     return `<path d="M16 27 29 5q3-5 6 0l13 22Z" fill="${palette.hat}"/>
       <path d="M32 2v25h16L35 5q-1.5-2.5-3-3Z" fill="${palette.hatShade}"/>
       <ellipse cx="32" cy="28" rx="22" ry="4" fill="${palette.hat}" stroke="${palette.trim}" stroke-width="1.3"/>
@@ -87,6 +107,17 @@
       <rect x="34" y="59" width="13" height="9" rx="2.5" fill="#947a5d" stroke="#d9bd8c" stroke-width="1.2"/>
       <path d="M53 43v25" stroke="#b1a078" stroke-width="2.5" stroke-linecap="round"/>
       <path d="M53 45q-9-2-6-9 8 0 6 9Z" fill="#91b88f"/>`;
+    if (outfit === 'avatar-voyager') return `<path d="m22 48 18 20" stroke="${palette.trim}" stroke-width="3"/>
+      <circle cx="49" cy="58" r="8" fill="#6b87a4" stroke="${palette.trim}" stroke-width="1.6"/>
+      <path d="m49 52 3 6-3 6-3-6Z" fill="#e6d3ad"/><circle cx="49" cy="58" r="1.4" fill="#9f86ba"/>`;
+    if (outfit === 'avatar-alchemist') return `<path d="M45 48h8v6l4 6q2 7-8 7t-8-7l4-6Z" fill="#baccc1" stroke="#dbe4cd" stroke-width="1.2"/>
+      <path d="M42 59q7 3 14 0 4 8-7 8t-7-8Z" fill="#97bca3"/>
+      <rect x="44" y="46" width="10" height="4" rx="1" fill="#b39683"/>
+      <circle cx="47" cy="60" r="1.4" fill="#e2eed6"/><circle cx="51" cy="63" r="1" fill="#e2eed6"/>`;
+    if (outfit === 'avatar-royal') return `<path d="M53 45v23" stroke="${palette.trim}" stroke-width="2.5"/>
+      <path d="m53 35 5 7-5 7-5-7Z" fill="#bc9edb" stroke="${palette.trim}" stroke-width="1.2"/>
+      <circle cx="53" cy="42" r="1.8" fill="#f0dfae"/>
+      <path d="M16 50q-5 8-4 17h7Z" fill="#d0c3dc"/>`;
     return `<path d="M54 46v22" stroke="#c8b18d" stroke-width="2.5" stroke-linecap="round"/>
       <path d="m54 36 4 6-4 6-4-6Z" fill="${palette.trim}"/>
       <path d="m54 36 4 6-4 1Z" fill="#f1e9ff"/>

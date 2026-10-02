@@ -61,20 +61,64 @@ QUEST_DEFINITIONS = (
 )
 SHOP_CATALOG = (
     ("bar-default", "bar", "初旅刻度", "营地原有的进度刻度", 0, 0),
-    ("bar-aurora", "bar", "极光流转", "让学习进度泛起极光", 300, 0),
-    ("bar-comet", "bar", "彗星轨迹", "循着彗星推进远征", 700, 4),
+    ("bar-mint", "bar", "薄荷新芽", "让每一步进度染上清新的绿意", 120, 0),
+    ("bar-aurora", "bar", "极光流转", "让学习进度泛起极光", 240, 0),
+    ("bar-comet", "bar", "彗星轨迹", "循着彗星推进远征", 360, 0),
+    ("bar-tide", "bar", "潮汐回响", "让专注的波纹随进度荡开", 480, 0),
+    ("bar-prism", "bar", "棱镜虹光", "把积累折射成缤纷的光带", 0, 12),
     ("fx-default", "fx", "初旅星光", "记录每一次普通而珍贵的完成", 0, 0),
-    ("fx-fireflies", "fx", "萤火微光", "让轻盈萤火常驻你的星岛", 400, 0),
-    ("fx-meteor", "fx", "流星庆典", "让星岛上空不时划过流星", 900, 6),
+    ("fx-fireflies", "fx", "萤火微光", "让轻盈萤火常驻你的星岛", 180, 0),
+    ("fx-petals", "fx", "花瓣来信", "让轻落的花瓣陪伴每一段学习", 300, 0),
+    ("fx-snow", "fx", "静雪漫舞", "在安静飘雪中收下今天的积累", 420, 0),
+    ("fx-meteor", "fx", "流星庆典", "让星岛上空不时划过流星", 0, 12),
+    ("fx-nebula", "fx", "星云呼吸", "让遥远星云在营地缓缓流转", 0, 18),
     ("npc-default", "npc", "营地向导", "陪你开启每日委托", 0, 0),
-    ("npc-scholar", "npc", "博学旅人", "让书卷中的同伴加入营地", 250, 0),
-    ("npc-astral", "npc", "星界使者", "来自星空的委托同伴", 700, 6),
+    ("npc-scholar", "npc", "博学旅人", "让书卷中的同伴加入营地", 180, 0),
+    ("npc-tea", "npc", "茶香隐士", "带着温茶与耐心守候你的归来", 300, 0),
+    ("npc-copper", "npc", "铜铃匠人", "以温润铜色的衣装迎接每次委托完成", 420, 0),
+    ("npc-astral", "npc", "星界使者", "来自星空的委托同伴", 0, 12),
+    ("npc-phoenix", "npc", "赤羽信使", "为持续前行的你送来一束暖光", 0, 18),
     ("avatar-default", "avatar", "初旅行装", "第一次出征时的模样", 0, 0),
-    ("avatar-ranger", "avatar", "知识游侠", "为持续前行换上新行装", 300, 0),
-    ("avatar-star", "avatar", "星辉旅者", "披上属于你的积累与星辉", 800, 8),
+    ("avatar-ranger", "avatar", "知识游侠", "为持续前行换上新行装", 180, 0),
+    ("avatar-voyager", "avatar", "远航行者", "背起行囊，向新的知识海域出发", 300, 0),
+    ("avatar-alchemist", "avatar", "灵感炼金师", "把日常积累酿成自己的灵感", 420, 0),
+    ("avatar-star", "avatar", "星辉旅者", "披上属于你的积累与星辉", 0, 12),
+    ("avatar-royal", "avatar", "晨曦冠冕", "为走过的长路戴上一顶晨光之冠", 0, 18),
+    ("banner-default", "banner", "营地素纹", "旅人等级与装扮卡片原有的铭牌边框", 0, 0),
+    ("banner-leaf", "banner", "青叶纹章", "让清新叶纹在旅人铭牌边框上舒展", 120, 0),
+    ("banner-parchment", "banner", "羊皮书页", "用泛黄书页般的卡片边框衬托每一步成长", 240, 0),
+    ("banner-obsidian", "banner", "曜石纹章", "用沉静深色的铭牌边框衬托旅人行装", 360, 0),
+    ("banner-celestial", "banner", "天穹星纹", "让星轨在旅人卡片的铭牌纹章中交汇", 0, 10),
+    ("banner-sovereign", "banner", "远征王徽", "把坚持的轨迹镌刻在自己的铭牌边框上", 0, 16),
+    ("theme-default", "theme", "初始星岛", "熟悉的星空与营地配色", 0, 0),
+    ("theme-forest", "theme", "森间秘境", "把营地安放在清新幽绿的森林", 0, 24),
+    ("theme-ocean", "theme", "深海回廊", "在深蓝海光里展开安静的专注", 0, 36),
+    ("theme-sakura", "theme", "樱色晴空", "让温柔樱色铺满远征的天空", 0, 48),
+    ("theme-aurora", "theme", "极夜天幕", "让绚丽极光环绕你的营地", 0, 60),
+    ("companion-default", "companion", "独自出发", "暂不携带伙伴，按自己的节奏旅行", 0, 0),
+    ("companion-fox", "companion", "萤尾灵狐", "一位机敏的小伙伴陪你看书", 0, 16),
+    ("companion-owl", "companion", "书卷夜枭", "让安静的夜枭守护书页与灵感", 0, 24),
+    ("companion-whale", "companion", "浮空星鲸", "与缓缓游弋的星鲸一起积累成长", 0, 36),
+    ("companion-dragon", "companion", "晨光幼龙", "一只小龙陪你开启新的远征", 0, 48),
+    ("relic-default", "relic", "初始晶台", "营地中最初的晶石祭坛", 0, 0),
+    ("relic-lotus", "relic", "映月莲台", "让月光在层叠莲瓣间静静汇聚", 0, 20),
+    ("relic-orrery", "relic", "群星仪轨", "用环绕运行的星环标记你的积累", 0, 32),
+    ("relic-hourglass", "relic", "时砂圣坛", "把流逝的时间化作可见的星砂", 0, 44),
+    ("portal-default", "portal", "未开启", "保持星岛原本的宁静景色", 0, 0),
+    ("portal-moon", "portal", "月门微光", "在营地一侧开启柔和的月光之门", 0, 24),
+    ("portal-archive", "portal", "典藏之门", "让通往知识书库的门扉常伴左右", 0, 36),
+    ("portal-cosmos", "portal", "寰宇裂隙", "从星岛望见更辽阔的宇宙", 0, 48),
 )
 SHOP_ITEMS = {item[0]: dict(zip(("id", "slot", "name", "description", "coins", "diamonds"), item))
               for item in SHOP_CATALOG}
+SHOP_CATEGORIES = {"bar": "进度条", "fx": "星岛特效", "npc": "NPC 时装", "avatar": "我的时装",
+                   "banner": "旅人铭牌", "theme": "星岛环境", "companion": "随行伙伴",
+                   "relic": "星岛圣物", "portal": "远征之门"}
+LEGACY_SHOP_ITEM_IDS = ("bar-aurora", "bar-comet", "fx-fireflies", "fx-meteor", "npc-scholar",
+                        "npc-astral", "avatar-ranger", "avatar-star")
+EXCHANGE_COINS_PER_DIAMOND = 75
+EXCHANGE_MAX_DIAMONDS = 1000
+SHOP_PRICING_MIGRATION = "shopPricing:v18"
 
 
 def quest_clock(now=None):
@@ -472,6 +516,10 @@ class FocusStore:
             CREATE TABLE IF NOT EXISTS shop_equipment (
                 slot TEXT PRIMARY KEY, item_id TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS shop_exchanges (
+                request_id TEXT PRIMARY KEY, diamonds INTEGER NOT NULL,
+                coins INTEGER NOT NULL, created_ms INTEGER NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
@@ -484,6 +532,7 @@ class FocusStore:
                 self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (row["source"], key, row["id"]))
             self.db.execute("""INSERT OR IGNORE INTO source_presence(source,source_key)
                                SELECT source,source_key FROM record_aliases""")
+        self._migrate_shop_v18()
         self.settings = json.loads(json.dumps(DEFAULT_SETTINGS))
         stored = self._meta("settings")
         if stored:
@@ -527,6 +576,37 @@ class FocusStore:
     def _wallet(self):
         row = self.db.execute("SELECT COALESCE(SUM(coins),0),COALESCE(SUM(diamonds),0) FROM wallet_ledger").fetchone()
         return {"coins": row[0], "diamonds": row[1]}
+
+    def _migrate_shop_v18(self):
+        """Refund only pre-upgrade purchases, never retroactively charge more.
+
+        The migration marker is written even for an empty shop. New-price
+        purchases therefore cannot be mistaken for old ones on later starts.
+        Both per-item receipts and the completion marker commit atomically.
+        """
+        with self._quest_transaction():
+            if self._meta(SHOP_PRICING_MIGRATION) is not None:
+                return
+            current = quest_clock()
+            for item_id in LEGACY_SHOP_ITEM_IDS:
+                row = self.db.execute("""SELECT l.coins,l.diamonds FROM shop_purchases p
+                    JOIN wallet_ledger l ON l.reference='purchase:'||p.item_id WHERE p.item_id=?""", (item_id,)).fetchone()
+                if row is None:
+                    continue
+                item = SHOP_ITEMS[item_id]
+                coins = max(max(-row["coins"], 0) - item["coins"], 0)
+                diamonds = max(max(-row["diamonds"], 0) - item["diamonds"], 0)
+                if coins or diamonds:
+                    self.db.execute("INSERT OR IGNORE INTO wallet_ledger VALUES (?,?,?,?)",
+                                    (f"pricing:v18:{item_id}", coins, diamonds, int(current.timestamp() * 1000)))
+            self._set_meta(SHOP_PRICING_MIGRATION, current.isoformat())
+
+    def _exchange_state(self, wallet):
+        history = [{"diamonds": row["diamonds"], "coins": row["coins"], "createdAt": iso_ms(row["created_ms"])}
+                   for row in self.db.execute("SELECT * FROM shop_exchanges ORDER BY created_ms DESC,rowid DESC LIMIT 10")]
+        return {"coinsPerDiamond": EXCHANGE_COINS_PER_DIAMOND,
+                "maxDiamonds": wallet["coins"] // EXCHANGE_COINS_PER_DIAMOND,
+                "maxPerExchange": EXCHANGE_MAX_DIAMONDS, "history": history}
 
     def _quest_definition(self, subject):
         if not isinstance(subject, str) or subject not in SUBJECT_IDS:
@@ -624,15 +704,18 @@ class FocusStore:
         with self.lock:
             owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
             equipped = {row[0]: row[1] for row in self.db.execute("SELECT slot,item_id FROM shop_equipment")}
-            catalog = [dict(item, owned=item["id"] in owned or (item["coins"] == 0 and item["diamonds"] == 0),
+            catalog = [dict(item, currency="coins" if item["coins"] else "diamonds" if item["diamonds"] else "free",
+                            category=SHOP_CATEGORIES[item["slot"]],
+                            owned=item["id"] in owned or (item["coins"] == 0 and item["diamonds"] == 0),
                             equipped=equipped.get(item["slot"]) == item["id"]) for item in SHOP_ITEMS.values()]
             history = [{"day": row["day"], "subject": row["subject"], "name": row["name"],
                         "minutes": round(row["minutes"], 4), "coins": row["coins"], "diamonds": row["diamonds"],
                         "submittedAt": iso_ms(row["submitted_ms"])}
                        for row in self.db.execute("SELECT * FROM quest_receipts ORDER BY submitted_ms DESC,day DESC,subject LIMIT 20")]
-            return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": self._wallet(),
+            wallet = self._wallet()
+            return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": wallet,
                     "quests": [self._quest_row(definition, current)[0] for definition in QUEST_DEFINITIONS],
-                    "catalog": catalog, "equipped": equipped, "history": history}
+                    "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet)}
 
     def accept_quest(self, subject, now=None):
         definition = self._quest_definition(subject)
@@ -685,9 +768,9 @@ class FocusStore:
         return SHOP_ITEMS[item_id]
 
     def buy_item(self, item_id, now=None):
-        current = quest_clock(now)
         item = self._shop_item(item_id)
         with self._quest_transaction():
+            current = quest_clock(now)
             already_owned = (item["coins"] == 0 and item["diamonds"] == 0) or self.db.execute(
                 "SELECT 1 FROM shop_purchases WHERE item_id=?", (item_id,)).fetchone() is not None
             if not already_owned:
@@ -705,9 +788,9 @@ class FocusStore:
             return result
 
     def equip_item(self, item_id, now=None):
-        current = quest_clock(now)
         item = self._shop_item(item_id)
         with self._quest_transaction():
+            current = quest_clock(now)
             owned = (item["coins"] == 0 and item["diamonds"] == 0) or self.db.execute(
                 "SELECT 1 FROM shop_purchases WHERE item_id=?", (item_id,)).fetchone() is not None
             if not owned:
@@ -715,6 +798,37 @@ class FocusStore:
             self.db.execute("INSERT INTO shop_equipment VALUES (?,?) ON CONFLICT(slot) DO UPDATE SET item_id=excluded.item_id",
                             (item["slot"], item_id))
             return self.quest_state(current)
+
+    def exchange_diamonds(self, diamonds, request_id, now=None):
+        if type(diamonds) is not int or not 1 <= diamonds <= EXCHANGE_MAX_DIAMONDS:
+            raise ValueError("兑换钻石数量必须为 1 至 1000 的整数")
+        if not isinstance(request_id, str) or len(request_id) != 36:
+            raise ValueError("兑换请求标识必须为 UUID 字符串")
+        try:
+            canonical_id = str(uuid.UUID(request_id))
+        except (ValueError, AttributeError):
+            raise ValueError("兑换请求标识必须为 UUID 字符串") from None
+        if request_id.lower() != canonical_id:
+            raise ValueError("兑换请求标识必须为 UUID 字符串")
+        with self._quest_transaction():
+            current = quest_clock(now)
+            existing = self.db.execute("SELECT * FROM shop_exchanges WHERE request_id=?", (canonical_id,)).fetchone()
+            if existing is not None:
+                if existing["diamonds"] != diamonds:
+                    raise ValueError("同一个兑换请求标识不能更改钻石数量")
+                coins, created_ms = existing["coins"], existing["created_ms"]
+            else:
+                coins = diamonds * EXCHANGE_COINS_PER_DIAMOND
+                if self._wallet()["coins"] < coins:
+                    raise ValueError("金币不足，无法完成这次兑换")
+                created_ms = int(current.timestamp() * 1000)
+                self.db.execute("INSERT INTO shop_exchanges VALUES (?,?,?,?)", (canonical_id, diamonds, coins, created_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                (f"exchange:{canonical_id}", -coins, diamonds, created_ms))
+            result = self.quest_state(current)
+            result["receipt"] = {"requestId": canonical_id, "diamonds": diamonds, "coins": coins,
+                                 "createdAt": iso_ms(created_ms), "alreadyExchanged": existing is not None}
+            return result
 
     def _meta(self, key):
         item = self.db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
@@ -1384,7 +1498,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                  "/api/quests/submit": ("subject", store.submit_quest),
                                  "/api/shop/buy": ("itemId", store.buy_item),
                                  "/api/shop/equip": ("itemId", store.equip_item)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim") and path not in quest_actions:
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange") and path not in quest_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -1398,7 +1512,11 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path in quest_actions:
+                if path == "/api/shop/exchange":
+                    if url.query or set(payload) != {"diamonds", "requestId"}:
+                        raise ValueError("请仅提供兑换钻石数量和请求标识，价格与时间由服务器确定")
+                    self._send(200, store.exchange_diamonds(payload["diamonds"], payload["requestId"]))
+                elif path in quest_actions:
                     field, action = quest_actions[path]
                     if url.query or set(payload) != {field}:
                         raise ValueError("请仅提供操作标识；委托日期、时间和奖励由服务器确定")

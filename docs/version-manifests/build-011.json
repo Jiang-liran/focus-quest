@@ -1,0 +1,32 @@
+{
+  "build": 11,
+  "version": "1.8",
+  "tag": "v1.8",
+  "recovery_type": "exact released runtime source; recovered commit, not original development commit",
+  "source_location": "work/backups/before-year-history-import-app.zip",
+  "source_kind": "app-zip",
+  "runtime_source_digest_sha256": "a2731b3f5b418124713358843fe9286ab791b91115f3108b884b0dba31529501",
+  "runtime_source_files_sha256": {
+    "server.py": "b0ed6ee3628bd25c35ca9d4c029b04a4c90d2c272bed42e5aab4de58285adc1a",
+    "static/opening.js": "47d5bee62c1f01074242cf486fefa12159544995e6acb9447cc9127e4c4c6d60",
+    "static/quests.js": "e8cebcf55a28f93ab2f715373f76825e82a5c3ac3095e7bea8f2bcc34596b1b8",
+    "static/index.html": "51a39e3880cecb78737b277fe6501911bf07fd1a0a7c90584231dcef2a4a2cb2",
+    "static/effects.js": "d8e433e59f0ba906b19ff44be3303c1b80d76e9a550187ab66d3cd4d5a651091",
+    "static/subject-art.js": "23f172b10276f7d7a300bd68a6b061d3cb36e3fc76d92b0bd435c0229849c6bc",
+    "static/shop-art.js": "9c2a24562a28832ad31c688e8835851bf416c4d2b6a56028d1878602c0f6f994",
+    "static/advice.js": "66d59cdbc984510d008c3ca58f6ca4024ef174018eb30ad86d41cab7e1912be6",
+    "static/quests.css": "a780dd2532120662f9f08e1f0e5808a9f33a3c97e384a3a25807f6333e4e6573",
+    "static/style.css": "63c5b2a47498f762a70592394a3940e8f8157581b6f819c32975bccfdb17509a",
+    "static/scene.css": "7bef05b3dfb8e29b2d63f15376c7d25f5c4e68c80a7063fa298ae81c0a1734ff",
+    "static/opening.css": "eef9ed3fda3500841003fee3941e05f94e29bedd15c355c2e7ed9cc71a1e2d06",
+    "static/quest-art.js": "e1d689dcaa3cf6c85663086e6ee4dde68c4598e9baaaa431180c814ca044bf3c",
+    "static/shop-art.css": "2ca96df5a76dcbef02e5c4e8dafd5423e623a00c974d90a4518900d76f053f46",
+    "static/cosmetics.css": "46b63d5e055595687698231f0e1e9d6190a45d15ef23a4cbf9f944f3d144059f",
+    "static/app.js": "7ca576032748bd12972a46ddecfea812d63f73e5ecefb4f3bb45ede76bd51edc",
+    "static/subject-art.css": "08ea168f0690cd399543e5d2bcffc08d160868c71856e7caab87fd3334fd6b09"
+  },
+  "native_executable_sha256": "0a71f0d90080063e33c38b72265d9aacca1dbbcb248aee73248df48f93fb7704",
+  "info_plist_sha256": "0f8e7d4eefb4971456e55d55517764adee03953bf74255727f116d990c19b812",
+  "native_swift_source_available": false,
+  "original_zip_sha256": "d64b52ea9c3f29e26d820fdee94b48cfd758660e33451c9fe29b1adf76fce6df"
+}

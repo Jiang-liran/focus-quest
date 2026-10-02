@@ -4,11 +4,11 @@
   else root.FocusQuests=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',npc:'NPC 时装',avatar:'我的时装'};
+  const names={bar:'进度条',fx:'星岛特效',npc:'NPC 时装',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门'};
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
   const statuses={locked:'尚未发布',available:'可以接取',active:'进行中',ready:'可以交付',expired:'今日已结束',claimed:'已交付'};
   const mentors={morning:{name:'司晨',title:'晨间导师',quote:'「先以数学磨砺思路，再用政治梳理脉络。把上午交给扎实的理解。」',hours:'00:00 — 12:00',grace:'12:30',subjects:'数学 · 政治'},afternoon:{name:'逐光',title:'午后领航员',quote:'「让知识连成网络，让语言打开远方。午后的航程，由你来选择。」',hours:'12:00 — 18:00',grace:'18:30',subjects:'408 · 英语'}};
-  let data=null,bridge=null,filter='all',busy=false,intent=null,lastStamp=-Infinity;
+  let data=null,bridge=null,filter='all',market='coins',busy=false,intent=null,lastStamp=-Infinity;
   const markupCache=new Map();
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -16,6 +16,8 @@
   const clock=value=>new Date(value).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});
   const shortDay=value=>new Date(value+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
   const money=(coins,diamonds)=>`<span class="q-money"><span class="coin-mark">●</span> ${n(coins)} <small>金币</small><span class="diamond-mark">◆</span> ${n(diamonds)} <small>钻石</small></span>`;
+  const currency=item=>item.currency||(item.diamonds?'diamonds':item.coins?'coins':'free');
+  const price=item=>currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
   const avatar=(role,outfit)=>window.QuestArt?.avatar(role,outfit)||'';
   function replace(id,html){
     const el=$(id);
@@ -39,12 +41,13 @@
   }
   function swatch(item){
     if(item.slot==='npc'||item.slot==='avatar')return `<div class="cosmetic-swatch outfit-swatch" data-item="${esc(item.id)}">${avatar(item.slot==='npc'?'guide':'player',item.id)}</div>`;
-    return `<div class="cosmetic-swatch" data-item="${esc(item.id)}"></div>`;
+    const art=window.ShopArt?.preview(item.id)||'';
+    return `<div class="cosmetic-swatch ${art?'shop-art-swatch':''}" data-item="${esc(item.id)}">${art}</div>`;
   }
   function itemMarkup(item,wallet,disabled=false){
     const affordable=wallet.coins>=item.coins&&wallet.diamonds>=item.diamonds;
     const label=item.equipped?'使用中':item.owned?'装备':affordable?'购买':'余额不足';
-    return `<article class="shop-item ${item.equipped?'equipped':''}"><div class="shop-item-visual">${swatch(item)}<span class="shop-item-type">${esc(names[item.slot])}</span>${item.owned?`<span class="shop-owned">${item.equipped?'✦ 使用中':'已收藏'}</span>`:''}</div><div class="shop-item-info"><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="shop-price">${item.coins||item.diamonds?money(item.coins,item.diamonds):'<span class="shop-free">初始收藏 · 免费</span>'}</div><div class="shop-item-actions"><button class="text-button" data-shop-action="preview" data-item="${esc(item.id)}">${item.slot==='npc'||item.slot==='avatar'?'试穿':'预览'}</button><button class="secondary-button" data-shop-action="${item.owned?'equip':'buy'}" data-item="${esc(item.id)}" ${disabled||item.equipped||!item.owned&&!affordable?'disabled':''}>${label}</button></div></div></article>`;
+    return `<article class="shop-item ${item.equipped?'equipped':''}" data-currency="${esc(currency(item))}"><div class="shop-item-visual">${swatch(item)}<span class="shop-item-type">${esc(names[item.slot])}</span>${item.owned?`<span class="shop-owned">${item.equipped?'✦ 使用中':'已收藏'}</span>`:''}</div><div class="shop-item-info"><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="shop-price">${price(item)}</div><div class="shop-item-actions"><button class="text-button" data-shop-action="preview" data-item="${esc(item.id)}">${item.slot==='npc'||item.slot==='avatar'?'试穿':'预览'}</button><button class="secondary-button" data-shop-action="${item.owned?'equip':'buy'}" data-item="${esc(item.id)}" ${disabled||item.equipped||!item.owned&&!affordable?'disabled':''}>${label}</button></div></div></article>`;
   }
   function render(next){
     if(!next||!bridge)return;
@@ -55,6 +58,7 @@
     if(Number.isFinite(stamp))lastStamp=stamp;
     data=next;
     for(const [slot,id] of Object.entries(data.equipped||{}))document.documentElement.dataset[slot]=id;
+    window.ShopArt?.apply(data.equipped||{});
     for(const prefix of ['wallet-side','quest','shop']){
       $(prefix+'-coins').textContent=n(data.wallet.coins);$(prefix+'-diamonds').textContent=n(data.wallet.diamonds);
     }
@@ -64,9 +68,49 @@
     replace('quest-board',Object.entries(mentors).map(([period,m])=>`<section class="q-mentor ${period}"><header class="q-mentor-header"><div class="q-portrait">${avatar(period,data.equipped.npc)}</div><div><span class="q-mentor-role">${esc(m.title)} · ${m.subjects}</span><h2>${m.name}<small>${period==='morning'?'守住晨光里的秩序':'沿着午后的光前行'}</small></h2><p>${m.quote}</p></div></header><div class="q-schedule"><span><i></i>${m.hours} 学习窗口</span><span>${m.grace} 交付截止</span></div><div class="q-task-grid">${data.quests.filter(q=>q.period===period).map(q=>taskMarkup(q,busy)).join('')}</div></section>`).join(''));
     replace('shop-keeper',avatar('shop',data.equipped.npc));
     replace('player-outfit',avatar('player',data.equipped.avatar));
-    $('equipped-summary').textContent=Object.values(data.equipped).map(id=>data.catalog.find(item=>item.id===id)?.name||'初始装扮').join(' · ');
-    replace('shop-catalog',data.catalog.filter(item=>filter==='all'||item.slot===filter).map(item=>itemMarkup(item,data.wallet,busy)).join(''));
+    const paid=data.catalog.filter(i=>currency(i)!=='free'),owned=paid.filter(i=>i.owned);
+    $('equipped-summary').textContent=`已收藏 ${owned.length} / ${paid.length} 件 · ${data.catalog.find(i=>i.id===data.equipped.avatar)?.name||'初始装扮'}`;
+    replace('equipped-slots',Object.entries(names).map(([slot,label])=>`<button data-loadout-slot="${slot}"><span>${label}</span><strong>${esc(data.catalog.find(i=>i.id===data.equipped[slot])?.name||'初始装扮')}</strong><i>↗</i></button>`).join(''));
+    renderShop();
+    renderExchange();
     replace('quest-history',data.history.length?data.history.map(row=>`<div class="q-history-row"><span><strong>${esc(row.name)}</strong><small>${esc(row.day)} · ${clock(row.submittedAt)} 交付</small></span><span>${n(row.minutes)} 分钟</span>${money(row.coins,row.diamonds)}</div>`).join(''):'<div class="q-empty"><span>✧</span><p>第一份委托，等你亲手交付。</p><small>完成后，金币、钻石和这次努力会一起记在这里。</small></div>');
+  }
+  function renderShop(){
+    const marketItems=data.catalog.filter(i=>market==='owned'?i.owned:currency(i)===market);
+    if(filter!=='all'&&!marketItems.some(i=>i.slot===filter))filter='all';
+    document.querySelectorAll('[data-shop-filter]').forEach(b=>{
+      const selected=b.dataset.shopFilter===filter;
+      b.hidden=b.dataset.shopFilter!=='all'&&!marketItems.some(i=>i.slot===b.dataset.shopFilter);
+      b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+    });
+    document.querySelectorAll('[data-shop-market]').forEach(b=>{
+      const selected=b.dataset.shopMarket===market;
+      b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
+    });
+    for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>m==='owned'?i.owned:currency(i)===m).length);
+    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。'}[market];
+    const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
+    $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
+    replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
+  }
+  function exchangeAmount(){
+    const amount=Number($('exchange-amount').value);
+    return Number.isInteger(amount)&&amount>=1&&amount<=Math.min(1000,data?.exchange?.maxPerExchange||1000)?amount:null;
+  }
+  function renderExchange(){
+    const rate=data.exchange?.coinsPerDiamond||75,amount=exchangeAmount(),max=Math.floor(data.wallet.coins/rate);
+    $('exchange-rate').textContent=n(rate);
+    $('exchange-cost').textContent=amount?`花费 ${n(amount*rate)} 金币`:'请输入 1–1000 的整数';
+    $('exchange-open').disabled=busy||!amount||amount>max;
+    $('exchange-hint').textContent=max?`当前可兑换 ${n(max)} 颗钻石。兑换不设每日限额，按需要慢慢攒。`:`再攒 ${n(rate-data.wallet.coins)} 金币，就能兑换一颗钻石。`;
+    replace('exchange-history',(data.exchange?.history||[]).length?data.exchange.history.map(row=>`<div><time>${esc(new Date(row.createdAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false}))}</time><span>−${n(row.coins)} 金币</span><strong>+${n(row.diamonds)} 钻石</strong></div>`).join(''):'<p>还没有兑换记录。每一次兑换都会记在这里。</p>');
+  }
+  function openExchange(){
+    if(busy||!data)return;
+    const amount=exchangeAmount(),rate=data.exchange?.coinsPerDiamond||75;
+    if(!amount||amount*rate>data.wallet.coins)return;
+    intent={action:'exchange',diamonds:amount,requestId:window.crypto.randomUUID()};
+    dialog('把积累，凝成星光','THE STAR EXCHANGE','<div class="exchange-art"><span>●</span><i>→</i><b>◆</b></div>',`<p>将 <strong>${n(amount*rate)} 金币</strong>兑换为 <strong>${n(amount)} 颗钻石</strong>。</p><div class="q-action-reward">${price({currency:'diamonds',diamonds:amount})}<small>兑换所得，立即入袋</small></div><p>兑换比例：${n(rate)} 金币 = 1 钻石。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins-amount*rate)} 金币 · ${n(data.wallet.diamonds+amount)} 钻石</p>`,'确认兑换','再攒一攒');
   }
   function dialog(title,eyebrow,art,body,label,cancel='再想一想'){
     $('quest-action-title').textContent=title;$('quest-action-eyebrow').textContent=eyebrow;
@@ -90,20 +134,22 @@
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
-    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':'WARDROBE PREVIEW',swatch(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${item.coins||item.diamonds?money(item.coins,item.diamonds):'初始收藏 · 免费'}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
+    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':'WARDROBE PREVIEW',swatch(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
   }
   async function perform(job){
     if(busy||!job)return;
     busy=true;$('quest-action-confirm').disabled=true;render(data);
     try{
-      const paths={accept:'/api/quests/accept',submit:'/api/quests/submit',buy:'/api/shop/buy',equip:'/api/shop/equip'};
-      const result=await bridge.api(paths[job.action],job.subject?{subject:job.subject}:{itemId:job.id});
+      const paths={accept:'/api/quests/accept',submit:'/api/quests/submit',buy:'/api/shop/buy',equip:'/api/shop/equip',exchange:'/api/shop/exchange'};
+      const body=job.action==='exchange'?{diamonds:job.diamonds,requestId:job.requestId}:job.subject?{subject:job.subject}:{itemId:job.id};
+      const result=await bridge.api(paths[job.action],body);
       render(result);
       if(intent===job){intent=null;$('quest-action-dialog').close();}
       if(job.action==='submit'){
         const q=result.quests.find(q=>q.subject===job.subject);
         bridge.toast('委托交付 · 收获已入袋',`+${n(q.reward.coins)} 金币 · +${n(q.reward.diamonds)} 钻石`);
-      }else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，让星岛换上新模样。',equip:'已应用到你的星岛与营地。'}[job.action]);
+      }else if(job.action==='exchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'星光已入袋',`+${n(job.diamonds)} 钻石 · ${n(result.receipt?.coins||job.diamonds*(result.exchange?.coinsPerDiamond||75))} 金币已兑换`);
+      else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，让星岛换上新模样。',equip:'已应用到你的星岛与营地。'}[job.action]);
       await bridge.refresh(true);
     }catch(error){
       if($('quest-action-dialog').open){$('quest-action-error').textContent=error.message;$('quest-action-error').hidden=false;}
@@ -115,11 +161,11 @@
     if(bridge)return;bridge=callbacks;
     $('quest-board').addEventListener('click',event=>{const b=event.target.closest('[data-quest-action]');if(b)openQuest(b.dataset.questAction,b.dataset.subject);});
     $('shop-catalog').addEventListener('click',event=>{const b=event.target.closest('[data-shop-action]');if(b)openItem(b.dataset.shopAction,b.dataset.item);});
-    document.querySelectorAll('[data-shop-filter]').forEach(button=>button.addEventListener('click',()=>{
-      filter=button.dataset.shopFilter;
-      document.querySelectorAll('[data-shop-filter]').forEach(b=>{b.classList.toggle('active',b===button);b.setAttribute('aria-pressed',String(b===button));});
-      render(data);
-    }));
+    document.querySelectorAll('[data-shop-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.shopFilter;render(data);}));
+    document.querySelectorAll('[data-shop-market]').forEach(button=>button.addEventListener('click',()=>{market=button.dataset.shopMarket;filter='all';render(data);}));
+    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
+    $('exchange-amount').addEventListener('input',()=>{if(data)renderExchange();});
+    $('exchange-open').addEventListener('click',openExchange);
     $('quest-action-confirm').addEventListener('click',()=>perform(intent));
     $('quest-action-dialog').addEventListener('close',()=>{intent=null;});
   }

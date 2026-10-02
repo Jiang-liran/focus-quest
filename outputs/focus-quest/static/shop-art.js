@@ -1,0 +1,189 @@
+(function (root, factory) {
+  const api = factory(root, typeof module === 'object' && module.exports ? require('./quest-art.js') : null);
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.ShopArt = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeArt) {
+  'use strict';
+
+  const inventory = {
+    bar: ['default', 'mint', 'aurora', 'comet', 'tide', 'prism'],
+    fx: ['default', 'fireflies', 'petals', 'snow', 'meteor', 'nebula'],
+    npc: ['default', 'scholar', 'tea', 'copper', 'astral', 'phoenix'],
+    avatar: ['default', 'ranger', 'voyager', 'alchemist', 'star', 'royal'],
+    banner: ['default', 'leaf', 'parchment', 'obsidian', 'celestial', 'sovereign'],
+    theme: ['default', 'forest', 'ocean', 'sakura', 'aurora'],
+    companion: ['default', 'fox', 'owl', 'whale', 'dragon'],
+    relic: ['default', 'lotus', 'orrery', 'hourglass'],
+    portal: ['default', 'moon', 'archive', 'cosmos'],
+  };
+  const items = new Map(Object.entries(inventory).flatMap(([slot, variants]) => variants.map(variant => [`${slot}-${variant}`, {slot, variant}])));
+  const cache = new WeakMap();
+  const originalHats = new WeakMap();
+  const sparkle = (x, y, r = 3, color = '#e5d6f3') => `<path d="M${x} ${y-r}l${r*.28} ${r*.72} ${r*.72} ${r*.28}-${r*.72} ${r*.28}-${r*.28} ${r*.72}-${r*.28}-${r*.72}-${r*.72}-${r*.28} ${r*.72}-${r*.28}Z" fill="${color}"/>`;
+  const shadow = '<ellipse cx="50" cy="87" rx="31" ry="5" fill="#11192a" opacity=".28"/>';
+  const empty = `<circle cx="50" cy="49" r="26" fill="#24293b" stroke="#807395" stroke-width="1.2" stroke-dasharray="2 5"/>${sparkle(50,49,9,'#9a8bb7')}<path d="M34 85h32" stroke="#807395" stroke-width="1.2" stroke-linecap="round"/>`;
+
+  const companions = {
+    default: empty,
+    fox: `${shadow}<g class="shop-pet-breathe"><path d="M48 78C14 91 5 67 17 50c-3 19 14 14 27 11Z" fill="#c38e74"/><path d="M18 50c-3 12 3 16 10 18-10 2-17-2-13-12Z" fill="#eee0be"/><path d="M34 56q16-11 30 1l9 24H27Z" fill="#bd896f"/><path d="M42 56h16l4 25H36Z" fill="#ead8b8"/><path d="m30 34 1-23 16 15m8 0 16-15 1 23" fill="#c99a7a"/><path d="m34 27 1-10 8 11m16 0 8-11 1 10" fill="#e4bea6"/><path d="M29 34q21-20 43 0l-5 21-17 9-16-9Z" fill="#cd9c79"/><path d="M32 40q9 6 18 6 9 0 19-6l-2 14-17 10-16-10Z" fill="#f0dfc2"/><path d="m46 48 4-3 4 3-4 4Z" fill="#594956"/><path d="M39 39q3-3 6 0m10 0q3-3 6 0" fill="none" stroke="#614e59" stroke-width="2" stroke-linecap="round"/><path d="M42 70v11m15-11v11" stroke="#b7927d" stroke-width="1.8" stroke-linecap="round"/></g>`,
+    owl: `${shadow}<g class="shop-pet-breathe"><path d="m26 35 2-20 17 11h10l17-11 2 20" fill="#8f86b3"/><ellipse cx="50" cy="56" rx="27" ry="30" fill="#8f86b3"/><path d="M26 44q-11 23 11 34l3-23m34-11q11 23-11 34l-3-23" fill="#6c668d"/><ellipse cx="50" cy="62" rx="16" ry="22" fill="#c9bcd7"/><circle cx="39" cy="43" r="11" fill="#e5d9dc"/><circle cx="61" cy="43" r="11" fill="#e5d9dc"/><circle cx="40" cy="43" r="3.5" fill="#514b66"/><circle cx="60" cy="43" r="3.5" fill="#514b66"/><circle cx="41" cy="42" r="1" fill="#faf0dc"/><circle cx="61" cy="42" r="1" fill="#faf0dc"/><path d="m46 50 4-2 4 2-4 6Z" fill="#d1b58a"/><path d="m42 63 3 3 3-3m4 0 3 3 3-3m-13 9 3 3 3-3" fill="none" stroke="#9f91b6" stroke-width="1.5" stroke-linecap="round"/><path d="M38 85h8m8 0h8" stroke="#d6bc94" stroke-width="3" stroke-linecap="round"/>${sparkle(50,25,4,'#edd6a5')}</g>`,
+    whale: `${shadow}<g class="shop-gentle-float"><path d="M20 39c9-21 41-25 54-4l5 5q3-14 14-12-1 14-9 18 10 1 10 11-11 2-17-7C64 79 20 77 11 57q-7-16 9-18Z" fill="#7eaac6"/><path d="M13 52c12 15 44 22 65-6-7 25-48 32-62 15Z" fill="#c4dfe3"/><path d="M38 57q-4 18 13 20l2-17Z" fill="#678ba9"/><circle cx="30" cy="43" r="2.1" fill="#455775"/><circle cx="30.7" cy="42.3" r=".7" fill="#edf2ec"/><path d="M18 51q6 5 11 0" fill="none" stroke="#607d99" stroke-width="1.3" stroke-linecap="round"/><path d="M44 25V14m0 5q-10-9-12-1m12 0q9-10 12-2" fill="none" stroke="#c5dce8" stroke-width="2" stroke-linecap="round"/><circle cx="32" cy="12" r="2" fill="#c8ddec"/><circle cx="57" cy="10" r="1.5" fill="#c8ddec"/>${sparkle(71,18,3,'#dbe5f0')}</g>`,
+    dragon: `${shadow}<g class="shop-pet-breathe"><path d="M39 53 17 31l-2 27 22 8m23-13 22-22 2 27-22 8" fill="#a0b3a4"/><path d="m19 37 18 19-18 1m62-20L63 56l18 1" fill="#c5bad6"/><path d="M55 74q34 8 26-12 19 21-8 25l-19-6Z" fill="#7ca392"/><path d="M35 51q15-14 30 0l4 32H31Z" fill="#84af9c"/><ellipse cx="50" cy="66" rx="11" ry="18" fill="#d0dac0"/><path d="m35 26 1-16 11 12m7 0 11-12 1 16" fill="#d6c69c"/><path d="M29 31q21-23 42 0l-4 22-17 7-17-7Z" fill="#97bcaa"/><ellipse cx="50" cy="45" rx="17" ry="12" fill="#aac9b2"/><circle cx="39" cy="34" r="2" fill="#47695f"/><circle cx="61" cy="34" r="2" fill="#47695f"/><circle cx="44" cy="45" r="1.1" fill="#709681"/><circle cx="56" cy="45" r="1.1" fill="#709681"/><path d="M44 50q6 4 12 0" fill="none" stroke="#709681" stroke-width="1.5" stroke-linecap="round"/><path d="M34 82h10m12 0h10" stroke="#719181" stroke-width="4" stroke-linecap="round"/>${sparkle(50,25,3,'#e3d9ae')}</g>`,
+  };
+  const relics = {
+    default: `${shadow}<ellipse cx="50" cy="83" rx="25" ry="7" fill="#7d709e"/><path d="m50 13 23 32-23 34-23-34Z" fill="#b5a0e4"/><path d="m50 13 3 33-26-1Z" fill="#ddd1ef"/><path d="m53 46-3 33 23-34Z" fill="#917fbd"/><path d="M50 13 73 45l-20 1Z" fill="#9680c6"/>`,
+    lotus: `${shadow}<ellipse cx="50" cy="83" rx="25" ry="7" fill="#8d7d9b"/><ellipse cx="50" cy="80" rx="25" ry="6" fill="#c8b0c2"/><path d="M50 48v30" stroke="#ab9db5" stroke-width="4"/><path d="M50 71Q25 78 23 66q14-5 27 5m0 0q25 7 27-5-14-5-27 5" fill="#8db3a5"/><g class="shop-gentle-float"><path d="M50 60Q16 57 12 33q28 0 38 27m0 0q34-3 38-27-28 0-38 27" fill="#b394bd"/><path d="M50 60Q25 48 30 21q23 13 20 39m0 0q25-12 20-39-23 13-20 39" fill="#d1b0cc"/><path d="M50 59Q30 35 50 9q20 26 0 50Z" fill="#eed6dc"/><path d="M50 56Q39 41 50 25q11 16 0 31Z" fill="#f3dfbe"/>${sparkle(50,47,4,'#fff1d5')}</g>`,
+    orrery: `${shadow}<path d="M45 68h10l3 15H42Z" fill="#b3a07b"/><ellipse cx="50" cy="83" rx="26" ry="6" fill="#d0bb91"/><ellipse cx="50" cy="80" rx="22" ry="4" fill="#9b8b73"/><path d="M50 40v34" stroke="#ac9b80" stroke-width="3"/><g class="shop-orbit-slow"><ellipse cx="50" cy="41" rx="34" ry="13" fill="none" stroke="#ceb994" stroke-width="2" transform="rotate(-30 50 41)"/><ellipse cx="50" cy="41" rx="34" ry="13" fill="none" stroke="#a4aecb" stroke-width="1.6" transform="rotate(34 50 41)"/><ellipse cx="50" cy="41" rx="16" ry="32" fill="none" stroke="#bba6cc" stroke-width="1.5"/><circle cx="20" cy="55" r="4" fill="#b0c7c0"/><circle cx="78" cy="55" r="5" fill="#b79dcc"/><circle cx="50" cy="9" r="3" fill="#e5cfaa"/></g><circle cx="50" cy="41" r="12" fill="#d8c39a"/><path d="M50 29a12 12 0 0 1 0 24Z" fill="#b19c7b"/>${sparkle(46,37,4,'#f4e5c0')}`,
+    hourglass: `${shadow}<path d="M27 19v62m46-62v62" stroke="#a58c75" stroke-width="4"/><rect x="23" y="13" width="54" height="8" rx="3" fill="#d8b99a"/><rect x="23" y="79" width="54" height="8" rx="3" fill="#d8b99a"/><path d="M34 22h32q1 17-13 27 14 10 13 29H34q-1-19 13-29-14-10-13-27Z" fill="#889da9" opacity=".6" stroke="#d5d9cf" stroke-width="1.5"/><path d="M37 29h26q-2 11-13 17-11-6-13-17Zm13 28 13 18H37Z" fill="#ead5ab"/><path class="shop-sand-fall" d="M50 47v15" stroke="#f3e0b6" stroke-width="1.3" stroke-dasharray="1.5 3"/><path d="M37 26q1 9 5 12m-4 32 4-7" fill="none" stroke="#e3e7dd" stroke-width="1.5" stroke-linecap="round"/>`,
+  };
+  const portals = {
+    default: empty,
+    moon: `${shadow}<path d="M23 84h54l7 6H16Z" fill="#75819c"/><path d="M30 78h40l6 6H24Z" fill="#a6b5c6"/><circle cx="50" cy="45" r="32" fill="#28354d" stroke="#aebbd3" stroke-width="4"/><circle cx="50" cy="45" r="26" fill="#334360" stroke="#7387ad" stroke-width="1"/><path d="M62 20c-26 0-37 31-17 48-29-5-30-44-4-54q11-3 21 6Z" fill="#d7d6cd"/><g class="shop-portal-glimmer">${sparkle(60,37,5,'#dde3e9')}${sparkle(50,55,3,'#bbcce2')}<circle cx="68" cy="55" r="1.5" fill="#dce4ee"/></g>`,
+    archive: `${shadow}<path d="M17 82h66l5 7H12Z" fill="#8a7474"/><path d="M28 76h44l7 6H21Z" fill="#c4ad93"/><path d="M24 80V34q26-29 52 0v46Z" fill="#3e354b" stroke="#c7ad91" stroke-width="4"/><rect x="18" y="31" width="12" height="50" rx="2" fill="#ad8f7c"/><rect x="70" y="31" width="12" height="50" rx="2" fill="#ad8f7c"/><path d="M17 44h14m-14 19h14m38-19h14M69 63h14" stroke="#dfc8a8" stroke-width="2"/><path d="M23 14q15-5 27 3 12-8 27-3v17q-15-5-27 3-12-8-27-3Z" fill="#e2ceb2"/><path d="M50 17v17m-19-14 12 2m-12 4 12 2m14-6 12-2m-12 8 12-2" stroke="#ad947f" stroke-width="1.2"/><g class="shop-portal-glimmer">${sparkle(50,49,8,'#d3bbdb')}<path d="M40 63h20" stroke="#a89abf" stroke-width="1.3"/></g>`,
+    cosmos: `${shadow}<path d="M24 83h52l8 6H16Z" fill="#867896"/><path d="M50 8 78 20l12 28-12 28-28 12-28-12-12-28 12-28Z" fill="#4d456f" stroke="#b8a1d1" stroke-width="2.5"/><path d="m50 17 22 9 9 22-9 22-22 9-22-9-9-22 9-22Z" fill="#282c49" stroke="#a89cc8" stroke-width="1.2"/><g class="shop-orbit-slow"><ellipse cx="50" cy="48" rx="26" ry="15" fill="none" stroke="#a5b9cd" stroke-width="1.2" transform="rotate(-32 50 48)"/><circle cx="28" cy="61" r="3" fill="#d8c3ac"/><circle cx="72" cy="34" r="2" fill="#b7cfcc"/></g><g class="shop-portal-glimmer">${sparkle(50,47,10,'#d5c2e8')}${sparkle(62,63,3,'#dfcfaf')}${sparkle(39,31,2,'#bdcbdc')}</g><circle cx="50" cy="8" r="3" fill="#dfcda9"/><circle cx="90" cy="48" r="3" fill="#c2b7d6"/><circle cx="10" cy="48" r="3" fill="#c2b7d6"/>`,
+  };
+  const bars = {
+    default: ['#8776b4','#a18ac9','#c2a5ef'], mint: ['#568f80','#8fcbb0','#d7edd2'],
+    aurora: ['#77c5aa','#8bd6d6','#b99cde','#e0c0eb'], comet: ['#987fce','#ce91b6','#edbe94','#fff0c0'],
+    tide: ['#426e9e','#68aaba','#b5dde0','#e6efe0'], prism: ['#ba90c9','#d5a7b5','#e5cc9f','#a7cfbd','#a7b7df','#d7bcf0'],
+  };
+  const bannerColors = {
+    default: ['#8a7caa','#27263a','#b5a0d0'], leaf: ['#96b49c','#293b38','#d0d8ae'],
+    parchment: ['#c8b28c','#403733','#ecdbb8'], obsidian: ['#8e96a9','#222633','#c4cbda'],
+    celestial: ['#9caed4','#2b304c','#d8d7f0'], sovereign: ['#d1b47f','#433446','#f2d89e'],
+  };
+  const themes = {
+    default: ['#363454','#48527e','#262642','#b8a3d8'], forest: ['#293f42','#568577','#263d42','#b9caa0'],
+    ocean: ['#263f58','#51899f','#22374c','#bbdadd'], sakura: ['#4d3d52','#a58196','#46374d','#e5c3ca'],
+    aurora: ['#303857','#628991','#2c3350','#b8d6cc'],
+  };
+
+  function barPreview(variant) {
+    const colors = bars[variant];
+    return `<path d="M19 79h122" stroke="#6b62833a" stroke-width="1"/><rect x="16" y="42" width="128" height="13" rx="6.5" fill="#34344c"/><g class="shop-preview-bar">${colors.map((color,index)=>`<rect x="${18+index*104/colors.length}" y="44" width="${104/colors.length+5}" height="9" rx="4.5" fill="${color}"/>`).join('')}</g>${sparkle(126,35,4,colors.at(-1))}<circle cx="32" cy="68" r="2" fill="${colors[0]}"/><circle cx="43" cy="68" r="2" fill="${colors[Math.min(1,colors.length-1)]}"/><circle cx="54" cy="68" r="2" fill="${colors.at(-1)}"/>`;
+  }
+
+  function fxPreview(variant) {
+    if (variant === 'default') return `${sparkle(80,54,15,'#aea0c9')}<circle cx="80" cy="54" r="33" fill="none" stroke="#766d962b"/>`;
+    if (variant === 'fireflies') return `<ellipse cx="80" cy="59" rx="47" ry="28" fill="#8bab7810"/><g class="shop-portal-glimmer">${[[38,66,3],[58,35,2],[87,52,3],[115,30,2],[124,72,2],[74,83,2]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r+5}" fill="#c5dfa011"/><circle cx="${x}" cy="${y}" r="${r}" fill="${r===3?'#e3dda7':'#a9d3b4'}"/>`).join('')}</g>`;
+    if (variant === 'petals') return `<g class="shop-gentle-float">${[[38,45,-15],[62,73,35],[84,30,65],[119,52,10],[101,83,45]].map(([x,y,a],i)=>`<path d="M${x-5} ${y+1}q0-13 11-8 6 11-11 8Z" fill="${i%2?'#d8aabe':'#edc7d1'}" transform="rotate(${a} ${x} ${y})"/>`).join('')}</g><path d="M26 78q41 25 109-10" fill="none" stroke="#aa789827" stroke-width="1.5"/>`;
+    if (variant === 'snow') return `<g class="shop-portal-glimmer">${[[43,34,8],[86,68,10],[119,33,5]].map(([x,y,r])=>`<g transform="translate(${x} ${y})" fill="none" stroke="#d6e3ee" stroke-width="1.4"><path d="M-${r} 0h${r*2}M0-${r}v${r*2}m-${r*.7}-${r*.3} ${r*1.4}-${r*1.4}m-${r*1.4} 0 ${r*1.4} ${r*1.4}"/></g>`).join('')}<circle cx="31" cy="76" r="2" fill="#e3e8f0"/><circle cx="126" cy="79" r="2" fill="#c8d7e6"/><circle cx="74" cy="26" r="1.7" fill="#e3e8f0"/></g>`;
+    if (variant === 'meteor') return `<g class="shop-meteor-preview"><path d="m37 75 47-33" stroke="#909aca" stroke-width="3" opacity=".3"/><path d="m37 75 28-20" stroke="#c1c8e8" stroke-width="2"/><path d="m37 75 8-6" stroke="#e7e1f4" stroke-width="2.5"/>${sparkle(37,75,3,'#f3eafa')}<path d="m95 45 32-23" stroke="#b4afd3" stroke-width="1.5"/>${sparkle(95,45,2,'#ddd5ec')}</g><circle cx="114" cy="82" r="1" fill="#b7aec9"/>`;
+    return `<g class="shop-nebula-haze"><ellipse cx="70" cy="56" rx="39" ry="17" fill="#a184b7" opacity=".27" transform="rotate(-25 70 56)"/><ellipse cx="94" cy="53" rx="37" ry="15" fill="#769bae" opacity=".27" transform="rotate(-25 94 53)"/></g><ellipse cx="80" cy="56" rx="54" ry="14" fill="none" stroke="#b8a9d544" transform="rotate(-25 80 56)"/>${sparkle(80,56,8,'#d7c9e7')}${sparkle(45,36,3,'#ced5e8')}${sparkle(124,74,2,'#e6cdbb')}<circle cx="105" cy="33" r="1.7" fill="#c0d6d4"/>`;
+  }
+
+  function bannerPreview(variant) {
+    const [edge,bg,accent] = bannerColors[variant];
+    let ornament = '';
+    if(variant==='leaf')ornament=`<path d="M17 69q7-22 21-29m-18 19q-13-3-9-13 13 1 9 13m8-9q-1-13 11-15 2 10-11 15M144 64q-5 18-18 20" fill="none" stroke="${edge}" stroke-width="2"/>`;
+    if(variant==='parchment')ornament=`<path d="M18 30q-8-7-9 1v48q0 7 9 2m124-51q8-7 9 1v48q0 7-9 2" fill="${edge}"/><path d="M24 33h112M24 79h112" stroke="${accent}" stroke-width="1" opacity=".6"/>`;
+    if(variant==='obsidian')ornament=`<path d="m14 30 11-8h110l11 8v50l-11 8H25l-11-8Z" fill="none" stroke="${edge}" stroke-width="2"/>${sparkle(80,25,4,accent)}`;
+    if(variant==='celestial')ornament=`<path d="m18 35 17-11 27 3m68 59 15-14-7-24" fill="none" stroke="${edge}" stroke-width="1.2"/><circle cx="35" cy="24" r="2" fill="${accent}"/>${sparkle(18,35,3,accent)}${sparkle(138,48,4,accent)}`;
+    if(variant==='sovereign')ornament=`<rect x="10" y="23" width="140" height="65" rx="10" fill="none" stroke="${edge}" stroke-width="1.4"/><path d="m69 25-2-12 8 5 5-10 5 10 8-5-2 12Z" fill="${accent}"/><path d="m15 36 6 8-6 8m130-16-6 8 6 8" fill="none" stroke="${accent}" stroke-width="1.7"/>`;
+    return `<rect x="15" y="28" width="130" height="55" rx="8" fill="${bg}" stroke="${edge}" stroke-width="1.4"/><circle cx="41" cy="50" r="10" fill="${edge}"/><path d="M27 73q2-16 14-16t14 16Z" fill="${accent}" opacity=".8"/><path d="M66 47h53M66 58h35M66 69h47" stroke="${accent}" stroke-width="3" stroke-linecap="round" opacity=".5"/>${ornament}`;
+  }
+
+  function themePreview(variant) {
+    const [sky,ground,rock,accent] = themes[variant];
+    let ornament='';
+    if(variant==='forest')ornament=`<path d="m34 23-11 20h22Zm91 12-9 18h18Z" fill="#90b1a0"/><path d="M34 41v9m91 2v8" stroke="#657e70" stroke-width="3"/>`;
+    if(variant==='ocean')ornament=`<path d="M20 34q12-7 24 0t24 0m28 41q17-8 35 0" fill="none" stroke="#8dbdc9" stroke-width="1.5" opacity=".6"/><circle cx="124" cy="29" r="5" fill="none" stroke="#abd5da" stroke-width="1.1"/>`;
+    if(variant==='sakura')ornament=`<path d="M120 60V26m0 13-13-10m13 3 11-10" stroke="#8b697c" stroke-width="2"/><g fill="#dbb0c3"><circle cx="107" cy="29" r="7"/><circle cx="119" cy="23" r="9"/><circle cx="130" cy="24" r="6"/></g>`;
+    if(variant==='aurora')ornament=`<path d="M19 38Q46 6 80 25t62-8" fill="none" stroke="#a0cbb6" stroke-width="9" opacity=".3"/><path d="M22 31Q51 8 86 28t54-4" fill="none" stroke="#b5a6ce" stroke-width="5" opacity=".3"/>`;
+    return `<rect x="12" y="12" width="136" height="87" rx="15" fill="${sky}"/><circle cx="115" cy="28" r="10" fill="${accent}" opacity=".4"/>${ornament}<path d="m25 64 36-23 42 3 34 21-30 23-32 8-30-12Z" fill="${rock}"/><path d="m25 62 36-23 42 3 34 21-30 14-32 8-30-10Z" fill="${ground}"/><path d="M45 66q15-11 27 0t38-5" fill="none" stroke="${accent}" stroke-width="2.5" opacity=".7"/><path d="m87 30 9 14-9 16-9-16Z" fill="${accent}"/><path d="m87 30 1 14-10 0Z" fill="#e8e1ed" opacity=".6"/>${sparkle(43,24,2,accent)}`;
+  }
+
+  function preview(itemId) {
+    const item=items.get(itemId);if(!item)return '';
+    const {slot,variant}=item;
+    let content;
+    if(slot==='npc'||slot==='avatar'){
+      const art=nodeArt||root.QuestArt;
+      if(!art)return '';
+      const character=art.avatar(slot==='npc'?'guide':'player',itemId).replace(/^<svg[^>]*>|<\/svg>$/g,'');
+      content=`<ellipse cx="80" cy="92" rx="34" ry="7" fill="#82709910"/><g transform="translate(48 16)">${character}</g>`;
+    }else if(slot==='bar')content=barPreview(variant);
+    else if(slot==='fx')content=fxPreview(variant);
+    else if(slot==='banner')content=bannerPreview(variant);
+    else if(slot==='theme')content=themePreview(variant);
+    else content=`<g transform="translate(30 5)">${({companion:companions,relic:relics,portal:portals})[slot][variant]}</g>`;
+    return `<svg class="shop-art-svg" viewBox="0 0 160 112" aria-hidden="true" focusable="false" data-art="${itemId}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${content}</svg>`;
+  }
+
+  function themeBackdrop(variant) {
+    if(variant==='default')return '';
+    const accent=themes[variant][3];
+    let scene='';
+    if(variant==='forest')scene=`<path d="M445 65q24 47 11 102M444 88q-35-14-24-37 28 4 24 37m9 21q32-26 40-9-7 29-40 9M92 177q-16 29 2 56" fill="none" stroke="#8db899" stroke-width="2" opacity=".24"/><circle cx="166" cy="65" r="36" fill="#d1cf9e" opacity=".045"/>`;
+    if(variant==='ocean')scene=`<g fill="none" stroke="#93c8d3" opacity=".18"><ellipse cx="300" cy="253" rx="223" ry="34"/><ellipse cx="300" cy="253" rx="189" ry="25"/><circle cx="443" cy="83" r="11"/><circle cx="462" cy="56" r="5"/><circle cx="94" cy="145" r="6"/></g>`;
+    if(variant==='sakura')scene=`<path d="M471 119q-13-59-53-79m27 30 32-17m-22 43-30-2" fill="none" stroke="#c6a0b6" stroke-width="2" opacity=".18"/><g fill="#e2b4cb" opacity=".3"><circle cx="418" cy="40" r="10"/><circle cx="432" cy="48" r="7"/><circle cx="477" cy="53" r="8"/><circle cx="425" cy="94" r="6"/><path d="m107 88 7 8-11 4q-5-7 4-12Zm67-36 5 7-9 3q-3-6 4-10Z"/></g>`;
+    if(variant==='aurora')scene=`<g class="shop-aurora-veil" fill="none" stroke-linecap="round"><path d="M78 111Q167 13 287 67t212-25" stroke="#8fbba6" stroke-width="23" opacity=".10"/><path d="M104 101Q194 24 310 76t170-16" stroke="#b7a0ce" stroke-width="14" opacity=".10"/></g>`;
+    return `<svg class="shop-scene-backdrop-art" viewBox="0 0 590 350" aria-hidden="true" focusable="false" fill="none" stroke="none">${scene}<g fill="${accent}" opacity=".28"><circle cx="117" cy="97" r="1.3"/><circle cx="407" cy="52" r="1.3"/><circle cx="473" cy="196" r="1"/></g></svg>`;
+  }
+
+  function mount(doc,id,parentSelector,svg=false){
+    let element=doc.getElementById(id);if(element)return element;
+    const parent=doc.querySelector(parentSelector);if(!parent)return null;
+    element=svg?doc.createElementNS('http://www.w3.org/2000/svg','g'):doc.createElement('div');
+    element.id=id;element.setAttribute('aria-hidden','true');
+    if(!svg)element.className='scene-theme-backdrop';
+    if(svg)parent.appendChild(element);else parent.insertBefore(element,parent.firstChild||null);
+    return element;
+  }
+  function put(element,id,markup,transform){
+    if(!element||cache.get(element)===id)return;
+    if(transform)element.setAttribute('transform',transform);
+    element.setAttribute('data-item',id);
+    element.innerHTML=markup;
+    cache.set(element,id);
+  }
+  function dressTravelers(doc,outfit){
+    const shapes={
+      'avatar-royal':[
+        'M160 188 158 175l8 5 5-11 5 11 8-5-2 13Z',
+        'M171 169v19h11l2-13-8 5Z',
+        'M155 166l-2-12 7 4 4-9 4 9 7-4-2 12Z',
+      ],
+      'avatar-voyager':[
+        'M156 181l9 1 6-7 6 7 9-1-5 9h-20Z',
+        'M171 175v15h10l5-9-9 1Z',
+        'M152 161l7 1 5-5 5 5 7-1-4 7h-16Z',
+      ],
+      'avatar-ranger':[
+        'M157 190q1-16 14-23 13 7 14 23l-7-5-7-7-7 7Z',
+        'M171 167q13 7 14 23l-7-5-7-7Z',
+        'M154 168q1-12 10-17 9 5 10 17l-5-4-5-5-5 5Z',
+      ],
+    };
+    ['#scene-traveler .traveler-hat','#scene-traveler .traveler-hat-shade','.opening-traveler .opening-hat'].forEach((selector,index)=>{
+      const element=doc.querySelector(selector);if(!element)return;
+      if(!originalHats.has(element))originalHats.set(element,element.getAttribute('d'));
+      const shape=shapes[outfit]?.[index]||originalHats.get(element);
+      if(shape&&element.getAttribute('d')!==shape)element.setAttribute('d',shape);
+    });
+  }
+  function apply(equipped){
+    const valid={};
+    for(const slot of Object.keys(inventory)){
+      const candidate=equipped&&equipped[slot];
+      valid[slot]=items.get(candidate)?.slot===slot?candidate:`${slot}-default`;
+    }
+    const doc=root.document;
+    if(!doc||!doc.documentElement)return valid;
+    for(const [slot,id] of Object.entries(valid))if(doc.documentElement.dataset[slot]!==id)doc.documentElement.dataset[slot]=id;
+    dressTravelers(doc,valid.avatar);
+    // The keyed mounts survive ordinary state polls and preserve their animation phase.
+    const companion=mount(doc,'equipped-companion','.floating-island',true);
+    const relic=mount(doc,'equipped-relic','.floating-island',true);
+    const portal=mount(doc,'equipped-portal','.floating-island',true);
+    let backdrop=doc.querySelector('.scene-theme-backdrop');
+    if(!backdrop)backdrop=mount(doc,'scene-theme-backdrop','.quest-scene');
+    put(companion,valid.companion,valid.companion==='companion-default'?'':companions[items.get(valid.companion).variant],'translate(362 192) scale(.53)');
+    put(relic,valid.relic,valid.relic==='relic-default'?'':`<g class="shop-relic-core">${relics[items.get(valid.relic).variant]}</g>`,'translate(278 62) scale(.88)');
+    put(portal,valid.portal,valid.portal==='portal-default'?'':portals[items.get(valid.portal).variant],'translate(220 123) scale(.57)');
+    put(backdrop,valid.theme,themeBackdrop(items.get(valid.theme).variant));
+    return valid;
+  }
+
+  return {preview,apply};
+});
