@@ -994,8 +994,6 @@ class FocusStore:
                 if machine in lottery_rules.PRICES:
                     pools[machine+"Limited"].append(item)
                 continue
-            if not item.get("lotteryEligible", True):
-                continue
             if item["diamonds"] > 0:
                 pools["diamondItem"].append(item)
             elif item["coins"] > 0:
@@ -1013,8 +1011,6 @@ class FocusStore:
                 "SELECT machine,COUNT(*) FROM lottery_requests WHERE kind='buy' AND day=? GROUP BY machine", (day,))}
             wallet, pools = self._wallet(), self._lottery_pools()
             owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
-            exclusive = sum(not item.get("lotteryOnly", False) and bool(item.get("lotteryExclusive", False) or not item.get("lotteryEligible", True))
-                            and bool(item["coins"] or item["diamonds"]) for item in SHOP_ITEMS.values())
             machines = []
             for machine, name, ticket_name in (("coin", "金币抽奖机", "金币抽奖券"), ("diamond", "钻石抽奖机", "钻石抽奖券")):
                 price = lottery_rules.PRICES[machine]
@@ -1029,7 +1025,7 @@ class FocusStore:
                     "canBuy": remaining > 0 and all(wallet[key] >= amount for key, amount in price.items()),
                     "canDraw": tickets[machine] > 0, "odds": lottery_rules.odds_for(machine),
                     "pool": {"coinItems": len(pools["coinItem"]) if machine == "coin" else 0,
-                             "diamondItems": len(pools["diamondItem"]), "exclusiveItems": exclusive,
+                             "diamondItems": len(pools["diamondItem"]), "exclusiveItems": 0,
                              "lotteryOnlyItems": len(pools[machine+"Limited"]), "lotteryOnlyTotal": limited_total},
                     "pity": {"count": pity_count, "limit": lottery_rules.PITY_LIMITS[machine],
                              "remaining": max(1, lottery_rules.PITY_LIMITS[machine]-pity_count),
@@ -1056,7 +1052,7 @@ class FocusStore:
                     "featureStartMs": int(self._meta(LOTTERY_START_META)), "tickets": tickets, "wallet": wallet,
                     "machines": machines, "history": history, "grants": grants, "starGifts": star_gifts,
                     "roundTickets": self._round_ticket_state(),
-                    "persistentTickets": True, "onlyUnownedItems": True, "shopExclusiveItemsExcluded": True}
+                    "persistentTickets": True, "onlyUnownedItems": True, "shopExclusiveItemsExcluded": False}
 
     def _lottery_request(self, machine, request_id, kind, now=None):
         machine = self._lottery_machine(machine)

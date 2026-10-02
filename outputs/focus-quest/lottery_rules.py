@@ -1,7 +1,8 @@
 """Ticket-only night-market draws; randomness and outcomes stay on the server.
 
 Currency expectations deliberately stay below a ticket's purchase price. Item
-pools exclude owned/default/shop-exclusive cosmetics and favor modest prices.
+pools include all unowned paid cosmetics and favor modest prices; free defaults
+are excluded, and lottery-only collections use their own rarity tier.
 Cash jackpots have no pity meter. Lottery-only collections have separate,
 persistent hard-pity counters; there is never an escalating ticket price.
 """

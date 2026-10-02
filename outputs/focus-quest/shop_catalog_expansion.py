@@ -1,7 +1,8 @@
 """Permanent cosmetic expansion. Existing catalog identifiers and prices are unchanged.
 
 Rows use the server's (id, slot, name, description, coins, diamonds) schema.
-Lottery exclusives remain available only through the ordinary shop.
+Every ordinary paid cosmetic can be purchased or drawn; the twelve lottery-only
+collections stay in their separate rare pools.
 """
 
 SHOP_CATALOG_EXTRA = (
@@ -143,10 +144,11 @@ SHOP_CATALOG_EXTRA = (
     ('relic-cosmosheart', 'relic', '宇宙之心', '环绕宇宙球的双层仪轨、裂光晶核与细星构成晶台展品 · 抽奖限定收藏', 0, 99),
 )
 
-SHOP_LOTTERY_EXCLUSIVE_IDS = frozenset(('avatar-astronaut', 'avatar-witch', 'banner-clockwork', 'bar-airship', 'bar-music', 'camp-waterlily', 'campgear-phonograph', 'campglow-rainbow', 'campmark-arch', 'chatframe-glass', 'companion-manta', 'companion-phoenix', 'fire-clockwork', 'fx-constellation', 'island-moonhouse', 'island-skyharbor', 'island-watermill', 'portal-airship', 'portal-clock', 'relic-astrolabe', 'relic-lighthouse', 'tent-glassdome', 'theme-violet', 'trail-moon'))
+# Retain the export for older integrations; there are no shop-only cosmetics.
+SHOP_LOTTERY_EXCLUSIVE_IDS = frozenset()
 SHOP_LOTTERY_ONLY_BY_MACHINE = {'coin': ('bar-skyexpress', 'avatar-moonwarden', 'island-starhaven', 'theme-cometsea', 'companion-lumibird', 'relic-soulgarden'), 'diamond': ('bar-galaxy', 'avatar-stellararchon', 'island-celestialpalace', 'theme-nebulaverse', 'companion-celestialserpent', 'relic-cosmosheart')}
 SHOP_LOTTERY_ONLY_IDS = frozenset(id for ids in SHOP_LOTTERY_ONLY_BY_MACHINE.values() for id in ids)
-SHOP_ITEM_META = {row[0]: {"lotteryEligible": row[0] not in SHOP_LOTTERY_EXCLUSIVE_IDS, "lotteryExclusive": row[0] in SHOP_LOTTERY_EXCLUSIVE_IDS} for row in SHOP_CATALOG_EXTRA}
+SHOP_ITEM_META = {row[0]: {"lotteryEligible": True, "lotteryExclusive": False} for row in SHOP_CATALOG_EXTRA}
 for machine, ids in SHOP_LOTTERY_ONLY_BY_MACHINE.items():
     for id in ids:
         SHOP_ITEM_META[id].update(lotteryOnly=True, lotteryMachine=machine, lotteryEligible=False)
