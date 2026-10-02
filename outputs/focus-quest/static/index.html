@@ -88,7 +88,7 @@
             <div class="scene-theme-backdrop" aria-hidden="true"></div>
             <div class="equipped-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
             <div class="scene-readout"><span id="scene-mode">星岛能量</span><strong id="scene-energy">0%</strong></div><div class="scene-halo"></div><div class="stars"><i>✧</i><i>✦</i><i>·</i><i>✧</i><i>·</i><i>✦</i></div>
-            <svg class="island-art" viewBox="0 0 590 350" fill="none" role="group" aria-label="主岛与路边营地">
+            <svg class="island-art" viewBox="0 0 590 350" fill="none" role="group" aria-label="主岛">
               <defs><linearGradient id="rock" x1="200" y1="170" x2="320" y2="350" gradientUnits="userSpaceOnUse"><stop stop-color="#40396f"/><stop offset="1" stop-color="#191b38"/></linearGradient><linearGradient id="ground" x1="100" y1="80" x2="410" y2="280" gradientUnits="userSpaceOnUse"><stop stop-color="#48527e"/><stop offset="1" stop-color="#343253"/></linearGradient><linearGradient id="gem" x1="296" y1="45" x2="336" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#e5deff"/><stop offset=".35" stop-color="#bea0ff"/><stop offset="1" stop-color="#7050eb"/></linearGradient><linearGradient id="beam" x1="313" y1="0" x2="313" y2="165" gradientUnits="userSpaceOnUse"><stop stop-color="#b6a1ff" stop-opacity="0"/><stop offset="1" stop-color="#b6a1ff" stop-opacity=".5"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="4"/></filter></defs>
               <g class="sky-orbit"><circle cx="318" cy="155" r="114"/><circle id="sky-energy" cx="318" cy="155" r="114" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 318 155)"/></g><ellipse cx="300" cy="319" rx="166" ry="16" fill="#090d21" opacity=".4"/>
               <g class="floating-island"><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="url(#rock)"/><path d="m190 245 28 62 83 19-22-85m85-23-26 88 67-35 76-81" fill="#252744"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="url(#ground)" stroke="#605787" stroke-width="2"/><path d="m101 209 66 33 100 35 138-25 75-65" stroke="#9381c4" stroke-opacity=".35" stroke-width="4"/>
@@ -102,16 +102,19 @@
                 <g class="path-beacons"><g class="path-beacon" data-checkpoint="25"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="50"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="75"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="100"><circle r="8"/><circle r="3"/></g></g><g class="traveler" data-skin-slots="avatar" id="scene-traveler"><ellipse cx="171" cy="220" rx="13" ry="6" fill="#13172d" opacity=".4"/><path d="m170 193-10 20 12 5 11-6-8-20Z" fill="#c3a4f9" class="traveler-cloak"/><path d="m170 193-3 22 5 3 11-6-8-20Z" fill="#8e6ad2" class="traveler-cloak-shade"/><circle cx="172" cy="185" r="8" fill="#e4c0ae"/><path d="m171 169-14 20 27 1Z" fill="#d0b0ff" class="traveler-hat"/><path d="m171 169 13 21-12-2Z" fill="#9c7ddb" class="traveler-hat-shade"/><path d="m188 191-3 28" stroke="#d7bd96" stroke-width="3" stroke-linecap="round"/><circle cx="188" cy="189" r="4" fill="#ead5ff"/></g>
                 <g fill="#9990cd"><path d="m244 255 6-5 7 3-2 5Z"/><path d="m376 128 9-4 9 7-12 3Z"/><path d="m130 202 5-6 9 4-4 7Z"/></g>
                 <g class="island-sparkles" fill="#ddd0ff"><path d="m256 157 2-6 2 6 6 2-6 2-2 6-2-6-6-2Z"/><path d="m377 210 2-5 2 5 5 2-5 2-2 5-2-5-5-2Z"/><circle cx="370" cy="91" r="2"/><circle cx="227" cy="197" r="2"/></g>
+
+              </g>
+              <g opacity=".35"><path d="m63 252 24-14 22 13-19 11Z" fill="#69618f"/><path d="m63 252 27 28 19-29-19 11Z" fill="#34334d"/><path d="m484 111 22-13 29 16-24 12Z" fill="#69618f"/><path d="m484 111 27 40 24-37-24 12Z" fill="#34334d"/></g>
+            </svg>
+            <svg class="island-art island-camp-overlay" viewBox="0 0 590 350" fill="none" role="group" aria-label="路边篝火营地"><g class="floating-island">
                 <g id="campfire-room-open" class="island-camp-entry" role="button" tabindex="0" aria-label="走进篝火营地" aria-controls="campfire-room" data-skin-slots="fire">
                   <title>走进篝火营地 · 右键更换篝火样式</title>
                   <ellipse class="island-camp-hit" cx="338" cy="234" rx="36" ry="30" fill="transparent"/>
                   <ellipse class="island-camp-focus" cx="338" cy="242" rx="33" ry="13" stroke="#e3be83" stroke-width="1.5" fill="none"/>
                   <g id="campfire-entrance-art" aria-hidden="true"></g>
-                  <g class="island-camp-label" aria-hidden="true" transform="translate(338 264)"><rect x="-25" y="-7" width="50" height="15" rx="7.5" fill="#242437" fill-opacity=".88"/><text y="3.4" text-anchor="middle" fill="#e4c294" stroke="none" font-size="9">篝火营地 ↗</text></g>
+                  <g class="island-camp-label" aria-hidden="true" transform="translate(338 264)"><rect x="-30" y="-8" width="60" height="17" rx="8.5" fill="#332a35" fill-opacity=".96"/><text y="3.8" text-anchor="middle" fill="#ffe0a0" stroke="none" font-size="10.5">篝火营地 ↗</text></g>
                 </g>
-              </g>
-              <g opacity=".35"><path d="m63 252 24-14 22 13-19 11Z" fill="#69618f"/><path d="m63 252 27 28 19-29-19 11Z" fill="#34334d"/><path d="m484 111 22-13 29 16-24 12Z" fill="#69618f"/><path d="m484 111 27 40 24-37-24 12Z" fill="#34334d"/></g>
-            </svg>
+            </g></svg>
             <div class="scene-mist"></div><div class="scene-subjects" id="scene-subjects"></div><div class="scene-caption" id="scene-caption"><span>✦</span> 每一段专注，都让星岛更明亮。</div>
           </div>
             <button type="button" id="citadel-enter" class="citadel-enter" aria-label="进入星辉城">进入星辉城 <span>↗</span></button>
