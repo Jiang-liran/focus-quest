@@ -3,6 +3,7 @@
   const topics={relax:'歇一会儿',story:'听段见闻',advice:'聊聊学习'};
   const storageKey='focus-quest-campfire-v1';
   let data=null,ready=false,character='hearth',topic='relax',line=null,recent=[],outfit=null;
+  let equipment={},equipmentStamp=-Infinity,sceneKey=null;
   const $=id=>document.getElementById(id);
   const dialogue=()=>root.FocusCampfireDialogue;
   const art=()=>root.FocusCampfireArt;
@@ -24,7 +25,6 @@
       if(Object.hasOwn(topics,saved?.topic))topic=saved.topic;
       if(Array.isArray(saved?.recent))recent=saved.recent.filter(id=>typeof id==='string').slice(-96);
     }catch(_){}
-    $('campfire-scene').innerHTML=art().scene();
     for(const c of dialogue().characters){
       const button=document.createElement('button');
       button.type='button';button.className='campfire-character';button.dataset.character=c.id;
@@ -39,7 +39,7 @@
   }
   function draw(){
     const c=dialogue().characters.find(c=>c.id===character);
-    const nextOutfit=data?.quests?.equipped?.npc||'npc-default';
+    const nextOutfit=equipment.npc||'npc-default';
     if(outfit!==nextOutfit){
       outfit=nextOutfit;
       document.querySelectorAll('.campfire-character').forEach(button=>button.querySelector('.campfire-mini').innerHTML=art().avatar(button.dataset.character,outfit));
@@ -58,8 +58,27 @@
     document.querySelectorAll('.campfire-character').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.character===character)));
     document.querySelectorAll('[data-campfire-topic]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.campfireTopic===topic)));
   }
+  function applyEquipment(nextEquipment={},now){
+    const fraction=String(now).match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/);
+    const stamp=Date.parse(now)*1000+Number((fraction?.[1]||'').padEnd(6,'0').slice(3,6));
+    if(Number.isFinite(stamp)&&stamp<equipmentStamp)return;
+    if(!Number.isFinite(stamp)&&Number.isFinite(equipmentStamp))return;
+    if(Number.isFinite(stamp))equipmentStamp=stamp;
+    equipment={...nextEquipment};
+    if(!ready)return;
+    const decor=root.FocusCampfireShopArt;
+    const normalized=decor?.normalize(equipment)||{};
+    const nextKey=JSON.stringify(normalized);
+    if(sceneKey!==nextKey){
+      $('campfire-scene').innerHTML=decor?decor.scene(normalized):art().scene();
+      sceneKey=nextKey;
+    }
+    $('advice-card').dataset.chatframe=normalized.chatframe||'chatframe-default';
+    draw();
+  }
   function render(nextState){
     data=nextState;init();
+    applyEquipment(data?.quests?.equipped,data?.quests?.now);
     const lines=dialogue().buildLines(data,character,topic);
     // Keep a static conversation still while polling; refresh any selected facts
     // from the new state so browsing another date cannot retain stale advice.
@@ -88,5 +107,5 @@
     line=dialogue().pickLine(contextual.length?contextual:lines,recent);
     remember();draw();animate();
   }
-  root.FocusCampfire={render,next,suggest};
+  root.FocusCampfire={render,next,suggest,applyEquipment};
 })(typeof globalThis!=='undefined'?globalThis:this);

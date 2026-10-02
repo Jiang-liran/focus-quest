@@ -530,6 +530,8 @@ $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-d
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
 $('advice-request').addEventListener('click',()=>requestAdvice(true));
+$('campfire-shop-open').addEventListener('click',()=>{switchView('shop');FocusQuests.browseCamp();});
+$('campfire-shop-return').addEventListener('click',()=>{switchView('today');$('advice-card').scrollIntoView({block:'center',behavior:'auto'});});
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
 $('opening-preview').addEventListener('click',previewOpening);
 $('opening-close').addEventListener('click',()=>$('opening-dialog').close());

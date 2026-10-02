@@ -3,7 +3,7 @@
 .campfire-heading h2{font-size:16px;font-weight:550;letter-spacing:1px;color:#e5d1b8}.campfire-heading h2 span{font-size:8px;letter-spacing:2px;color:#9c8b84;margin-left:13px;font-weight:400}.campfire-heading p{font-size:10px;color:#a49ba5}
 .campfire-body{display:grid;grid-template-columns:minmax(250px,40%) minmax(0,1fr);align-items:stretch;gap:8px;padding:15px 22px 20px}
 .campfire-landscape{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:250px;border-radius:12px;overflow:hidden;background:radial-gradient(ellipse at 55% 85%,#8c563522,transparent 70%)}
-#campfire-scene{width:135%;margin-left:-17.5%;pointer-events:none}#campfire-scene svg{display:block;width:100%;height:auto;stroke:none;max-height:245px;border-radius:12px}
+#campfire-scene{width:115%;margin-left:-7.5%;pointer-events:none}#campfire-scene svg{display:block;width:100%;height:auto;stroke:none;max-height:245px;border-radius:12px}
 .campfire-landscape p{position:absolute;left:0;right:0;bottom:8px;text-align:center;font-size:10px;letter-spacing:1px;color:#b9a597}
 .campfire-talk{position:relative;display:flex;flex-direction:column;min-width:0;padding:8px 6px 0 16px}
 .campfire-speaker{display:flex;align-items:center;gap:12px;margin-bottom:15px}.campfire-portrait{flex-shrink:0;width:53px;height:61px;display:grid;place-items:center;background:radial-gradient(ellipse,#d7b48f18,transparent 74%)}.campfire-portrait svg{width:51px;height:58px;stroke:none}.campfire-speaker strong{font-size:16px;color:var(--campfire-accent);font-weight:500}.campfire-speaker small{font-size:10px;color:#ac9aa9;margin-left:10px}.campfire-speaker p{font-size:10px;color:#a69ba9;margin-top:6px;line-height:1.65}

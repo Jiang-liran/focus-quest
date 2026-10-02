@@ -4,11 +4,12 @@
   else root.FocusQuests=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',npc:'NPC 时装',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门'};
+  const names={bar:'进度条',fx:'星岛特效',npc:'NPC 时装',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
+  const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
   const statuses={locked:'尚未发布',available:'可以接取',active:'进行中',ready:'可以交付',expired:'今日已结束',claimed:'已交付'};
   const mentors={morning:{name:'司晨',title:'晨间导师',quote:'「先以数学磨砺思路，再用政治梳理脉络。把上午交给扎实的理解。」',hours:'00:00 — 12:00',grace:'12:30',subjects:'数学 · 政治'},afternoon:{name:'逐光',title:'午后领航员',quote:'「让知识连成网络，让语言打开远方。午后的航程，由你来选择。」',hours:'12:00 — 18:00',grace:'18:30',subjects:'408 · 英语'}};
-  let data=null,bridge=null,filter='all',market='coins',busy=false,intent=null,lastStamp=-Infinity;
+  let data=null,bridge=null,filter='all',market='coins',area='all',busy=false,intent=null,lastStamp=-Infinity;
   const markupCache=new Map();
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -51,6 +52,7 @@
     return `<article class="q-task ${esc(q.status)}" data-subject="${esc(q.subject)}"><div class="q-task-heading"><h3>${esc(q.name)}</h3><span class="q-status">${esc(statuses[q.status]||'待同步')}</span></div><div class="q-numbers"><strong>${n(q.minutes)}<small>分钟</small></strong><span>/ ${n(q.target)} 分钟</span><b>${n(shownPercent)}%</b></div><div class="q-progress" role="progressbar" aria-label="${esc(q.name)}委托进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,shownPercent)}" aria-valuetext="${n(shownPercent)}%"><i style="width:${Math.min(100,shownPercent)}%"></i></div><div class="q-reward"><small>${esc(complete?'本次收获':q.status==='expired'?'未领取 · 本次已过期':gain)}</small>${money(advertised.coins,advertised.diamonds)}</div><p class="q-task-note">${esc(note)}</p><button class="${action.action==='submit'?'primary-button':'secondary-button'} q-task-button" ${action.action?`data-quest-action="${action.action}" data-subject="${esc(q.subject)}"`:''} ${!action.action||disabled?'disabled':''}>${esc(action.label)}</button></article>`;
   }
   function swatch(item){
+    if(campSlots.has(item.slot))return `<div class="cosmetic-swatch campfire-swatch" data-item="${esc(item.id)}">${window.FocusCampfireShopArt?.preview(item.id,data?.equipped)||''}</div>`;
     if(item.slot==='npc'||item.slot==='avatar')return `<div class="cosmetic-swatch outfit-swatch" data-item="${esc(item.id)}">${avatar(item.slot==='npc'?'guide':'player',item.id)}</div>`;
     const art=window.ShopArt?.preview(item.id)||'';
     return `<div class="cosmetic-swatch ${art?'shop-art-swatch':''}" data-item="${esc(item.id)}">${art}</div>`;
@@ -70,6 +72,7 @@
     data=next;
     for(const [slot,id] of Object.entries(data.equipped||{}))document.documentElement.dataset[slot]=id;
     window.ShopArt?.apply(data.equipped||{});
+    window.FocusCampfire?.applyEquipment(data.equipped||{},data.now);
     for(const prefix of ['wallet-side','quest','shop']){
       $(prefix+'-coins').textContent=n(data.wallet.coins);$(prefix+'-diamonds').textContent=n(data.wallet.diamonds);
     }
@@ -94,7 +97,9 @@
     replace('quest-history',data.history.length?data.history.map(row=>`<div class="q-history-row"><span><strong>${esc(row.name)}</strong><small>${esc(row.day)} · ${clock(row.submittedAt)} 交付</small></span><span>${n(row.minutes)} 分钟</span>${money(row.coins,row.diamonds)}</div>`).join(''):'<div class="q-empty"><span>✧</span><p>第一份委托，等你亲手交付。</p><small>完成后，金币、钻石和这次努力会一起记在这里。</small></div>');
   }
   function renderShop(){
-    const marketItems=data.catalog.filter(i=>market==='owned'?i.owned:currency(i)===market);
+    const inArea=i=>area==='all'||(area==='camp')===campSlots.has(i.slot);
+    const marketItems=data.catalog.filter(i=>inArea(i)&&(market==='owned'?i.owned:currency(i)===market));
+    document.querySelectorAll('[data-shop-area]').forEach(b=>{b.classList.toggle('active',b.dataset.shopArea===area);b.setAttribute('aria-pressed',String(b.dataset.shopArea===area));});
     if(filter!=='all'&&!marketItems.some(i=>i.slot===filter))filter='all';
     document.querySelectorAll('[data-shop-filter]').forEach(b=>{
       const selected=b.dataset.shopFilter===filter;
@@ -105,8 +110,9 @@
       const selected=b.dataset.shopMarket===market;
       b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
     });
-    for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>m==='owned'?i.owned:currency(i)===m).length);
+    for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&(m==='owned'?i.owned:currency(i)===m)).length);
     $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。'}[market];
+    if(area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，六个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
     replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
@@ -131,6 +137,7 @@
     dialog('把积累，凝成星光','THE STAR EXCHANGE','<div class="exchange-art"><span>●</span><i>→</i><b>◆</b></div>',`<p>将 <strong>${n(amount*rate)} 金币</strong>兑换为 <strong>${n(amount)} 颗钻石</strong>。</p><div class="q-action-reward">${price({currency:'diamonds',diamonds:amount})}<small>兑换所得，立即入袋</small></div><p>兑换比例：${n(rate)} 金币 = 1 钻石。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins-amount*rate)} 金币 · ${n(data.wallet.diamonds+amount)} 钻石</p>`,'确认兑换','再攒一攒');
   }
   function dialog(title,eyebrow,art,body,label,cancel='再想一想'){
+    $('quest-action-dialog').classList.toggle('campfire-item-dialog',art.includes('campfire-full-preview'));
     $('quest-action-title').textContent=title;$('quest-action-eyebrow').textContent=eyebrow;
     $('quest-action-art').innerHTML=art;$('quest-action-body').innerHTML=body;
     $('quest-action-error').hidden=true;$('quest-action-confirm').textContent=label;
@@ -153,13 +160,21 @@
     const m=mentors[q.period],body=action==='accept'?`<p>接下 ${esc(m.name)} 的委托，完成 <strong>${n(q.target)} 分钟${esc(subjectNames[q.subject])}</strong>。</p><div class="q-action-reward">${money(q.baseReward.coins,q.baseReward.diamonds)}<small>达标基础奖励 · 超额学习继续累积奖励</small></div><p>从接取这一刻开始累计。学习截止 <b>${clock(q.deadline)}</b>，请在 <b>${clock(q.submitDeadline)}</b> 前回来交付。</p>`:`<p>本次已计入 <strong>${n(q.minutes)} 分钟${esc(subjectNames[q.subject])}</strong>，达到目标的 <strong>${n(Math.floor(q.minutes/q.target*10)/10)} 倍</strong>。</p><div class="q-action-reward">${money(q.reward.coins,q.reward.diamonds)}<small>本次预计收获</small></div><p>确认后本项委托结算，后续学习不再追加本次奖励。${new Date(data.now)<new Date(q.deadline)?`若还有余力，可继续学习后再提交。`:''}</p><p class="q-fineprint">最晚 ${clock(q.submitDeadline)} 交付，以提交时已同步的有效记录结算。</p>`;
     dialog(action==='accept'?`接取${q.name}委托`:'把这份收获带回营地',action==='accept'?'A NEW CHAPTER':'READY TO TURN IN',avatar(q.period,data.equipped.npc),body,action==='accept'?'接下委托':'确认交付',action==='accept'?'先看看':'暂不交付');
   }
+  function campPreview(item){
+    const equipped=window.FocusCampfireShopArt?.normalize({...data.equipped,[item.slot]:item.id})||{};
+    return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
+  }
+  function browseCamp(){
+    if(!data)return;
+    area='camp';market='coins';filter='all';renderShop();
+  }
   function openItem(action,id){
     if(busy)return;
     const item=data?.catalog.find(item=>item.id===id);if(!item)return;
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
-    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':'WARDROBE PREVIEW',swatch(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
+    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':'WARDROBE PREVIEW',campSlots.has(item.slot)?campPreview(item):swatch(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
   }
   async function perform(job){
     if(busy||!job)return;
@@ -174,7 +189,7 @@
         const reward=result.receipt||result.quests.find(q=>q.subject===job.subject).reward;
         bridge.toast(reward.alreadyClaimed?'这次交付已确认':'委托交付 · 收获已入袋',`+${n(reward.coins)} 金币 · +${n(reward.diamonds)} 钻石`);
       }else if(job.action==='exchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'星光已入袋',`+${n(job.diamonds)} 钻石 · ${n(result.receipt?.coins||job.diamonds*(result.exchange?.coinsPerDiamond||75))} 金币已兑换`);
-      else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，让星岛换上新模样。',equip:'已应用到你的星岛与营地。'}[job.action]);
+      else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，把收藏放进你的远征。',equip:'已应用到你的星岛与营地。'}[job.action]);
       await bridge.refresh(true);
     }catch(error){
       if($('quest-action-dialog').open){$('quest-action-error').textContent=error.message;$('quest-action-error').hidden=false;}
@@ -187,12 +202,13 @@
     $('quest-board').addEventListener('click',event=>{const b=event.target.closest('[data-quest-action]');if(b)openQuest(b.dataset.questAction,b.dataset.subject);});
     $('shop-catalog').addEventListener('click',event=>{const b=event.target.closest('[data-shop-action]');if(b)openItem(b.dataset.shopAction,b.dataset.item);});
     document.querySelectorAll('[data-shop-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.shopFilter;render(data);}));
+    document.querySelectorAll('[data-shop-area]').forEach(button=>button.addEventListener('click',()=>{area=button.dataset.shopArea;filter='all';render(data);}));
     document.querySelectorAll('[data-shop-market]').forEach(button=>button.addEventListener('click',()=>{market=button.dataset.shopMarket;filter='all';render(data);}));
-    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
+    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;area=campSlots.has(filter)?'camp':'journey';render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
     $('exchange-amount').addEventListener('input',()=>{if(data)renderExchange();});
     $('exchange-open').addEventListener('click',openExchange);
     $('quest-action-confirm').addEventListener('click',()=>perform(intent));
     $('quest-action-dialog').addEventListener('close',()=>{intent=null;});
   }
-  return {init,render,actionFor,taskMarkup,itemMarkup};
+  return {init,render,actionFor,taskMarkup,itemMarkup,browseCamp};
 });
