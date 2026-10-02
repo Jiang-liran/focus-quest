@@ -1,0 +1,169 @@
+{
+  "schema_version": 1,
+  "archive_app_version": "1.49.15",
+  "build": 80,
+  "curated_on": "2026-10-02",
+  "timezone": "Asia/Shanghai",
+  "source": "selected visible records from the installed application and a clearly attributed user-provided historical screenshot; no raw database export",
+  "weekly_summary": {
+    "period_start": "2026-09-28",
+    "period_end": "2026-10-04",
+    "observed_on": "2026-10-02",
+    "complete_period": false,
+    "completed_minutes_displayed": 1939,
+    "target_minutes": 3000,
+    "progress_percent_displayed": 64.6
+  },
+  "selected_daily_totals": [
+    {
+      "date": "2026-09-28",
+      "completed_minutes_displayed": 442,
+      "current_day_in_progress": false
+    },
+    {
+      "date": "2026-09-29",
+      "completed_minutes_displayed": 566,
+      "current_day_in_progress": false
+    },
+    {
+      "date": "2026-09-30",
+      "completed_minutes_displayed": 289,
+      "current_day_in_progress": false
+    },
+    {
+      "date": "2026-10-01",
+      "completed_minutes_displayed": 608,
+      "current_day_in_progress": false
+    },
+    {
+      "date": "2026-10-02",
+      "completed_minutes_displayed": 34,
+      "current_day_in_progress": true
+    }
+  ],
+  "selected_focus_records": [
+    {
+      "date": "2026-10-02",
+      "task": "数学做题",
+      "subject": "数学",
+      "study_method": "做题",
+      "start_time": "09:57:43",
+      "end_time": "10:20:45",
+      "completed_minutes_displayed": 23
+    },
+    {
+      "date": "2026-10-02",
+      "task": "复习数学",
+      "subject": "数学",
+      "study_method": "听课",
+      "start_time": "10:54:12",
+      "end_time": "11:05:41",
+      "completed_minutes_displayed": 11
+    }
+  ],
+  "historical_user_heatmap": {
+    "period": "2026-09",
+    "selected_day": "2026-09-30",
+    "completed_hours_displayed_rounded": 171.3,
+    "days_with_recorded_effort_displayed": 30,
+    "original_capture_date": null,
+    "original_app_version": null,
+    "source": "screenshots/05-september-user-heatmap.png",
+    "is_current_recomputed_month_total": false,
+    "must_not_add_to_weekly_summary": true
+  },
+  "screenshots": [
+    {
+      "path": "screenshots/01-rain-city.jpg",
+      "sha256": "280e6a7da9b8af55bb42d63a98c29752f7128654b7577d757b2ac5c28bd5f9a1",
+      "bytes": 927214,
+      "format": "JPEG",
+      "width": 5120,
+      "height": 2880,
+      "metadata_containers": [
+        "EXIF"
+      ],
+      "source": "installed native application UI",
+      "captured_on": "2026-10-02",
+      "curated_on": "2026-10-02",
+      "timezone": "Asia/Shanghai",
+      "classification": "real application screenshot; not QA seeded data",
+      "edited": false
+    },
+    {
+      "path": "screenshots/02-islands-today.jpg",
+      "sha256": "dbd62fda2e9a4cd6e60d11ecc6d56b891ddd442674dda985a7859989317e3e98",
+      "bytes": 925594,
+      "format": "JPEG",
+      "width": 5120,
+      "height": 2880,
+      "metadata_containers": [
+        "EXIF"
+      ],
+      "source": "installed native application UI",
+      "captured_on": "2026-10-02",
+      "curated_on": "2026-10-02",
+      "timezone": "Asia/Shanghai",
+      "classification": "real application screenshot; not QA seeded data",
+      "edited": false
+    },
+    {
+      "path": "screenshots/03-week-review.jpg",
+      "sha256": "645e7c582a41a8648781a9c8ad17c12ba08bffd9a32e222cec8ee561973ba147",
+      "bytes": 866051,
+      "format": "JPEG",
+      "width": 5120,
+      "height": 2880,
+      "metadata_containers": [
+        "EXIF"
+      ],
+      "source": "installed native application UI",
+      "captured_on": "2026-10-02",
+      "curated_on": "2026-10-02",
+      "timezone": "Asia/Shanghai",
+      "classification": "real application screenshot; not QA seeded data",
+      "edited": false
+    },
+    {
+      "path": "screenshots/04-focus-records.jpg",
+      "sha256": "40aa40e1b17881128bded0eaa05deb89b5a133b3e1b59f30ab3fde93ede2b047",
+      "bytes": 597799,
+      "format": "JPEG",
+      "width": 5120,
+      "height": 2880,
+      "metadata_containers": [
+        "EXIF"
+      ],
+      "source": "installed native application UI",
+      "captured_on": "2026-10-02",
+      "curated_on": "2026-10-02",
+      "timezone": "Asia/Shanghai",
+      "classification": "real application screenshot; not QA seeded data",
+      "edited": false
+    },
+    {
+      "path": "screenshots/05-september-user-heatmap.png",
+      "sha256": "a5b17d520f77950401d292784cd63440a5a16455a2099ac7f534385e596daf75",
+      "bytes": 918381,
+      "format": "PNG",
+      "width": 4460,
+      "height": 1908,
+      "metadata_containers": [
+        "eXIf"
+      ],
+      "source": "user-provided screenshot from earlier project conversation",
+      "captured_on": null,
+      "curated_on": "2026-10-02",
+      "timezone": "Asia/Shanghai",
+      "classification": "user-provided historical study screenshot; original capture date and app version unverified",
+      "edited": false
+    }
+  ],
+  "notes": [
+    "Daily and weekly values are observed application totals, not a complete raw record archive.",
+    "The current day and current week are incomplete.",
+    "Screenshot collection date is separate from the clock shown in the application.",
+    "The user-provided historical heatmap has an unknown capture date and original app version; its displayed month total overlaps the weekly summary.",
+    "Tests, artwork previews and reconstructed older interfaces are excluded from learning totals."
+  ]
+}
