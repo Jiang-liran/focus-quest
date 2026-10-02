@@ -213,6 +213,7 @@ METHOD_REWARD_TIERS = {
     "practice": {"name": "落笔试锋", "coins": 20, "diamonds": 0},
     "mastery": {"name": "学以致用", "coins": 40, "diamonds": 1},
 }
+METHOD_COMPLETION_BONUS = {"name": "融会贯通", "coins": 200, "diamonds": 4}
 CITY_LIFE_LIMITS = {"notes": 200, "storedNotes": 1000, "outfits": 8, "storedOutfits": 64}
 CITY_NOTE_TYPES = {"note", "question", "quote", "plan"}
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
@@ -678,6 +679,10 @@ class FocusStore:
                 PRIMARY KEY(day,subject,tier),
                 CHECK(subject IN ('math','cs','politics','english')),
                 CHECK(tier IN ('practice','mastery'))
+            );
+            CREATE TABLE IF NOT EXISTS method_completion_claims (
+                day TEXT PRIMARY KEY, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
+                claimed_ms INTEGER NOT NULL
             );
             CREATE TABLE IF NOT EXISTS shop_purchases (
                 item_id TEXT PRIMARY KEY, purchased_ms INTEGER NOT NULL
@@ -1228,11 +1233,22 @@ class FocusStore:
                 subjects.append({"id": sid, "name": name, "color": color,
                                  **{activity: round(value, 4) for activity, value in amounts.items()},
                                  "rewards": rewards})
+            bonus_claim = self.db.execute("SELECT * FROM method_completion_claims WHERE day=?", (day,)).fetchone()
+            completed = sum(reward["eligible"] for subject in subjects for reward in subject["rewards"])
+            bonus_eligible = completed == len(SUBJECTS)*len(METHOD_REWARD_TIERS)
+            bonus = {"name": METHOD_COMPLETION_BONUS["name"], "eligible": bonus_eligible,
+                     "available": day == today and bonus_eligible and bonus_claim is None,
+                     "claimed": bonus_claim is not None,
+                     "claimedAt": iso_ms(bonus_claim["claimed_ms"]) if bonus_claim is not None else None,
+                     "completedCount": completed, "requiredCount": 8,
+                     "reward": {key: METHOD_COMPLETION_BONUS[key] for key in ("coins", "diamonds")}}
             return {"day": day, "today": today, "isToday": day == today, "subjects": subjects,
-                    "availableCount": sum(reward["available"] for subject in subjects for reward in subject["rewards"]),
-                    "claimedCount": len(claims),
-                    "claimedTotals": {key: sum(claim[key] for claim in claims.values()) for key in ("coins", "diamonds")},
-                    "dailyCap": {"coins": 240, "diamonds": 4}}
+                    "completionBonus": bonus,
+                    "availableCount": sum(reward["available"] for subject in subjects for reward in subject["rewards"])+int(bonus["available"]),
+                    "claimedCount": len(claims)+int(bonus_claim is not None),
+                    "claimedTotals": {key: sum(claim[key] for claim in claims.values())+(bonus_claim[key] if bonus_claim else 0) for key in ("coins", "diamonds")},
+                    "subjectDailyCap": {"coins": 240, "diamonds": 4},
+                    "dailyCap": {key: len(SUBJECTS)*sum(tier[key] for tier in METHOD_REWARD_TIERS.values())+METHOD_COMPLETION_BONUS[key] for key in ("coins", "diamonds")}}
 
     def claim_method_reward(self, day, subject, tier, now=None):
         parse_day(day)
@@ -1262,6 +1278,29 @@ class FocusStore:
                                 (f"method-gift:{day}:{subject}:{tier}", reward["coins"], reward["diamonds"], created_ms))
                 self._bump_revision()
             return {"day": day, "subject": subject, "tier": tier, "reward": reward,
+                    "wallet": self._wallet(), "methodRewards": self.method_rewards_state(day, current),
+                    "alreadyClaimed": bool(existing), "now": current.isoformat()}
+
+    def claim_method_completion(self, day, now=None):
+        parse_day(day)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            if day != current.date().isoformat():
+                raise ValueError("日期已变化，请回到今天领取；研习额外奖赏仅限当天领取")
+            existing = self.db.execute("SELECT 1 FROM method_completion_claims WHERE day=?", (day,)).fetchone()
+            reward = {"coins": 0, "diamonds": 0}
+            if not existing:
+                bonus = self.method_rewards_state(day, current)["completionBonus"]
+                if not bonus["available"]:
+                    raise ValueError("四科的两档研习任务全部完成后，再来收下融会贯通的奖赏吧")
+                reward = bonus["reward"]
+                created_ms = int(current.timestamp()*1000)
+                self.db.execute("INSERT INTO method_completion_claims VALUES (?,?,?,?)",
+                                (day, reward["coins"], reward["diamonds"], created_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                (f"method-completion:{day}", reward["coins"], reward["diamonds"], created_ms))
+                self._bump_revision()
+            return {"day": day, "subject": "all", "tier": "completion", "reward": reward,
                     "wallet": self._wallet(), "methodRewards": self.method_rewards_state(day, current),
                     "alreadyClaimed": bool(existing), "now": current.isoformat()}
 
@@ -3837,7 +3876,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                 "/api/city-life/outfit": store.city_life_outfit,
                                 "/api/city-life/outfit-apply": store.city_life_outfit_apply,
                                 "/api/city-life/outfit-archive": store.city_life_outfit_archive}
-                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
+                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim", "/api/method-rewards/completion") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3872,6 +3911,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != {"day", "subject", "tier"}:
                         raise ValueError("请仅提供页面日期、科目与奖励档位；资格和金额由服务器决定")
                     self._send(200, store.claim_method_reward(payload["day"], payload["subject"], payload["tier"]))
+                elif path == "/api/method-rewards/completion":
+                    if url.query or set(payload) != {"day"}:
+                        raise ValueError("请仅提供页面日期；四科研习资格与额外奖赏由服务器决定")
+                    self._send(200, store.claim_method_completion(payload["day"]))
                 elif path in arcade_actions:
                     fields, action = arcade_actions[path]
                     if url.query or set(payload) != set(fields):

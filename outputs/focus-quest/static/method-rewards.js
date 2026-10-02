@@ -16,6 +16,8 @@
   const rewardFor=(subject,tier)=>subject.rewards?.find(item=>item?.id===tier);
   const claimed=(subject,tier)=>Boolean(rewardFor(subject,tier)?.claimed||received.has(claimKey(model()?.day,subject.id,tier)));
   const available=(subject,tier)=>Boolean(current()&&!claimed(subject,tier)&&rewardFor(subject,tier)?.eligible===true&&rewardFor(subject,tier)?.available===true);
+  const bonusClaimed=()=>Boolean(model()?.completionBonus?.claimed||received.has(claimKey(model()?.day,'all','completion')));
+  const bonusAvailable=()=>Boolean(current()&&!bonusClaimed()&&model()?.completionBonus?.eligible===true&&model().completionBonus.available===true);
   function visible(){
     const host=$('method-rewards');if(!host||document.hidden||bridge.isVisible?.()===false)return false;
     for(let node=host;node;node=node.parentElement)if(node.hidden||node.inert)return false;
@@ -81,12 +83,19 @@
     const total=number(subject.lecture)+number(subject.practice)+number(subject.other);
     return `<article class="method-subject" data-method-subject="${subject.id}" style="--method-color:${color}"><header><span class="method-subject-mark" aria-hidden="true">${spec.mark}</span><h3>${esc(subject.name||spec.name)}</h3><span class="method-subject-count">${['practice','mastery'].filter(t=>claimed(subject,t)).length} / 2 已领取</span></header><span class="method-subject-total">累计 ${duration(total)}</span><dl class="method-totals">${Object.entries({lecture:'听课',practice:'做题',other:'复习 / 其他'}).map(([id,name])=>`<div class="${id}"><dt>${name}</dt><dd>${duration(subject[id])}</dd></div>`).join('')}</dl>${insightHTML(activityFor(subject.id))}<ol>${stage(subject,'practice',0)}${stage(subject,'mastery',1)}</ol></article>`;
   }
+  function bonusHTML(){
+    const bonus=model()?.completionBonus;if(!bonus)return '';
+    const owned=bonusClaimed(),ready=bonusAvailable(),working=busy?.day===model().day&&busy.subject==='all'&&busy.tier==='completion';
+    const count=Math.min(8,Math.floor(number(bonus.completedCount))),status=owned?'已领取':ready?'领取额外奖赏':current()?'继续研习':bonus.eligible?'已完成 · 历史只读':'留待下一程';
+    const note=owned?'四科的听与练，都已经留下了收获。这份额外奖赏已收进行囊。':ready?'四科两档研习全部完成，砚青为你备好了一份额外奖赏。':current()?'四科各完成两档研习，即可领取；不必先领取单科奖励。':'回看这一天的研习足迹。额外奖赏仅限完成当天领取。';
+    return `<section class="method-completion${ready?' is-ready':''}${owned?' is-claimed':''}" aria-labelledby="method-completion-title"><div class="method-completion-art" aria-hidden="true"><svg viewBox="0 0 64 64" fill="none"><path d="M12 29h40v25H12zM8 20h48v11H8z" stroke="currentColor" stroke-width="2"/><path d="M28 20h8v34h-8z" fill="currentColor" opacity=".25"/><path d="M32 20C17 20 15 8 23 8c6 0 9 12 9 12Zm0 0c15 0 17-12 9-12-6 0-9 12-9 12Z" stroke="currentColor" stroke-width="2"/><path d="m6 6 2 4 4 2-4 2-2 4-2-4-4-2 4-2Zm51 32 2 4 4 2-4 2-2 4-2-4-4-2 4-2Z" fill="currentColor" opacity=".6"/></svg></div><div class="method-completion-copy"><span class="method-completion-eyebrow">四科研习 · 每日额外奖赏</span><h3 id="method-completion-title">融会贯通</h3><p>${note}</p><div class="method-completion-subjects" aria-label="四科两档任务完成情况">${rows().map(subject=>{const done=Object.keys(tiers).filter(tier=>rewardFor(subject,tier)?.eligible===true).length;return `<span class="${done===2?'is-complete':''}">${esc(subjects[subject.id].name)} <b>${done===2?'✓':`${done} / 2`}</b></span>`;}).join('')}</div><div class="method-completion-meter" role="progressbar" aria-label="四科研习任务完成进度" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${count}"><i style="width:${count/8*100}%"></i></div></div><div class="method-completion-reward"><strong>${Math.floor(number(bonus.reward?.coins))} 金币 <span>· ${Math.floor(number(bonus.reward?.diamonds))} 钻石</span></strong><small>每天一次 · ${count} / 8 档已完成</small><button type="button" data-method-bonus="true" data-method-focus="all:completion" aria-disabled="${Boolean(busy)||!ready}"${working?' aria-busy="true"':''} aria-label="融会贯通 · ${status}">${status}</button></div></section>`;
+  }
   function paint(){
     const host=$('method-rewards');if(!host)return;
     if(!model()){host.hidden=true;return;}host.hidden=false;
     if(portrait===null&&root.FocusMethodArt?.avatar)portrait=root.FocusMethodArt.avatar();
-    const count=rows().reduce((sum,s)=>sum+['practice','mastery'].filter(t=>available(s,t)).length,0);
-    const html=`<section class="method-workshop" aria-labelledby="method-rewards-title"><div class="method-mentor"><div class="method-portrait" aria-hidden="true">${portrait||'<span>砚</span>'}</div><div class="method-intro"><div class="method-eyebrow">LEARN IT · TRY IT <span>${current()?'今日研习':`${esc(model().day)} · 研习回看`}</span></div><div class="method-title-row"><h2 id="method-rewards-title">知行研习所</h2><span class="method-status">${current()?(count?`${count} 份奖励可领取`:'小步落笔，自有收获'):'历史记录 · 只读'}</span></div><p class="method-mentor-name">研习导师 · 砚青</p><p class="method-dialogue">${esc(advice())}</p><div class="method-intro-actions"><button type="button" data-method-action="advice" data-method-focus="advice">再听一句 ↻</button><button type="button" data-method-action="settings" data-method-focus="settings">核对学习方式 ↗</button></div></div></div>${summaryHTML()}<div class="method-rules"><span><b>20 分钟做题</b> · 每科 20 金币</span><span><b>听课 20 ＋ 做题 30，或纯做题 60 分钟</b> · 每科再得 40 金币、1 钻石</span><small>四科各两份，每天各领一次；不用接取，也不扣减其他委托进度。纯做题满 60 分钟可领齐两份。每日合计最多 240 金币、4 钻石。</small></div><div class="method-subjects">${rows().map(card).join('')}</div>${extraActivityHTML()}<p class="method-mapping-note">按原有的「学习方式」分类统计，只认可标为做题的真实练习；背诵、阅读与整理请保留真实分类。今天的奖励请在今天领取。节奏观察按所选日期统计：单科听课满60分钟、做题不足听课一半时给出提醒，仅供安排参考。</p></section>`;
+    const count=rows().reduce((sum,s)=>sum+['practice','mastery'].filter(t=>available(s,t)).length,0)+Number(bonusAvailable());
+    const html=`<section class="method-workshop" aria-labelledby="method-rewards-title"><div class="method-mentor"><div class="method-portrait" aria-hidden="true">${portrait||'<span>砚</span>'}</div><div class="method-intro"><div class="method-eyebrow">LEARN IT · TRY IT <span>${current()?'今日研习':`${esc(model().day)} · 研习回看`}</span></div><div class="method-title-row"><h2 id="method-rewards-title">知行研习所</h2><span class="method-status">${current()?(count?`${count} 份奖励可领取`:'小步落笔，自有收获'):'历史记录 · 只读'}</span></div><p class="method-mentor-name">研习导师 · 砚青</p><p class="method-dialogue">${esc(advice())}</p><div class="method-intro-actions"><button type="button" data-method-action="advice" data-method-focus="advice">再听一句 ↻</button><button type="button" data-method-action="settings" data-method-focus="settings">核对学习方式 ↗</button></div></div></div>${summaryHTML()}<div class="method-rules"><span><b>20 分钟做题</b> · 每科 20 金币</span><span><b>听课 20 ＋ 做题 30，或纯做题 60 分钟</b> · 每科再得 40 金币、1 钻石</span><small>四科各两份，每天各领一次；不用接取，也不扣减其他委托进度。纯做题满 60 分钟可领齐两份。单科奖励合计最多 240 金币、4 钻石；四科全部完成后，另有 200 金币、4 钻石。</small></div><div class="method-subjects">${rows().map(card).join('')}</div>${bonusHTML()}${extraActivityHTML()}<p class="method-mapping-note">按原有的「学习方式」分类统计，只认可标为做题的真实练习；背诵、阅读与整理请保留真实分类。今天的奖励请在今天领取。节奏观察按所选日期统计：单科听课满60分钟、做题不足听课一半时给出提醒，仅供安排参考。</p></section>`;
     if(html===markup)return;
     const focus=host.contains(document.activeElement)?document.activeElement?.closest?.('[data-method-focus]')?.dataset.methodFocus:null;
     host.innerHTML=html;markup=html;
@@ -95,21 +104,23 @@
   function render(snapshot){
     latest=snapshot;
     if(model())for(const subject of rows())for(const tier of Object.keys(tiers))if(rewardFor(subject,tier)?.claimed)remember(claimKey(model().day,subject.id,tier));
+    if(model()?.completionBonus?.claimed)remember(claimKey(model().day,'all','completion'));
     paint();
   }
   async function claim(subjectId,tier){
-    if(busy||!visible()||!subjects[subjectId]||!tiers[tier])return;
-    const subject=rows().find(s=>s.id===subjectId);if(!subject||!available(subject,tier))return;
+    const isBonus=subjectId==='all'&&tier==='completion';
+    if(busy||!visible()||(!isBonus&&(!subjects[subjectId]||!tiers[tier])))return;
+    const subject=rows().find(s=>s.id===subjectId);if(isBonus?!bonusAvailable():!subject||!available(subject,tier))return;
     const day=model().day;busy={day,subject:subjectId,tier};bridge.unlock?.();paint();
     try{
-      const result=await bridge.api('/api/method-rewards/claim',{day,subject:subjectId,tier});
-      if(result?.day!==day||result.subject!==subjectId||result.tier!==tier||result.methodRewards?.day!==day||!result.wallet||!result.reward)throw new Error('奖励回执暂未完整返回，请稍后再点一次确认。');
+      const result=await bridge.api(isBonus?'/api/method-rewards/completion':'/api/method-rewards/claim',isBonus?{day}:{day,subject:subjectId,tier});
+      if(result?.day!==day||result.subject!==subjectId||result.tier!==tier||result.methodRewards?.day!==day||!result.wallet||!result.reward||(isBonus&&result.methodRewards.completionBonus?.claimed!==true))throw new Error('奖励回执暂未完整返回，请稍后再点一次确认。');
       remember(claimKey(day,subjectId,tier));
       if(latest?.date===day&&model()?.day===day)latest={...latest,methodRewards:result.methodRewards};
       bridge.acceptReceipt?.(result);
       if(!result.alreadyClaimed){
         if(visible())bridge.playSound?.('delivery',{key:`method-reward:${day}:${subjectId}:${tier}`});
-        bridge.toast?.(`${subjects[subjectId].name} · ${tiers[tier].name}，奖励已收好`,`+${number(result.reward.coins)} 金币${number(result.reward.diamonds)?` · +${number(result.reward.diamonds)} 钻石`:''}`);
+        bridge.toast?.(`${isBonus?'四科研习 · 融会贯通':`${subjects[subjectId].name} · ${tiers[tier].name}`}，奖励已收好`,`+${number(result.reward.coins)} 金币${number(result.reward.diamonds)?` · +${number(result.reward.diamonds)} 钻石`:''}`);
       }else bridge.toast?.('这份研习奖励已经收好','不重复领取，行囊里的收获已经记下。');
     }catch(error){bridge.toast?.('研习奖励还在这里',error?.message||'暂时未能领取，请稍后再试。',true);}
     finally{busy=null;paint();}
@@ -124,6 +135,7 @@
       const action=button.dataset.methodAction;
       if(action==='settings'){event.preventDefault();bridge.openMethods?.();return;}
       if(action==='advice'){event.preventDefault();dialogue=(dialogue+1)%120;paint();return;}
+      if(button.dataset.methodBonus){event.preventDefault();void claim('all','completion');return;}
       if(button.dataset.methodClaim){event.preventDefault();const [subject,tier]=button.dataset.methodClaim.split(':');void claim(subject,tier);}
     });
     // These are native buttons: Enter and Space supply their normal click behavior.
