@@ -121,6 +121,7 @@
     renderExchange();
     replace('quest-history',data.history.length?data.history.map(historyMarkup).join(''):'<div class="q-empty"><span>✧</span><p>第一份委托，等你亲手交付。</p><small>完成后，金币、钻石和这次努力会一起记在这里。</small></div>');
     window.FocusQuickSkins?.render(data);
+    window.FocusMystery?.render(data);
   }
   function renderShop(){
     const inArea=i=>area==='all'||(area==='camp')===campSlots.has(i.slot);

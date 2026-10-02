@@ -429,7 +429,7 @@ function classifyLocally(name) {
   if(['英语','单词'].some(k=>name.includes(k)))return 'english';
   return 'other';
 }
-function updateTargetSum() { const sum=[...document.querySelectorAll('[data-target]')].reduce((a,el)=>a+Number(el.value||0),0);$('target-sum').textContent=number(sum,2)+' 小时'; }
+function updateTargetSum() { const sum=[...document.querySelectorAll('[data-target]')].reduce((a,el)=>a+Number(el.value||0),0);$('target-sum').textContent=number(sum,2)+' 小时'; if($('mystery-settings-note')){$('mystery-settings-note').dataset.enabled=String(sum>=8);$('mystery-settings-status').textContent=sum>=8?'神秘委托已启用 · 达标后拾星会到访':'神秘委托未开启 · 每日总目标需不少于 8 小时';} }
 
 async function saveSettings(event) {
   event.preventDefault();
@@ -609,6 +609,7 @@ window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 globalThis.FocusQuickSkins?.init({api,toast,refresh,playSound});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh,playSound});
+globalThis.FocusMystery?.init({api,toast,refresh,playSound,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
 globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
 globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});

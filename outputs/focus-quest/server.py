@@ -164,6 +164,7 @@ EXCHANGE_MAX_DIAMONDS = 1000
 SHOP_PRICING_MIGRATION = "shopPricing:v18"
 SHOP_NPC_REMOVAL_MIGRATION = "shopNpcRemoval:v1"
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
+MYSTERY_START_META = "questMystery:featureStartMs"
 RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
 # These are historical upgrade prices, not purchasable catalog entries. Old
 # archives still need the v1.8 difference credited before the final net refund.
@@ -585,6 +586,28 @@ class FocusStore:
             CREATE INDEX IF NOT EXISTS quest_bonus_request ON quest_bonus_receipts(request_id);
             CREATE INDEX IF NOT EXISTS quest_bonus_subject ON quest_bonus_receipts(subject,day);
             CREATE INDEX IF NOT EXISTS quest_allocation_end ON quest_allocations(end_ms,start_ms);
+            CREATE TABLE IF NOT EXISTS mystery_goal_epochs (
+                effective_ms INTEGER PRIMARY KEY, settings TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS mystery_deliveries (
+                request_id TEXT PRIMARY KEY, submitted_ms INTEGER NOT NULL, receipt TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS mystery_allocations (
+                request_id TEXT NOT NULL, day TEXT NOT NULL, subject TEXT NOT NULL,
+                record_id TEXT NOT NULL, start_ms INTEGER NOT NULL, end_ms INTEGER NOT NULL,
+                minutes REAL NOT NULL,
+                PRIMARY KEY(request_id,record_id,start_ms,end_ms)
+            );
+            CREATE INDEX IF NOT EXISTS mystery_allocation_time ON mystery_allocations(end_ms,start_ms);
+            CREATE TABLE IF NOT EXISTS mystery_tracks (
+                subject TEXT PRIMARY KEY, settled_minutes REAL NOT NULL DEFAULT 0,
+                paid_coins INTEGER NOT NULL DEFAULT 0, paid_diamonds INTEGER NOT NULL DEFAULT 0
+            );
+            CREATE TABLE IF NOT EXISTS mystery_gifts (
+                day TEXT NOT NULL, gift_index INTEGER NOT NULL, request_id TEXT NOT NULL,
+                coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
+                PRIMARY KEY(day,gift_index)
+            );
             CREATE TABLE IF NOT EXISTS wallet_ledger (
                 reference TEXT PRIMARY KEY, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
                 created_ms INTEGER NOT NULL
@@ -646,6 +669,7 @@ class FocusStore:
             if self.settings != json.loads(stored):
                 with self.db:
                     self._set_meta("settings", json.dumps(self.settings, ensure_ascii=False, allow_nan=False))
+        self._initialize_mystery()
         self.revision = int(self._meta("revision") or 0)
         # Repair duplicates saved by older versions even when either source is
         # currently unavailable. Original rows remain in the merge journal.
@@ -783,6 +807,316 @@ class FocusStore:
                 midnight = datetime.combine(current.date(), datetime.min.time()).astimezone()
                 self._set_meta(TIMED_BONUS_START_META, int(midnight.timestamp() * 1000))
 
+    @staticmethod
+    def _mystery_goal_settings(settings):
+        return {key: settings[key] for key in ("targets", "mapping")}
+
+    def _save_mystery_epoch(self, settings, effective_ms):
+        self.db.execute("INSERT OR REPLACE INTO mystery_goal_epochs VALUES (?,?)",
+                        (effective_ms, json.dumps(self._mystery_goal_settings(settings), ensure_ascii=False, sort_keys=True)))
+
+    def _initialize_mystery(self, now=None):
+        with self._quest_transaction():
+            if self._meta(MYSTERY_START_META) is None:
+                started = int(quest_clock(now).timestamp() * 1000)
+                self._set_meta(MYSTERY_START_META, started)
+                self._save_mystery_epoch(self.settings, started)
+
+    @staticmethod
+    def _unused_slices(slices, used):
+        for used_start, used_end in used:
+            remainder = []
+            for start, end in slices:
+                if used_end <= start or used_start >= end:
+                    remainder.append((start, end))
+                else:
+                    if start < used_start:
+                        remainder.append((start, used_start))
+                    if used_end < end:
+                        remainder.append((used_end, end))
+            slices = remainder
+        return slices
+
+    @staticmethod
+    def _mystery_threshold(items, threshold, strict=False):
+        """First instant a cumulative effective-minute curve passes a target.
+
+        Half-target equality alone never unlocks. Once it is strictly exceeded,
+        the boundary itself has zero duration and may safely start a time slice.
+        """
+        total = sum(item["minutes"] for item in items)
+        if (strict and total <= threshold + 1e-9) or (not strict and total + 1e-9 < threshold):
+            return None
+        events = {}
+        for item in items:
+            span = item["end_ms"] - item["start_ms"]
+            if span <= 0 or item["minutes"] <= 0:
+                continue
+            density = item["minutes"] / span
+            events[item["start_ms"]] = events.get(item["start_ms"], 0) + density
+            events[item["end_ms"]] = events.get(item["end_ms"], 0) - density
+        accumulated, rate, previous = 0, 0, None
+        for point, change in sorted(events.items()):
+            if previous is not None and rate > 0:
+                gain = (point - previous) * rate
+                reached = accumulated + gain > threshold + 1e-9 if strict else accumulated + gain + 1e-9 >= threshold
+                if reached:
+                    # A strict half-target must pass within this increasing
+                    # segment. Equality at its end cannot unlock a later gap.
+                    # Integer millisecond boundaries prevent paying a tiny
+                    # pre-unlock fraction due to floating-point interpolation.
+                    return min(point, math.ceil(previous + (threshold - accumulated) / rate - 1e-7))
+                accumulated += gain
+            rate += change
+            previous = point
+        return None
+
+    def _reward_allocation_context(self):
+        """Resolve ownership through source merges without re-paying clock drift.
+
+        Desktop/calendar endpoints may differ by up to five seconds. If a paid
+        slice reached the original session edge, its mask also covers a merged
+        canonical edge. Interior cuts remain exact (acceptance/unlock times).
+        The original settlement amounts and receipts are never rewritten.
+        """
+        merges, originals = {}, {}
+        for row in self.db.execute("SELECT removed_id,canonical_id,original_records FROM record_merges"):
+            merges[row["removed_id"]] = row["canonical_id"]
+            try:
+                journal = json.loads(row["original_records"])
+                records = journal.get("records", []) if isinstance(journal, dict) else []
+                if not {"tomatodo", "calendar"}.issubset({record.get("source") for record in records}):
+                    continue
+                for record in records:
+                    originals.setdefault(record["id"], []).append((record["start_ms"], record["end_ms"]))
+            except (ValueError, TypeError, KeyError):
+                continue
+        def canonical(identity):
+            seen = set()
+            while identity in merges and identity not in seen:
+                seen.add(identity)
+                identity = merges[identity]
+            return identity
+        bounds = {row["id"]: (row["start_ms"], row["end_ms"]) for row in
+                  self.db.execute("SELECT id,start_ms,end_ms FROM records")}
+        def interval(row):
+            identity = canonical(row["record_id"])
+            start, end = row["start_ms"], row["end_ms"]
+            canonical_bounds = bounds.get(identity)
+            if canonical_bounds:
+                new_start, new_end = canonical_bounds
+                for old_start, old_end in originals.get(row["record_id"], []):
+                    if abs(new_start - old_start) <= 5000 and abs(new_end - old_end) <= 5000:
+                        if start <= old_start < end:
+                            start = min(start, new_start)
+                        if start < old_end <= end:
+                            end = max(end, new_end)
+            return start, end
+        return canonical, interval
+
+    def _mystery_plan(self, current):
+        """Pure projection: no unlocks, time reservations or money on GET.
+
+        Goal epochs apply only forward in time. Old pending rewards survive a
+        later target change, but lowering then restoring a goal cannot convert
+        the intervening study retroactively. Canonical ownership always wins
+        over newly discovered or reclassified eligibility.
+        """
+        now_ms = int(current.timestamp() * 1000)
+        feature_ms = int(self._meta(MYSTERY_START_META))
+        today = current.date().isoformat()
+        feature_day = datetime.fromtimestamp(feature_ms / 1000, current.tzinfo).date()
+        day_start = datetime.combine(feature_day, datetime.min.time(), current.tzinfo)
+        epochs = [(row["effective_ms"], json.loads(row["settings"])) for row in
+                  self.db.execute("SELECT * FROM mystery_goal_epochs WHERE effective_ms<=? ORDER BY effective_ms", (now_ms,))]
+        rows = self.db.execute("""SELECT r.* FROM records r WHERE r.end_ms<=? AND r.end_ms>?
+            AND r.end_ms>r.start_ms AND r.minutes>0 AND NOT EXISTS
+            (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+            (now_ms, int(day_start.timestamp() * 1000))).fetchall()
+        days = {today: []}
+        for row in rows:
+            span = row["end_ms"] - row["start_ms"]
+            density = min(row["minutes"], span / 60000) / span
+            first = max(row["start_ms"], int(day_start.timestamp() * 1000))
+            day = datetime.fromtimestamp(first / 1000, current.tzinfo).date()
+            final_day = datetime.fromtimestamp((row["end_ms"] - 1) / 1000, current.tzinfo).date()
+            while day <= final_day:
+                midnight = datetime.combine(day, datetime.min.time(), current.tzinfo)
+                start = max(first, int(midnight.timestamp() * 1000))
+                end = min(row["end_ms"], int((midnight + timedelta(days=1)).timestamp() * 1000))
+                if end > start:
+                    days.setdefault(day.isoformat(), []).append({"record_id": row["id"], "name": row["name"],
+                        "source": row["source"], "start_ms": start, "end_ms": end, "minutes": density * (end - start)})
+                day += timedelta(days=1)
+        candidates, unlocked_today = [], None
+        active_goals = self._mystery_goal_settings(self.settings)
+        if epochs:
+            active_goals = epochs[-1][1]
+        for index, (effective_ms, goals) in enumerate(epochs):
+            target = sum(goals["targets"].values())
+            if target < 480 or any(goals["targets"].get(subject, 0) <= 0 for subject in SUBJECT_IDS):
+                continue
+            until_ms = epochs[index + 1][0] if index + 1 < len(epochs) else now_ms
+            for day_key, items in days.items():
+                if not items:
+                    continue
+                if max(item["end_ms"] for item in items) <= max(feature_ms, effective_ms):
+                    # Still inspect today's already-met target to show an
+                    # active NPC at installation, without granting old study.
+                    if day_key != today or index != len(epochs) - 1:
+                        continue
+                total_cross = self._mystery_threshold(items, target)
+                crossings = [self._mystery_threshold([item for item in items
+                    if classify(item["name"], goals["mapping"]) == subject], goals["targets"][subject] / 2, True)
+                    for subject in SUBJECT_IDS]
+                if total_cross is None or any(point is None for point in crossings):
+                    continue
+                unlock = max(total_cross, *crossings, effective_ms, feature_ms)
+                if day_key == today and index == len(epochs) - 1 and unlock <= now_ms:
+                    unlocked_today = unlock
+                for item in items:
+                    # Spreadsheet archives can establish achievement, but do
+                    # not mint new currency merely by importing old history.
+                    subject = classify(item["name"], goals["mapping"])
+                    if subject not in SUBJECT_IDS or item["source"] == HISTORY_SOURCE:
+                        continue
+                    start, end = max(item["start_ms"], unlock), min(item["end_ms"], until_ms)
+                    if end > start:
+                        candidates.append({"record_id": item["record_id"], "day": day_key, "subject": subject,
+                            "start_ms": start, "end_ms": end,
+                            "minutes": item["minutes"] * (end - start) / (item["end_ms"] - item["start_ms"])})
+        canonical, allocation_interval = self._reward_allocation_context()
+        occupied = {}
+        for row in self.db.execute("""SELECT record_id,start_ms,end_ms FROM quest_allocations
+            UNION ALL SELECT record_id,start_ms,end_ms FROM mystery_allocations"""):
+            occupied.setdefault(canonical(row["record_id"]), []).append(allocation_interval(row))
+        pending = []
+        for item in sorted(candidates, key=lambda value: (value["start_ms"], value["end_ms"], value["record_id"])):
+            identity = canonical(item["record_id"])
+            used = occupied.setdefault(identity, [])
+            slices = self._unused_slices([(item["start_ms"], item["end_ms"])], used)
+            density = item["minutes"] / (item["end_ms"] - item["start_ms"])
+            pending.extend(dict(item, record_id=identity, start_ms=start, end_ms=end, minutes=density * (end - start))
+                           for start, end in slices if end > start)
+            used.extend(slices)
+        return {"pending": pending, "todayRecords": days.get(today, []), "goals": active_goals,
+                "unlockedAt": unlocked_today, "featureStartMs": feature_ms}
+
+    def _mystery_state(self, current, plan=None):
+        plan = plan if plan is not None else self._mystery_plan(current)
+        today, pending = current.date().isoformat(), plan["pending"]
+        goals, today_records = plan["goals"], plan["todayRecords"]
+        tracks = {row["subject"]: row for row in self.db.execute("SELECT * FROM mystery_tracks")}
+        grouped = {}
+        for row in self.db.execute("SELECT day,subject,SUM(minutes) AS minutes FROM mystery_allocations GROUP BY day,subject"):
+            grouped.setdefault(row["day"], {}).setdefault(row["subject"], {"settledMinutes": 0, "pendingMinutes": 0})["settledMinutes"] = row["minutes"]
+        for item in pending:
+            entry = grouped.setdefault(item["day"], {}).setdefault(item["subject"], {"settledMinutes": 0, "pendingMinutes": 0})
+            entry["pendingMinutes"] += item["minutes"]
+        claimed_gifts = {}
+        for row in self.db.execute("SELECT day,MAX(gift_index) AS last FROM mystery_gifts GROUP BY day"):
+            claimed_gifts[row["day"]] = row["last"]
+        gifts, day_rows = [], []
+        for day_key, entries in sorted(grouped.items()):
+            settled = sum(entry["settledMinutes"] for entry in entries.values())
+            available = sum(entry["pendingMinutes"] for entry in entries.values())
+            count = math.floor((settled + available) / 30 + 1e-10)
+            boxes = [{"day": day_key, "index": index, "coins": index * 20, "diamonds": index}
+                     for index in range(claimed_gifts.get(day_key, 0) + 1, count + 1)]
+            gifts.extend(boxes)
+            day_rows.append({"day": day_key, "minutes": round(settled + available, 4),
+                "settledMinutes": round(settled, 4), "pendingMinutes": round(available, 4), "pendingGifts": boxes,
+                "subjects": [{"id": subject, "name": next(name for sid, name, _ in SUBJECTS if sid == subject),
+                    **{key: round(value, 4) for key, value in entry.items()}} for subject, entry in entries.items()]})
+        subjects, base = [], {"coins": 0, "diamonds": 0}
+        for sid, name, _ in SUBJECTS:
+            track = tracks.get(sid)
+            settled = track["settled_minutes"] if track else 0
+            available = sum(item["minutes"] for item in pending if item["subject"] == sid)
+            total = round(settled + available, 8)
+            block = self._quest_definition(sid)["target"]
+            coins = max(0, math.floor(total * 4 + 1e-8) - (track["paid_coins"] if track else 0))
+            diamonds = max(0, math.floor(total / block + 1e-10) * 4 - (track["paid_diamonds"] if track else 0))
+            base["coins"] += coins
+            base["diamonds"] += diamonds
+            minutes = sum(item["minutes"] for item in today_records if classify(item["name"], goals["mapping"]) == sid)
+            target = goals["targets"][sid]
+            subjects.append({"id": sid, "subject": sid, "name": name, "target": target, "minutes": round(minutes, 4),
+                "eligible": target > 0 and minutes > target / 2 + 1e-9,
+                "pendingMinutes": round(available, 4), "settledMinutes": round(settled, 4),
+                "carryMinutes": round(total % block, 4), "blockMinutes": block,
+                "reward": {"coins": coins, "diamonds": diamonds}})
+        gift_reward = {"coins": sum(gift["coins"] for gift in gifts), "diamonds": sum(gift["diamonds"] for gift in gifts)}
+        reward = {key: base[key] + gift_reward[key] for key in base}
+        midnight = current.replace(hour=0, minute=0, second=0, microsecond=0)
+        today_settled = self.db.execute("""SELECT COALESCE(SUM(a.minutes),0) FROM mystery_allocations a
+            JOIN mystery_deliveries d ON d.request_id=a.request_id WHERE d.submitted_ms>=? AND d.submitted_ms<?""",
+            (int(midnight.timestamp() * 1000), int((midnight + timedelta(days=1)).timestamp() * 1000))).fetchone()[0]
+        today_day = next((row for row in day_rows if row["day"] == today), None)
+        today_minutes = sum(entry["settledMinutes"] + entry["pendingMinutes"] for entry in grouped.get(today, {}).values())
+        earned_count = math.floor(today_minutes / 30 + 1e-10)
+        next_index = max(claimed_gifts.get(today, 0), earned_count) + 1
+        target = sum(goals["targets"].values())
+        enabled = target >= 480 and all(goals["targets"].get(sid, 0) > 0 for sid in SUBJECT_IDS)
+        unlocked = enabled and plan["unlockedAt"] is not None
+        ready = reward["coins"] > 0 or reward["diamonds"] > 0
+        history = [dict(json.loads(row["receipt"]), alreadyClaimed=True) for row in
+                   self.db.execute("SELECT receipt FROM mystery_deliveries ORDER BY submitted_ms DESC,rowid DESC LIMIT 20")]
+        return {"enabled": enabled, "unlocked": unlocked, "status": "ready" if ready else "active" if unlocked else "locked" if enabled else "disabled",
+            "day": today, "minimumTarget": 480, "target": target, "minutes": round(sum(item["minutes"] for item in today_records), 4),
+            "featureStartMs": plan["featureStartMs"], "unlockedAt": iso_ms(plan["unlockedAt"]) if unlocked else None,
+            "subjects": subjects, "pendingMinutes": round(sum(item["minutes"] for item in pending), 4),
+            "todayMinutes": round(today_minutes, 4), "todaySettledMinutes": round(today_settled, 4),
+            "todayPendingMinutes": today_day["pendingMinutes"] if today_day else 0,
+            "reward": reward, "baseReward": base, "giftReward": gift_reward,
+            "nextGift": {"index": next_index, "progressMinutes": round(max(0, today_minutes - earned_count * 30), 4),
+                         "target": 30, "coins": next_index * 20, "diamonds": next_index},
+            "pendingGifts": gifts, "days": day_rows, "history": history}
+
+    def submit_mystery(self, request_id, now=None):
+        request_id = self._quest_request_id(request_id)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            existing = self.db.execute("SELECT receipt FROM mystery_deliveries WHERE request_id=?", (request_id,)).fetchone()
+            if existing:
+                result = self.quest_state(current)
+                result["receipt"] = dict(json.loads(existing["receipt"]), alreadyClaimed=True)
+                return result
+            plan = self._mystery_plan(current)
+            summary = self._mystery_state(current, plan)
+            if summary["status"] != "ready":
+                raise ValueError("尚无可交付的余辉专注；同时达标后新增的四科学习会自动计入")
+            submitted_ms = int(current.timestamp() * 1000)
+            receipt = {"type": "mystery", "kind": "mystery", "requestId": request_id,
+                "day": current.date().isoformat(), "submittedAt": current.isoformat(),
+                "name": "拾星 · 余辉守望者", "minutes": summary["pendingMinutes"],
+                **summary["reward"], "baseReward": summary["baseReward"], "giftReward": summary["giftReward"],
+                "gifts": summary["pendingGifts"], "alreadyClaimed": False,
+                "subjects": [{"id": row["id"], "name": row["name"], "minutes": row["pendingMinutes"], "reward": row["reward"]}
+                             for row in summary["subjects"] if row["pendingMinutes"] > 0]}
+            self.db.execute("INSERT INTO mystery_deliveries VALUES (?,?,?)",
+                (request_id, submitted_ms, json.dumps(receipt, ensure_ascii=False, allow_nan=False)))
+            self.db.executemany("INSERT INTO mystery_allocations VALUES (?,?,?,?,?,?,?)",
+                [(request_id, item["day"], item["subject"], item["record_id"], item["start_ms"], item["end_ms"], item["minutes"])
+                 for item in plan["pending"]])
+            for row in summary["subjects"]:
+                # Keep full precision for carry, independent of UI rounding or
+                # number of submissions. Fractional coins carry forward too.
+                minutes = sum(item["minutes"] for item in plan["pending"] if item["subject"] == row["id"])
+                if minutes <= 0:
+                    continue
+                self.db.execute("""INSERT INTO mystery_tracks VALUES (?,?,?,?) ON CONFLICT(subject) DO UPDATE SET
+                    settled_minutes=settled_minutes+excluded.settled_minutes,
+                    paid_coins=paid_coins+excluded.paid_coins,paid_diamonds=paid_diamonds+excluded.paid_diamonds""",
+                    (row["id"], minutes, row["reward"]["coins"], row["reward"]["diamonds"]))
+            self.db.executemany("INSERT INTO mystery_gifts VALUES (?,?,?,?,?)",
+                [(gift["day"], gift["index"], request_id, gift["coins"], gift["diamonds"]) for gift in summary["pendingGifts"]])
+            self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                (f"quest-mystery:{request_id}", receipt["coins"], receipt["diamonds"], submitted_ms))
+            result = self.quest_state(current)
+            result["receipt"] = receipt
+            return result
+
     def _exchange_state(self, wallet):
         history = [{"diamonds": row["diamonds"], "coins": row["coins"], "createdAt": iso_ms(row["created_ms"])}
                    for row in self.db.execute("SELECT * FROM shop_exchanges ORDER BY created_ms DESC,rowid DESC LIMIT 10")]
@@ -795,7 +1129,7 @@ class FocusStore:
             raise ValueError("请选择有效的委托科目")
         return next(item for item in QUEST_DEFINITIONS if item["subject"] == subject)
 
-    def _quest_contributions(self, subject, lower_ms, upper_ms, now_ms):
+    def _quest_contributions(self, subject, lower_ms, upper_ms, now_ms, mystery_plan=None):
         """Allocate only finished, active canonical records to unused time slices.
 
         A paused timer's effective minutes are distributed proportionally over
@@ -804,17 +1138,20 @@ class FocusStore:
         """
         if upper_ms <= lower_ms:
             return []
-        merges = {row[0]: row[1] for row in self.db.execute("SELECT removed_id,canonical_id FROM record_merges")}
-        def canonical(record_id):
-            seen = set()
-            while record_id in merges and record_id not in seen:
-                seen.add(record_id)
-                record_id = merges[record_id]
-            return record_id
+        canonical, allocation_interval = self._reward_allocation_context()
         allocated = {}
         for row in self.db.execute("SELECT record_id,start_ms,end_ms FROM quest_allocations WHERE end_ms>? AND start_ms<?",
                                    (lower_ms, upper_ms)):
-            allocated.setdefault(canonical(row["record_id"]), []).append((row["start_ms"], row["end_ms"]))
+            allocated.setdefault(canonical(row["record_id"]), []).append(allocation_interval(row))
+        # Both reward channels own canonical time globally. Unclaimed mystery
+        # slices are reserved too, so submitting ordinary commissions first
+        # cannot consume their double-rate study.
+        for row in self.db.execute("SELECT record_id,start_ms,end_ms FROM mystery_allocations WHERE end_ms>? AND start_ms<?",
+                                   (lower_ms, upper_ms)):
+            allocated.setdefault(canonical(row["record_id"]), []).append(allocation_interval(row))
+        plan = mystery_plan if mystery_plan is not None else self._mystery_plan(datetime.fromtimestamp(now_ms / 1000).astimezone())
+        for item in plan["pending"]:
+            allocated.setdefault(canonical(item["record_id"]), []).append((item["start_ms"], item["end_ms"]))
         rows = self.db.execute("""SELECT r.* FROM records r WHERE r.end_ms<=? AND r.end_ms>?
             AND r.start_ms<? AND r.end_ms>r.start_ms AND NOT EXISTS
             (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
@@ -843,7 +1180,7 @@ class FocusStore:
                                           "minutes": valid_minutes * (end - start) / span})
         return contributions
 
-    def _continuous_contributions(self, subject, track, now_ms):
+    def _continuous_contributions(self, subject, track, now_ms, mystery_plan=None):
         if track is None:
             return []
         windows = [(track["continuous_ms"], now_ms)]
@@ -858,7 +1195,7 @@ class FocusStore:
             else:
                 merged.append((start, end))
         return [item for start, end in merged
-                for item in self._quest_contributions(subject, start, end, now_ms)]
+                for item in self._quest_contributions(subject, start, end, now_ms, mystery_plan)]
 
     @staticmethod
     def _bonus_window(definition, day):
@@ -879,13 +1216,7 @@ class FocusStore:
         """
         if now_ms <= lower_ms:
             return []
-        merges = {row[0]: row[1] for row in self.db.execute("SELECT removed_id,canonical_id FROM record_merges")}
-        def canonical(record_id):
-            seen = set()
-            while record_id in merges and record_id not in seen:
-                seen.add(record_id)
-                record_id = merges[record_id]
-            return record_id
+        canonical, allocation_interval = self._reward_allocation_context()
         def subtract(slices, used):
             for used_start, used_end in used:
                 remainder = []
@@ -900,6 +1231,8 @@ class FocusStore:
                 slices = remainder
             return slices
         occupied, evidence = {}, []
+        for row in self.db.execute("SELECT record_id,start_ms,end_ms FROM mystery_allocations WHERE end_ms>? AND start_ms<?", (lower_ms, now_ms)):
+            occupied.setdefault(canonical(row["record_id"]), []).append(allocation_interval(row))
         for row in self.db.execute("""SELECT record_id,subject,start_ms,end_ms,minutes FROM quest_allocations
             WHERE end_ms>? AND start_ms<? ORDER BY rowid""", (lower_ms, now_ms)):
             span = row["end_ms"] - row["start_ms"]
@@ -1011,10 +1344,10 @@ class FocusStore:
             )""", (subject, start_ms, end_ms, subject, start_ms, end_ms)).fetchone()[0]
         return round(total, 4)
 
-    def _quest_row(self, definition, current):
+    def _quest_row(self, definition, current, mystery_plan=None):
         subject = definition["subject"]
         track = self.db.execute("SELECT * FROM quest_tracks WHERE subject=?", (subject,)).fetchone()
-        contributions = self._continuous_contributions(subject, track, int(current.timestamp() * 1000))
+        contributions = self._continuous_contributions(subject, track, int(current.timestamp() * 1000), mystery_plan)
         minutes = round(sum(item["minutes"] for item in contributions), 8)
         settled = track["settled_minutes"] if track else 0
         paid_coins = track["paid_coins"] if track else 0
@@ -1071,8 +1404,10 @@ class FocusStore:
                            FROM quest_receipts UNION ALL SELECT NULL,subject,name,minutes,coins,diamonds,submitted_ms,request_id
                            FROM quest_deliveries ORDER BY submitted_ms DESC,subject LIMIT 20""")]
             wallet = self._wallet()
+            mystery_plan = self._mystery_plan(current)
             return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": wallet,
-                    "quests": [self._quest_row(definition, current)[0] for definition in QUEST_DEFINITIONS],
+                    "mystery": self._mystery_state(current, mystery_plan),
+                    "quests": [self._quest_row(definition, current, mystery_plan)[0] for definition in QUEST_DEFINITIONS],
                     "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet)}
 
     def accept_quest(self, subject, now=None):
@@ -1310,7 +1645,7 @@ class FocusStore:
 
     def _history_has_allocations(self, record_ids):
         record_ids = set(record_ids)
-        for row in self.db.execute("SELECT DISTINCT record_id FROM quest_allocations"):
+        for row in self.db.execute("SELECT record_id FROM quest_allocations UNION SELECT record_id FROM mystery_allocations"):
             try:
                 if self._history_canonical_id(row[0]) in record_ids:
                     return True
@@ -1943,6 +2278,8 @@ class FocusStore:
     def update_settings(self, patch):
         with self.lock, self.db:
             updated = validate_settings(self.settings, patch)
+            if self._mystery_goal_settings(updated) != self._mystery_goal_settings(self.settings):
+                self._save_mystery_epoch(updated, int(quest_clock().timestamp() * 1000))
             self._set_meta("settings", json.dumps(updated, ensure_ascii=False, allow_nan=False))
             self._bump_revision()
             self.settings = updated
@@ -2175,7 +2512,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                 quest_actions = {"/api/quests/accept": ("subject", store.accept_quest),
                                  "/api/shop/buy": ("itemId", store.buy_item),
                                  "/api/shop/equip": ("itemId", store.equip_item)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit") and path not in quest_actions:
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -2193,6 +2530,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != {"diamonds", "requestId"}:
                         raise ValueError("请仅提供兑换钻石数量和请求标识，价格与时间由服务器确定")
                     self._send(200, store.exchange_diamonds(payload["diamonds"], payload["requestId"]))
+                elif path == "/api/quests/mystery/submit":
+                    if url.query or set(payload) != {"requestId"}:
+                        raise ValueError("请仅提供 UUID 请求标识；神秘委托时间、科目和奖励由服务器确定")
+                    self._send(200, store.submit_mystery(payload["requestId"]))
                 elif path == "/api/quests/submit":
                     if url.query or set(payload) != {"subject", "requestId"}:
                         raise ValueError("请仅提供交付科目和 UUID 请求标识，时间与奖励由服务器确定")
