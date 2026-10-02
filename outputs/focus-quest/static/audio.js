@@ -15,6 +15,10 @@
     subject: [[523.25,0,.24,.075],[659.25,.12,.3,.07],[783.99,.23,.3,.055]],
     purchase: [[1046.5,0,.13,.055],[1318.51,.075,.21,.045]],
     equip: [[493.88,0,.23,.06],[659.25,.08,.25,.055],[987.77,.17,.27,.045]],
+    arcadeStep: [[220,0,.06,.024,'triangle'],[293.66,.04,.07,.017,'triangle']],
+    arcadeMirror: [[1046.5,0,.09,.025],[1396.91,.045,.11,.017]],
+    arcadePlant: [[392,0,.10,.027,'triangle'],[523.25,.05,.12,.022,'triangle']],
+    arcadeWin: [[523.25,0,.18,.045],[659.25,.1,.18,.04],[783.99,.2,.2,.035],[1046.5,.34,.3,.035]],
   };
   const maxPhrases = 2, cooldownMs = 180, keyLimit = 256;
   let enabled = false, context = null, generation = 0, pendingResume = null, stateListener = null;

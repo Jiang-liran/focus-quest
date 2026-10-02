@@ -23,7 +23,7 @@
   <link rel="stylesheet" href="/wide-shell.css">
   <link rel="stylesheet" href="/wide-pages.css">
   <link rel="stylesheet" href="/campfire-room.css">
-  <link rel="stylesheet" href="/compass.css">
+  <link rel="stylesheet" href="/arcade.css">
 </head>
 <body data-page="today">
   <svg class="svg-defs" aria-hidden="true"><defs>
@@ -51,7 +51,7 @@
       <button class="nav-item" data-view="review"><svg><use href="#i-grid"/></svg>学习复盘</button>
       <button class="nav-item" data-view="shop"><svg><use href="#i-star"/></svg>星织商店</button>
       <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
-      <button class="nav-item" data-view="achievements"><svg><use href="#i-compass"/></svg>行动手记</button>
+      <button class="nav-item" data-view="achievements"><svg><use href="#i-compass"/></svg>群岛游乐记</button>
     </nav>
     <div class="side-note"><div class="small-orbit">✦</div><p>每一段专注，<br>都在让未来更近一点。</p><span>不必完美，持续向前。</span></div>
     <div class="sidebar-bottom">
@@ -66,7 +66,7 @@
     <header class="topbar"><div class="breadcrumb">我的营地 <span>/</span> <b id="page-crumb">今日远征</b></div><div class="topbar-right"><button class="advice-request-button" id="advice-request"><svg aria-hidden="true"><use href="#i-compass"/></svg>给我建议</button><span class="live-clock" id="clock"></span><button class="date-button" id="date-button" title="选择日期"></button><input type="date" id="date-picker" aria-label="查看日期"><button class="today-shortcut" id="header-today" aria-label="回到今天" title="快速回到今天">回到今天</button><button class="icon-button" id="refresh" title="立即同步" aria-label="立即同步">↻</button></div></header>
     <div id="error-banner" class="error-banner" hidden></div>
     <aside id="calendar-pending" class="calendar-pending" aria-label="手机记录等待入账" aria-live="polite" hidden></aside>
-    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill compass-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div id="compass-pill-icon" class="compass-pill-icon" aria-hidden="true"></div><div class="compass-pill-copy"><span id="compass-pill-subject">行动罗盘</span><strong id="compass-pill-title">下一步，做一点具体的事。</strong><small id="compass-pill-status">正在读取今天的方向…</small><div class="compass-pill-links"><button type="button" id="compass-next" aria-label="换一个行动方向">换个方向</button><button type="button" id="compass-open" aria-controls="compass-panel">展开罗盘 ↗</button></div></div></div></section>
+    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill arcade-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div id="arcade-pill-icon" class="arcade-pill-icon" aria-hidden="true"></div><div class="arcade-pill-copy"><span>群岛游乐记 · 休憩时光</span><strong id="arcade-pill-title">远方有些好玩的事。</strong><small id="arcade-pill-status">正在查看今日游玩机会…</small><div class="arcade-pill-bottom"><small id="arcade-pill-meta"></small><button type="button" class="text-button" id="arcade-open" aria-controls="view-achievements">去群岛玩 ↗</button></div></div></div></section>
 
     <div id="view-today" class="view">
 
@@ -137,7 +137,7 @@
             <div class="expedition-inspector-kicker"><span id="expedition-detail-kicker">沿途见闻</span><button type="button" id="expedition-overview" class="text-button">返回群岛总览</button></div>
             <h3 id="expedition-detail-title">启程的微光</h3><p id="expedition-detail-copy">今天的每段专注，都会在这里留下痕迹。</p>
             <p id="expedition-next" class="expedition-next"></p>
-            <button type="button" id="expedition-discover-toggle" class="expedition-discover-toggle" aria-expanded="false" aria-controls="expedition-discoveries">打开见闻集 <span id="expedition-discovery-count">1 / 7</span> ↗</button>
+            <button type="button" id="expedition-discover-toggle" class="expedition-discover-toggle" aria-controls="view-achievements">探索群岛游戏 <span id="expedition-discovery-count">1 / 7</span> ↗</button>
           </section>
           <section class="expedition-log" aria-label="远征回放">
             <div class="expedition-log-heading"><div><span>YOUR JOURNEY, FRAME BY FRAME</span><h3>把努力，再看一遍。</h3></div><button type="button" id="expedition-replay" class="secondary-button">回放这一天 ▷</button></div>
@@ -168,13 +168,8 @@
 
     <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><button class="secondary-button" id="trash-open">回收站</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>学习方式</th><th>完成时间</th><th>专注时长</th><th>操作</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">来源中删除的记录会在同步确认后移到回收站。这里的「移除」只影响专注远征，可在回收站恢复。</p></section></div>
     <div id="view-achievements" class="view" hidden>
-      <section id="compass-panel" class="compass-panel" aria-labelledby="compass-heading">
-        <header class="compass-intro"><div><span class="eyebrow">LESS COUNTING, MORE UNDERSTANDING</span><h2 id="compass-heading" tabindex="-1">把“学过”，变成“会用”。</h2><p>选一件小事，动手试一遍。带走一个方法，也可以诚实地留下一个问题。</p></div><span class="compass-local">只属于你的练习手记</span></header>
-        <p id="compass-context" class="compass-context"></p>
-        <div class="compass-layout"><section id="compass-editor" class="compass-editor" aria-label="当前实践行动"><p>正在准备下一步行动…</p></section><aside class="compass-options"><div class="section-heading"><h2>换个方向也可以</h2></div><p>建议根据今日进度与听课、做题比例安排。选材料、定节奏，仍由你做主。</p><div id="compass-recommendations"></div></aside></div>
-      </section>
-      <section class="compass-journal" aria-labelledby="compass-journal-title"><div class="section-heading"><h2 id="compass-journal-title">带走的东西 <span>FIELD NOTES</span></h2><span class="muted">最近 20 次实践与待解问题</span></div><div id="compass-history"></div></section>
-      <details class="compass-archive"><summary>沿途足迹与远征勋章</summary><div class="stats-row" id="achievement-stats"></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。行动手记独立保存，不设断签惩罚。</p></details>
+      <section id="arcade-root" aria-label="群岛游乐记"><p class="muted">正在展开群岛地图…</p></section>
+      <details class="arcade-archive"><summary>沿途足迹与远征勋章</summary><div class="stats-row" id="achievement-stats"></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。</p></details>
     </div>
 
     <div id="view-quests" class="view" hidden>
@@ -185,7 +180,7 @@
       <section class="q-ledger panel"><div class="section-heading"><h2>交付手记 <span>RECENT REWARDS</span></h2><span class="muted">最近 20 次委托收获</span></div><div id="quest-history"></div></section>
     </div>
     <div id="view-shop" class="view" hidden>
-      <section class="shop-welcome"><div class="shop-keeper" id="shop-keeper" aria-hidden="true"></div><div class="shop-words"><span class="eyebrow">THE STARWEAVER’S ATELIER</span><h2>星织的收藏铺</h2><p>「把一路收集的星光，缝进你的下一次出发。」</p><small>用委托奖励兑换外观，购买后永久收藏，可随时换装。</small></div><div class="q-wallet"><span><i class="coin-mark">●</i><b id="shop-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="shop-diamonds">0</b><small>钻石</small></span></div></section>
+      <section class="shop-welcome"><div class="shop-keeper" id="shop-keeper" aria-hidden="true"></div><div class="shop-words"><span class="eyebrow">THE STARWEAVER’S ATELIER</span><h2>星织的收藏铺</h2><p>「把一路收集的星光，缝进你的下一次出发。」</p><small>用金币与钻石兑换外观，购买后永久收藏，可随时换装。</small></div><div class="q-wallet"><span><i class="coin-mark">●</i><b id="shop-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="shop-diamonds">0</b><small>钻石</small></span></div></section>
       <section class="q-loadout equipped-player-card" data-skin-slots="banner avatar"><div id="player-outfit" class="player-outfit" data-skin-slots="avatar" aria-hidden="true"></div><div class="loadout-heading"><span class="eyebrow">YOUR ADVENTURER</span><h3>我的远征装扮</h3><p id="equipped-summary"></p></div><button class="text-button" data-view="today">到星岛看看 ↗</button><details class="loadout-details"><summary>查看我的搭配 <span>17 个装扮位置 · 含 8 类营地布置</span></summary><div id="equipped-slots" class="equipped-slots"></div></details></section>
       <section class="shop-exchange" aria-labelledby="exchange-title"><div class="exchange-emblem" aria-hidden="true">◆</div><div class="exchange-intro"><h3 id="exchange-title">星光兑换所</h3><p><b id="exchange-rate">75</b> 金币 <span>→</span> 1 钻石 <small>零散努力，也能汇成星光</small></p></div><div class="exchange-controls"><label for="exchange-amount">兑换钻石</label><input id="exchange-amount" type="number" min="1" max="1000" step="1" value="1" inputmode="numeric"><span class="exchange-cost" id="exchange-cost"></span><button class="secondary-button" id="exchange-open">兑换</button></div><p id="exchange-hint" class="exchange-hint"></p><details class="exchange-history"><summary>兑换手记</summary><div id="exchange-history"></div></details></section>
       <div class="shop-markets" role="group" aria-label="选择商店"><button class="active" data-shop-market="coins" aria-pressed="true"><i class="coin-mark">●</i><span>金币商店<small>日常的小小犒赏</small></span><b id="market-coins-count"></b></button><button data-shop-market="diamonds" aria-pressed="false"><i class="diamond-mark">◆</i><span>钻石商店<small>为下一场远征攒星光</small></span><b id="market-diamonds-count"></b></button><button data-shop-market="owned" aria-pressed="false"><i>✧</i><span>我的收藏<small>换装与初始外观</small></span><b id="market-owned-count"></b></button></div>
@@ -304,6 +299,6 @@
   <script src="/citadel.js"></script>
   <script src="/campfire-room.js"></script>
   <script src="/screen-layout.js"></script>
-  <script src="/compass.js"></script>
+  <script src="/arcade.js"></script>
   <script src="/app.js"></script>
 </body></html>

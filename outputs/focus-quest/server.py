@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import importlib.util
 import io
 import json
 import math
@@ -26,6 +27,10 @@ from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
+
+_arcade_spec = importlib.util.spec_from_file_location("focusquest_arcade_rules", Path(__file__).with_name("arcade_rules.py"))
+arcade_rules = importlib.util.module_from_spec(_arcade_spec)
+_arcade_spec.loader.exec_module(arcade_rules)
 
 DEFAULT_SOURCE = Path.home() / "Library/Application Support/tomatodo/tomatodo_db.json"
 DEFAULT_DATA = Path.home() / "Library/Application Support/FocusQuest"
@@ -105,7 +110,7 @@ SHOP_CATALOG = (
     ("avatar-alchemist", "avatar", "灵感炼金师", "炼金师衣装随主线每完成25%逐阶强化，100%呈现完整模样", 420, 0),
     ("avatar-star", "avatar", "星辉旅者", "星色旅装随主线每完成25%逐阶强化，100%呈现完整模样", 0, 12),
     ("avatar-royal", "avatar", "晨曦冠冕", "冠冕行装随主线每完成25%逐阶强化，100%呈现完整模样", 0, 18),
-    ("banner-default", "banner", "营地素纹", "行动罗盘与旅人装扮卡片原有的铭牌边框", 0, 0),
+    ("banner-default", "banner", "营地素纹", "群岛游乐记入口与旅人装扮卡片原有的铭牌边框", 0, 0),
     ("banner-leaf", "banner", "青叶纹章", "让清新叶纹在旅人铭牌边框上舒展", 120, 0),
     ("banner-parchment", "banner", "羊皮书页", "用泛黄书页般的卡片边框衬托每一步成长", 240, 0),
     ("banner-obsidian", "banner", "曜石纹章", "用沉静深色的铭牌边框衬托旅人行装", 360, 0),
@@ -679,6 +684,22 @@ class FocusStore:
             );
             CREATE UNIQUE INDEX IF NOT EXISTS study_actions_one_active
                 ON study_actions(status) WHERE status='active';
+            CREATE TABLE IF NOT EXISTS arcade_sessions (
+                id TEXT PRIMARY KEY, request_id TEXT UNIQUE NOT NULL,
+                day TEXT NOT NULL, venue TEXT NOT NULL, game_type TEXT NOT NULL,
+                seed TEXT NOT NULL, version INTEGER NOT NULL DEFAULT 1,
+                started_at TEXT NOT NULL, expires_at TEXT NOT NULL,
+                ended_at TEXT, status TEXT NOT NULL, game_state TEXT NOT NULL,
+                steps INTEGER NOT NULL DEFAULT 0, max_steps INTEGER NOT NULL,
+                result TEXT
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS arcade_one_active
+                ON arcade_sessions(status) WHERE status='active';
+            CREATE INDEX IF NOT EXISTS arcade_day ON arcade_sessions(day);
+            CREATE TABLE IF NOT EXISTS arcade_moves (
+                session_id TEXT NOT NULL, version INTEGER NOT NULL,
+                move TEXT NOT NULL, PRIMARY KEY(session_id,version)
+            );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
@@ -2520,6 +2541,158 @@ class FocusStore:
     def park_action(self, action_id, version, now=None):
         return self._finish_action(action_id, version, "parked", now)
 
+    @staticmethod
+    def _serialize_arcade(row):
+        return {"id": row["id"], "venue": row["venue"], "type": row["game_type"],
+                # This is an opaque session label, never the private generation seed.
+                "seed": row["id"][:8], "version": row["version"],
+                "startedAt": row["started_at"], "expiresAt": row["expires_at"],
+                "endedAt": row["ended_at"], "status": row["status"],
+                "state": arcade_rules.public_state(row["game_type"], json.loads(row["game_state"])),
+                "steps": row["steps"], "maxSteps": row["max_steps"],
+                "result": json.loads(row["result"]) if row["result"] else None}
+
+    def _arcade_expire(self, current):
+        rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchall()
+        for row in rows:
+            if row["day"] != current.date().isoformat() or current >= datetime.fromisoformat(row["expires_at"]):
+                self._arcade_end(row, "expired", {"won": False, "score": 0, "medal": 0,
+                    "reason": "休息时间到了。本轮已收起，下次再来岛上散步。"}, current)
+
+    def _arcade_budget(self, current):
+        day = current.date().isoformat()
+        minutes = self.db.execute("""SELECT COALESCE(SUM(r.minutes),0) FROM records r
+            WHERE r.day=? AND r.end_ms<=? AND NOT EXISTS
+            (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+            (day, int(current.timestamp()*1000))).fetchone()[0]
+        minutes = max(0, float(minutes))
+        rules = arcade_rules.RULES
+        earned = min(rules["maxTickets"], math.floor((minutes+1e-8)/rules["ticketMinutes"]))
+        # Spent admissions never disappear when a source record is deleted, merged,
+        # corrected or restored. Yesterday's rows never enter today's calculation.
+        used = self.db.execute("SELECT COUNT(*) FROM arcade_sessions WHERE day=?", (day,)).fetchone()[0]
+        reward = self.db.execute("""SELECT COALESCE(SUM(l.coins),0),COALESCE(SUM(l.diamonds),0)
+            FROM arcade_sessions s JOIN wallet_ledger l ON l.reference='arcade:'||s.id WHERE s.day=?""", (day,)).fetchone()
+        return {"studyMinutes": round(minutes, 4), "earned": earned, "used": used,
+                "available": max(0, earned-used),
+                "nextTicketMinutes": 0 if max(earned, used) >= rules["maxTickets"] else
+                    round(max(0, (max(earned, used)+1)*rules["ticketMinutes"]-minutes), 4),
+                "rewardToday": {"coins": reward[0], "diamonds": reward[1]}}
+
+    def _arcade_snapshot(self, current):
+        active = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchone()
+        rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status!='active' ORDER BY ended_at DESC,rowid DESC LIMIT 14").fetchall()
+        history = [self._serialize_arcade(row) for row in rows]
+        venue_stats = {}
+        for row in self.db.execute("SELECT venue,status,result FROM arcade_sessions"):
+            stats = venue_stats.setdefault(row["venue"], {"plays": 0, "wins": 0, "bestScore": 0, "bestMedal": 0})
+            stats["plays"] += 1
+            if row["status"] in ("won", "lost"):
+                result = json.loads(row["result"])
+                stats["wins"] += row["status"] == "won"
+                stats["bestScore"] = max(stats["bestScore"], result["score"])
+                stats["bestMedal"] = max(stats["bestMedal"], result["medal"])
+        venues = [{**v, **venue_stats.get(v["id"], {"plays": 0, "wins": 0, "bestScore": 0, "bestMedal": 0})}
+                  for v in arcade_rules.VENUES]
+        return {"today": current.date().isoformat(), "now": current.isoformat(timespec="microseconds"),
+                "rules": dict(arcade_rules.RULES), **self._arcade_budget(current),
+                "active": self._serialize_arcade(active) if active else None,
+                "lastResult": history[0] if history else None, "history": history, "venues": venues}
+
+    def arcade_state(self, now=None):
+        current = quest_clock(now)
+        with self._quest_transaction():
+            self._arcade_expire(current)
+            return self._arcade_snapshot(current)
+
+    def _arcade_end(self, row, status, result, current):
+        coins, diamonds = 0, 0
+        if status in ("won", "lost"):
+            budget, rules = self._arcade_budget(current), arcade_rules.RULES
+            coins = min(rules["winCoins"] if status == "won" else rules["lossCoins"],
+                        max(0, rules["dailyCoins"]-budget["rewardToday"]["coins"]))
+            diamonds = min(rules["winDiamonds"] if status == "won" else 0,
+                           max(0, rules["dailyDiamonds"]-budget["rewardToday"]["diamonds"]))
+            self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                ("arcade:"+row["id"], coins, diamonds, int(current.timestamp()*1000)))
+        result = dict(result, coins=coins, diamonds=diamonds)
+        self.db.execute("""UPDATE arcade_sessions SET status=?,result=?,ended_at=?,version=version+1 WHERE id=? AND status='active'""",
+            (status, json.dumps(result, ensure_ascii=False), current.isoformat(timespec="microseconds"), row["id"]))
+
+    def start_arcade(self, venue, request_id, now=None):
+        if not isinstance(venue, str) or venue not in arcade_rules.CATALOG:
+            raise ValueError("这处游乐地点不存在")
+        request_id = self._action_uuid(request_id)
+        current = quest_clock(now)
+        with self._quest_transaction():
+            self._arcade_expire(current)
+            previous = self.db.execute("SELECT venue FROM arcade_sessions WHERE request_id=?", (request_id,)).fetchone()
+            if previous:
+                if previous["venue"] != venue:
+                    raise ValueError("同一个请求标识不能用于不同地点")
+                return self._arcade_snapshot(current)
+            if self.db.execute("SELECT 1 FROM arcade_sessions WHERE status='active'").fetchone():
+                raise ValueError("还有一局正在进行，先继续或结束它吧")
+            budget = self._arcade_budget(current)
+            if budget["available"] <= 0:
+                if budget["used"] >= arcade_rules.RULES["maxTickets"]:
+                    raise ValueError(f"今天的 {arcade_rules.RULES['maxTickets']} 次游玩已经用完，明天再来岛上散步吧")
+                raise ValueError("暂时没有可用游玩次数，完成下一段学习后再来看看")
+            seed = uuid.uuid4().hex
+            state, max_steps = arcade_rules.create(venue, seed)
+            midnight = (current+timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
+            expires = min(current+timedelta(seconds=arcade_rules.RULES["roundSeconds"]), midnight)
+            self.db.execute("""INSERT INTO arcade_sessions
+                (id,request_id,day,venue,game_type,seed,started_at,expires_at,status,game_state,max_steps)
+                VALUES (?,?,?,?,?,?,?,?,'active',?,?)""",
+                (str(uuid.uuid4()), request_id, current.date().isoformat(), venue, arcade_rules.CATALOG[venue]["type"],
+                 seed, current.isoformat(timespec="microseconds"), expires.isoformat(timespec="microseconds"),
+                 json.dumps(state, ensure_ascii=False), max_steps))
+            return self._arcade_snapshot(current)
+
+    def move_arcade(self, session_id, version, move, now=None):
+        session_id, version = self._action_uuid(session_id), self._action_version(version)
+        if not isinstance(move, dict):
+            raise ValueError("请提供有效的游戏操作")
+        encoded = json.dumps(move, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        current = quest_clock(now)
+        with self._quest_transaction():
+            self._arcade_expire(current)
+            row = self.db.execute("SELECT * FROM arcade_sessions WHERE id=?", (session_id,)).fetchone()
+            if not row:
+                raise ValueError("这局游戏不存在")
+            previous = self.db.execute("SELECT move FROM arcade_moves WHERE session_id=? AND version=?", (session_id, version)).fetchone()
+            if previous:
+                if previous["move"] != encoded:
+                    raise ValueError("这一操作已处理，请刷新后继续")
+                return self._arcade_snapshot(current)
+            if row["status"] != "active":
+                return self._arcade_snapshot(current)
+            if row["version"] != version:
+                raise ValueError("游戏已在另一处更新，请刷新后继续")
+            state, steps, result = arcade_rules.move(row["game_type"], json.loads(row["game_state"]), row["steps"], row["max_steps"], move)
+            self.db.execute("INSERT INTO arcade_moves VALUES (?,?,?)", (session_id, version, encoded))
+            self.db.execute("UPDATE arcade_sessions SET game_state=?,steps=?,version=version+1 WHERE id=?",
+                (json.dumps(state, ensure_ascii=False), steps, session_id))
+            if result is not None:
+                self._arcade_end(row, "won" if result["won"] else "lost", result, current)
+            return self._arcade_snapshot(current)
+
+    def finish_arcade(self, session_id, version, now=None):
+        session_id, version = self._action_uuid(session_id), self._action_version(version)
+        current = quest_clock(now)
+        with self._quest_transaction():
+            self._arcade_expire(current)
+            row = self.db.execute("SELECT * FROM arcade_sessions WHERE id=?", (session_id,)).fetchone()
+            if not row:
+                raise ValueError("这局游戏不存在")
+            if row["status"] == "active":
+                if row["version"] != version:
+                    raise ValueError("游戏已在另一处更新，请刷新后继续")
+                self._arcade_end(row, "abandoned", {"won": False, "score": 0, "medal": 0,
+                    "reason": "这次散步先到这里，游玩次数已使用，未结算奖励。"}, current)
+            return self._arcade_snapshot(current)
+
     def state(self, selected_day=None, now=None):
         now = now or datetime.now().astimezone()
         selected_day = selected_day or now.date().isoformat()
@@ -2588,7 +2761,8 @@ class FocusStore:
                     "calendarSync": dict(self.calendar_sync, importedCount=self._active_count("calendar")), "settings": settings,
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
                     "trash": self.trash(), "quests": self.quest_state(now.astimezone()),
-                    "actions": self.actions_state(now.astimezone()), "revision": self.revision}
+                    "actions": self.actions_state(now.astimezone()),
+                    "arcade": self.arcade_state(now.astimezone()), "revision": self.revision}
 
     def export_csv(self):
         with self.lock:
@@ -2685,6 +2859,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query:
                         raise ValueError("行动罗盘使用电脑当前日期和时间，不接受查询参数")
                     self._send(200, store.actions_state())
+                elif url.path == "/api/arcade":
+                    if url.query:
+                        raise ValueError("游乐记只使用电脑当前日期和时间，不接受查询参数")
+                    self._send(200, store.arcade_state())
                 elif url.path == "/api/export":
                     self._send(200, store.export_csv(), "text/csv; charset=utf-8", "focus-quest-records.csv")
                 elif url.path == "/api/trash":
@@ -2720,7 +2898,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                                  "/api/actions/update": (("id", "version", "checked", "note"), store.update_action),
                                  "/api/actions/complete": (("id", "version"), store.complete_action),
                                  "/api/actions/park": (("id", "version"), store.park_action)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions:
+                arcade_actions = {"/api/arcade/start": (("venue", "requestId"), store.start_arcade),
+                                  "/api/arcade/move": (("id", "version", "move"), store.move_arcade),
+                                  "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions and path not in arcade_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -2734,7 +2915,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path in study_actions:
+                if path in arcade_actions:
+                    fields, action = arcade_actions[path]
+                    if url.query or set(payload) != set(fields):
+                        raise ValueError("游乐参数无效；时间、次数与奖励由服务器决定")
+                    self._send(200, action(*(payload[field] for field in fields)))
+                elif path in study_actions:
                     fields, action = study_actions[path]
                     if url.query or set(payload) != set(fields):
                         raise ValueError("行动参数无效；请仅提供该操作所需的标识、版本和内容")
