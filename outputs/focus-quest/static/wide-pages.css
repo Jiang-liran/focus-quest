@@ -1,0 +1,232 @@
+/* Wider reading layouts for the five secondary pages. Home and city styles stay independent. */
+@media (min-width:1400px) and (min-height:850px) {
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) {
+    --wide-copy:14px;
+    --wide-label:12px;
+    --wide-small:11px;
+    --wide-heading:19px;
+    --wide-value:30px;
+    --wide-gap:20px;
+    font-size:var(--wide-copy);
+  }
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) .section-heading {gap:18px;flex-wrap:wrap;align-items:center}
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) .section-heading h2 {font-size:var(--wide-heading);line-height:1.45;flex-wrap:wrap}
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) .section-heading h2>span {font-size:var(--wide-small);line-height:1.5}
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) :is(.muted,.eyebrow,.archive-note) {font-size:var(--wide-small);line-height:1.7}
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) .text-button {font-size:var(--wide-label);line-height:1.5}
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) :is(.primary-button,.secondary-button) {font-size:var(--wide-label);line-height:1.45;height:auto;padding:.7em 1em}
+  :is(#view-quests,#view-review,#view-history,#view-achievements) .panel {padding:var(--wide-gap);min-width:0}
+
+  /* Four commissions remain readable cards, grouped under their two mentors. */
+  #view-quests .quest-board {grid-template-columns:repeat(2,minmax(0,1fr));gap:var(--wide-gap)}
+  #view-quests .q-mentor {min-width:0}
+  #view-quests .q-mentor-header {padding:var(--wide-gap);gap:20px}
+  #view-quests .q-mentor-header>div:last-child {min-width:0}
+  #view-quests .q-mentor-header p {max-width:none;font-size:var(--wide-copy);line-height:1.7;overflow-wrap:anywhere}
+  #view-quests .q-mentor-role,#view-quests .q-mentor h2 small {font-size:var(--wide-small);line-height:1.5}
+  #view-quests .q-mentor h2 {font-size:24px;line-height:1.4;flex-wrap:wrap;gap:8px 13px}
+  #view-quests .q-topline {flex-wrap:wrap;gap:20px}
+  #view-quests .q-topline p {font-size:var(--wide-copy);line-height:1.6}
+  :is(#view-quests,#view-shop) .q-wallet {gap:24px}
+  :is(#view-quests,#view-shop) .q-wallet b {font-size:var(--wide-value);line-height:1.25}
+  :is(#view-quests,#view-shop) .q-wallet small {font-size:var(--wide-small);line-height:1.4}
+  :is(#view-quests,#view-shop) .q-wallet i {font-size:var(--wide-copy)}
+  #view-quests .q-schedule {font-size:var(--wide-label);line-height:1.6;margin:0 var(--wide-gap) 18px;gap:10px}
+  #view-quests .q-task-grid {grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;padding:0 16px 18px;align-items:stretch}
+  #view-quests .q-task {display:flex;flex-direction:column;padding:18px 16px;min-width:0}
+  #view-quests .q-task-heading {gap:8px;flex-wrap:wrap}
+  #view-quests .q-task h3 {font-size:var(--wide-heading);line-height:1.4;margin:0}
+  #view-quests .q-status {font-size:var(--wide-small);line-height:1.5}
+  #view-quests .q-progress-caption {font-size:var(--wide-label);line-height:1.65}
+  #view-quests .q-numbers {gap:5px 8px;flex-wrap:wrap}
+  #view-quests .q-numbers strong {font-size:var(--wide-value);line-height:1.25}
+  #view-quests .q-numbers strong small,#view-quests .q-numbers>span {font-size:var(--wide-small)}
+  #view-quests .q-numbers>b {font-size:var(--wide-copy)}
+  #view-quests .q-progress {height:7px;flex-shrink:0;margin:14px 0 16px}
+  #view-quests .q-study-account {font-size:var(--wide-label);line-height:1.6;gap:8px}
+  #view-quests .q-study-account>span {flex-wrap:wrap;gap:4px 10px}
+  #view-quests .q-reward>small {font-size:var(--wide-label);line-height:1.6}
+  :is(#view-quests,#view-shop) .q-money {font-size:var(--wide-copy);line-height:1.6;flex-wrap:wrap;gap:6px}
+  :is(#view-quests,#view-shop) .q-money small {font-size:var(--wide-small)}
+  #view-quests .q-task-note {font-size:var(--wide-label);line-height:1.75;min-height:0;margin:15px 0;overflow-wrap:anywhere}
+  #view-quests .q-task-button {margin-top:auto;min-height:2.9em;font-size:var(--wide-copy);line-height:1.4;white-space:normal}
+  #view-quests .q-first-round {padding:14px 12px;margin:15px 0 2px}
+  #view-quests :is(.q-first-round-heading,.q-first-round-window,.q-first-round-amount) {flex-wrap:wrap;gap:4px 10px;line-height:1.65}
+  #view-quests .q-first-round-heading strong {font-size:var(--wide-copy)}
+  #view-quests :is(.q-first-round-heading>span,.q-first-round-window,.q-first-round-amount>span:last-child) {font-size:var(--wide-small)}
+  #view-quests .q-first-round-amount {font-size:var(--wide-label)}
+  #view-quests .q-first-round-progress {height:5px;margin:12px 0 10px}
+  #view-quests .q-first-round>p {font-size:var(--wide-small);line-height:1.75}
+  #view-quests .q-rules summary {font-size:var(--wide-copy);line-height:1.7;padding:18px var(--wide-gap)}
+  #view-quests .q-rules summary span {font-size:var(--wide-label)}
+  #view-quests .q-rules p {font-size:var(--wide-copy);line-height:1.8;overflow-wrap:anywhere}
+  #view-quests .q-history-row {font-size:var(--wide-copy);line-height:1.6;gap:20px;padding:19px 0}
+  #view-quests .q-history-row small {font-size:var(--wide-small);line-height:1.6}
+  #view-quests .q-reward-breakdown {font-size:var(--wide-label);line-height:1.7}
+  #view-quests .q-history-reward .q-reward-breakdown {font-size:var(--wide-small)}
+  #view-quests .q-history-row .q-history-bonus-days {font-size:var(--wide-small);max-width:34em;line-height:1.7}
+  #view-quests .q-empty p {font-size:var(--wide-copy)}
+  #view-quests .q-empty small {font-size:var(--wide-label);line-height:1.7}
+
+  /* The shop fills the width with a regular gallery; text never clips at a fixed card height. */
+  #view-shop .shop-welcome {padding:var(--wide-gap);gap:24px}
+  #view-shop .shop-words p {font-size:var(--wide-copy);line-height:1.7;max-width:none}
+  #view-shop .shop-words small {font-size:var(--wide-label);line-height:1.7}
+  #view-shop .q-loadout {padding:18px var(--wide-gap);gap:16px 22px}
+  #view-shop .q-loadout h3 {font-size:var(--wide-heading);line-height:1.45}
+  #view-shop .q-loadout p {font-size:var(--wide-copy);line-height:1.7;overflow-wrap:anywhere}
+  #view-shop .loadout-details summary {font-size:var(--wide-copy);line-height:1.6}
+  #view-shop .loadout-details summary>span {font-size:var(--wide-small)}
+  #view-shop .equipped-slots {grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+  #view-shop .equipped-slots button {padding:14px 30px 14px 15px;min-width:0}
+  #view-shop .equipped-slots span {font-size:var(--wide-small);line-height:1.5}
+  #view-shop .equipped-slots strong {font-size:var(--wide-copy);line-height:1.5;overflow-wrap:anywhere}
+  #view-shop .equipped-slots i {font-size:var(--wide-label)}
+  #view-shop .shop-exchange {padding:var(--wide-gap);gap:15px 22px}
+  #view-shop .exchange-intro h3 {font-size:var(--wide-heading);line-height:1.45}
+  #view-shop .exchange-intro p {font-size:var(--wide-copy);line-height:1.7}
+  #view-shop .exchange-intro small {font-size:var(--wide-small);line-height:1.6}
+  #view-shop .exchange-controls {gap:12px}
+  #view-shop .exchange-controls label {font-size:var(--wide-label)}
+  #view-shop .exchange-controls input {font-size:var(--wide-copy);line-height:1.4;width:5.5em;height:auto;padding:.6em .65em}
+  #view-shop .exchange-cost {font-size:var(--wide-copy);line-height:1.5;min-width:7em}
+  #view-shop .exchange-hint,#view-shop .exchange-history {font-size:var(--wide-label);line-height:1.7}
+  #view-shop .exchange-history p {font-size:var(--wide-label);line-height:1.7}
+  #view-shop .shop-markets {gap:var(--wide-gap)}
+  #view-shop .shop-markets>button {padding:18px 20px;gap:16px;min-width:0}
+  #view-shop .shop-markets span {font-size:var(--wide-copy);line-height:1.5;white-space:normal}
+  #view-shop .shop-markets small {font-size:var(--wide-small);line-height:1.5}
+  #view-shop .shop-markets b {font-size:var(--wide-label);min-width:2.4em;padding:.4em}
+  #view-shop .shop-browser-heading p {font-size:var(--wide-copy);line-height:1.65}
+  #view-shop .shop-browser-heading>span {font-size:var(--wide-label)}
+  #view-shop .shop-areas>[data-shop-area],#view-shop .shop-filter button {font-size:var(--wide-label);line-height:1.4;padding:.7em 1em}
+  #view-shop .shop-areas small {font-size:var(--wide-small)}
+  #view-shop .shop-filter {gap:10px;margin-bottom:var(--wide-gap)}
+  #view-shop .shop-catalog {grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--wide-gap)}
+  #view-shop .shop-item {display:flex;flex-direction:column;min-width:0}
+  #view-shop .shop-item-visual {height:clamp(165px,10vw,250px);flex-shrink:0}
+  #view-shop .shop-item-type,#view-shop .shop-owned {font-size:var(--wide-small);line-height:1.4}
+  #view-shop .shop-item-info {display:flex;flex-direction:column;flex:1;padding:18px 16px}
+  #view-shop .shop-item h3 {font-size:var(--wide-heading);line-height:1.4;overflow-wrap:anywhere}
+  #view-shop .shop-item-info>p {font-size:var(--wide-copy);line-height:1.7;margin-top:.6em;min-height:3.4em;overflow-wrap:anywhere}
+  #view-shop .shop-price {margin-top:auto;padding-top:1em;min-height:0}
+  #view-shop .shop-single-price {font-size:calc(var(--wide-copy) + 5px);line-height:1.5;flex-wrap:wrap}
+  #view-shop .shop-single-price i {font-size:var(--wide-copy)}
+  #view-shop .shop-single-price small {font-size:var(--wide-small)}
+  #view-shop .shop-free {font-size:var(--wide-label)}
+  #view-shop .shop-item-actions {flex-wrap:wrap;gap:10px;line-height:1.4}
+  #view-shop .shop-item-actions .secondary-button {min-width:0}
+  #view-shop .q-shop-note,#view-shop .shop-empty {font-size:var(--wide-label);line-height:1.7}
+
+  /* Review keeps the four subject columns and gives study-method numbers enough room. */
+  #view-review .weekly-goal {grid-template-columns:minmax(0,1fr) minmax(0,1.2fr);gap:32px;padding:var(--wide-gap)}
+  #view-review .weekly-goal-heading h2 {font-size:var(--wide-heading);line-height:1.4}
+  #view-review .weekly-goal-heading p {font-size:var(--wide-small);line-height:1.6;white-space:normal}
+  #view-review .weekly-goal-heading .text-button {font-size:var(--wide-label);margin-left:auto}
+  #view-review .weekly-numbers {gap:14px;flex-wrap:wrap;line-height:1.4}
+  #view-review .weekly-numbers>span>strong {font-size:var(--wide-value)}
+  #view-review .weekly-numbers strong small,#view-review .weekly-numbers>span>small {font-size:var(--wide-label)}
+  #view-review .weekly-numbers>strong {font-size:calc(var(--wide-copy) + 9px)}
+  #view-review .weekly-progress {height:7px;margin-top:14px}
+  #view-review .weekly-goal-progress>p {font-size:var(--wide-label);line-height:1.65}
+  #view-review .subject-grid {grid-template-columns:repeat(4,minmax(0,1fr));gap:var(--wide-gap)}
+  #view-review .subject-card {padding:var(--wide-gap);min-width:0}
+  #view-review .subject-head {flex-wrap:wrap;gap:9px}
+  #view-review .subject-head h3 {font-size:var(--wide-heading);line-height:1.4}
+  #view-review .subject-badge {font-size:var(--wide-small);line-height:1.5}
+  #view-review .subject-numbers {gap:5px 8px;flex-wrap:wrap;white-space:normal;line-height:1.4}
+  #view-review .subject-numbers strong {font-size:var(--wide-value);white-space:nowrap}
+  #view-review .subject-numbers small,#view-review .subject-numbers>span {font-size:var(--wide-label)}
+  #view-review .subject-progress {height:6px;margin:16px 0 13px}
+  #view-review .subject-bottom {font-size:var(--wide-small);line-height:1.6;gap:12px;flex-wrap:wrap}
+  #view-review .subject-bottom strong {font-size:var(--wide-copy)}
+  #view-review .activity-summary {gap:var(--wide-gap)}
+  #view-review .activity-total {padding:18px 20px;min-width:0}
+  #view-review .activity-total>span {font-size:var(--wide-label);line-height:1.5}
+  #view-review .activity-total>strong {font-size:var(--wide-value);line-height:1.4;overflow-wrap:anywhere}
+  #view-review .activity-total>strong small {font-size:var(--wide-label)}
+  #view-review .activity-table-heading,#view-review .activity-row {grid-template-columns:minmax(170px,.75fr) minmax(140px,.6fr) minmax(140px,.6fr) minmax(0,2fr);gap:18px}
+  #view-review .activity-table-heading {font-size:var(--wide-label);line-height:1.5}
+  #view-review .activity-row {padding:20px 0}
+  #view-review .activity-subject>div>strong {font-size:var(--wide-copy);line-height:1.5}
+  #view-review .activity-subject small {font-size:var(--wide-small);line-height:1.65}
+  #view-review .activity-time strong {font-size:var(--wide-copy);line-height:1.5;white-space:normal}
+  #view-review .activity-insight strong {font-size:var(--wide-copy);line-height:1.5}
+  #view-review .activity-insight p,#view-review .activity-overview {font-size:var(--wide-copy);line-height:1.75;overflow-wrap:anywhere}
+  #view-review .activity-rule {font-size:var(--wide-small);line-height:1.7}
+  #view-review .bottom-grid {grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:var(--wide-gap)}
+  #view-review .week-navigation>div {font-size:var(--wide-label);line-height:1.6;gap:16px;flex-wrap:wrap}
+  #view-review .week-navigation .text-button {font-size:var(--wide-label)}
+  #view-review .week-arrow {width:36px;height:34px;flex-shrink:0;font-size:28px}
+  #view-review .week-chart {height:12em;gap:16px}
+  #view-review .chart-bar-track {height:8em;width:clamp(36px,3vw,68px)}
+  #view-review .chart-value,#view-review .chart-day {font-size:var(--wide-small);line-height:1.5}
+  #view-review .chart-footer {font-size:var(--wide-small);line-height:1.6;white-space:normal;flex-wrap:wrap}
+  #view-review .record-row {gap:12px;padding:16px 0}
+  #view-review .record-row>div {min-width:0;flex:1}
+  #view-review .record-row strong {font-size:var(--wide-copy);line-height:1.6;overflow-wrap:anywhere}
+  #view-review .record-row small {font-size:var(--wide-small);line-height:1.6}
+  #view-review .record-duration {font-size:var(--wide-copy);line-height:1.5}
+  #view-review .record-xp {font-size:var(--wide-small);line-height:1.5}
+  #view-review .empty {font-size:var(--wide-copy);line-height:1.75}
+
+  /* Archives and long-term growth use the full page while rows and prose grow naturally. */
+  :is(#view-history,#view-achievements) .stats-row {gap:var(--wide-gap)}
+  :is(#view-history,#view-achievements) .stat-card {padding:var(--wide-gap);min-width:0}
+  :is(#view-history,#view-achievements) .stat-card span {font-size:var(--wide-copy);line-height:1.5}
+  :is(#view-history,#view-achievements) .stat-card strong {font-size:var(--wide-value);line-height:1.35;overflow-wrap:anywhere}
+  :is(#view-history,#view-achievements) .stat-card strong small {font-size:var(--wide-label)}
+  #view-history .record-actions {gap:14px;flex-wrap:wrap}
+  #view-history table {table-layout:fixed;font-size:var(--wide-copy);line-height:1.6}
+  #view-history th {font-size:var(--wide-label);line-height:1.5;padding:17px 12px}
+  #view-history td {padding:19px 12px;overflow-wrap:anywhere}
+  #view-history th:nth-child(1) {width:29%}
+  #view-history th:nth-child(2) {width:10%}
+  #view-history th:nth-child(3) {width:12%}
+  #view-history th:nth-child(4) {width:17%}
+  #view-history th:nth-child(5) {width:14%}
+  #view-history th:nth-child(6),#view-history th:nth-child(7) {width:9%}
+  #view-history .table-subject,#view-history .activity-label {font-size:var(--wide-label);line-height:1.5;white-space:normal}
+  #view-history .record-source {font-size:var(--wide-small);line-height:1.5;white-space:normal}
+  #view-history .record-remove {font-size:var(--wide-label);line-height:1.4;padding:.6em .7em}
+  #view-achievements .growth-panel {padding:28px 32px;gap:30px}
+  #view-achievements .growth-panel p {font-size:var(--wide-copy);line-height:1.8}
+  #view-achievements .level-guide h2 {font-size:22px;line-height:1.5}
+  #view-achievements .level-guide h3 {font-size:var(--wide-heading);line-height:1.5}
+  #view-achievements .level-guide-current {font-size:var(--wide-copy);line-height:1.8;padding:16px 18px}
+  #view-achievements .level-rule-grid {gap:28px}
+  #view-achievements .level-rule-grid strong {font-size:var(--wide-heading);line-height:1.5}
+  #view-achievements .level-rule-grid p,#view-achievements .level-guide-notes p {font-size:var(--wide-copy);line-height:1.85;overflow-wrap:anywhere}
+  #view-achievements .level-guide-notes {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:28px}
+  #view-achievements .level-ranks {gap:var(--wide-gap)}
+  #view-achievements .level-ranks li {padding:18px 16px}
+  #view-achievements .level-ranks strong {font-size:var(--wide-copy);line-height:1.5}
+  #view-achievements .level-ranks small,#view-achievements .level-ranks li>span {font-size:var(--wide-label);line-height:1.6}
+  #view-achievements .badge-grid {grid-template-columns:repeat(3,minmax(0,1fr));gap:var(--wide-gap)}
+  #view-achievements .badge-card {padding:var(--wide-gap);min-width:0}
+  #view-achievements .badge-card h3 {font-size:var(--wide-heading);line-height:1.5}
+  #view-achievements .badge-card p {font-size:var(--wide-copy);line-height:1.7}
+  #view-achievements .badge-status {font-size:var(--wide-label);line-height:1.6}
+}
+
+@media (min-width:1600px) and (min-height:950px) {
+  :is(#view-quests,#view-review,#view-shop,#view-history,#view-achievements) {
+    --wide-copy:clamp(15px,.875vw,18px);
+    --wide-label:calc(var(--wide-copy) - 2px);
+    --wide-small:calc(var(--wide-copy) - 3px);
+    --wide-heading:clamp(20px,1.2vw,24px);
+    --wide-value:clamp(30px,1.875vw,38px);
+    --wide-gap:clamp(22px,1.3vw,30px);
+  }
+  #view-quests .q-task-grid {padding:0 var(--wide-gap) var(--wide-gap);gap:18px}
+  #view-quests .q-task {padding:var(--wide-gap)}
+  #view-quests .q-mentor h2 {font-size:26px}
+  #view-shop .shop-item-info {padding:var(--wide-gap)}
+  #view-achievements .badge-grid {grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+
+@media (min-width:2200px) and (min-height:950px) {
+  #view-shop .shop-catalog {grid-template-columns:repeat(5,minmax(0,1fr))}
+  #view-shop .equipped-slots {grid-template-columns:repeat(5,minmax(0,1fr))}
+  #view-achievements .badge-grid {grid-template-columns:repeat(5,minmax(0,1fr))}
+}
