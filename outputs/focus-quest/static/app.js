@@ -91,13 +91,21 @@ function checkNewRecords(next, quietRewards=false) {
   recent.forEach(r=>seenRecords.add(r.id));
   if(!incoming.length)return;
   // Historical imports contribute XP without pretending to be a freshly completed task.
-  const fresh=incoming.filter(r=>Date.now()-new Date(r.end).getTime()<10*60*1000 && new Date(r.end).getTime()<=Date.now()+60000);
+  const fresh=incoming.filter(r=>r.source!=='history_xlsx' && Date.now()-new Date(r.end).getTime()<10*60*1000 && new Date(r.end).getTime()<=Date.now()+60000);
   if(!fresh.length)return;
   const gained=fresh.reduce((sum,r)=>sum+r.minutes,0);
-  const unlocked=quietRewards?[]:FocusEffects.unlocks(state,next,fresh,effectClaims());
+  const claimsBefore=new Set(effectClaims());
+  const unlocked=quietRewards?[]:FocusEffects.unlocks(state,next,fresh,claimsBefore);
+  for(const event of unlocked){
+    if(event.type!=='daily')continue;
+    const beforeStage=Math.min(4,Math.floor((state?.totals.minutes||0)/event.target*4));
+    event.crossedStages=Array.from({length:event.stage-beforeStage},(_,i)=>beforeStage+i+1)
+      .filter(stage=>!claimsBefore.has(`daily:${next.date}:${event.target}:${stage}`));
+  }
   unlocked.forEach(event=>rememberEffect(event));
+  const cityHandlesDaily=!quietRewards&&globalThis.FocusCitadel?.acceptProgress?.(state,next,fresh,unlocked);
   if(unlocked.length && next.settings.motion){
-    celebrationQueue.push(...unlocked.map(event=>celebrationFor(event)));
+    celebrationQueue.push(...unlocked.filter(event=>!(cityHandlesDaily&&event.type==='daily')).map(event=>celebrationFor(event)));
     setTimeout(playNextCelebration,0);
   } else if(!quietRewards) {
     toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · +${number(gained)} XP${state && next.totals.level>state.totals.level?` · 升至 Lv. ${next.totals.level}`:''}`);

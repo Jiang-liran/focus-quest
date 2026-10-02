@@ -92,3 +92,45 @@
 .no-motion .citadel-art *,.no-motion .citadel-art *::before,.no-motion .citadel-art *::after{animation:none!important;transition:none!important}
 .no-motion .citadel-art .citadel-fx-particle[data-effect=meteor]{opacity:.6}
 @media(prefers-reduced-motion:reduce){.citadel-art *,.citadel-art *::before,.citadel-art *::after{animation:none!important;transition:none!important}.citadel-art .citadel-fx-particle[data-effect=meteor]{opacity:.6}}
+/* The continuous route has one ordered track. Only inner actor parts animate. */
+.citadel-art .citadel-route-flow{animation:citadel-flow 8s linear infinite}
+.citadel-art .citadel-route-travelled{filter:drop-shadow(0 0 3px #e8d9bb77)}
+.citadel-art .citadel-route-walk{animation:citadel-traveler-breathe 4.5s ease-in-out infinite;transform-origin:0 0}
+.citadel-art .citadel-route-actors[data-moving=true] .citadel-route-walk{animation:citadel-traveler-step .52s ease-in-out infinite}
+.citadel-art .citadel-step-foot{transform-box:fill-box;transform-origin:center}
+.citadel-art .citadel-route-actors[data-moving=true] .citadel-step-left{animation:citadel-footstep .52s ease-in-out infinite}
+.citadel-art .citadel-route-actors[data-moving=true] .citadel-step-right{animation:citadel-footstep .52s ease-in-out infinite reverse}
+.citadel-art .citadel-route-actors[data-moving=true] .citadel-companion-walk{animation:citadel-traveler-step .6s ease-in-out infinite;animation-delay:-.18s}
+.citadel-art .citadel-core-percent{font-family:ui-rounded,"SF Pro Rounded","PingFang SC",system-ui,sans-serif;font-weight:750;font-variant-numeric:tabular-nums;letter-spacing:-1.8px;paint-order:stroke;stroke:#253249;stroke-width:2px}
+.citadel-art .citadel-core-duration,.citadel-art .citadel-core-overflow{font-family:"PingFang SC",system-ui,sans-serif;font-weight:500;letter-spacing:.7px}
+.citadel-art .citadel-core-energy{pointer-events:none}
+.citadel-art .citadel-charge-arc{filter:drop-shadow(0 0 3px #dcd8c155)}
+.citadel-art .citadel-construction{pointer-events:none}
+.citadel-art .citadel-scaffold{transform:scaleY(calc(.35 + var(--citadel-charge,0) * .65));transform-origin:0 16px}
+.citadel-art .citadel-blueprint{opacity:calc(.22 + var(--citadel-charge,0) * .33)}
+.citadel-art .citadel-milestone-label{letter-spacing:1.7px;font-variant-numeric:tabular-nums}
+.citadel-art .citadel-assembly-base,.citadel-art .citadel-assembly-wall,.citadel-art .citadel-assembly-crown,.citadel-art .citadel-assembly-detail{transform-origin:0 20px}
+.citadel-art .is-awakening .citadel-assembly-base{animation:citadel-base-assemble 4s ease-out both}
+.citadel-art .is-awakening .citadel-assembly-wall{animation:citadel-wall-assemble 4s cubic-bezier(.18,.6,.28,1) both}
+.citadel-art .is-awakening .citadel-assembly-crown{animation:citadel-crown-assemble 4s cubic-bezier(.2,.65,.3,1) both}
+.citadel-art .is-awakening .citadel-assembly-detail{animation:citadel-detail-assemble 4s ease-out both}
+.citadel-art .citadel-awakening-effect{pointer-events:none}
+.citadel-art .citadel-awakening-beam{transform-origin:0 20px;animation:citadel-awakening-beam 4s ease-out both}
+.citadel-art .citadel-awakening-wave{transform-box:fill-box;transform-origin:center;animation:citadel-awakening-wave 3.4s ease-out both}
+.citadel-art .citadel-awakening-wave-second{animation-delay:.55s}
+.citadel-art .citadel-assembly-spark,.citadel-art .citadel-city-spark{animation:citadel-assembly-spark 2.6s ease-out both;animation-delay:var(--citadel-assembly-delay,0s)}
+.citadel-art[data-arriving=true] .citadel-route-traveler{filter:drop-shadow(0 0 6px #e2d5bb77)}
+@keyframes citadel-traveler-breathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-.8px) scaleY(1.015)}}
+@keyframes citadel-traveler-step{0%,100%{transform:translateY(0) rotate(-1.5deg)}50%{transform:translateY(-3px) rotate(1.5deg)}}
+@keyframes citadel-footstep{0%,100%{transform:translateY(-1px) rotate(-10deg)}50%{transform:translateY(1px) rotate(10deg)}}
+@keyframes citadel-base-assemble{0%{transform:translateY(23px) scaleY(.25);opacity:.35}20%{transform:translateY(0) scaleY(1);opacity:1}100%{transform:none;opacity:1}}
+@keyframes citadel-wall-assemble{0%,12%{transform:translateY(25px) scaleY(.05);opacity:0}18%{opacity:1}48%,100%{transform:none;opacity:1}}
+@keyframes citadel-crown-assemble{0%,30%{transform:translateY(-42px) scale(.75);opacity:0}39%{opacity:1}68%,100%{transform:none;opacity:1}}
+@keyframes citadel-detail-assemble{0%,41%{transform:translateY(17px) scaleY(.5);opacity:0}71%,100%{transform:none;opacity:1}}
+@keyframes citadel-awakening-beam{0%{transform:scaleY(.03);opacity:0}15%{transform:scaleY(1.03);opacity:.75}45%{opacity:.65}100%{transform:scaleY(1);opacity:0}}
+@keyframes citadel-awakening-wave{0%{transform:scale(.35);opacity:0}17%{opacity:.85}100%{transform:scale(1.8);opacity:0}}
+@keyframes citadel-assembly-spark{0%{transform:translateY(16px);opacity:0}25%,50%{opacity:.8}100%{transform:translateY(-22px);opacity:0}}
+/* Disabling motion preserves completed masonry and a calm, static arrival glow. */
+.no-motion .citadel-art .citadel-awakening-effect{opacity:.28}
+.no-motion .citadel-art .citadel-city-awakening{opacity:.35}
+@media(prefers-reduced-motion:reduce){.citadel-art .citadel-awakening-effect{opacity:.28}.citadel-art .citadel-city-awakening{opacity:.35}}

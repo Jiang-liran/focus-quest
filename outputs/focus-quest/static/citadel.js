@@ -4,17 +4,98 @@
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const slots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const places=[
-    {id:'dock',name:'启程码头',icon:'⚑',threshold:0,x:308,y:565,action:'让纸舟启航',copy:'小船载着今天的第一束光靠岸。每完成一段专注，都会在这座城里留下航迹。'},
-    {id:'core',name:'圣物广场',icon:'◇',threshold:0,x:597,y:409,action:'触碰晶核',copy:'专注汇入广场中央的圣物。水渠、街灯与浮岛边缘的光，会随每一分钟缓缓生长。'},
-    {id:'workshop',name:'流光工坊',icon:'⚙',threshold:.25,x:282,y:326,action:'连通流光阵',copy:'完成四分之一的旅程，工坊开始运转。四科的努力各自点亮一条回路，汇聚到城中。'},
-    {id:'archive',name:'星页书库',icon:'▤',threshold:.5,x:882,y:337,action:'翻开光之书',copy:'走过一半，书库里的灯亮了。这里收藏这一天真正完成过的学习，随时可以回看。'},
-    {id:'observatory',name:'天穹观测台',icon:'✧',threshold:.75,x:510,y:178,action:'转动星盘',copy:'完成四分之三，观测台开始寻找远处的星。每一门达到目标的科目，都会成为一枚明亮星标。'},
+    {id:'dock',name:'启程码头',icon:'⚑',threshold:0,x:230,y:565,action:'让纸舟启航',copy:'小船载着今天的第一束光靠岸。每完成一段专注，都会在这座城里留下航迹。'},
+    {id:'core',name:'圣物广场',icon:'◇',threshold:0,x:595,y:425,action:'触碰晶核',copy:'主岛的四重能量环记录每日总进度。旅人从左下方码头出发，沿顺时针光路走过四个阶段；每一次抵达，都为中央圣物添上一重力量。'},
+    {id:'workshop',name:'流光工坊',icon:'⚙',threshold:.25,x:245,y:326,action:'连通流光阵',copy:'完成四分之一的旅程，工坊开始运转。四科的努力各自点亮一条回路，汇聚到城中。'},
+    {id:'archive',name:'星页书库',icon:'▤',threshold:.5,x:600,y:178,action:'翻开光之书',copy:'走过一半，书库里的灯亮了。这里收藏这一天真正完成过的学习，随时可以回看。'},
+    {id:'observatory',name:'天穹观测台',icon:'✧',threshold:.75,x:950,y:330,action:'转动星盘',copy:'完成四分之三，观测台开始寻找远处的星。每一门达到目标的科目，都会成为一枚明亮星标。'},
     {id:'gate',name:'远征之门',icon:'◎',threshold:1,x:924,y:562,action:'唤起门扉共鸣',copy:'当今日目标达成，门扉完全苏醒。此后的学习化作城上余辉；回到营地休息，也是一段完整旅程。'}
   ];
   let bridge={},state=null,equipped={},equipmentStamp=-Infinity,equipmentPreview=null;
-  let anchor=null,inertBefore=[],selected='core',zoom=1,panX=0,panY=0,previewPercent=null,pulse=null,pulseTimer=null,artKey='',detailKey='',drag=null,suppressClickUntil=0,initialized=false;
+  let anchor=null,inertBefore=[],selected='core',zoom=1,panX=0,panY=0,previewPercent=null,pulse=null,pulseTimer=null,pulseGeneration=0,artKey='',detailKey='',drag=null,suppressClickUntil=0,initialized=false;
   const isOpen=()=>!!$('citadel-view')&&!$('citadel-view').hidden;
-  const currentModel=()=>previewPercent===null?root.FocusExpeditionModel.build(state):root.FocusExpeditionModel.preview(state,previewPercent);
+  let motionPercent=null,moving=false,flowTarget=null,flowGates=[],flowKind=null,pendingProgress=null,awakening=null,raf=null,awakeningTimer=null,generation=0,awakeningToken=0;
+  const gateIds=['workshop','archive','observatory','gate'];
+  const gateTitles=['工坊升起 · 回路连通','书库展开 · 光页归位','星轨升空 · 观测台共鸣','门扉洞开 · 全城加冕'];
+  const motionAllowed=()=>state?.settings?.motion!==false&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  function currentModel(){
+    if(previewPercent!==null)return {...root.FocusExpeditionModel.preview(state,motionPercent??previewPercent),moving};
+    const model=root.FocusExpeditionModel.build(state);
+    if(motionPercent===null)return {...model,moving:false};
+    const minutes=model.target*motionPercent/100;
+    return {...model,percent:motionPercent,progress:Math.min(1,motionPercent/100),stage:Math.min(4,Math.floor(motionPercent/25)),minutes,complete:model.goalSet&&motionPercent>=100,moving,
+      afterglow:{...model.afterglow,active:motionPercent>100,minutes:Math.max(0,minutes-model.target)}};
+  }
+  function cancelJourney(){
+    generation++;if(raf!==null)root.cancelAnimationFrame?.(raf);if(awakeningTimer!==null)root.clearTimeout(awakeningTimer);
+    raf=awakeningTimer=null;motionPercent=null;moving=false;flowTarget=null;flowGates=[];flowKind=null;pendingProgress=null;awakening=null;
+  }
+  function acceptProgress(previous,next,fresh,events=[]){
+    if(!isOpen()||previewPercent!==null||!motionAllowed()||next?.settings?.motion===false||!previous||next.date!==next.today||previous.date!==next.date||previous.totals.target!==next.totals.target||!(next.totals.target>0)||!(next.totals.minutes>previous.totals.minutes)||!(fresh||[]).some(r=>r.day===next.date&&r.minutes>0&&r.source!=='history_xlsx'))return false;
+    const daily=events.filter(e=>e.type==='daily'&&e.target===next.totals.target);
+    const before=previous.totals.minutes/previous.totals.target*100,after=next.totals.minutes/next.totals.target*100;
+    const lastStage=daily.length?Math.max(...daily.map(e=>e.stage)):0;
+    const gates=[];for(let stage=Math.max(1,Math.floor(before/25)+1);stage<=lastStage;stage++){
+      if(daily.some(event=>!Array.isArray(event.crossedStages)||event.crossedStages.includes(stage)))gates.push(stage*25);
+    }
+    pendingProgress={date:next.date,target:next.totals.target,percent:after,from:before,gates:[...new Set([...(pendingProgress?.gates||[]),...gates])]};
+    return daily.length>0;
+  }
+  function awaken(threshold,done){
+    const stage=threshold/25;
+    awakening={id:gateIds[stage-1],token:++awakeningToken,stage};moving=false;paint();
+    if(!motionAllowed()){awakening=null;done();return;}
+    const token=generation;
+    awakeningTimer=root.setTimeout(()=>{if(token!==generation||!isOpen())return;awakeningTimer=null;awakening=null;paint();done();},4000);
+  }
+  function travelTo(target,done){
+    const start=motionPercent??currentModel().percent;
+    if(!motionAllowed()||Math.abs(target-start)<.00001){motionPercent=target;moving=false;paint();done();return;}
+    const token=generation,started=root.performance.now(),durationMs=Math.min(3000,Math.max(1100,Math.abs(target-start)/25*2600));moving=start<100;
+    function frame(now){
+      if(token!==generation||!isOpen())return;
+      if(!motionAllowed()){cancelJourney();paint();return;}
+      const fraction=Math.min(1,Math.max(0,(now-started)/durationMs));
+      motionPercent=start+(target-start)*fraction;paint(true);
+      if(fraction<1)raf=root.requestAnimationFrame(frame);
+      else{raf=null;moving=false;motionPercent=target;paint();done();}
+    }
+    paint();raf=root.requestAnimationFrame(frame);
+  }
+  function advanceFlow(){
+    if(!isOpen()||flowTarget===null)return;
+    const current=motionPercent??currentModel().percent;
+    while(flowGates.length&&flowGates[0]<current-.00001)flowGates.shift();
+    const gate=flowGates[0];
+    if(gate!==undefined&&gate<=flowTarget){flowGates.shift();travelTo(gate,()=>awaken(gate,advanceFlow));return;}
+    const destination=flowTarget;
+    travelTo(destination,()=>{
+      if(flowTarget!==destination||flowGates.length){advanceFlow();return;}
+      const kind=flowKind;flowTarget=null;flowKind=null;motionPercent=null;moving=false;
+      if(kind==='demo')previewPercent=destination;paint();
+    });
+  }
+  function startDemo(){
+    if(!isOpen())return;
+    if(flowKind==='demo'){const at=currentModel().percent;cancelJourney();previewPercent=at;paint();return;}
+    cancelJourney();clearPulse();previewPercent=100;
+    if(!motionAllowed()){paint();return;}
+    motionPercent=0;flowKind='demo';flowTarget=100;flowGates=[25,50,75,100];zoom=1;panX=panY=0;camera();paint();advanceFlow();
+  }
+  function routeUI(model){
+    const route=root.FocusCitadelRoute?.build(model.percent);
+    const stage=Math.min(4,Math.floor(model.percent/25)),next=places.find(p=>p.id===gateIds[stage]);
+    setText('citadel-route-value',percent(model.percent));
+    setText('citadel-route-copy',model.percent>=100?'四站已抵达 · 今日远征圆满完成':`下一站 ${String(stage+1).padStart(2,'0')} · ${next.name} · 再完成 ${duration(Math.max(0,model.target*next.threshold-model.minutes))}`);
+    $('citadel-route-fill').style.width=Math.min(100,model.percent)+'%';
+    $('citadel-route-total').setAttribute('aria-valuenow',String(Math.min(100,model.percent)));
+    $('citadel-route-total').setAttribute('aria-valuetext',percent(model.percent));
+    $('citadel-awakening').hidden=!awakening;
+    if(awakening){setText('citadel-awakening-title',gateTitles[awakening.stage-1]);setText('citadel-awakening-copy',`${String(awakening.stage).padStart(2,'0')} / 04 · ${awakening.stage*25}% 已抵达`);$('citadel-awakening').dataset.stage=awakening.stage;}
+    $('citadel-stage').dataset.walking=String(moving);setText('citadel-demo',flowKind==='demo'?'停止演示':'演示完整旅程 ▷');
+    $('citadel-demo').setAttribute('aria-pressed',String(flowKind==='demo'));
+    for(const button of $('citadel-locations').querySelectorAll('[data-citadel-select]')){button.dataset.current=String(route?.toId===button.dataset.citadelSelect&&model.percent<100);}
+  }
   const visibleEquipment=()=>({...equipped,...equipmentPreview});
   const duration=value=>{const seconds=Math.max(Number(value)>0?1:0,Math.floor(Number(value||0)*60+1e-6)),h=Math.floor(seconds/3600),m=Math.floor(seconds%3600/60),s=seconds%60;return h?`${h}小时${m?m+'分':''}`:m?`${m}分钟`:s?`${s}秒`:'0分钟';};
   const percent=value=>(value>0&&value<100?Math.min(99.9,Math.round(value*10)/10):Math.round(value*10)/10)+'%';
@@ -28,7 +109,7 @@
     equipped={...(next||{})};if(isOpen())paint();
   }
   function previewEquipment(override){equipmentPreview=override?{...override}:null;if(isOpen())paint();}
-  function clearPulse(){if(pulseTimer!==null)root.clearTimeout(pulseTimer);pulseTimer=null;pulse=null;}
+  function clearPulse(){pulseGeneration++;if(pulseTimer!==null)root.clearTimeout(pulseTimer);pulseTimer=null;pulse=null;}
   function clampCamera(){const limit=(zoom-1)*50;panX=Math.max(-limit,Math.min(limit,panX));panY=Math.max(-limit,Math.min(limit,panY));}
   function camera(){
     clampCamera();$('citadel-camera').style.transform=`translate(${panX}%,${panY}%) scale(${zoom})`;
@@ -57,38 +138,54 @@
     if(selected==='gate')html=`<strong>${model.afterglow.active?duration(model.afterglow.minutes):percent(model.percent)} <small>${model.afterglow.active?'目标之外的余辉':'门扉能量'}</small></strong><p>${model.complete?'门已为你打开。此刻可以继续探索，也可以安心休息。':'门上的星纹随进度汇聚，完成目标后会展开完整光环。'}</p>`;
     $('citadel-place-data').innerHTML=html;
   }
-  function paint(){
+  function paint(onlyMotion=false){
     if(!isOpen()||!state)return;
     const model=currentModel(),eq=visibleEquipment();
+    const actual=root.FocusExpeditionModel.build(state),summary=previewPercent===null?actual:model;
     const theme=(state.quests?.catalog||[]).find(item=>item.id===eq.theme)?.name||'晨雾星岛';
-    setText('citadel-summary',`${state.date===state.today?'今天':state.date} · ${duration(model.minutes)} / ${duration(model.target)} · ${percent(model.percent)}`);
+    setText('citadel-summary',`${state.date===state.today?'今天':state.date} · ${duration(summary.minutes)} / ${duration(summary.target)} · ${percent(summary.percent)}`);
     setText('citadel-theme',theme);$('citadel-view').dataset.preview=String(previewPercent!==null);
     $('citadel-view').dataset.motion=String(state.settings?.motion!==false);
-    setText('citadel-mode',previewPercent!==null?'生长预览 · 学习记录保持原样':state.date===state.today?'这座城正随今天的专注生长':'历史景象 · 这一天的努力留在这里');
+    setText('citadel-mode',flowKind==='demo'?'旅程演示 · 按顺序体验四次觉醒':previewPercent!==null?'生长预览 · 学习记录保持原样':flowKind==='live'?'新专注正在汇入城市 · 旅人沿光路前进':state.date===state.today?'这座城正随今天的专注生长':'历史景象 · 这一天的努力留在这里');
     $('citadel-preview-controls').hidden=previewPercent===null;
     $('citadel-preview-toggle').setAttribute('aria-pressed',String(previewPercent!==null));
     setText('citadel-preview-toggle',previewPercent===null?'预览城市生长':'返回实际进度');
-    if(previewPercent!==null){$('citadel-preview-range').value=previewPercent;setText('citadel-preview-value',percent(previewPercent));}
-    const key=JSON.stringify([model.progress,model.subjects.map(s=>[s.id,s.progress]),model.afterglow,eq,selected,pulse]);
+    if(previewPercent!==null){$('citadel-preview-range').value=model.percent;setText('citadel-preview-value',percent(model.percent));}
+    const key=JSON.stringify([model.stage,model.goalSet,model.subjects.map(s=>[s.id,s.complete]),eq,selected,pulse,awakening?.token,model.date]);
+    const rebuilt=key!==artKey;
     if(key!==artKey){
       artKey=key;const focused=$('citadel-scene').contains(document.activeElement)?document.activeElement?.closest('[data-citadel-place]')?.dataset.citadelPlace:null;
-      $('citadel-scene').innerHTML=root.FocusCitadelArt.scene(model,eq,{interactive:true,selected,pulse});
+      $('citadel-scene').innerHTML=root.FocusCitadelArt.scene(model,eq,{interactive:true,selected,pulse,awakening});
       if(focused)$('citadel-scene').querySelector(`[data-citadel-place="${focused}"]`)?.focus({preventScroll:true});
     }
+    root.FocusCitadelArt.updateProgress?.($('citadel-scene').querySelector('svg'),model);
+    routeUI(model);
     for(const button of $('citadel-locations').querySelectorAll('[data-citadel-select]')){const place=places.find(p=>p.id===button.dataset.citadelSelect);button.setAttribute('aria-pressed',String(selected===place.id));button.dataset.awake=String(unlocked(place,model));}
-    detail(model);
+    if(!onlyMotion||rebuilt)detail(model);
   }
   function render(next){
     if(!next)return;
-    if(state&&state.date!==next.date){clearPulse();previewPercent=null;selected='core';zoom=1;panX=panY=0;artKey=detailKey='';if(isOpen())camera();}
-    state=next;
-    applyEquipment(next.quests?.equipped||equipped,next.quests?.now);
-    if(isOpen())paint();
+    const previous=state,changedDate=state&&state.date!==next.date;
+    const reset=state&&(changedDate||state.totals.target!==next.totals.target||next.totals.minutes<state.totals.minutes);
+    if(changedDate){clearPulse();previewPercent=null;selected='core';zoom=1;panX=panY=0;artKey=detailKey='';if(isOpen())camera();}
+    if(reset)cancelJourney();state=next;
+    if(!motionAllowed())cancelJourney();
+    const pending=pendingProgress;pendingProgress=null;
+    if(pending&&isOpen()&&previewPercent===null&&pending.date===next.date&&pending.target===next.totals.target&&pending.percent===next.totals.minutes/next.totals.target*100){
+      if(flowKind!=='live')motionPercent=previous?previous.totals.minutes/previous.totals.target*100:pending.from;
+      flowKind='live';flowTarget=pending.percent;
+      flowGates=[...new Set([...flowGates,...pending.gates])].filter(gate=>gate>(motionPercent??0)+.00001&&gate!==awakening?.stage*25).sort((a,b)=>a-b);
+      applyEquipment(next.quests?.equipped||equipped,next.quests?.now);paint();
+      if(raf===null&&awakeningTimer===null)advanceFlow();return;
+    }
+    // Quiet edits/imports are a new baseline, never a new milestone ceremony.
+    if(flowKind==='live'&&previous&&previous.totals.minutes!==next.totals.minutes)cancelJourney();
+    applyEquipment(next.quests?.equipped||equipped,next.quests?.now);if(isOpen())paint();
   }
   function open(from){
     const latest=bridge.getState?.();if(latest)render(latest);
     if(!state||isOpen()||document.querySelector('dialog[open]'))return;
-    bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);
+    bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);cancelJourney();
     anchor=from||document.activeElement;selected='core';zoom=1;panX=panY=0;previewPercent=null;artKey=detailKey='';clearPulse();setText('citadel-feedback','');
     inertBefore=Array.from(document.querySelectorAll('body > main, body > .sidebar')).map(element=>[element,element.inert]);
     for(const [element] of inertBefore)element.inert=true;
@@ -97,7 +194,7 @@
   }
   function close(restoreFocus=true){
     if(!isOpen())return;
-    root.FocusQuickSkins?.close(false);clearPulse();drag=null;previewPercent=null;equipmentPreview=null;
+    root.FocusQuickSkins?.close(false);cancelJourney();clearPulse();drag=null;previewPercent=null;equipmentPreview=null;
     $('citadel-view').hidden=true;document.documentElement.classList.remove('has-citadel-view');
     for(const [element,previous] of inertBefore)element.inert=previous;inertBefore=[];
     if(restoreFocus&&anchor?.isConnected)anchor.focus?.({preventScroll:true});anchor=null;
@@ -105,8 +202,8 @@
   }
   function interact(){
     if(!isOpen()||pulse||!unlocked(places.find(p=>p.id===selected),currentModel()))return;
-    pulse=selected;paint();setText('citadel-feedback',`${places.find(p=>p.id===selected).name}回应了你的触碰。`);
-    pulseTimer=root.setTimeout(()=>{pulseTimer=null;pulse=null;if(isOpen())paint();},state.settings?.motion===false||root.matchMedia?.('(prefers-reduced-motion: reduce)').matches?600:2600);
+    const pulseToken=++pulseGeneration;pulse=selected;paint();setText('citadel-feedback',`${places.find(p=>p.id===selected).name}回应了你的触碰。`);
+    pulseTimer=root.setTimeout(()=>{if(pulseToken!==pulseGeneration)return;pulseTimer=null;pulse=null;if(isOpen())paint();},state.settings?.motion===false||root.matchMedia?.('(prefers-reduced-motion: reduce)').matches?600:2600);
   }
   function preview(itemId,base){
     const latest=bridge.getState?.()||state, item=(latest?.quests?.catalog||[]).find(item=>item.id===itemId&&slots.has(item.slot));
@@ -122,14 +219,16 @@
     $('citadel-shop').addEventListener('click',()=>{close(false);bridge.openShop?.();});
     $('citadel-replay').addEventListener('click',()=>{if(previewPercent!==null)return;close();bridge.replayDay?.();});
     $('citadel-interact').addEventListener('click',interact);
-    $('citadel-locations').innerHTML=places.map(p=>`<button type="button" data-citadel-select="${p.id}" aria-pressed="false"><span>${p.icon}</span><strong>${p.name}</strong><small>${p.threshold?p.threshold*100+'%':'起点'}</small></button>`).join('');
+    $('citadel-locations').innerHTML=['core','dock',...gateIds].map(id=>places.find(p=>p.id===id)).map(p=>`<button type="button" data-citadel-select="${p.id}" aria-pressed="false"><span>${p.threshold?String(gateIds.indexOf(p.id)+1).padStart(2,'0'):p.icon}</span><strong>${p.id==='core'?'主岛总览':p.name}</strong><small>${p.threshold?p.threshold*100+'%':p.id==='core'?'总能量':'出发 0%'}</small></button>`).join('');
     $('citadel-locations').addEventListener('click',event=>{const button=event.target.closest('[data-citadel-select]');if(button)select(button.dataset.citadelSelect);});
     $('citadel-scene').addEventListener('click',event=>{if(event.ctrlKey||event.button!==0||Date.now()<suppressClickUntil)return;const place=event.target.closest('[data-citadel-place]');if(place)select(place.dataset.citadelPlace);});
     $('citadel-scene').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){const place=event.target.closest('[data-citadel-place]');if(place){event.preventDefault();select(place.dataset.citadelPlace);}}});
     $('citadel-overview').addEventListener('click',()=>{zoom=1;panX=panY=0;camera();});
     for(const [id,delta] of [['citadel-zoom-in',.4],['citadel-zoom-out',-.4]])$(id).addEventListener('click',()=>{zoom=Math.round(Math.max(1,Math.min(2.4,zoom+delta))*10)/10;if(zoom===1){panX=panY=0;camera();}else center(places.find(p=>p.id===selected));});
-    $('citadel-preview-toggle').addEventListener('click',()=>{clearPulse();previewPercent=previewPercent===null?Math.min(100,Math.round(currentModel().percent)):null;paint();});
-    $('citadel-preview-range').addEventListener('input',event=>{clearPulse();previewPercent=Math.max(0,Math.min(100,Number(event.target.value)||0));paint();});
+    $('citadel-preview-toggle').addEventListener('click',()=>{const at=currentModel().percent,enter=previewPercent===null;cancelJourney();clearPulse();previewPercent=enter?Math.min(100,Math.round(at)):null;paint();});
+    $('citadel-demo').addEventListener('click',startDemo);
+    $('citadel-preview-range').addEventListener('input',event=>{const before=currentModel().percent;cancelJourney();clearPulse();previewPercent=Math.max(0,Math.min(100,Number(event.target.value)||0));const stage=Math.min(4,Math.floor(previewPercent/25));paint();if(stage>Math.floor(before/25)&&motionAllowed())awaken(stage*25,()=>{});});
+    root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(!motionAllowed()){cancelJourney();if(isOpen())paint();}});
     const stage=$('citadel-stage');
     stage.addEventListener('pointerdown',event=>{if(zoom<=1||event.button!==0||event.ctrlKey||event.target.closest('button'))return;drag={id:event.pointerId,x:event.clientX,y:event.clientY,px:panX,py:panY,moved:false};});
     stage.addEventListener('pointermove',event=>{if(!drag||drag.id!==event.pointerId)return;const dx=event.clientX-drag.x,dy=event.clientY-drag.y;if(!drag.moved&&Math.hypot(dx,dy)<5)return;drag.moved=true;stage.setPointerCapture?.(event.pointerId);stage.classList.add('dragging');const rect=stage.getBoundingClientRect();panX=drag.px+dx/rect.width*100;panY=drag.py+dy/rect.height*100;camera();});
@@ -144,5 +243,5 @@
       if(!container.contains(document.activeElement)||(event.shiftKey&&document.activeElement===first)||(!event.shiftKey&&document.activeElement===last)){event.preventDefault();(event.shiftKey?last:first).focus();}
     },true);
   }
-  root.FocusCitadel={init,render,open,close,isOpen,applyEquipment,previewEquipment,preview};
+  root.FocusCitadel={init,render,open,close,isOpen,applyEquipment,previewEquipment,preview,acceptProgress};
 })(typeof globalThis!=='undefined'?globalThis:this);
