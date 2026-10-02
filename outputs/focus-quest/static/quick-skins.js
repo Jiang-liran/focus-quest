@@ -13,6 +13,7 @@
     for(const key of Object.keys(names))if(equipped[key])document.documentElement.dataset[key]=equipped[key];
     root.ShopArt?.apply(equipped);
     root.FocusCampfire?.previewEquipment(preview?{[preview.slot]:preview.id}:null);
+    root.FocusCitadel?.previewEquipment(preview?{[preview.slot]:preview.id}:null);
     const player=$('player-outfit');
     if(player&&root.QuestArt&&player.querySelector('svg')?.dataset.outfit!==equipped.avatar){
       player.innerHTML=root.QuestArt.avatar('player',equipped.avatar);
@@ -66,8 +67,15 @@
   }
   function close(restoreFocus=true){
     const wasVisible=visible();
+    const citadelPlace=anchor?.closest?.('[data-citadel-place]')?.dataset.citadelPlace;
+    const citadelArt=!!anchor?.closest?.('.citadel-art');
     $('quick-skins').hidden=true;preview=null;menuKey=null;paint();
-    if(wasVisible&&restoreFocus&&anchor?.isConnected)anchor.focus?.({preventScroll:true});
+    if(wasVisible&&restoreFocus){
+      if(citadelArt&&root.FocusCitadel?.isOpen()){
+        const replacement=citadelPlace&&Array.from($('citadel-scene').querySelectorAll('[data-citadel-place]')).find(el=>el.dataset.citadelPlace===citadelPlace);
+        (replacement||$('citadel-close'))?.focus?.({preventScroll:true});
+      }else if(anchor?.isConnected)anchor.focus?.({preventScroll:true});
+    }
   }
   function open(requested,position={}){
     if(!state||busy)return;

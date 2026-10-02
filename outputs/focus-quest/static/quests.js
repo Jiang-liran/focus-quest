@@ -6,6 +6,7 @@
   'use strict';
   const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
+  const citadelSlots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
   const statuses={locked:'尚未发布',available:'可以接取',active:'进行中',ready:'可以交付',expired:'今日已结束',claimed:'已交付'};
   const mentors={morning:{name:'司晨',title:'晨间导师',quote:'「先以数学磨砺思路，再用政治梳理脉络。把上午交给扎实的理解。」',hours:'00:00 — 12:00',grace:'12:30',subjects:'数学 · 政治'},afternoon:{name:'逐光',title:'午后领航员',quote:'「让知识连成网络，让语言打开远方。午后的航程，由你来选择。」',hours:'12:00 — 18:00',grace:'18:30',subjects:'408 · 英语'}};
@@ -95,6 +96,7 @@
     delete document.documentElement.dataset.npc;
     for(const [slot,id] of Object.entries(data.equipped||{}))document.documentElement.dataset[slot]=id;
     window.ShopArt?.apply(data.equipped||{});
+    window.FocusCitadel?.applyEquipment?.(data.equipped||{},data.now);
     window.FocusCampfire?.applyEquipment(data.equipped||{},data.now);
     for(const prefix of ['wallet-side','quest','shop']){
       $(prefix+'-coins').textContent=n(data.wallet.coins);$(prefix+'-diamonds').textContent=n(data.wallet.diamonds);
@@ -162,6 +164,7 @@
   }
   function dialog(title,eyebrow,art,body,label,cancel='再想一想'){
     $('quest-action-dialog').classList.toggle('campfire-item-dialog',art.includes('campfire-full-preview'));
+    $('quest-action-dialog').classList.toggle('citadel-item-dialog',art.includes('citadel-full-preview'));
     $('quest-action-title').textContent=title;$('quest-action-eyebrow').textContent=eyebrow;
     $('quest-action-art').innerHTML=art;$('quest-action-body').innerHTML=body;
     $('quest-action-error').hidden=true;$('quest-action-confirm').textContent=label;
@@ -190,6 +193,14 @@
     const equipped=window.FocusCampfireShopArt?.normalize({...data.equipped,[item.slot]:item.id})||{};
     return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
   }
+  function itemPreview(item){
+    if(campSlots.has(item.slot))return campPreview(item);
+    if(citadelSlots.has(item.slot)){
+      const scene=window.FocusCitadel?.preview?.(item.id,{...data.equipped});
+      if(typeof scene==='string'&&scene)return scene;
+    }
+    return swatch(item);
+  }
   function browseCamp(){
     if(!data)return;
     area='camp';market='coins';filter='all';renderShop();
@@ -200,7 +211,7 @@
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
-    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':'WARDROBE PREVIEW',campSlots.has(item.slot)?campPreview(item):swatch(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
+    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p><div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
   }
   async function perform(job){
     if(busy||!job)return;

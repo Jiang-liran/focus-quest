@@ -14,6 +14,8 @@
   <link rel="stylesheet" href="/campfire-shop.css">
   <link rel="stylesheet" href="/quick-skins.css">
   <link rel="stylesheet" href="/review.css">
+  <link rel="stylesheet" href="/citadel-art.css">
+  <link rel="stylesheet" href="/citadel.css">
 <link rel="stylesheet" href="/expedition-art.css"/><link rel="stylesheet" href="/expedition.css"/>
 </head>
 <body>
@@ -98,6 +100,7 @@
             </svg>
             <div class="scene-mist"></div><div class="scene-subjects" id="scene-subjects"></div><div class="scene-caption" id="scene-caption"><span>✦</span> 每一段专注，都让星岛更明亮。</div>
           </div>
+            <button type="button" id="citadel-enter" class="citadel-enter" aria-label="进入星辉城">进入星辉城 <span>↗</span></button>
             <div id="expedition-map-note" class="expedition-map-note" role="status" hidden></div>
             <div class="expedition-map-footer"><span id="expedition-map-caption">点击四座岛屿，看看今天的建设。</span><span id="expedition-world-count">四科共鸣 0 / 4</span></div>
             <div class="expedition-arrival" id="expedition-arrival" role="status" aria-live="polite" hidden></div>
@@ -213,6 +216,22 @@
   <g class="opening-lanterns"><circle cx="209" cy="174" r="2"/><circle cx="223" cy="124" r="1.7"/><circle cx="316" cy="131" r="2"/><circle cx="329" cy="162" r="1.5"/></g>
 </svg></div><div class="opening-copy"><div id="opening-eyebrow" class="eyebrow"></div><p id="opening-time" class="opening-time"></p><h2 id="opening-title"></h2><p id="opening-body"></p><p id="opening-closing"></p><p id="opening-note"></p><button id="opening-done" class="primary-button">开启今日远征</button></div></dialog>
   <div class="toast-stack" id="toasts" role="status" aria-live="polite"></div>
+  <section id="citadel-view" class="citadel-view" role="dialog" aria-modal="true" aria-labelledby="citadel-title" hidden>
+    <header class="citadel-header"><button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button><div class="citadel-heading"><span>星海群岛 / INNER WORLD</span><h2 id="citadel-title">星辉城 <small id="citadel-theme">晨雾星岛</small></h2></div><div class="citadel-header-actions"><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">前往商店 ↗</button></div></header>
+    <div class="citadel-status"><p id="citadel-mode"></p><strong id="citadel-summary"></strong></div>
+    <div class="citadel-layout">
+      <div class="citadel-map-column">
+        <div class="citadel-stage" id="citadel-stage" data-skin-slots="theme fx companion relic portal avatar">
+          <div id="citadel-camera" class="citadel-camera"><div id="citadel-scene" class="citadel-scene"></div></div>
+          <div class="citadel-map-controls"><button type="button" id="citadel-overview">全景</button><button type="button" id="citadel-zoom-out" aria-label="缩小星辉城">−</button><span id="citadel-zoom">100%</span><button type="button" id="citadel-zoom-in" aria-label="放大星辉城">＋</button></div>
+        </div>
+        <p class="citadel-map-hint">点击建筑靠近探访 · 放大后可拖动地图 · 右键更换对应外观</p>
+        <nav id="citadel-locations" class="citadel-locations" aria-label="星辉城区域"></nav>
+        <div class="citadel-preview-row"><button type="button" id="citadel-preview-toggle" aria-pressed="false">预览城市生长</button><div id="citadel-preview-controls" hidden><input type="range" id="citadel-preview-range" min="0" max="100" step="1" value="0" aria-label="预览星辉城学习进度"><b id="citadel-preview-value">0%</b></div></div>
+      </div>
+      <aside class="citadel-inspector" aria-labelledby="citadel-place-name"><span class="citadel-eyebrow">A PLACE BUILT BY YOUR EFFORT</span><span id="citadel-place-state" class="citadel-place-state"></span><h3 id="citadel-place-name">圣物广场</h3><p id="citadel-place-copy"></p><div id="citadel-place-data" class="citadel-place-data"></div><p id="citadel-place-progress" class="citadel-place-progress"></p><button type="button" id="citadel-interact" class="citadel-interact">触碰晶核</button><button type="button" id="citadel-replay" class="citadel-replay" hidden>回放这一天 ▷</button><p id="citadel-feedback" class="citadel-feedback" role="status" aria-live="polite"></p><small class="citadel-aside-note">设施随所选日期的学习进度苏醒。<br>外观收藏在每一天的城市中都可使用。</small></aside>
+    </div>
+  </section>
   <script src="/advice.js"></script>
   <script src="/effects.js"></script>
   <script src="/subject-art.js"></script>
@@ -228,5 +247,7 @@
   <script src="/expedition-model.js"></script>
   <script src="/expedition-art.js"></script>
   <script src="/expedition.js"></script>
+  <script src="/citadel-art.js"></script>
+  <script src="/citadel.js"></script>
   <script src="/app.js"></script>
 </body></html>

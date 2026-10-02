@@ -127,6 +127,7 @@ function render() {
   if($('trash-dialog').open)renderTrash();
   globalThis.FocusQuests?.render(s.quests);
   globalThis.FocusExpedition?.render(s);
+  globalThis.FocusCitadel?.render(s);
   maybeDailyOpening();
 }
 
@@ -135,7 +136,7 @@ function noteOpeningArrival() {
   maybeDailyOpening();
 }
 async function maybeDailyOpening() {
-  if(!state || document.hidden || openingBusy || document.querySelector('dialog[open]'))return;
+  if(!state || document.hidden || openingBusy || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen())return;
   if(openingReady){
     const ready=openingReady;openingReady=null;
     if(ready.day===localDay()){showOpening(ready);return;}
@@ -389,6 +390,7 @@ function renderAchievements() {
 function switchView(view) {
   if(!viewNames[view])return;
   globalThis.FocusQuickSkins?.close(false);
+  globalThis.FocusCitadel?.close(false);
   if(view!=='today'){stopScenePreview();globalThis.FocusExpedition?.leave();}
   currentView=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
@@ -492,7 +494,7 @@ function celebrationFor(event,preview=false) {
 function playNextCelebration() {
   if(openingBusy || openingReady)return;
   if(state?.settings.motion===false){celebrationQueue=[];return;}
-  if(!celebrationQueue.length || document.querySelector('dialog[open]'))return;
+  if(!celebrationQueue.length || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen())return;
   showCelebration(celebrationQueue.shift());
 }
 function showCelebration({title,body,reward,preview=false,stage=4,subject=null}) {
@@ -514,7 +516,7 @@ function playChime() {
   try{ensureAudio();if(!audioContext)return;[523.25,659.25,783.99].forEach((hz,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.10;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.035,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.55);osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.6);});}catch(_){}
 }
 
-function chooseDate(value) { stopScenePreview();globalThis.FocusExpedition?.leave();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
+function chooseDate(value) { globalThis.FocusCitadel?.close(false);stopScenePreview();globalThis.FocusExpedition?.leave();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
 async function browseWeek(date) {
   const request=++weekChartRequest;
   weekChartLoading=true;renderWeek();
@@ -581,4 +583,5 @@ function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-C
 globalThis.FocusQuickSkins?.init({api,toast,refresh});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
+globalThis.FocusCitadel?.init({getState:()=>state,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);

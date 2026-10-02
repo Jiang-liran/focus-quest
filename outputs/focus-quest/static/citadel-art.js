@@ -1,0 +1,219 @@
+(function (root, factory) {
+  const api = factory(root, typeof module === 'object' && module.exports ? require('./shop-art.js') : null,
+    typeof module === 'object' && module.exports ? require('./quest-art.js') : null);
+  if (typeof module === 'object' && module.exports) module.exports = api;
+  else root.FocusCitadelArt = api;
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeShop, nodeQuest) {
+  'use strict';
+
+  const places = [
+    {id:'observatory',name:'天穹观测台',x:510,y:178,threshold:.75,rx:113,ry:137,labelY:78},
+    {id:'workshop',name:'流光工坊',x:282,y:326,threshold:.25,rx:124,ry:144,labelY:81},
+    {id:'archive',name:'星页书库',x:882,y:337,threshold:.5,rx:138,ry:144,labelY:84},
+    {id:'core',name:'圣物广场',x:597,y:409,threshold:0,rx:207,ry:143,labelY:104},
+    {id:'dock',name:'启程码头',x:308,y:565,threshold:0,rx:147,ry:108,labelY:81},
+    {id:'gate',name:'远征之门',x:924,y:562,threshold:1,rx:118,ry:144,labelY:87},
+  ];
+  const palettes = {
+    default:{sky:'#141c31',haze:'#5d618f',top:'#666783',edge:'#a0a0bd',rock:'#303750',wall:'#c2bdd6',shade:'#8988a6',roof:'#8f81b7',roofShade:'#625e87',trim:'#ded0b3',leaf:'#8baaaa',water:'#729bad',light:'#eadac0'},
+    forest:{sky:'#152830',haze:'#537d78',top:'#607c74',edge:'#9dbca0',rock:'#2c454b',wall:'#c3d3bc',shade:'#809a8b',roof:'#7caa93',roofShade:'#4f7e75',trim:'#dfd3a9',leaf:'#93bb90',water:'#7eb8ab',light:'#e4dfb6'},
+    ocean:{sky:'#15283d',haze:'#538ca5',top:'#648999',edge:'#a0cad1',rock:'#294258',wall:'#c9dee0',shade:'#85aab8',roof:'#7eaccc',roofShade:'#567f9f',trim:'#e2d9b7',leaf:'#7bb4b4',water:'#99d8db',light:'#e3e6c3'},
+    sakura:{sky:'#2b203a',haze:'#95728f',top:'#877789',edge:'#d3aebc',rock:'#4b3b54',wall:'#e3cbd4',shade:'#b095ad',roof:'#c091b1',roofShade:'#946b93',trim:'#f0d3b8',leaf:'#e1b5cb',water:'#a8bbca',light:'#f3dcc2'},
+    aurora:{sky:'#14243a',haze:'#649b9e',top:'#64748e',edge:'#a5bccd',rock:'#303c5b',wall:'#c4cee3',shade:'#8595b3',roof:'#8eacd2',roofShade:'#5d789f',trim:'#d7d7c1',leaf:'#9bc9bc',water:'#a1d7d3',light:'#e3e6cf'},
+  };
+  const variants={theme:['default','forest','ocean','sakura','aurora'],fx:['default','fireflies','petals','snow','meteor','nebula'],avatar:['default','ranger','voyager','alchemist','star','royal'],companion:['default','fox','owl','whale','dragon'],relic:['default','lotus','orrery','hourglass'],portal:['default','moon','archive','cosmos']};
+  const finite=value=>typeof value==='number'&&Number.isFinite(value);
+  const clamp=value=>Math.max(0,Math.min(1,value));
+  const n=value=>String(Math.round(value*1000)/1000);
+  const star=(x,y,r,color,extra='')=>`<path ${extra} d="M${x} ${y-r}l${n(r*.27)} ${n(r*.73)} ${n(r*.73)} ${n(r*.27)}-${n(r*.73)} ${n(r*.27)}-${n(r*.27)} ${n(r*.73)}-${n(r*.27)}-${n(r*.73)}-${n(r*.73)}-${n(r*.27)} ${n(r*.73)}-${n(r*.27)}Z" fill="${color}"/>`;
+  const strip=svg=>svg.replace(/^<svg\b[^>]*>/,'').replace(/<\/svg>$/,'');
+
+  function normalize(model,equipment,options) {
+    model=model&&typeof model==='object'?model:{};
+    equipment=equipment&&typeof equipment==='object'?equipment:{};
+    options=options&&typeof options==='object'?options:{};
+    const progress=clamp(finite(model.progress)?model.progress:finite(model.percent)?model.percent/100:0);
+    const equipped={};
+    for(const [slot,names] of Object.entries(variants))equipped[slot]=names.some(name=>equipment[slot]===`${slot}-${name}`)?equipment[slot]:`${slot}-default`;
+    const ids=places.map(place=>place.id);
+    return {progress,equipped,interactive:options.interactive!==false,selected:ids.includes(options.selected)?options.selected:null,
+      pulse:options.pulse===true?'core':ids.includes(options.pulse)?options.pulse:null,theme:equipped.theme.slice(6)};
+  }
+
+  function tree(x,y,scale,p,theme) {
+    let crown;
+    if(theme==='sakura')crown=`<path d="M0-12-13-29M0-21l12-16" stroke="#8f788b" stroke-width="3"/><g fill="${p.leaf}"><circle cx="-13" cy="-31" r="13"/><circle cy="-43" r="17"/><circle cx="14" cy="-36" r="13"/></g><g fill="#f1d0d8"><circle cx="-9" cy="-42" r="4"/><circle cx="11" cy="-34" r="3"/><circle cx="-14" cy="-26" r="2"/></g>`;
+    else if(theme==='ocean')crown=`<path d="M0-10-9-34M0-18l14-22M-7-30l-13-3m14 0 5-15m12 10 10-2m-12 4 1-14" fill="none" stroke="${p.leaf}" stroke-width="5" stroke-linecap="round"/><circle cx="0" cy="-22" r="6" fill="#bed8c4" opacity=".7"/>`;
+    else crown=`<path d="M0-54-16-27H16ZM0-40-23-7H23Z" fill="${p.leaf}"/><path d="M0-53V-8H-21Z" fill="#eef1d1" opacity=".13"/>`;
+    return `<g class="citadel-tree" transform="translate(${x} ${y}) scale(${scale})"><ellipse cy="5" rx="20" ry="6" fill="#101d2c" opacity=".24"/><path d="M0 5v-35" stroke="#877a84" stroke-width="4" stroke-linecap="round"/>${crown}</g>`;
+  }
+
+  function lamp(x,y,power,p) {
+    return `<g class="citadel-lamp" transform="translate(${x} ${y})"><ellipse cy="5" rx="8" ry="3" fill="#28354c"/><path d="M0 4v-27m-6 1h12" fill="none" stroke="${p.trim}" stroke-width="2"/><path d="m-5-35 5-5 5 5v10H-5Z" fill="#67758a" stroke="${p.trim}" stroke-width="1"/><path class="citadel-lamp-light" d="M-3-34h6v7H-3Z" fill="${p.light}" opacity="${n(.14+power*.86)}"/><circle class="citadel-light-halo" cy="-30" r="11" fill="${p.light}" opacity="${n(power*.08)}"/></g>`;
+  }
+
+  function foundation(rx,depth,p,power,theme) {
+    const top=`M${-rx} 3 ${n(-rx*.56)}-27 ${n(rx*.22)}-37 ${rx} 1 ${n(rx*.68)} 36 ${n(-rx*.05)} 58 ${n(-rx*.69)} 32Z`;
+    const vines=theme==='forest'?`<g fill="none" stroke="${p.leaf}" stroke-width="2" opacity=".7"><path d="M${-rx*.65} 31q-5 31 9 46t-7 26M${rx*.57} 39q15 29 1 39M${rx*.18} 56q-7 23 2 41"/></g>`:'';
+    const waterfall=theme==='ocean'?`<g class="citadel-waterfall" opacity=".45"><path d="M${rx*.36} 44q-4 31 4 ${depth*.7}" fill="none" stroke="${p.water}" stroke-width="12"/><path d="M${rx*.36-3} 44q-3 31 4 ${depth*.7}" fill="none" stroke="#d8eeea" stroke-width="2"/><ellipse cx="${rx*.36+4}" cy="${44+depth*.7}" rx="16" ry="4" fill="${p.water}" opacity=".3"/></g>`:'';
+    return `<ellipse cy="${depth+20}" rx="${n(rx*.72)}" ry="13" fill="#0b1529" opacity=".2"/><path d="M${-rx} 3 ${n(-rx*.65)} ${n(depth*.68)} ${n(-rx*.14)} ${depth} ${n(rx*.21)} ${n(depth*1.13)} ${n(rx*.58)} ${n(depth*.69)} ${rx} 1 ${n(rx*.22)}-28Z" fill="${p.rock}"/><path d="M${-rx} 3 ${n(-rx*.09)} 53 ${n(rx*.21)} ${n(depth*1.13)} ${n(-rx*.14)} ${depth} ${n(-rx*.65)} ${n(depth*.68)}Z" fill="#171e36" opacity=".45"/><path d="M${n(rx*.15)} 52 ${n(rx*.58)} ${n(depth*.69)} ${n(rx*.21)} ${n(depth*1.13)}Z" fill="${p.edge}" opacity=".12"/><path d="${top}" fill="${p.top}"/><path d="M${-rx+5} 6 ${n(-rx*.69)} 32 ${n(-rx*.05)} 58 ${n(rx*.68)} 36 ${rx-5} 5" fill="none" stroke="${p.edge}" stroke-width="3" opacity=".65"/><path d="M${-rx+10} 7 ${n(-rx*.66)} 27 ${n(-rx*.05)} 52 ${n(rx*.65)} 31 ${rx-12} 6" class="citadel-edge-current" pathLength="100" fill="none" stroke="${p.light}" stroke-width="1.5" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-power))}" opacity="${n(.12+power*.5)}"/>${vines}${waterfall}`;
+  }
+
+  function bridge(x1,y1,x2,y2,p,power,width=25) {
+    const length=Math.hypot(x2-x1,y2-y1),angle=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
+    const steps=Array.from({length:Math.floor(length/10)},(_,i)=>`<path d="M${n(i*10+5)} ${-width/2}v${width}" stroke="${p.trim}" stroke-width="1" opacity=".3"/>`).join('');
+    return `<g class="citadel-bridge" transform="translate(${x1} ${y1}) rotate(${n(angle)})"><path d="M0 9q${n(length/2)} 30 ${n(length)} 0" fill="none" stroke="#152239" stroke-width="${width*.75}" opacity=".45"/><path d="M0 ${-width/2}h${n(length)}v${width}H0Z" fill="${p.shade}"/>${steps}<path d="M0 ${-width/2-4}h${n(length)}M0 ${width/2+4}h${n(length)}" fill="none" stroke="${p.edge}" stroke-width="2"/><path class="citadel-bridge-current" d="M0 0h${n(length)}" pathLength="100" fill="none" stroke="${p.light}" stroke-width="1.5" stroke-dasharray="1 10" opacity="${n(.1+power*.65)}"/></g>`;
+  }
+
+  function windows(points,p,power) {
+    return points.map(([x,y])=>`<path d="M${x} ${y}v-14q5-9 10-1v15Z" fill="#37455f"/><path d="M${x+2} ${y-2}v-11q3-5 6 0v11Z" fill="${p.light}" opacity="${n(.1+.85*power)}"/>`).join('');
+  }
+
+  function roofMark(x,y,p,theme) {
+    if(theme==='forest')return `<path d="M${x-6} ${y+6}q-3-17 12-18 4 12-12 18Z" fill="${p.trim}"/><path d="m${x-5} ${y+5} 7-11" stroke="${p.roofShade}" stroke-width="1"/>`;
+    if(theme==='ocean')return `<path d="M${x-11} ${y}q1-16 11-15 12 0 12 15l-11 8Z" fill="${p.trim}"/><path d="M${x} ${y+5}v-17m-3 17-5-14m11 14 5-14" stroke="${p.roofShade}" stroke-width="1"/>`;
+    if(theme==='sakura')return `<g fill="${p.trim}">${[[0,-7],[7,-2],[4,6],[-5,6],[-7,-2]].map(([dx,dy])=>`<ellipse cx="${x+dx}" cy="${y+dy}" rx="4" ry="6"/>`).join('')}<circle cx="${x}" cy="${y}" r="3" fill="${p.roofShade}"/></g>`;
+    if(theme==='aurora')return `${star(x,y,12,p.trim)}<circle cx="${x}" cy="${y}" r="17" fill="none" stroke="${p.trim}" stroke-width="1" opacity=".65"/>`;
+    return `${star(x,y,8,p.trim)}<path d="M${x-14} ${y+12}h28" stroke="${p.trim}" stroke-width="1"/>`;
+  }
+
+  function workshop(p,power,theme) {
+    return `<path d="m-88 5 58-23 96 12-52 35Z" fill="${p.trim}" opacity=".28"/>
+      <path d="M-74-61-19-86 37-65v71L-15 29-74 8Z" fill="${p.wall}"/><path d="M-15-38 37-65v71L-15 29Z" fill="${p.shade}"/>
+      <path d="m-86-60 65-57 71 49-65 32Z" fill="${p.roof}"/><path d="m-21-117 6 81 65-32Z" fill="${p.roofShade}"/>
+      <path d="M-86-60-15-36 50-68v8L-15-28-86-52Z" fill="${p.trim}"/>${roofMark(-30,-68,p,theme)}
+      ${windows([[-62,-17],[-37,-8],[0,-9]],p,power)}<path d="M-28 23V-2q10-18 20-1v29Z" fill="#39465b"/>
+      <path d="M46-88 69-99 88-92v87L67 7 46-3Z" fill="${p.shade}"/><path d="m41-91 28-14 25 11-25 14Z" fill="${p.trim}"/><path d="M54-88 68-94v10l-14 6Z" fill="${p.roofShade}" opacity=".35"/>
+      <g class="citadel-chimney-haze" fill="${p.edge}" opacity="${n(.06+power*.12)}"><circle cx="68" cy="-119" r="8"/><circle cx="75" cy="-139" r="11"/><circle cx="89" cy="-158" r="14"/></g>
+      <g transform="translate(70 -36)"><g class="citadel-gear"><path d="m-5-22 10 0 2 8 6 4 8-2 5 9-6 6v6l6 6-5 9-8-2-6 4-2 8H-5l-2-8-6-4-8 2-5-9 6-6V3l-6-6 5-9 8 2 6-4Z" fill="${p.trim}" transform="scale(.65) translate(0 -7)"/><circle r="9" fill="${p.roofShade}"/><circle r="4" fill="${p.water}"/></g></g>
+      <path d="M-94 12v-24h21v24m-18-12h16" fill="${p.shade}" stroke="${p.edge}" stroke-width="2"/><path d="M45 20h38v-9H45Z" fill="${p.roofShade}"/><path d="M45 11h38l-12-8H33Z" fill="${p.trim}"/><path d="M52 17v13m25-13v13" stroke="${p.trim}" stroke-width="2"/>
+      ${lamp(-91,-1,power,p)}${tree(103,5,.62,p,theme)}`;
+  }
+
+  function archive(p,power,theme) {
+    return `<path d="m-106 6 91-38 101 28-87 42Z" fill="${p.trim}" opacity=".3"/><path d="m-98 18 96 35 90-40v8L-2 62-98 28Z" fill="${p.edge}"/><path d="m-91 27 89 33 83-38v7L-2 68-91 35Z" fill="${p.shade}"/>
+      <path d="M-80-59-5-88 72-60V8L-3 39-80 10Z" fill="${p.wall}"/><path d="M-3-31 72-60V8L-3 39Z" fill="${p.shade}"/>
+      <path d="m-94-60 88-62 92 59-88 34Z" fill="${p.roof}"/><path d="m-6-122 4 93 88-34Z" fill="${p.roofShade}"/><path d="M-94-60-2-29 86-63v8L-2-21-94-52Z" fill="${p.trim}"/>
+      <g fill="${p.trim}"><path d="M-69-40v52l9 3v-52Zm28 10v52l9 3v-52Zm52 1v53l9-4v-53Zm30-12v53l9-4v-53Z"/></g>
+      ${windows([[-55,-8],[24,-10],[53,-22]],p,power)}<path d="M-23 31V0q16-27 30-6v35Z" fill="#344259"/><path d="M-18 28V1q11-18 20-5v30Z" fill="${p.light}" opacity="${n(.07+power*.37)}"/><path d="M-8-2v31" stroke="${p.trim}" stroke-width="1.3"/>
+      <path d="M-34-91q15-11 32-5 17-13 36-7v27q-19-7-36 7-17-6-32 5Z" fill="${p.trim}"/><path d="M-2-96v27m-23-20 16-3m-16 11 16-3m15-6 19-7m-19 15 19-7" stroke="${p.roofShade}" stroke-width="2"/>
+      <g transform="translate(-104 -10)"><path d="M-7 12V-14H8v26Z" fill="${p.roofShade}"/><path d="M-15-14H16v8H-15Z" fill="${p.trim}"/><path d="M-12-32q10-6 18 0v16q-10-6-18 0Zm18 0q8-6 17 0v16q-10-6-17 0Z" fill="${p.wall}"/><path d="M6-32v17" stroke="${p.shade}"/></g>
+      ${lamp(104,4,power,p)}${tree(109,-34,.68,p,theme)}`;
+  }
+
+  function observatory(p,power,theme) {
+    return `<ellipse cy="5" rx="76" ry="28" fill="${p.trim}" opacity=".28"/><path d="m-64 4 61-30 66 24L4 33Z" fill="${p.edge}"/><path d="m-64 4v11L4 43 63 12V-2L4 33Z" fill="${p.shade}"/>
+      <path d="M-46-49-3-72 43-51V1L0 21-46 3Z" fill="${p.wall}"/><path d="M0-29 43-51V1L0 21Z" fill="${p.shade}"/>
+      <path d="M-58-48q-1-53 54-66 56 12 60 60L0-28Z" fill="${p.roof}"/><path d="M-4-114q-12 48 4 86l56-26q-4-48-60-60Z" fill="${p.roofShade}"/><path d="M-4-114Q22-91 28-42" fill="none" stroke="${p.edge}" stroke-width="2"/>
+      <path d="M-60-47 0-24 58-53v7L0-17-60-40Z" fill="${p.trim}"/>
+      <path d="m14-83 33-27 9 11-33 28Z" fill="${p.trim}"/><path d="m45-114 13-7 12 18-12 9Z" fill="${p.edge}"/><ellipse cx="63" cy="-113" rx="6" ry="10" fill="#34495e" transform="rotate(-36 63 -113)"/>
+      ${windows([[-36,-12],[11,-12]],p,power)}<path d="M-11 18V-3q10-15 20-1v22Z" fill="#3e4b62"/>
+      <g transform="translate(-76 -42)"><path d="M0 14v27m-12 2h24" stroke="${p.trim}" stroke-width="3"/><g class="citadel-orrery"><ellipse rx="23" ry="9" fill="none" stroke="${p.trim}" stroke-width="1.5" transform="rotate(-32)"/><ellipse rx="11" ry="23" fill="none" stroke="${p.water}" stroke-width="1.5" transform="rotate(24)"/><circle cx="-19" cy="10" r="3" fill="${p.light}"/></g><circle r="6" fill="${p.light}" opacity="${n(.3+power*.7)}"/></g>
+      ${lamp(79,8,power,p)}${roofMark(0,-141,p,theme)}`;
+  }
+
+  function dock(p,power,theme) {
+    return `<path d="m-115 11 141-42 93 29-139 47Z" fill="${p.shade}"/><path d="m-115 11 95 34 139-47v9L-20 55-115 20Z" fill="${p.roofShade}"/><g stroke="${p.trim}" stroke-width="1" opacity=".45">${Array.from({length:11},(_,i)=>`<path d="m${-103+i*12} ${14-i*3.6} 92 33"/>`).join('')}</g><path d="m-105 9 85 29 130-42" fill="none" stroke="${p.edge}" stroke-width="3"/>
+      <g transform="translate(-7 -13)"><path d="M-29-21 0-32 34-22V7L1 20-29 10Z" fill="${p.wall}"/><path d="M1-8 34-22V7L1 20Z" fill="${p.shade}"/><path d="m-38-23 36-29 45 28L1-7Z" fill="${p.roof}"/><path d="m-2-52 3 45 42-17Z" fill="${p.roofShade}"/><path d="M-14 13V-6q6-11 13-1v23Z" fill="#3b4d64"/>${windows([[10,3]],p,power)}</g>
+      <path d="M-91-2v-49m0 4 29 8-29 7Z" fill="${p.trim}" stroke="${p.trim}" stroke-width="2"/><path d="M72 3v-43m0 3h26v18H72Z" fill="${p.roofShade}" stroke="${p.edge}" stroke-width="1.5"/>${star(85,-27,4,p.trim)}
+      <g transform="translate(-107 -31)"><g class="citadel-boat"><path d="M-42 6h79L17 28H-20Z" fill="${p.trim}"/><path d="M-39 8h75L22 17H-25Z" fill="${p.roofShade}"/><path d="M-3 6v-69" stroke="${p.edge}" stroke-width="3"/><path d="M-7-60-40 0H-7ZM2-48 29 0H2Z" fill="${p.wall}"/><path d="m-7-60 0 60-33 0Z" fill="${p.water}" opacity=".7"/><path d="M-25 34q25 9 51 0" fill="none" stroke="${p.water}" opacity=".5"/></g></g>
+      <path d="m63 23 19-8 18 7-19 9Z" fill="${p.trim}"/><path d="M63 23v13l18 9V31Zm18 8 19-9v14l-19 9Z" fill="${p.shade}"/>
+      ${lamp(46,25,power,p)}${lamp(-49,34,power,p)}`;
+  }
+
+  function previewArt(itemId,x,y,scale,slot) {
+    const shop=nodeShop||root.ShopArt;
+    const svg=shop&&typeof shop.preview==='function'?shop.preview(itemId):'';
+    if(!svg)return `<g data-skin-slots="${slot}" data-citadel-equipment="${itemId}" transform="translate(${x} ${y})">${star(0,-35,19,'#c9b9e8')}<ellipse rx="25" ry="7" fill="#b5a5ce"/></g>`;
+    const geometry=slot==='relic'?`<g class="citadel-relic-size">${strip(svg)}</g>`:strip(svg);
+    return `<g data-skin-slots="${slot}" data-citadel-equipment="${itemId}" class="citadel-equipped-art citadel-equipped-${slot}" transform="translate(${n(x-80*scale)} ${n(y-92*scale)}) scale(${scale})">${geometry}</g>`;
+  }
+
+  function player(equipment,p) {
+    const quest=nodeQuest||root.QuestArt;
+    const avatar=quest&&typeof quest.avatar==='function'?strip(quest.avatar('player',equipment.avatar)):`<path d="M19 62 32 27 45 62Z" fill="${p.roof}"/><circle cx="32" cy="26" r="9" fill="#e0c4ae"/>`;
+    return `<g data-skin-slots="avatar" data-citadel-equipment="${equipment.avatar}" class="citadel-player" transform="translate(-104 0) scale(.61)"><ellipse cx="32" cy="69" rx="18" ry="5" fill="#15283e" opacity=".28"/>${avatar}</g>`;
+  }
+
+  function core(p,power,theme,equipment) {
+    const companion=equipment.companion==='companion-default'?'':previewArt(equipment.companion,105,54,.62,'companion');
+    return `<path class="citadel-canal-bed" d="M-166-3q27 28 69 15t69 22 71-6 67-6 44-21" fill="none" stroke="#30475f" stroke-width="17"/>
+      <path class="citadel-canal" d="M-166-3q27 28 69 15t69 22 71-6 67-6 44-21" pathLength="100" fill="none" stroke="${p.water}" stroke-width="10" opacity=".75"/><path class="citadel-water-current" d="M-166-3q27 28 69 15t69 22 71-6 67-6 44-21" pathLength="100" fill="none" stroke="${p.light}" stroke-width="1.3" stroke-dasharray="2 13" opacity=".52"/>
+      <path d="m-26 23 38-11 36 12-40 14Z" fill="${p.trim}"/><path d="M-25 24 8 36 47 25M-25 18 8 30 47 19" fill="none" stroke="${p.edge}" stroke-width="2"/>
+      <g class="citadel-plaza-rings"><ellipse cy="-16" rx="83" ry="38" fill="${p.roofShade}"/><ellipse cy="-23" rx="81" ry="37" fill="${p.edge}"/><ellipse cy="-24" rx="69" ry="30" fill="${p.top}"/><ellipse cy="-25" rx="58" ry="23" fill="none" stroke="${p.trim}" stroke-width="1.5"/><path d="M-59-26H59M0-48V-2" stroke="${p.trim}" stroke-width="1" opacity=".4"/><ellipse cy="-24" rx="74" ry="33" class="citadel-plaza-charge" pathLength="100" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-power))}" opacity="${n(.2+power*.6)}"/></g>
+      <g class="citadel-relic-power" style="--citadel-relic-glow:${n(.08+power*.62)};--citadel-relic-scale:${n(.88+power*.12)}"><ellipse cy="-34" rx="55" ry="23" fill="${p.light}" opacity="${n(.025+power*.07)}"/>${previewArt(equipment.relic,0,-26,1.05,'relic')}</g>
+      <g class="citadel-garden"><path d="m-155-25 50-17 29 12-47 20Z" fill="${p.roofShade}"/><path d="m-152-29 47-17 29 12-47 20Z" fill="${p.leaf}" opacity=".6"/>${tree(-135,-28,.67,p,theme)}${tree(-97,-31,.55,p,theme)}<path d="m114-32 40 4 23 21-35 8-39-18Z" fill="${p.leaf}" opacity=".35"/>${tree(137,-32,.88,p,theme)}${tree(169,-8,.47,p,theme)}</g>
+      <g transform="translate(-137 24)"><path d="M-18-9 12-18 30-11 1 0Z" fill="${p.trim}"/><path d="M-18-9v9L1 9V0m0 0 29-11v9L1 9" fill="${p.shade}"/><path d="M-12 3v12m35-17v12" stroke="${p.trim}" stroke-width="3"/></g>
+      <g transform="translate(90 -31)"><path d="M-16 0h34v-31h-34Z" fill="${p.wall}"/><path d="m-24-32 26-20 24 20Z" fill="${p.roof}"/><path d="M-24-32h50v7h-50Z" fill="${p.trim}"/><path d="M-9-23H9v17H-9Z" fill="#40526a"/><path d="M-6-18H7m-13 6H4" stroke="${p.light}" stroke-width="1.2"/></g>
+      ${lamp(-53,49,power,p)}${lamp(64,35,power,p)}${lamp(-71,-27,power,p)}${player(equipment,p)}${companion}
+      <g fill="${p.light}" opacity="${n(.18+power*.46)}">${[-30,0,30].map((x,i)=>star(x,74-i%2*5,3,p.light)).join('')}</g>`;
+  }
+
+  function gate(p,power,theme,equipment) {
+    const portal=equipment.portal==='portal-default'?`<g data-skin-slots="portal" data-citadel-equipment="portal-default"><path d="M-38 13v-78q38-36 76 0v78Z" fill="#25354c"/><path d="M-30 10v-70q30-27 60 0v70Z" fill="${p.water}" opacity="${n(.055+power*.11)}"/><path d="M-28-35H28M-28-20H28M-28-5H28M-14-55V10M0-60V10M14-55V10" stroke="${p.edge}" stroke-width="1" opacity="${n(.5*(1-power))}"/>${star(0,-30,15,p.light,`class="citadel-gate-star" opacity="${n(power)}"`)}</g>`:previewArt(equipment.portal,0,20,1.12,'portal');
+    return `<path d="m-67 21 59-29 69 24-60 29Z" fill="${p.edge}"/><path d="m-67 21v10l68 25 60-29V16L1 45Z" fill="${p.shade}"/>
+      <path d="M-53 17V-72q52-58 106 0v89" fill="none" stroke="${p.wall}" stroke-width="14"/><path d="M-55 11V-74q55-56 110 0V9" fill="none" stroke="${p.trim}" stroke-width="3"/>
+      <path d="M-66-6h26v12h-26Zm106 0h26v12H40ZM-62-50h18v8h-18Zm106 0h18v8H44Z" fill="${p.roofShade}"/>
+      ${portal}${roofMark(0,-103,p,theme)}<path d="M-79 5v-58M79 5v-58" fill="none" stroke="${p.trim}" stroke-width="2"/><path d="m-79-52 22 6-22 9Zm158 0 22 6-22 9Z" fill="${p.roof}"/>
+      ${lamp(-82,28,power,p)}${lamp(83,28,power,p)}`;
+  }
+
+  function interactionEffect(place,p) {
+    let geometry='';
+    if(place.id==='dock')geometry=`<path class="citadel-launch-trail" d="M37-17q32-14 59-42" pathLength="100" fill="none" stroke="${p.light}" stroke-width="1.4" stroke-dasharray="2 7"/><g transform="translate(39 -24)"><g class="citadel-paperboat-launch"><path d="m-14 1 13-5 19 7-12 7H-6Z" fill="${p.trim}"/><path d="M-1-4V-23L-14 1Zm3 0 13 4L2-16Z" fill="${p.wall}"/><path d="m-1-23 0 19-13 5Z" fill="${p.water}"/><path d="M-8 15h14" stroke="${p.light}" stroke-width="1" opacity=".55"/></g></g>`;
+    if(place.id==='core')geometry=`<g class="citadel-core-waves" fill="none" stroke="${p.light}" stroke-width="1.5"><ellipse class="citadel-core-wave" cy="-24" rx="73" ry="31"/><ellipse class="citadel-core-wave citadel-wave-second" cy="-24" rx="73" ry="31"/></g>${[-41,-13,23,43].map((x,i)=>star(x,-97-i%2*21,3,p.light,`class="citadel-crystal-mote" style="--citadel-pulse-delay:${i*.13}s"`)).join('')}`;
+    if(place.id==='workshop')geometry=`<g fill="none" stroke="${p.light}" stroke-width="1.6"><path class="citadel-workshop-circuit" d="M-94 3h-13v-24h14m139 40h19v-11h29v-24M-55 26h18l10-6" pathLength="100"/><circle class="citadel-circuit-node" cx="-107" cy="-21" r="3"/><circle class="citadel-circuit-node" cx="94" cy="-16" r="3"/><circle class="citadel-circuit-node" cx="-27" cy="20" r="3"/></g><g transform="translate(70 -36)"><circle class="citadel-workshop-ring" r="26" fill="none" stroke="${p.water}" stroke-width="1" stroke-dasharray="4 6"/></g>`;
+    if(place.id==='archive')geometry=`<g transform="translate(0 -118)"><g class="citadel-open-pages"><path d="M-25 1q12-11 25-4 13-13 26-8v25q-15-3-26 8-13-6-25 3Z" fill="${p.trim}"/><path d="M0-3v25m-17-17 11-4m-11 10 11-3m13-4 12-6m-12 13 12-6" fill="none" stroke="${p.roofShade}" stroke-width="1.4"/></g></g><g class="citadel-page-words" fill="${p.light}" font-family="serif" font-size="12" text-anchor="middle"><text class="citadel-page-word" x="-44" y="-127">知</text><text class="citadel-page-word" x="45" y="-151" style="--citadel-pulse-delay:.16s">✧</text><text class="citadel-page-word" x="20" y="-166" style="--citadel-pulse-delay:.28s">阅</text></g>`;
+    if(place.id==='observatory')geometry=`<g transform="translate(-1 -76)"><g class="citadel-unfold-orbits" fill="none" stroke="${p.light}" stroke-width="1.2"><ellipse rx="76" ry="31" transform="rotate(-24)"/><ellipse rx="48" ry="72" transform="rotate(37)"/><path d="m-72 5 27-42 52-17 57 32" stroke-dasharray="2 6"/><g fill="${p.light}" stroke="none"><circle cx="-69" cy="17" r="3"/><circle cx="40" cy="-41" r="3"/><circle cx="62" cy="-27" r="2"/></g></g></g>${star(-70,-116,4,p.light,'class="citadel-orbit-star"')}${star(56,-137,3,p.light,'class="citadel-orbit-star"')}`;
+    if(place.id==='gate')geometry=`<g transform="translate(0 -36)"><g class="citadel-gate-waves" fill="none" stroke="${p.light}" stroke-width="1.5"><ellipse class="citadel-gate-ring" rx="35" ry="48"/><ellipse class="citadel-gate-ring citadel-ring-second" rx="35" ry="48"/></g><g class="citadel-gate-motes" fill="${p.light}">${[[-22,31],[-4,20],[18,34],[-13,-8],[18,-24],[1,-41]].map(([x,y],i)=>`<circle class="citadel-gate-mote" cx="${x}" cy="${y}" r="${i%2?2:2.6}" style="--citadel-pulse-delay:${i*.12}s"/>`).join('')}</g></g>`;
+    return `<g class="citadel-interaction" data-citadel-effect="${place.id}" opacity="0" pointer-events="none" aria-hidden="true">${geometry}</g>`;
+  }
+
+  function scenePlace(place,state,p) {
+    const power=place.threshold===0?.25+state.progress*.75:clamp((state.progress-place.threshold+.25)/.25);
+    const unlocked=state.progress>=place.threshold;
+    const geometry=place.id==='core'?core(p,power,state.theme,state.equipped):place.id==='gate'?gate(p,power,state.theme,state.equipped):({dock,workshop,archive,observatory})[place.id](p,power,state.theme);
+    const rx=place.id==='core'?194:place.id==='dock'?133:place.id==='archive'?128:place.id==='workshop'?116:104;
+    const depth=place.id==='core'?146:place.id==='dock'?88:98;
+    const title=`${place.name} · ${unlocked?'已开放':`每日进度 ${place.threshold*100}% 开放`}`;
+    const interactive=state.interactive?' citadel-place-interactive':'';
+    const hit=place.id==='core'?[-5,105]:place.id==='gate'?[-7,116]:place.id==='dock'?[-8,108]:[-28,place.ry];
+    return `<g class="citadel-place${interactive}${state.selected===place.id?' is-selected':''}${state.pulse===place.id?' is-pulsing':''}" data-citadel-place="${place.id}" data-threshold="${place.threshold}" data-unlocked="${unlocked}" data-charge="${n(power)}"${state.interactive?` role="button" tabindex="0" aria-label="${title}" aria-pressed="${state.selected===place.id}"`:''} transform="translate(${place.x} ${place.y})"><title>${title}</title>${state.interactive?`<ellipse class="citadel-hit-area" cx="0" cy="${hit[0]}" rx="${place.rx}" ry="${hit[1]}" fill="transparent" stroke="none"/>`:''}
+      <g class="citadel-district-float">${foundation(rx,depth,p,power,state.theme)}<ellipse class="citadel-place-focus" cy="3" rx="${rx+5}" ry="54" fill="none" stroke="${p.light}" stroke-width="2" opacity="0"/>
+      <g class="citadel-buildings" style="opacity:${n(.35+power*.65)};filter:saturate(${n(.3+power*.7)})">${geometry}</g>${interactionEffect(place,p)}<g class="citadel-place-label" transform="translate(0 ${place.labelY})"><path d="M-48 4h-12m108 0h12" stroke="${p.edge}" stroke-width="1" opacity=".65"/><text x="0" y="7" text-anchor="middle" fill="${p.light}" font-size="12">${place.name}</text>${unlocked?star(0,19,2.5,p.light):`<path d="M-4 18v6h8v-6Zm1 0v-2q3-5 6 0v2" fill="none" stroke="${p.edge}" stroke-width="1"/>`}</g></g></g>`;
+  }
+
+  function atmosphere(state,p) {
+    const effect=state.equipped.fx.slice(3),coordinates=[[101,180],[193,101],[681,71],[789,155],[1091,175],[1051,450],[105,447],[139,629],[559,613],[724,642],[1078,643],[351,170],[757,401],[622,254]];
+    if(effect==='nebula')return `<g class="citadel-equipped-fx citadel-fx-nebula" data-skin-slots="fx" data-citadel-equipment="${state.equipped.fx}" opacity=".16"><ellipse cx="270" cy="240" rx="195" ry="32" fill="#c2a0de" transform="rotate(-25 270 240)"/><ellipse cx="819" cy="554" rx="244" ry="30" fill="#89c8d1" transform="rotate(-18 819 554)"/><ellipse cx="813" cy="108" rx="148" ry="21" fill="#b9a4dc" transform="rotate(-13 813 108)"/></g>`;
+    return `<g class="citadel-equipped-fx" data-skin-slots="fx" data-citadel-equipment="${state.equipped.fx}">${coordinates.map(([x,y],index)=>{
+      const extra=`class="citadel-fx-particle" data-effect="${effect}" style="--citadel-delay:-${index*.7}s"`;
+      if(effect==='fireflies')return `<g ${extra}><circle cx="${x}" cy="${y}" r="10" fill="#dde8ae" opacity=".07"/><circle cx="${x}" cy="${y}" r="2.5" fill="#dce5b3" opacity=".8"/></g>`;
+      if(effect==='petals')return `<path ${extra} d="m${x-4} ${y+2}q-2-12 8-10 8 9-8 10Z" fill="#e4bdcf" opacity=".65"/>`;
+      if(effect==='snow')return `<g ${extra} transform="translate(${x} ${y})" fill="none" stroke="#d2e5e8" stroke-width="1" opacity=".55"><path d="M-5 0H5M0-5V5m-4-9 8 8m0-8-8 8"/></g>`;
+      if(effect==='meteor')return index%3?'':`<g ${extra}><path d="m${x} ${y} 52-26" stroke="#a7bcd4" stroke-width="2" opacity=".25"/><path d="m${x} ${y} 24-12" stroke="#d9dbe7" stroke-width="1.5" opacity=".65"/>${star(x,y,3,p.light)}</g>`;
+      return star(x,y,index%3===0?3:1.5,p.light,`${extra} opacity=".45"`);
+    }).join('')}</g>`;
+  }
+
+  function sky(state,p) {
+    let accents='';
+    if(state.theme==='forest')accents=`<g opacity=".18">${tree(102,334,1.2,p,'forest')}${tree(1115,360,1.5,p,'forest')}<path d="M63 486q59-51 62-146M1085 511q55-69 57-143" fill="none" stroke="${p.leaf}" stroke-width="2"/></g>`;
+    if(state.theme==='ocean')accents=`<g fill="none" stroke="${p.water}" opacity=".16"><path d="M72 385q58-20 117 0t117 0M726 660q100-22 218 0t192 0" stroke-width="2"/><circle cx="1102" cy="241" r="13"/><circle cx="1122" cy="212" r="6"/><circle cx="100" cy="393" r="9"/></g>`;
+    if(state.theme==='sakura')accents=`<g opacity=".23">${tree(100,311,1.4,p,'sakura')}${tree(1095,421,1.7,p,'sakura')}<path d="M212 70q-9-17 7-15 10 11-7 15Zm785 586q-7-17 7-13 10 11-7 13Z" fill="${p.leaf}"/></g>`;
+    if(state.theme==='aurora')accents=`<g class="citadel-aurora-curtain" fill="none" opacity=".16"><path d="M70 163Q332-38 564 88T1142 76" stroke="#85ceaf" stroke-width="24"/><path d="M62 185Q325-12 566 107t575-10" stroke="#c2a6dc" stroke-width="10"/><path d="M96 146Q340-23 558 82t519-8" stroke="#b6e2d4" stroke-width="3"/></g>`;
+    return `<g class="citadel-environment" data-skin-slots="theme fx" data-citadel-equipment="${state.equipped.theme}"><rect width="1200" height="720" rx="25" fill="${p.sky}" stroke="none"/><ellipse cx="588" cy="373" rx="503" ry="272" fill="${p.haze}" opacity=".06"/><ellipse cx="588" cy="373" rx="528" ry="291" fill="none" stroke="${p.edge}" stroke-width="1" stroke-dasharray="2 15" opacity=".1"/><path d="M66 638Q596 740 1142 597M83 197Q497-39 1093 146" fill="none" stroke="${p.edge}" opacity=".06"/>
+      <circle cx="1062" cy="93" r="39" fill="${p.light}" opacity=".035"/><circle cx="1062" cy="93" r="25" fill="${p.light}" opacity=".08"/><path d="M1076 73q-30 7-17 40-31-14-9-39 12-9 26-1Z" fill="${p.light}" opacity=".5"/>
+      <g class="citadel-distance-isles" opacity=".25"><path d="m74 542 39-19 47 17-33 14-16 45-22-43Z" fill="${p.rock}"/><path d="m74 542 39-19 47 17-42 16Z" fill="${p.top}"/><path d="m964 171 27-14 39 10-15 21-15 32-13-26Z" fill="${p.rock}"/><path d="m964 171 27-14 39 10-27 14Z" fill="${p.top}"/><path d="m695 197 27-13 40 10-18 16-16 30-13-28Z" fill="${p.top}"/></g>
+      <g class="citadel-clouds" fill="${p.edge}" opacity=".065"><path d="M89 243q21-34 43-18 12-36 40-15 30-8 47 35H89ZM737 118q17-29 44-13 11-28 33-17 24-7 39 30H737ZM886 662q19-29 41-15 14-31 39-12 23-4 42 28H886Z"/></g>${accents}
+      <g fill="none" stroke="${p.edge}" opacity=".32" stroke-width="1.3"><path d="M148 126q8-12 17 0m-4-1q7-10 15 0M738 292q6-10 13 0m-4-1q6-9 12 0M715 621q9-13 17 0m-4-1q7-10 15 0"/></g></g>`;
+  }
+
+  function scene(model,equipment,options={}) {
+    const state=normalize(model,equipment,options),p=palettes[state.theme];
+    const connections=bridge(530,218,559,379,p,state.progress,28)+bridge(375,338,445,399,p,state.progress,26)+bridge(767,352,737,398,p,state.progress,27)+bridge(400,554,484,446,p,state.progress,31)+bridge(830,556,730,445,p,state.progress,29);
+    return `<svg class="citadel-art" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" style="stroke:none" data-interactive="${state.interactive}" data-citadel-theme="${state.theme}" data-citadel-progress="${n(state.progress)}"${state.interactive?' role="group" aria-label="星辉城内部地图"':' aria-hidden="true" focusable="false"'}><title>星辉城：沿着光桥，探访专注建起的城。</title>${sky(state,p)}<g class="citadel-city-bridges">${connections}</g>${places.map(place=>scenePlace(place,state,p)).join('')}${atmosphere(state,p)}</svg>`;
+  }
+
+  return {scene};
+});
