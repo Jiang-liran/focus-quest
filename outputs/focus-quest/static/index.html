@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="/campfire.css">
   <link rel="stylesheet" href="/campfire-shop.css">
   <link rel="stylesheet" href="/quick-skins.css">
+<link rel="stylesheet" href="/expedition-art.css"/><link rel="stylesheet" href="/expedition.css"/>
 </head>
 <body>
   <svg class="svg-defs" aria-hidden="true"><defs>
@@ -57,9 +58,9 @@
     <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div class="level-emblem"><svg><use href="#i-star"/></svg></div><div><strong id="level">Lv. —</strong><span id="level-name">远征者</span><div class="mini-progress"><i id="level-bar"></i></div><small id="level-xp">正在读取经验…</small><button type="button" class="level-help" id="level-help" aria-controls="level-guide">等级说明 ↗</button></div></div></section>
 
     <div id="view-today" class="view">
-      <button class="quest-invitation" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>来自营地的委托</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
-      <section class="quest-hero" id="quest-hero" data-stage="0">
-        <div class="hero-top"><span class="section-kicker"><i></i>每日主线 · 穿越迷雾之境</span><div class="skin-actions"><button type="button" class="ghost-button" data-skin-open="theme fx avatar companion relic portal bar banner">快速换装</button><button class="ghost-button" id="preview-effects">✧ 预览成长动画</button></div></div>
+
+      <section class="quest-hero expedition-hero" id="quest-hero" data-stage="0">
+        <div class="hero-top"><span class="section-kicker"><i></i>每日主线 · 星海群岛</span><div class="skin-actions"><button type="button" class="ghost-button" id="expedition-immerse" aria-pressed="false">展开主舞台 ↗</button><button type="button" class="ghost-button" data-skin-open="theme fx avatar companion relic portal bar banner">快速换装</button><button class="ghost-button" id="preview-effects">✧ 预览成长动画</button></div></div>
         <div class="effects-preview" id="effects-preview" hidden>
           <div class="preview-heading"><strong>成长动画预览 <b id="preview-percent">0%</b></strong><button class="text-button" id="preview-stop">结束预览 ×</button></div>
           <input id="preview-progress" type="range" min="0" max="100" step="1" value="0" aria-label="预览每日进度"/>
@@ -69,6 +70,10 @@
         </div>
         <div class="hero-content">
           <div class="hero-copy"><span class="stage-tag" id="stage-tag">整装出发</span><h2 id="hero-heading">每一分钟，<br>都算数。</h2><p id="hero-message">今天的远征，从一小段专注开始。</p><div class="hero-numbers"><strong id="total-time">—</strong><span>/ <b id="total-target">8</b> 小时目标</span></div><div class="total-progress-label"><span id="remaining">正在读取学习记录</span><strong id="total-percent">—%</strong></div><div class="total-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="每日总进度" aria-valuemin="0" aria-valuemax="100"><i id="total-bar"></i></div></div>
+          <div class="expedition-canvas" id="expedition-canvas" aria-label="学习驱动的星海群岛">
+            <div class="expedition-world" id="expedition-world"></div>
+            <div class="expedition-map-heading"><span>THE ISLES OF YOUR EFFORT</span><strong id="expedition-map-title">雾中的群岛，正等待第一束光。</strong></div>
+            <div class="expedition-scene-state" id="expedition-scene-state" role="status" hidden></div>
           <div class="quest-scene" data-skin-slots="theme fx companion relic portal avatar" aria-hidden="true">
             <div class="scene-theme-backdrop" aria-hidden="true"></div>
             <div class="equipped-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -91,9 +96,34 @@
             </svg>
             <div class="scene-mist"></div><div class="scene-subjects" id="scene-subjects"></div><div class="scene-caption" id="scene-caption"><span>✦</span> 每一段专注，都让星岛更明亮。</div>
           </div>
+            <div id="expedition-map-note" class="expedition-map-note" role="status" hidden></div>
+            <div class="expedition-map-footer"><span id="expedition-map-caption">点击四座岛屿，看看今天的建设。</span><span id="expedition-world-count">四科共鸣 0 / 4</span></div>
+            <div class="expedition-arrival" id="expedition-arrival" role="status" aria-live="polite" hidden></div>
+          </div>
+            <div id="expedition-replay-controls" class="expedition-replay-controls" hidden>
+              <div><button type="button" id="expedition-play" aria-label="播放或暂停回放">暂停</button><button type="button" id="expedition-step" aria-label="回放下一幕">下一幕 →</button><span id="expedition-frame-number">0 / 0</span><button type="button" id="expedition-live">返回实时 ×</button></div>
+              <input type="range" id="expedition-scrub" min="0" max="1" step="1" value="0" aria-label="选择远征回放画面"/>
+              <p id="expedition-frame-copy" role="status"></p>
+            </div>
+          <div id="expedition-subjects" class="expedition-subjects" role="group" aria-label="探访四科岛屿"></div>
         </div>
-
+        <div class="expedition-deck">
+          <section class="expedition-inspector" aria-label="岛屿与沿途见闻">
+            <div class="expedition-inspector-kicker"><span id="expedition-detail-kicker">沿途见闻</span><button type="button" id="expedition-overview" class="text-button">返回群岛总览</button></div>
+            <h3 id="expedition-detail-title">启程的微光</h3><p id="expedition-detail-copy">今天的每段专注，都会在这里留下痕迹。</p>
+            <p id="expedition-next" class="expedition-next"></p>
+            <button type="button" id="expedition-discover-toggle" class="expedition-discover-toggle" aria-expanded="false" aria-controls="expedition-discoveries">打开见闻集 <span id="expedition-discovery-count">1 / 7</span> ↗</button>
+          </section>
+          <section class="expedition-log" aria-label="远征回放">
+            <div class="expedition-log-heading"><div><span>YOUR JOURNEY, FRAME BY FRAME</span><h3>把努力，再看一遍。</h3></div><button type="button" id="expedition-replay" class="secondary-button">回放这一天 ▷</button></div>
+            <p id="expedition-log-summary">每一段已完成的专注，都是一帧真实的旅程。</p>
+            <div id="expedition-trail" class="expedition-trail" role="group" aria-label="最近的学习航迹"></div>
+          </section>
+        </div>
+        <div id="expedition-discoveries" class="expedition-discoveries" aria-label="沿途见闻集" hidden></div>
       </section>
+
+      <button class="quest-invitation" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>来自营地的委托</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
 
       <section class="weekly-goal" aria-labelledby="weekly-goal-title">
         <div class="weekly-goal-heading"><span class="weekly-goal-icon"><svg><use href="#i-flag"/></svg></span><div><h2 id="weekly-goal-title">本周远征</h2><p id="weekly-range">周一至周日</p></div><button class="text-button" id="weekly-target-edit">调整周目标 ↗</button></div>
@@ -186,5 +216,8 @@
   <script src="/campfire-shop-art.js"></script>
   <script src="/campfire.js"></script>
   <script src="/quick-skins.js"></script>
+  <script src="/expedition-model.js"></script>
+  <script src="/expedition-art.js"></script>
+  <script src="/expedition.js"></script>
   <script src="/app.js"></script>
 </body></html>

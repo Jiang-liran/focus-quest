@@ -102,6 +102,7 @@ function checkNewRecords(next, quietRewards=false) {
   } else if(!quietRewards) {
     toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · +${number(gained)} XP${state && next.totals.level>state.totals.level?` · 升至 Lv. ${next.totals.level}`:''}`);
   }
+  if(!quietRewards)globalThis.FocusExpedition?.noteArrival(fresh,next);
   if(!quietRewards && next.settings.sound)playChime();
 }
 
@@ -125,6 +126,7 @@ function render() {
   if($('source-dialog').open)renderSource();
   if($('trash-dialog').open)renderTrash();
   globalThis.FocusQuests?.render(s.quests);
+  globalThis.FocusExpedition?.render(s);
   maybeDailyOpening();
 }
 
@@ -224,21 +226,25 @@ function updateViewTitle() {
 }
 
 function renderHero() {
-  const t=state.totals, stage=stageOf(t.minutes/t.target*100);
-  $('stage-tag').textContent=t.percent>100?'自由探索 · 已通关':stageNames[stage];
+  const expedition=globalThis.FocusExpedition?.visualModel();
+  const t=expedition||state.totals,rawPercent=t.target>0?t.minutes/t.target*100:0,stage=stageOf(rawPercent);
+  const shownPercent=rawPercent<100?Math.min(99.9,rawPercent):rawPercent;
+  $('stage-tag').textContent=rawPercent>100?'自由探索 · 已通关':stageNames[stage];
   $('hero-heading').textContent=stageTitles[stage];
-  $('hero-message').textContent=t.percent>100?'额外的积累也已记下，现在可以安心休息。':stageMessages[stage];
+  $('hero-message').textContent=rawPercent>100?'额外的积累也已记下，现在可以安心休息。':stageMessages[stage];
   $('total-time').innerHTML=durationHTML(t.minutes);
   $('total-target').textContent=hours(t.target);
   $('remaining').textContent=t.minutes>=t.target ? (t.minutes>t.target?`已超额 ${duration(t.minutes-t.target)} · 休息也是远征的一部分`:'主线已完成 · 今天的努力值得庆祝'):`距离通关还需 ${duration(t.target-t.minutes)}`;
-  $('total-percent').textContent=pct(t.percent);
-  $('total-bar').style.width=Math.min(100,t.percent)+'%';
+  $('total-percent').textContent=pct(shownPercent);
+  $('total-bar').style.width=Math.min(100,rawPercent)+'%';
   const progress=document.querySelector('.total-progress');
-  progress.setAttribute('aria-valuenow',Math.min(100,t.percent));progress.setAttribute('aria-valuetext',pct(t.percent));
-  renderScene(scenePreviewPercent??(t.minutes/t.target*100));
+  progress.setAttribute('aria-valuenow',Math.min(100,rawPercent));progress.setAttribute('aria-valuetext',pct(shownPercent));
+  renderScene(expedition?.percent??scenePreviewPercent??rawPercent);
 }
 
 function renderScene(percent) {
+  const expedition=globalThis.FocusExpedition?.visualModel();
+  percent=expedition?.percent??percent;
   const hero=$('quest-hero'),visual=FocusEffects.scene(percent),p=visual.progress;
   hero.dataset.stage=visual.stage;hero.dataset.preview=scenePreviewPercent!==null?'true':'false';
   const vars={'--energy':visual.glow,'--mist':visual.mistOpacity,'--path-offset':visual.pathOffset,
@@ -257,7 +263,7 @@ function renderScene(percent) {
   });
   const captions=['迷雾正在散去，每一步都会留下光。','引路之光已亮起，继续向星岛深处。','晶核苏醒了，你已经走过一半。','星环正在共鸣，终点就在前方。','星岛已被点亮，今天的努力值得庆祝。'];
   $('scene-caption').textContent='✦ '+captions[visual.stage];
-  const subjects=state.subjects.filter(s=>subjectsMeta[s.id]),key=JSON.stringify(subjects.map(s=>[s.id,s.minutes,s.target]));
+  const subjects=(expedition?.subjects||state.subjects).filter(s=>subjectsMeta[s.id]),key=JSON.stringify(subjects.map(s=>[s.id,s.minutes,s.target]));
   if(sceneSubjectKey!==key){
     sceneSubjectKey=key;
     const glyph={math:'∑',cs:'{}',politics:'★',english:'Aa'};
@@ -272,10 +278,12 @@ function previewScene(percent) {
   $('preview-progress').value=scenePreviewPercent;$('preview-percent').textContent=pct(scenePreviewPercent);
   document.querySelectorAll('[data-preview-progress]').forEach(b=>b.classList.toggle('active',Number(b.dataset.previewProgress)===scenePreviewPercent));
   renderScene(scenePreviewPercent);
+  globalThis.FocusExpedition?.preview(scenePreviewPercent);
 }
 function stopScenePreview() {
   if(scenePreviewPercent===null)return;
   scenePreviewPercent=null;$('effects-preview').hidden=true;$('preview-effects').setAttribute('aria-expanded','false');
+  globalThis.FocusExpedition?.preview(null);
   if(state)renderScene(state.totals.minutes/state.totals.target*100);
 }
 
@@ -376,7 +384,7 @@ function renderAchievements() {
 
 function switchView(view) {
   if(!viewNames[view])return;
-  if(view!=='today')stopScenePreview();
+  if(view!=='today'){stopScenePreview();globalThis.FocusExpedition?.leave();}
   currentView=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
   document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===view);el.setAttribute('aria-current',el.dataset.view===view?'page':'false');});
@@ -501,7 +509,7 @@ function playChime() {
   try{ensureAudio();if(!audioContext)return;[523.25,659.25,783.99].forEach((hz,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.10;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.035,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.55);osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.6);});}catch(_){}
 }
 
-function chooseDate(value) { stopScenePreview();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
+function chooseDate(value) { stopScenePreview();globalThis.FocusExpedition?.leave();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
 async function browseWeek(date) {
   const request=++weekChartRequest;
   weekChartLoading=true;renderWeek();
@@ -567,4 +575,5 @@ window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 globalThis.FocusQuickSkins?.init({api,toast,refresh});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh});
+globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);

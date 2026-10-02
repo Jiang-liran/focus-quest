@@ -1,0 +1,103 @@
+.expedition-hero{padding:24px 28px 26px;background:radial-gradient(ellipse at 50% 42%,#38496e48,transparent 55%),linear-gradient(135deg,#242237,#171c30 65%,#232137);isolation:isolate}
+.expedition-hero .hero-top{gap:16px;align-items:center}
+.expedition-hero .hero-toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.expedition-hero .hero-toolbar button{font-size:10px;padding:8px 11px;white-space:nowrap}
+.expedition-hero .hero-content{display:block;min-height:0}
+.expedition-hero .hero-copy{padding:22px 0 0;display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:26px;align-items:center}
+.expedition-hero .stage-tag{grid-column:1;justify-self:start;font-size:9px;padding:4px 9px}
+.expedition-hero .hero-copy h2{grid-column:1;grid-row:2;font-size:27px;margin:8px 0 6px;letter-spacing:.8px}
+.expedition-hero .hero-copy>p{grid-column:1;grid-row:3;font-size:11px;line-height:1.8;min-height:0}
+.expedition-hero .hero-numbers{grid-column:2;grid-row:1/4;margin:0;justify-content:flex-end;flex-wrap:wrap;max-width:320px;gap:8px}
+.expedition-hero .hero-numbers>strong{font-size:35px}
+.expedition-hero .hero-numbers>span{font-size:10px}
+.expedition-hero .total-progress-label{grid-column:1/3;max-width:none;margin:20px 0 9px;gap:18px}
+.expedition-hero .total-progress-label strong{font-size:21px}
+.expedition-hero .total-progress{grid-column:1/3;max-width:none;height:10px;position:relative;z-index:4;box-shadow:0 0 0 4px #13182844}
+.expedition-canvas{position:relative;aspect-ratio:1000/540;margin:13px -12px 0;min-width:0;background:radial-gradient(ellipse at 50% 50%,var(--theme-halo,#6c78b918),transparent 56%);border-radius:20px;isolation:isolate}
+.expedition-canvas:after{content:'';position:absolute;inset:12%;border-radius:50%;pointer-events:none;opacity:0;box-shadow:inset 0 0 75px #d4c49c40;z-index:-1}
+.expedition-world{position:absolute;inset:0}
+.expedition-map-heading{position:absolute;left:22px;top:19px;display:grid;gap:9px;pointer-events:none}
+.expedition-map-heading>span{font-size:8px;letter-spacing:2px;color:#8b8fac}
+.expedition-map-heading>strong{font-size:11px;font-weight:450;color:#c4c3d7}
+.expedition-map-footer{position:absolute;left:22px;right:22px;bottom:13px;display:flex;align-items:center;justify-content:space-between;gap:20px;pointer-events:none;color:#9093b2;font-size:9px;line-height:1.7}
+.expedition-map-footer>span:last-child{white-space:nowrap;letter-spacing:1px;color:#b2adc9}
+.expedition-scene-state{position:absolute;top:17px;right:18px;padding:7px 11px;font-size:9px;color:#e1c8a6;border:1px solid #dcc19e33;border-radius:7px;background:#1b1d30ee;z-index:6}
+.expedition-hero .quest-scene{position:absolute;left:28%;top:18%;width:44%;height:68%;min-height:0;margin:0;overflow:visible;pointer-events:none}
+.expedition-hero .quest-scene .island-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;overflow:visible;pointer-events:none}
+.expedition-hero .floating-island{pointer-events:visiblePainted}
+.expedition-hero .quest-scene .scene-readout,.expedition-hero .quest-scene .scene-subjects,.expedition-hero .quest-scene .scene-caption{display:none}
+.expedition-hero .quest-scene .scene-theme-backdrop{inset:-35%;opacity:.45;z-index:-1}
+.expedition-hero .quest-scene .scene-mist{left:0;right:0;pointer-events:none}
+.expedition-hero .quest-scene .scene-halo{width:65%;height:80%;top:0;left:17%}
+.expedition-hero .quest-scene .stars{pointer-events:none}
+.expedition-canvas[data-focus=math] [data-expedition-subject=math] .expedition-focus-ring,.expedition-canvas[data-focus=cs] [data-expedition-subject=cs] .expedition-focus-ring,.expedition-canvas[data-focus=politics] [data-expedition-subject=politics] .expedition-focus-ring,.expedition-canvas[data-focus=english] [data-expedition-subject=english] .expedition-focus-ring{opacity:.65}
+.expedition-canvas[data-afterglow=true]{box-shadow:inset 0 0 70px #dcb66b08}
+.expedition-canvas{scroll-margin-top:90px}
+.expedition-immersive .expedition-canvas{scroll-margin-top:18px}
+.expedition-map-note{position:absolute;left:50%;top:76%;transform:translateX(-50%);width:28%;padding:10px 7px;text-align:center;white-space:pre-line;font-size:9px;line-height:2;color:#c0b9d8;background:#1a2134e8;border:1px solid #9f91be30;border-radius:9px;pointer-events:none}
+.expedition-arrival{position:absolute;left:50%;top:78%;transform:translateX(-50%);z-index:7;border:1px solid #daca9d60;border-radius:30px;background:#242439ed;box-shadow:0 7px 40px #080d22aa;color:#ecdcb7;white-space:nowrap;padding:12px 20px;font-size:12px;pointer-events:none}
+.receiving-focus:after{animation:expedition-arrival-pulse 2.4s ease-out 2}
+.receiving-focus .expedition-arrival{animation:expedition-arrival-rise .8s ease-out both}
+.expedition-subjects{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;position:relative;z-index:2}
+.expedition-subjects>button{display:flex;align-items:center;gap:10px;min-width:0;text-align:left;padding:12px 10px;border:1px solid #929abd20;border-radius:9px;background:#121b2a55;transition:background .2s,border-color .2s}
+.expedition-subjects>button:hover,.expedition-subjects>button[aria-pressed=true]{border-color:color-mix(in srgb,var(--isle-color) 50%,transparent);background:color-mix(in srgb,var(--isle-color) 9%,#1a2030)}
+.expedition-subjects>button>i{font-style:normal;display:grid;place-items:center;flex-shrink:0;color:var(--isle-color);width:29px;height:32px;border:1px solid color-mix(in srgb,var(--isle-color) 22%,transparent);border-radius:9px;font-size:15px;background:color-mix(in srgb,var(--isle-color) 6%,transparent)}
+.expedition-subjects>button>span{min-width:0;flex:1}
+.expedition-subjects strong{display:block;font-size:11px;color:#cbd1df;font-weight:500;white-space:nowrap}
+.expedition-subjects strong small{color:#898fa8;font-size:8px;font-weight:400;margin-left:3px}
+.expedition-subjects em{display:block;font-style:normal;color:#818ba5;font-size:8px;margin-top:6px;white-space:nowrap}
+.expedition-subjects b{font-size:12px;color:var(--isle-color);font-weight:500;font-variant-numeric:tabular-nums}
+.expedition-subjects .complete em{color:var(--isle-color)}
+.expedition-deck{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:26px;margin-top:24px;padding-top:22px;border-top:1px solid #9292b623;position:relative;z-index:2}
+.expedition-inspector-kicker{display:flex;gap:12px;justify-content:space-between;align-items:center;min-height:18px;color:#9da3bd;font-size:9px;letter-spacing:.5px}
+.expedition-inspector-kicker button{font-size:9px}
+.expedition-deck h3{font-size:17px;font-weight:500;color:#ddd7ed;letter-spacing:.4px;margin:8px 0 10px}
+#expedition-detail-copy{font-size:11px;color:#a5a4bd;line-height:2;min-height:44px;max-width:520px}
+.expedition-next{font-size:9px;line-height:1.9;color:#8793ad;margin-top:10px;min-height:17px}
+.expedition-discover-toggle{display:flex;align-items:center;gap:14px;font-size:10px;padding:8px 12px;margin-top:14px;color:#c1b7d8;border:1px solid #a994c938;border-radius:7px;background:#b09acc07}
+.expedition-discover-toggle span{font-variant-numeric:tabular-nums;color:#8f88a8}
+.expedition-log{border-left:1px solid #9292b623;padding-left:26px;min-width:0}
+.expedition-log-heading{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.expedition-log-heading>div>span{font-size:7px;letter-spacing:1.3px;color:#939ab3}
+.expedition-log-heading h3{font-size:15px;margin:8px 0}
+.expedition-log-heading>button{font-size:10px;padding:9px 12px;white-space:nowrap}
+#expedition-log-summary{font-size:9px;color:#8c93ac;line-height:1.9;margin:4px 0 13px}
+.expedition-trail{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.expedition-trail button{display:grid;grid-template-columns:13px 1fr;gap:5px 3px;border:1px solid #9195b320;background:#778ba908;border-radius:7px;padding:9px 7px;min-width:0;text-align:left}
+.expedition-trail button:hover{border-color:#b1a1d366;background:#9c88c317}
+.expedition-trail span{color:#c3b5de;font-size:15px;grid-row:1/3;align-self:center}
+.expedition-trail strong{color:#c1bfd5;font-size:10px;font-weight:500}
+.expedition-trail small{font-size:8px;color:#9095b0;white-space:nowrap}
+.expedition-replay-controls{margin:12px 0 15px;border:1px solid #ac94c538;border-radius:8px;padding:12px;background:#161b2d88}
+.hero-content>.expedition-replay-controls{max-width:650px;margin:14px auto 18px;position:relative;z-index:2}
+@media(max-width:699px){.expedition-map-note{display:none}}
+.expedition-replay-controls>div{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.expedition-replay-controls button{font-size:9px;padding:5px 7px;color:#c4b4e3;border:1px solid #a18cbc30;border-radius:5px}
+.expedition-replay-controls button:disabled{opacity:.35;cursor:default}
+.expedition-replay-controls span{font-size:9px;color:#8e87a6;margin-left:auto;font-variant-numeric:tabular-nums}
+.expedition-replay-controls #expedition-live{margin-left:auto;color:#c5b39a}
+.expedition-replay-controls input{width:100%;margin:14px 0 7px;accent-color:#c3a8e4;height:12px;cursor:pointer}
+#expedition-frame-copy{font-size:9px;line-height:1.9;color:#b0a5c5;min-height:17px}
+.expedition-discoveries{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:9px;margin-top:23px;padding-top:22px;border-top:1px solid #9292b623;position:relative;z-index:2}
+.expedition-discovery{border:1px solid #a79abd29;border-radius:8px;padding:14px 8px 12px;min-width:0;text-align:center;background:linear-gradient(165deg,#8a7daf16,#10213244)}
+.expedition-discovery.unlocked:hover,.expedition-discovery[aria-pressed=true]{border-color:#baa5d777;background-color:#9d85bf15}
+.expedition-discovery.locked{opacity:.38;cursor:default;filter:saturate(.3)}
+.discovery-stamp{display:block;position:relative;height:56px;max-width:92px;margin:0 auto 9px}
+.discovery-stamp svg{height:100%;width:100%;fill:#bda8d312;stroke:#bca1d4;stroke-width:1}
+.discovery-stamp i{font-style:normal;font-size:8px;position:absolute;top:0;left:0;color:#898ca7}
+.expedition-discovery strong{display:block;font-size:10px;color:#c9bfdc;font-weight:500;white-space:nowrap}
+.expedition-discovery small{display:block;font-size:8px;line-height:1.8;color:#8c8eaa;margin-top:7px}
+.expedition-hero button:focus-visible{outline:2px solid #d1b9f0;outline-offset:3px}
+.expedition-hero [hidden]{display:none!important}
+.has-expedition-immersive body{overflow:hidden}
+.expedition-hero.expedition-immersive{position:fixed;inset:16px;z-index:120;overflow:auto;margin:0;padding:26px max(28px,calc((100vw - 1370px)/2));border-radius:17px;background:radial-gradient(ellipse at 50% 40%,#353e60,transparent 65%),#151b2d;box-shadow:0 0 0 30px #080b14e8;transition:none}
+.expedition-immersive .expedition-canvas{width:min(100%,max(570px,calc((100dvh - 285px)*1.85)));max-width:1200px;margin-left:auto;margin-right:auto}
+.expedition-hero+.quest-invitation{margin-top:18px}
+@keyframes expedition-arrival-pulse{0%{opacity:0;transform:scale(.7)}35%{opacity:1}100%{opacity:0;transform:scale(1.12)}}
+@keyframes expedition-arrival-rise{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.no-motion .expedition-hero *,.no-motion .expedition-canvas:after{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.expedition-hero *,.expedition-canvas:after{animation:none!important;transition:none!important}}
+@media(min-width:1600px){.expedition-hero{padding:28px 36px}.expedition-hero .hero-copy h2{font-size:32px}.expedition-hero .hero-numbers>strong{font-size:40px}.expedition-deck h3{font-size:19px}.expedition-subjects>button{padding:14px}.expedition-subjects strong{font-size:12px}}
+@media(max-width:1150px){.expedition-hero{padding:20px}.expedition-hero .hero-toolbar{gap:5px}.expedition-hero .hero-toolbar button{font-size:9px;padding:7px 9px}.expedition-subjects>button{gap:7px;padding:11px 8px}.expedition-subjects strong small{display:none}.expedition-subjects b{font-size:11px}.expedition-deck{gap:20px}.expedition-log{padding-left:20px}.expedition-map-heading{top:12px;left:20px}.expedition-map-heading>span{font-size:7px}.expedition-map-heading>strong{font-size:10px}.expedition-discoveries{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:900px){.expedition-hero .hero-copy h2{font-size:23px}.expedition-hero .hero-numbers>strong{font-size:28px}.expedition-hero .hero-numbers{max-width:200px}.expedition-hero .hero-numbers>span{width:100%;text-align:right}.expedition-hero .hero-top{flex-wrap:wrap}.expedition-hero .hero-toolbar{margin-left:auto}.expedition-subjects>button{flex-wrap:wrap}.expedition-subjects b{margin-left:auto}.expedition-deck{grid-template-columns:1fr;gap:20px}.expedition-log{border-left:0;border-top:1px solid #9292b623;padding:20px 0 0}.expedition-map-footer{font-size:8px;bottom:2px}.expedition-scene-state{top:8px;right:8px;font-size:8px;padding:5px 8px}.expedition-canvas:has(.expedition-scene-state:not([hidden])) .expedition-map-heading{top:38px}}
+@media(max-width:699px){.expedition-hero{padding:15px 13px;border-radius:12px}.expedition-hero .hero-top{gap:12px}.expedition-hero .hero-toolbar{width:100%;justify-content:flex-start;margin-left:0}.expedition-hero .hero-toolbar button{font-size:8px;padding:7px}.expedition-hero .hero-copy{padding-top:17px;grid-template-columns:1fr;gap:0}.expedition-hero .hero-copy h2{font-size:21px}.expedition-hero .hero-copy>p{font-size:10px}.expedition-hero .hero-numbers{grid-row:4;grid-column:1;max-width:none;justify-content:flex-start;margin:16px 0 0}.expedition-hero .hero-numbers>strong{font-size:28px}.expedition-hero .hero-numbers>strong small{font-size:11px}.expedition-hero .hero-numbers>span{width:auto;text-align:left;font-size:9px}.expedition-hero .total-progress-label,.expedition-hero .total-progress{grid-column:1}.expedition-hero .total-progress-label{margin-top:15px;gap:10px}.expedition-hero .total-progress-label>span{font-size:9px}.expedition-hero .total-progress-label strong{font-size:18px}.expedition-canvas{margin:14px -9px 0;aspect-ratio:1000/680}.expedition-world{top:40px;bottom:20px}.expedition-hero .quest-scene{top:27%;height:60%}.expedition-map-heading{top:7px;left:12px;gap:6px}.expedition-map-heading>span{font-size:6px;letter-spacing:1.5px}.expedition-map-heading>strong{font-size:8px}.expedition-map-footer{left:12px;right:12px;bottom:0;font-size:7px}.expedition-map-footer>span:first-child{max-width:68%}.expedition-map-footer>span:last-child{letter-spacing:0}.expedition-scene-state{top:3px;right:10px;font-size:7px}.expedition-canvas:has(.expedition-scene-state:not([hidden])) .expedition-map-heading{top:31px}.expedition-subjects{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.expedition-subjects>button{flex-wrap:nowrap;padding:10px 8px;gap:7px}.expedition-subjects>button>i{width:24px;height:29px;font-size:13px}.expedition-subjects strong{font-size:10px}.expedition-subjects em{font-size:7px;margin-top:5px}.expedition-subjects b{font-size:11px}.expedition-deck{margin-top:18px;padding-top:16px}.expedition-deck h3{font-size:16px}.expedition-inspector-kicker{font-size:8px}.expedition-inspector-kicker button{font-size:8px}#expedition-detail-copy{font-size:10px}.expedition-next{font-size:8px}.expedition-log-heading{gap:7px}.expedition-log-heading>div>span{font-size:6px;letter-spacing:.8px}.expedition-log-heading h3{font-size:14px}.expedition-log-heading>button{font-size:9px;padding:8px}#expedition-log-summary{font-size:8px}.expedition-trail{gap:5px}.expedition-trail button{grid-template-columns:1fr;padding:8px 4px;text-align:center}.expedition-trail span{display:none}.expedition-trail strong{font-size:9px}.expedition-trail small{font-size:7px}.expedition-replay-controls{padding:10px}.expedition-replay-controls>div{gap:5px}.expedition-replay-controls button{font-size:8px}.expedition-replay-controls span{font-size:8px}.expedition-discoveries{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.expedition-arrival{font-size:9px;padding:10px 12px;top:72%}.expedition-hero.expedition-immersive{inset:6px;padding:15px 13px;border-radius:12px}}
