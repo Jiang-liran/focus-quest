@@ -136,6 +136,12 @@ SHOP_CATALOG = (
     ("interface-tide", "interface", "潮汐航图", "为界面换上深蓝海色、航图网格与罗盘细节；保留已装备的装饰与特效", 1800, 0),
     ("interface-amber", "interface", "琥珀工坊", "让琥珀暖光、黄铜边框与工坊刻度贯穿界面；保留已装备的装饰与特效", 0, 24),
     ("interface-paper", "interface", "月白手札", "用月白纸面、墨色文字与手札页边带来明亮界面；保留已装备的装饰与特效", 0, 32),
+    ("interface-rain", "interface", "夜雨窗灯", "深蓝玻璃窗卡片配雨痕与暖灯角，按钮像窗边的小灯牌", 690, 0),
+    ("interface-ember", "interface", "炉边织毯", "暖棕织毯纹理配缝线边框与柔软圆角，像在炉边翻看手记", 480, 0),
+    ("interface-ink", "interface", "墨山行记", "浅纸面铺开墨线山形，章印角标与书签按钮组成安静行记", 860, 0),
+    ("interface-garden", "interface", "玻璃花房", "浅薄荷玻璃卡片映入温室窗格与叶纹，花房标签点缀按钮", 0, 18),
+    ("interface-observatory", "interface", "星图档案", "靛蓝星轨与档案标签贯穿卡片，刻度细框像一张观测记录", 0, 24),
+    ("interface-neon", "interface", "雨巷电台", "黑蓝玻璃配双色霓虹切角与频谱细纹，按钮像雨巷电台面板", 0, 36),
     ("companion-default", "companion", "独自出发", "独自停留在雨夜星辉城的桥边，暂不携带随行伙伴", 0, 0),
     ("companion-fox", "companion", "萤尾灵狐", "让萤尾灵狐陪旅人停留在星辉城桥边，点缀雨夜街景", 0, 16),
     ("companion-owl", "companion", "书卷夜枭", "让书卷夜枭陪旅人停留在星辉城桥边，点缀雨夜街景", 0, 24),
@@ -229,6 +235,7 @@ TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
 MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
 LOTTERY_START_META = "lottery:featureStartMs:v1"
+LOTTERY_ROUNDS_META = "lottery:roundTickets:v1"
 RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
 # These are historical upgrade prices, not purchasable catalog entries. Old
 # archives still need the v1.8 difference credited before the final net refund.
@@ -876,14 +883,81 @@ class FocusStore:
         with self.lock, self.db:
             if self._meta(LOTTERY_START_META) is None:
                 self._set_meta(LOTTERY_START_META, int(quest_clock(now).timestamp()*1000))
+            if self._meta(LOTTERY_ROUNDS_META) is None:
+                self._set_meta(LOTTERY_ROUNDS_META, json.dumps({
+                    "featureStartMs": int(quest_clock(now).timestamp()*1000), "totalRounds": 0,
+                    "subjects": {sid: 0 for sid, _, _ in SUBJECTS}}, sort_keys=True))
 
-    def _grant_lottery_ticket(self, reference, machine, source, label, current):
+    def _grant_lottery_ticket(self, reference, machine, source, label, current, count=1):
         created_ms = int(current.timestamp()*1000)
         if created_ms < int(self._meta(LOTTERY_START_META)):
             return None
-        cursor = self.db.execute("INSERT OR IGNORE INTO lottery_ticket_ledger VALUES (?,?,1,?,?,?)",
-                                 (reference, machine, created_ms, source, label))
-        return {"machine": machine, "count": 1, "source": source, "label": label} if cursor.rowcount else None
+        if type(count) is not int or count <= 0:
+            raise ValueError("抽奖券奖励必须为正整数")
+        cursor = self.db.execute("INSERT OR IGNORE INTO lottery_ticket_ledger VALUES (?,?,?,?,?,?)",
+                                 (reference, machine, count, created_ms, source, label))
+        return {"machine": machine, "count": count, "source": source, "label": label} if cursor.rowcount else None
+
+    def _round_ticket_state(self):
+        progress = json.loads(self._meta(LOTTERY_ROUNDS_META))
+        total = progress["totalRounds"]
+        settled = {row[0]: row[1] for row in self.db.execute("SELECT subject,settled_minutes FROM quest_tracks")}
+        subjects = []
+        for sid, name, _ in SUBJECTS:
+            target = self._quest_definition(sid)["target"]
+            minutes = settled.get(sid, 0)
+            carry = max(0, minutes-math.floor(minutes/target+1e-10)*target)
+            subjects.append({"id": sid, "name": name, "target": target,
+                "completedRounds": progress["subjects"].get(sid, 0), "carryMinutes": round(carry, 4),
+                "minutesToNextRound": round(target-carry, 4)})
+        return {"featureStartMs": progress["featureStartMs"], "totalRounds": total,
+                "diamondTickets": total//3, "roundsTowardNextDiamond": total%3,
+                "roundsToNextDiamond": 3-total%3, "subjects": subjects}
+
+    def _round_lottery_tickets(self, definition, old_minutes, new_minutes, request_id, current):
+        # The delivery and its base-time allocation already own these minutes.
+        # Count only newly completed ordinary rounds, preserving fractional
+        # carry while never minting tickets for pre-upgrade completed rounds.
+        progress = json.loads(self._meta(LOTTERY_ROUNDS_META))
+        if int(current.timestamp()*1000) < progress["featureStartMs"] or new_minutes <= old_minutes:
+            return []
+        target = definition["target"]
+        rounds = math.floor(new_minutes/target+1e-10)-math.floor(old_minutes/target+1e-10)
+        if rounds <= 0:
+            return []
+        previous_total = progress["totalRounds"]
+        progress["totalRounds"] += rounds
+        progress["subjects"][definition["subject"]] += rounds
+        diamonds = progress["totalRounds"]//3-previous_total//3
+        grants = []
+        for machine, count, source, label in (
+            ("coin", rounds, "quest-round", f"{definition['name']} · 完整委托 {rounds} 轮"),
+            ("diamond", diamonds, "quest-round-three", "普通委托累计三轮")):
+            if count:
+                grant = self._grant_lottery_ticket(f"round:{request_id}:{machine}", machine, source, label, current, count)
+                if grant is None:
+                    raise ValueError("这轮委托的抽奖券已经发放，请重试原交付请求")
+                grants.append(grant)
+        self._set_meta(LOTTERY_ROUNDS_META, json.dumps(progress, sort_keys=True))
+        return grants
+
+    def _round_ticket_receipt(self, request_id):
+        rewards = {machine: 0 for machine in ("coin", "diamond")}
+        if request_id:
+            for machine in rewards:
+                row = self.db.execute("SELECT amount FROM lottery_ticket_ledger WHERE reference=?",
+                                      (f"round:{request_id}:{machine}",)).fetchone()
+                rewards[machine] = row[0] if row else 0
+        return {"rounds": rewards["coin"], "coinTickets": rewards["coin"], "diamondTickets": rewards["diamond"]}
+
+    def _round_ticket_preview(self, definition, old_minutes, new_minutes, current):
+        progress = json.loads(self._meta(LOTTERY_ROUNDS_META))
+        target = definition["target"]
+        rounds = max(0, math.floor(new_minutes/target+1e-10)-math.floor(old_minutes/target+1e-10))
+        if int(current.timestamp()*1000) < progress["featureStartMs"]:
+            rounds = 0
+        total = progress["totalRounds"]
+        return {"rounds": rounds, "coinTickets": rounds, "diamondTickets": (total+rounds)//3-total//3}
 
     def _timed_lottery_tickets(self, day, current):
         # Period completion is based on claimed first-round bonuses. All
@@ -981,6 +1055,7 @@ class FocusStore:
             return {"day": day, "now": current.isoformat(), "revision": int(self._meta("revision") or 0),
                     "featureStartMs": int(self._meta(LOTTERY_START_META)), "tickets": tickets, "wallet": wallet,
                     "machines": machines, "history": history, "grants": grants, "starGifts": star_gifts,
+                    "roundTickets": self._round_ticket_state(),
                     "persistentTickets": True, "onlyUnownedItems": True, "shopExclusiveItemsExcluded": True}
 
     def _lottery_request(self, machine, request_id, kind, now=None):
@@ -2200,6 +2275,7 @@ class FocusStore:
                   "progressMinutes": round(progress, 4), "progressPercent": percent(progress, definition["target"]),
                   "percent": percent(progress, definition["target"]), "firstCompleted": first_completed,
                   "paidCoins": paid_coins, "paidDiamonds": paid_diamonds,
+                  "roundTickets": self._round_ticket_preview(definition, settled, total if base_ready else settled, current),
                   "reward": reward, "baseReward": {"coins": definition["target"] * 2, "diamonds": 2},
                   "baseReady": base_ready, "rewardBreakdown": {"base": base_reward, "bonus": bonus_reward}, "bonus": bonus}
         return result, contributions, minutes
@@ -2255,6 +2331,7 @@ class FocusStore:
                 "subject": row["subject"], "name": row["name"], "minutes": round(row["minutes"], 4),
                 "coins": row["coins"], "diamonds": row["diamonds"], "totalMinutes": round(row["total_minutes"], 4),
                 "submittedAt": iso_ms(row["submitted_ms"]), "alreadyClaimed": already_claimed,
+                "roundTickets": self._round_ticket_receipt(row["request_id"]),
                 **self._bonus_breakdown(row["request_id"], row["coins"], row["diamonds"])}
 
     def submit_quest(self, subject, now=None, request_id=None):
@@ -2305,6 +2382,8 @@ class FocusStore:
                         (f"quest-bonus:{bonus['day']}:{subject}", bonus["coins"], bonus["diamonds"], submitted_ms))
                 for day in sorted({bonus["day"] for bonus in bonuses}):
                     ticket_grants.extend(self._timed_lottery_tickets(day, current))
+                if minutes > 0:
+                    ticket_grants.extend(self._round_lottery_tickets(definition, track["settled_minutes"], total, request_id, current))
                 if ticket_grants:
                     self._bump_revision()
             result = self.quest_state(current)

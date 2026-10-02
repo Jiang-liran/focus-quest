@@ -72,20 +72,27 @@
     const owned=items.filter(row=>row.owned===true).length;
     return `<section class="lottery-collection" aria-labelledby="lottery-collection-title"><header><div><span class="lottery-eyebrow">ONLY HERE · 只在这台机器里</span><h3 id="lottery-collection-title">${machine==='coin'?'金色奇遇藏品':'月光限定藏品'}</h3></div><span>${owned} / ${items.length} 已收藏</span></header><p>这些外观无法购买，每次抽中都会是一件未拥有的。拿到后可以一直留着。</p><div class="lottery-collection-grid">${items.map(row=>`<article class="lottery-collection-card${row.owned?' is-owned':''}" title="${esc(row.description||row.name)}"><div class="lottery-collection-art" aria-hidden="true">${resultArt({type:'item',item:row})}</div><span class="lottery-collection-status">${row.owned?'✓ 已收藏':'✦ 等待相遇'}</span><h4>${esc(row.name)}</h4><p>${esc(row.description||'只在这里，等待下一次相遇。')}</p></article>`).join('')}</div></section>`;
   }
-  function sourcesHTML(){
+  function roundSummary(){
+    const rounds=data?.roundTickets;
+    if(!Number.isInteger(rounds?.totalRounds)||rounds.totalRounds<0||!Number.isInteger(rounds?.roundsToNextDiamond)||rounds.roundsToNextDiamond<1||rounds.roundsToNextDiamond>3)return '';
+    return `普通委托累计交付 ${rounds.totalRounds} 轮 · 再交付 ${rounds.roundsToNextDiamond} 轮，得 1 张钻石抽奖券。`;
+  }
+  function sourcesHTML(item){
     const sources=machine==='coin'?[
+      '普通委托每交付完整 1 轮：1 张。数学、408 每轮 60 分钟，政治、英语每轮 30 分钟。',
       '每科当日目标完成，打开该科岛屿礼盒：1 张。',
       '上午两科首轮加赠领齐、下午两科首轮加赠领齐：各 1 张。',
       '「拾星」第 1、2 份星礼：各 1 张。',
-      '100 金币购买 1 张，每天最多购买 3 张。'
+      `${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。`
     ]:[
+      '四科普通委托合计每交付完整 3 轮：1 张。可连续学习同一科，也可自由搭配科目。',
       '总目标与四科目标都完成，打开主岛礼盒：1 张。',
       '知行研习所「融会贯通」额外奖赏：1 张。',
       '「拾星」第 3、4 份星礼：各 1 张。',
       '四科首轮加赠全部领齐：1 张。',
-      '5 钻石购买 1 张，每天最多购买 3 张。'
+      `${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。`
     ];
-    return `<details class="lottery-details" data-lottery-details="sources"><summary>抽奖券从哪里来 <span>学习与奖励 ↗</span></summary><ul class="lottery-sources">${sources.map(text=>`<li>${text}</li>`).join('')}</ul><p class="lottery-fineprint">抽奖券永久保留，两种券各用各的。新领取的对应奖励会带上抽奖券，已经收好的旧奖励不补发。</p></details>`;
+    return `<details class="lottery-details" data-lottery-details="sources"><summary>抽奖券从哪里来 <span>学习与奖励 ↗</span></summary><ul class="lottery-sources">${sources.map(text=>`<li>${esc(text)}</li>`).join('')}</ul><p class="lottery-fineprint">普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。原有礼盒和时段加赠的抽奖券照常获得。</p><p class="lottery-fineprint">抽奖券永久保留，两种券各用各的。新领取的对应奖励会带上抽奖券，已经收好的旧奖励不补发。</p></details>`;
   }
   function pendingGifts(){return (data?.starGifts||[]).filter(row=>row?.machine===machine&&row.claimed===false&&/^\d{4}-\d{2}-\d{2}$/.test(row.day)&&Number.isInteger(row.index)&&row.index>=1&&row.index<=4);}
   function starGiftsHTML(){
@@ -109,8 +116,8 @@
         <div class="lottery-draw"><button type="button" class="lottery-draw-button" data-lottery-action="draw" data-lottery-focus="draw" aria-disabled="${!canDraw()}"${busy?.action==='draw'?' aria-busy="true"':''}>${busy?.action==='draw'?'正在打开…':number(data.tickets[machine])>0?'投入 1 张券 · 打开惊喜':'还没有抽奖券'}</button><small>每次消耗 1 张${labels[machine].ticket}；进入这里不会消耗。</small></div>
         <div class="lottery-status" role="status" ${error||loadError||retry?'':'hidden'}>${esc(error||loadError||'上次操作需要确认，请先收好它的结果。')}${retry&&!busy?`<button type="button" data-lottery-action="retry" data-lottery-focus="retry">确认上次${retry.action==='draw'?'抽奖':retry.action==='star-gift'?'开礼盒':'购券'}</button>`:''}</div>
       </div><aside class="lottery-aside">
-        <section class="lottery-purchase" aria-labelledby="lottery-purchase-title"><div><span class="lottery-eyebrow">给幸运留一张小票</span><h3 id="lottery-purchase-title">${cost(item.price)} 换 1 张</h3><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次</p></div><button type="button" data-lottery-action="buy" data-lottery-focus="buy" aria-disabled="${!canBuy()}"${busy?.action==='buy'?' aria-busy="true"':''}>${busy?.action==='buy'?'正在收好…':!number(item.purchasesRemaining)?'今日已买满':!priceEnough(item)?`${labels[machine].currency}暂时不足`:'购买 1 张'}</button><small>行囊：${count(data.wallet?.coins)} 金币 · ${count(data.wallet?.diamonds)} 钻石<br>购券不是开奖，买好后再按自己的心情拆开。</small></section>
-        ${starGiftsHTML()}${oddsHTML(item)}${sourcesHTML()}${historyHTML()}<p class="lottery-rest-note">惊喜是额外的小礼，学习的收获已经属于你。</p>
+        <section class="lottery-purchase" aria-labelledby="lottery-purchase-title"><div><span class="lottery-eyebrow">给幸运留一张小票</span><h3 id="lottery-purchase-title">${cost(item.price)} 换 1 张</h3><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次</p></div><button type="button" data-lottery-action="buy" data-lottery-focus="buy" aria-disabled="${!canBuy()}"${busy?.action==='buy'?' aria-busy="true"':''}>${busy?.action==='buy'?'正在收好…':!number(item.purchasesRemaining)?'今日已买满':!priceEnough(item)?`${labels[machine].currency}暂时不足`:`${cost(item.price)} · 购买 1 张`}</button><small>行囊：${count(data.wallet?.coins)} 金币 · ${count(data.wallet?.diamonds)} 钻石<br>购券不是开奖，买好后再按自己的心情拆开。${roundSummary()?`<br>${roundSummary()}`:''}</small></section>
+        ${starGiftsHTML()}${oddsHTML(item)}${sourcesHTML(item)}${historyHTML()}<p class="lottery-rest-note">惊喜是额外的小礼，学习的收获已经属于你。</p>
       </aside></div>${collectionHTML(item)}
     </section>`;
     if(html===markup)return;
@@ -155,7 +162,7 @@
       if(!announced.has(operation.requestId)){
         announced.add(operation.requestId);if(announced.size>96)announced.delete(announced.values().next().value);
         if(!result.alreadyProcessed&&visible()&&machine===operation.machine)bridge.playSound?.(action==='buy'?'purchase':outcome.limited||outcome.rarity==='jackpot'?'victory':'delivery',{key:`lottery:${operation.requestId}`});
-        bridge.toast?.(action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='star-gift'?`+1 ${labels[operation.machine].ticket} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?'抽奖券会一直保留，想拆开时再来。':outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
+        bridge.toast?.(action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='star-gift'?`+1 ${labels[operation.machine].ticket} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?`${number(outcome.price?.coins)||number(outcome.price?.diamonds)?`已使用 ${cost(outcome.price)}。`:''}抽奖券会一直保留，想拆开时再来。`:outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
       }
     }catch(e){
       if(Number(e?.status)>=400&&Number(e.status)<500&&Number(e.status)!==408&&Number(e.status)!==429)retry=null;
