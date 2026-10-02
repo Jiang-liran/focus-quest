@@ -1,0 +1,34 @@
+.collection-v3-player-svg{display:block;width:100%;height:auto;stroke:none}
+.cv3p-bob{transform-box:fill-box;transform-origin:center;animation:cv3p-bob 5.8s ease-in-out infinite}
+.cv3p-cap{transform-box:fill-box;transform-origin:50% 100%;animation:cv3p-cap 5s ease-in-out infinite}
+.cv3p-water{animation:cv3p-water 6.4s ease-in-out infinite}
+.cv3p-marble{transform-box:fill-box;transform-origin:center;animation:cv3p-marble 12s linear infinite}
+.cv3p-steam{animation:cv3p-steam 4.5s ease-in-out infinite}
+.cv3p-wing{transform-box:fill-box;transform-origin:65% 100%;animation:cv3p-wing 1.7s ease-in-out infinite}
+.cv3p-tentacle{transform-box:fill-box;transform-origin:50% 0;animation:cv3p-tentacle 4.8s ease-in-out infinite}
+.cv3p-glimmer{animation:cv3p-glimmer 4.3s ease-in-out infinite}
+.cv3p-bubbles{animation:cv3p-bubbles 6.8s ease-in-out infinite}
+@keyframes cv3p-bob{50%{transform:translateY(-1.2px)}}
+@keyframes cv3p-cap{50%{transform:rotate(2deg)}}
+@keyframes cv3p-water{50%{transform:translateY(1px);opacity:.7}}
+@keyframes cv3p-marble{to{transform:rotate(360deg)}}
+@keyframes cv3p-steam{0%,100%{opacity:.55;transform:translateY(1px)}50%{opacity:1;transform:translateY(-1.5px)}}
+@keyframes cv3p-wing{50%{transform:scaleX(.87) rotate(-5deg)}}
+@keyframes cv3p-tentacle{50%{transform:skewX(5deg) scaleY(.93)}}
+@keyframes cv3p-glimmer{50%{opacity:.5}}
+@keyframes cv3p-bubbles{50%{transform:translateY(-2px);opacity:.6}}
+.no-motion :is(.collection-v3-player-art,.collection-v3-player-svg,.collection-v3-player-avatar) *,
+html.focus-runtime-hidden :is(.collection-v3-player-art,.collection-v3-player-svg,.collection-v3-player-avatar) *,
+[hidden] :is(.collection-v3-player-art,.collection-v3-player-svg,.collection-v3-player-avatar) *,
+dialog:not([open]) :is(.collection-v3-player-art,.collection-v3-player-svg,.collection-v3-player-avatar) *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){:is(.collection-v3-player-art,.collection-v3-player-svg,.collection-v3-player-avatar) *{animation:none!important;transition:none!important}}
+:root:is([data-avatar="avatar-noodlechef"],[data-avatar="avatar-mushroomwalker"],[data-avatar="avatar-sailorcat"],[data-avatar="avatar-pocketdetective"],[data-avatar="avatar-cloudsleep"],[data-avatar="avatar-fireflykeeper"],[data-avatar="avatar-pearlpilot"],[data-avatar="avatar-solarpainter"]) #scene-traveler>:not(#equipped-player-regalia){visibility:hidden}
+:root:is([data-avatar="avatar-noodlechef"],[data-avatar="avatar-mushroomwalker"],[data-avatar="avatar-sailorcat"],[data-avatar="avatar-pocketdetective"],[data-avatar="avatar-cloudsleep"],[data-avatar="avatar-fireflykeeper"],[data-avatar="avatar-pearlpilot"],[data-avatar="avatar-solarpainter"]) :is(.opening-traveler .opening-cloak,.opening-traveler .opening-hat){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-noodlechef"]{--avatar-coat:#d8ae87;--avatar-shade:#806c69;--avatar-hat:#f1e2be;--avatar-hat-shade:#d8ae87}
+:root[data-avatar="avatar-mushroomwalker"]{--avatar-coat:#656b57;--avatar-shade:#4b594e;--avatar-hat:#cc9388;--avatar-hat-shade:#a97874}
+:root[data-avatar="avatar-sailorcat"]{--avatar-coat:#8bb3c5;--avatar-shade:#4d6887;--avatar-hat:#f0dfbd;--avatar-hat-shade:#8bb3c5}
+:root[data-avatar="avatar-pocketdetective"]{--avatar-coat:#bda888;--avatar-shade:#655e70;--avatar-hat:#bda888;--avatar-hat-shade:#655e70}
+:root[data-avatar="avatar-cloudsleep"]{--avatar-coat:#acb8d7;--avatar-shade:#656f97;--avatar-hat:#acb8d7;--avatar-hat-shade:#656f97}
+:root[data-avatar="avatar-fireflykeeper"]{--avatar-coat:#91b896;--avatar-shade:#426a68;--avatar-hat:#91b896;--avatar-hat-shade:#426a68}
+:root[data-avatar="avatar-pearlpilot"]{--avatar-coat:#96c8d2;--avatar-shade:#4f7593;--avatar-hat:#e4ddc7;--avatar-hat-shade:#96c8d2}
+:root[data-avatar="avatar-solarpainter"]{--avatar-coat:#e4b77e;--avatar-shade:#936d87;--avatar-hat:#e4b77e;--avatar-hat-shade:#936d87}

@@ -1,0 +1,28 @@
+/* Everyday collectibles retain the shop's quiet geometric illustration style. */
+.scv3c-svg{display:block;max-width:100%;overflow:hidden}
+.scv3c-art{isolation:isolate}
+.scv3c-breathe{animation:scv3c-breathe 8s ease-in-out infinite}
+.scv3c-light{animation:scv3c-light 7s ease-in-out infinite}
+.scv3c-tail{transform-box:fill-box;transform-origin:15% 60%;animation:scv3c-tail 9s ease-in-out infinite}
+.scv3c-fin,.scv3c-wing{transform-box:fill-box;transform-origin:30% 20%;animation:scv3c-tail 8s ease-in-out infinite}
+.scv3c-tentacles,.scv3c-gills{transform-box:fill-box;transform-origin:50% 5%;animation:scv3c-soft 7s ease-in-out infinite}
+.scv3c-chime{transform-box:fill-box;transform-origin:50% 0;animation:scv3c-chime 10s ease-in-out infinite}
+.scv3c-feather{transform-box:fill-box;transform-origin:0 100%;animation:scv3c-chime 11s ease-in-out infinite}
+.scv3c-steam{animation:scv3c-steam 7s ease-in-out infinite}
+.scv3c-planet{animation:scv3c-planet 12s ease-in-out infinite}
+@keyframes scv3c-breathe{50%{transform:translateY(-.65px)}}
+@keyframes scv3c-light{50%{opacity:.7}}
+@keyframes scv3c-tail{50%{transform:rotate(2.5deg)}}
+@keyframes scv3c-soft{50%{transform:scaleX(.97)}}
+@keyframes scv3c-chime{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2deg)}}
+@keyframes scv3c-steam{50%{transform:translateY(-1px);opacity:.55}}
+@keyframes scv3c-planet{50%{transform:translateY(-1.5px)}}
+.no-motion .scv3c-art,.no-motion .scv3c-art *,
+html.focus-runtime-hidden .scv3c-art,html.focus-runtime-hidden .scv3c-art *,
+[hidden] .scv3c-art,[hidden] .scv3c-art *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.scv3c-art,.scv3c-art *{animation:none!important;transition:none!important}}
+:root:is([data-relic="relic-acornlamp"],[data-relic="relic-sailbottle"],[data-relic="relic-pressflower"],[data-relic="relic-quartzcluster"],[data-relic="relic-minioven"],[data-relic="relic-windchime"],[data-relic="relic-inkwell"],[data-relic="relic-meteorite"],[data-relic="relic-glassoctopus"],[data-relic="relic-pocketplanet"]) .crystal-shrine>.crystal{visibility:hidden}
+:root[data-banner="banner-gingham"]{--banner-main:#a5beb0;--banner-glow:rgba(165,190,176,.2);--banner-line:#e7d5ac}
+:root[data-banner="banner-ticketalbum"]{--banner-main:#d2ba93;--banner-glow:rgba(210,186,147,.2);--banner-line:#e6d5b1}
+:root[data-banner="banner-cedarwindow"]{--banner-main:#acb79b;--banner-glow:rgba(172,183,155,.2);--banner-line:#e4cc9f}
+:root[data-banner="banner-aurorafold"]{--banner-main:#b4d4d0;--banner-glow:rgba(180,212,208,.2);--banner-line:#d6c7e4}

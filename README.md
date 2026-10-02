@@ -24,6 +24,8 @@
 
 更多记录会收在[备考留影](docs/memories/README.md)里，[备考中的想法](docs/memories/备考中的想法.md)另存当时亲口说过的话。真实学习记录与开发测试画面分别保存，测试数据、游戏得分和虚拟货币不当作学习成果。
 
+[这一轮留下的想法与画面](docs/memories/2026-10-02-v1.49.16/README.md)：让身边的伙伴活泼起来，也让学习后的收藏多一些不同的期待。新增商品画面单独标明测试 / 演示来源，不计作学习记录。
+
 ## 以后怎样记录
 
 每次由 Codex 完成新的项目更新并通过相应验证后，先保存适合留念的真实学习截图、能够核对的简短汇总，以及使用者在对话中明确说过的想法；随后将相应的代码与功能说明一并提交、推送到这个公开仓库。正式发布的软件版本也保存标签和安装包，便于看到当时软件的完整样子。同步失败时会明确说明待上传内容。
@@ -32,7 +34,7 @@
 
 ## 陪伴这一程的软件
 
-**专注远征 · Focus Quest** 是为个人考研备考制作的 macOS 学习辅助软件，当前为 **v1.49.15 · build 80**。番茄 ToDo 继续负责计时，它负责汇总电脑与手机的已完成专注，保留开始、结束时间和有效时长，并展示数学、408、政治、英语的每日目标与周计划。它不提供课程，也不替代学习本身。
+**专注远征 · Focus Quest** 是为个人考研备考制作的 macOS 学习辅助软件，当前为 **v1.49.16 · build 81**。番茄 ToDo 继续负责计时，它负责汇总电脑与手机的已完成专注，保留开始、结束时间和有效时长，并展示数学、408、政治、英语的每日目标与周计划。它不提供课程，也不替代学习本身。
 
 首页的四个学科岛随各科进度建设；热力图按当时的目标回看每天的投入；知行研习所把听课和做题放在一起，鼓励自己动手练习。委托、学科礼盒与达标后的拾星给学习一些及时反馈，金币、钻石与票券均为软件里的虚拟奖励。
 
@@ -51,10 +53,10 @@
 
 ## 代码与文档也留在这里
 
-[版本索引](docs/版本索引.md)保存从 **v1.0 / build 1** 到 **v1.49.15 / build 80** 的 80 个运行源码版本。这些历史是后来从留存的发布应用中恢复、按版本建立的快照，不是原始开发提交；早期原生窗口源码没有完整留存，原始安装包另存在 [Releases](https://github.com/Jiang-liran/focus-quest/releases)。[早期画面](docs/memories/development-gallery/README.md)单独保存初版复原与艺术预览，明确标明测试或演示来源。
+[版本索引](docs/版本索引.md)保存从 **v1.0 / build 1** 到 **v1.49.15 / build 80** 的 80 个运行源码版本。其后从 v1.49.16 / build 81 继续记录新的开发更新。上述 80 版历史是后来从留存的发布应用中恢复、按版本建立的快照，不是原始开发提交；早期原生窗口源码没有完整留存，原始安装包另存在 [Releases](https://github.com/Jiang-liran/focus-quest/releases)。[早期画面](docs/memories/development-gallery/README.md)单独保存初版复原与艺术预览，明确标明测试或演示来源。
 
 最新项目源码位于 `outputs/focus-quest/`：Python 与 SQLite 保存规则和本地状态，HTML、CSS、JavaScript 与 SVG 绘制界面，Swift / AppKit / WebKit 提供原生窗口。`outputs/手机同步诊断/` 保存独立的 EventKit 日历辅助程序；主服务仅监听本机 `127.0.0.1:18473`。
 
 - [使用说明与功能更新](outputs/focus-quest/使用说明.md) · [项目详细介绍](outputs/专注远征_项目详细介绍.txt)（详细介绍整理于 v1.43）
-- [最新安装包](https://github.com/Jiang-liran/focus-quest/releases/tag/v1.49.15) · [构建入口](outputs/focus-quest/macos/build.sh) · [开发验证记录](outputs/focus-quest/验证记录.md)
+- [最新安装包](https://github.com/Jiang-liran/focus-quest/releases/tag/v1.49.16) · [构建入口](outputs/focus-quest/macos/build.sh) · [开发验证记录](outputs/focus-quest/验证记录.md)
 - [版本恢复说明](docs/版本恢复说明.md) · [备份核验说明](docs/备份核验说明.md) · [安装与恢复参考](docs/换电脑恢复指南.md)

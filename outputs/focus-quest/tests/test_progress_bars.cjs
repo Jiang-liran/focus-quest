@@ -70,10 +70,11 @@ test('prism is a continuous RGB light strip without keycaps in real fill and pre
  assert.doesNotMatch(thumb,/pb-preview-leader/);
 });
 
-test('old designs and four animals have distinct silhouettes rather than recolored identical shapes',()=>{
- const expected={'bar-default':'M30 17v5','bar-mint':'M41 25Q18 29','bar-aurora':'pb-aurora-flow','bar-comet':'pb-comet-dust','bar-tide':'pb-water-flow','bar-koi':'#f77f55','bar-fox':'#efad70','bar-whale':'#8db8dc','bar-dragon':'pb-cloud-flow'};
+test('ordinary rails keep distinct silhouettes and leave koi, whales and dragons to limited collections',()=>{
+ const expected={'bar-default':'M30 17v5','bar-mint':'M41 25Q18 29','bar-aurora':'pb-aurora-flow','bar-comet':'pb-comet-dust','bar-tide':'pb-water-flow','bar-koi':'data-motif="lotus-pond"','bar-fox':'#efad70','bar-whale':'data-motif="tidal-jellyfish"','bar-dragon':'data-motif="paper-swallow-kite"'};
  for(const [id,marker]of Object.entries(expected))assert.ok(art.preview(id).includes(marker),id);
- const h=dom();for(const id of ['bar-koi','bar-fox','bar-whale','bar-dragon']){const {fill}=h.bar('total-progress','75%',id);art.decorate(h.doc);assert.match(fill.children[0].innerHTML,/pb-animal-tail/);}
+ const h=dom();for(const id of ['bar-koi','bar-whale','bar-dragon']){const {fill}=h.bar('total-progress','75%',id);art.decorate(h.doc);assert.ok(fill.children[0].innerHTML.includes(expected[id]));}
+ for(const [id,name,old] of [['bar-koi','荷塘涟漪','锦鲤清渠'],['bar-whale','潮间水母','星鲸漫游'],['bar-dragon','纸鸢长风','云龙巡天']]){assert.ok(art.fullPreview(id).includes(name));assert.ok(!art.fullPreview(id).includes(old));}
 });
 
 test('large previews show five real progress stages and retain original purchased item names',()=>{

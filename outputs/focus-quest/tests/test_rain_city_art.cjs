@@ -257,7 +257,7 @@ test('both cabinet glass and halo gradients remain unique across interactive and
 test('new landscape themes add actual city-edge scenery while retaining every building and return route',()=>{
   const expansion=require('../static/shop-expansion.js');
   const themes=expansion.entries.filter(row=>row.slot==='theme'&&expansion.themeCityScene?.(row.id));
-  assert.equal(themes.length,10);
+  assert.equal(themes.length,18);
   const geometry=svg=>svg.replace(/\s(?:class|fill|stroke|opacity|data-[\w-]+)="[^"]*"/g,'');
   const unique=new Set();
   for(const theme of themes){

@@ -1,0 +1,61 @@
+/* Bounded local motion only: no extra timers, canvas loops or blur filters. */
+.lcv3d-svg{display:block;max-width:100%;overflow:hidden}
+.lcv3d-art{isolation:isolate}
+.lcv3d-glimmer,.lcv3d-scale,.lcv3d-window,.lcv3d-tree-fruit{animation:lcv3d-light 5s ease-in-out infinite;animation-delay:var(--lcv3d-delay,0s)}
+.lcv3d-dragon-body{animation:lcv3d-dragon 5s ease-in-out infinite}
+.lcv3d-dragon-whiskers{transform-box:fill-box;transform-origin:50% 0%;animation:lcv3d-whiskers 3.8s ease-in-out infinite}
+.lcv3d-rgb-river{animation:lcv3d-rgb 13s linear infinite}
+.lcv3d-river-ribbons{animation:lcv3d-current 6s linear infinite}
+.lcv3d-light-wings{transform-box:fill-box;transform-origin:50% 50%;animation:lcv3d-wings 7s ease-in-out infinite}
+.lcv3d-eclipse-crown{animation:lcv3d-lift 9s ease-in-out infinite}
+.lcv3d-royal-stars{animation:lcv3d-light 6s ease-in-out infinite}
+.lcv3d-citadel-left,.lcv3d-citadel-crown,.lcv3d-citadel-small,.lcv3d-citadel-right{animation:lcv3d-lift 9s ease-in-out infinite}
+.lcv3d-citadel-left{animation-delay:-3s}.lcv3d-citadel-small{animation-delay:-5s}.lcv3d-citadel-right{animation-delay:-7s}
+.lcv3d-citadel-bridges,.lcv3d-floating-gardens{animation:lcv3d-light 10s ease-in-out infinite}
+.lcv3d-waterfall-drops{animation:lcv3d-waterfall 3s ease-in-out infinite}
+.lcv3d-fox-tail{transform-box:view-box;transform-origin:50px 69px;animation:lcv3d-fox-tail 6s ease-in-out infinite;animation-delay:var(--lcv3d-delay,0s)}
+.lcv3d-fox-breathe{animation:lcv3d-breathe 8s ease-in-out infinite}
+.lcv3d-tree-canopy{transform-box:fill-box;transform-origin:50% 90%;animation:lcv3d-canopy 8s ease-in-out infinite}
+.lcv3d-tree-roots{animation:lcv3d-lift 7s ease-in-out infinite}
+.lcv3d-tree-spring{animation:lcv3d-light 5s ease-in-out infinite}
+.lcv3d-whale{animation:lcv3d-swim 21s ease-in-out infinite}
+.lcv3d-whale-small{animation-duration:27s;animation-delay:-8s}
+.lcv3d-whale-tail{transform-box:fill-box;transform-origin:90% 80%;animation:lcv3d-tail 6s ease-in-out infinite}
+.lcv3d-whale-fin{transform-box:fill-box;transform-origin:15% 0%;animation:lcv3d-fin 7s ease-in-out infinite}
+.lcv3d-whale-wake{animation:lcv3d-light 6s ease-in-out infinite}
+.lcv3d-sky-current{animation:lcv3d-sky 30s ease-in-out infinite}
+@keyframes lcv3d-light{0%,100%{opacity:.7}50%{opacity:1}}
+@keyframes lcv3d-dragon{50%{transform:translateY(-1.1px)}}
+@keyframes lcv3d-whiskers{50%{transform:rotate(-5deg)}}
+@keyframes lcv3d-rgb{to{transform:translateX(600px)}}
+@keyframes lcv3d-current{to{transform:translateX(120px)}}
+@keyframes lcv3d-wings{50%{transform:scaleX(.94);opacity:.82}}
+@keyframes lcv3d-lift{50%{transform:translateY(-2px)}}
+@keyframes lcv3d-waterfall{50%{transform:translateY(3px);opacity:.6}}
+@keyframes lcv3d-fox-tail{50%{transform:rotate(2.5deg)}}
+@keyframes lcv3d-breathe{50%{transform:translateY(-.7px)}}
+@keyframes lcv3d-canopy{50%{transform:rotate(1.2deg)}}
+@keyframes lcv3d-swim{0%,100%{transform:translate(0,0)}50%{transform:translate(13px,-5px)}}
+@keyframes lcv3d-tail{50%{transform:rotate(7deg)}}
+@keyframes lcv3d-fin{50%{transform:rotate(-9deg)}}
+@keyframes lcv3d-sky{50%{transform:translateY(-4px);opacity:.7}}
+.no-motion .lcv3d-art *,.no-motion .lcv3d-art,
+html.focus-runtime-hidden .lcv3d-art *,html.focus-runtime-hidden .lcv3d-art,
+[hidden] .lcv3d-art *,[hidden] .lcv3d-art{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.lcv3d-art,.lcv3d-art *{animation:none!important;transition:none!important}}
+:root[data-avatar="avatar-eclipseempress"]{--avatar-coat:#aca3d4;--avatar-shade:#464b79;--avatar-hat:#c9c5ea;--avatar-hat-shade:#8c9ccc}
+:root[data-avatar="avatar-eclipseempress"] #scene-traveler>:not(#equipped-player-regalia){visibility:hidden}
+:root[data-avatar="avatar-eclipseempress"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-eclipseempress"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-eclipseempress"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-eclipseempress"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-relic="relic-worldtree"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-theme="theme-stellarwhales"]{--theme-ground-top:#4b688c;--theme-ground-bottom:#324a6c;--theme-rock-top:#293c5d;--theme-rock-bottom:#162b42;--theme-rock-side:#293c5d;--theme-leaf-light:#b1d8df;--theme-leaf-mid:#6e9cac;--theme-leaf-dark:#385c75}
+:root[data-theme="theme-stellarwhales"] #ground stop:first-child{stop-color:var(--theme-ground-top)}
+:root[data-theme="theme-stellarwhales"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}
+:root[data-theme="theme-stellarwhales"] #rock stop:first-child{stop-color:var(--theme-rock-top)}
+:root[data-theme="theme-stellarwhales"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}
+:root[data-theme="theme-stellarwhales"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}
+:root[data-theme="theme-stellarwhales"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}
+:root[data-theme="theme-stellarwhales"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}
+:root[data-theme="theme-stellarwhales"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}

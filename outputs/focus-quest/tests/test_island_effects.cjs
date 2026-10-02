@@ -5,11 +5,16 @@ const paid=['fireflies','petals','snow','meteor','nebula'].map(id=>`fx-${id}`).c
 test('every existing paid island effect renders safe, bounded SVG in both real scene coordinate systems',()=>{
   const rendered=[];
   for(const mode of ['home','city'])for(const id of paid){
-    assert.equal(effects.has(id),true,id);
-    const markup=effects.scene(id,mode);
+    assert.ok(effects.has(id)||expansion.has(id,'fx'),id);
+    const render=()=>effects.has(id)?effects.scene(id,mode):expansion.effectScene(id,mode);
+    const markup=render();
     assert.ok(markup.length>200,id);
-    assert.equal(markup,effects.scene(id,mode),'routine redraw must not mint a different scene');
-    assert.doesNotMatch(markup,/<(?:script|foreignObject|animate|set)\b|\bon\w+=|\b(?:href|id)=|url\(|NaN|undefined|Infinity|tabindex|role="button"/);
+    const geometry=s=>s.replace(/scv3w-\d+/g,'scv3w-local');
+    assert.equal(geometry(markup),geometry(render()),'routine redraw must keep the same scene geometry');
+    assert.doesNotMatch(markup,/<(?:script|foreignObject|animate|set)\b|\bon\w+=|\bhref=|NaN|undefined|Infinity|tabindex|role="button"/);
+    const ids=[...markup.matchAll(/\bid="([^"]+)"/g)].map(m=>m[1]);
+    assert.equal(new Set(ids).size,ids.length);
+    for(const ref of markup.matchAll(/url\(#([^)]*)\)/g))assert.ok(ids.includes(ref[1]),id);
     const nodes=(markup.match(/<(?:path|circle|ellipse|rect|polygon|polyline|line)\b/g)||[]).length;
     assert.ok(nodes>5&&nodes<300,`${mode}: ${id}: ${nodes} geometry nodes`);
     rendered.push(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${mode==='home'?'590 350':'1200 720'}">${markup}</svg>`);

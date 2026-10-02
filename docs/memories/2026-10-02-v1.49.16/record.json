@@ -1,0 +1,68 @@
+{
+  "version": "1.49.16",
+  "build": 81,
+  "release_date": "2026-10-02",
+  "organized_date": "2026-10-02",
+  "timezone": "Asia/Shanghai",
+  "learning_evidence": [
+    {
+      "file": "01-study-islands-real.jpg",
+      "learning_date": "2026-10-02",
+      "captured_at": "2026-10-02T15:14:00+08:00",
+      "source": "Installed native app, fullscreen homepage",
+      "completed_focus_count": 9,
+      "displayed_focus_minutes": 140,
+      "daily_goal_minutes": 480,
+      "displayed_goal_percent": 29.2,
+      "scope": "Cumulative for the day at capture time; not a final daily total; do not add to earlier snapshots of this day."
+    }
+  ],
+  "learning_evidence_note": "Only the native homepage provides actual study evidence; four demonstration images are excluded.",
+  "quotes": [
+    {
+      "date": "2026-10-02",
+      "source": "本次用户项目对话",
+      "text": "优化一下宠物 目前宠物只是一个放在我旁边的贴图 有点呆 让它灵动起来"
+    }
+  ],
+  "screenshots": [
+    {
+      "file": "01-study-islands-real.jpg",
+      "kind": "Actual study record",
+      "captured_date": "2026-10-02",
+      "source": "Installed native app, fullscreen homepage at 15:14 Asia/Shanghai",
+      "learning_range": "2026-10-02 through 15:14",
+      "metadata_note": "JPEG APP1 metadata removed; image pixels unchanged"
+    },
+    {
+      "file": "02-coin-collection-demo.jpg",
+      "kind": "测试/演示数据",
+      "captured_date": "2026-10-02",
+      "source": "本版渲染器的独立本地预览；家中画面使用临时测试存档",
+      "learning_range": null
+    },
+    {
+      "file": "03-diamond-collection-demo.jpg",
+      "kind": "测试/演示数据",
+      "captured_date": "2026-10-02",
+      "source": "本版渲染器的独立本地预览；家中画面使用临时测试存档",
+      "learning_range": null
+    },
+    {
+      "file": "04-home-companion-demo.jpg",
+      "kind": "测试/演示数据",
+      "captured_date": "2026-10-02",
+      "source": "本版渲染器的独立本地预览；家中画面使用临时测试存档",
+      "learning_range": null
+    },
+    {
+      "file": "05-ordinary-collection-demo.jpg",
+      "kind": "测试/演示数据",
+      "captured_date": "2026-10-02",
+      "source": "本版商品渲染器生成的独立本地测试陈列",
+      "learning_range": null
+    }
+  ],
+  "install_zip": "FocusQuest-v1.49.16-macOS.zip",
+  "sha256": "3893935b08607fdd4e82c7be9419b39ee30b7e13a73915e5f45ba4436b84ea3f"
+}

@@ -1,0 +1,63 @@
+/* Six coin collectibles: bounded vector art, transform/opacity only, no timers. */
+.lcv3c-svg{display:block;max-width:100%;overflow:hidden}
+.lcv3c-art{isolation:isolate}
+.lcv3c-light,.lcv3c-scale-light{animation:lcv3c-light 5.3s ease-in-out infinite;animation-delay:var(--lcv3c-delay,0s)}
+.lcv3c-koi-swim{animation:lcv3c-swim 6s ease-in-out infinite}
+.lcv3c-koi-tail{transform-box:fill-box;transform-origin:100% 50%;animation:lcv3c-tail 2.7s ease-in-out infinite}
+.lcv3c-koi-fin{transform-box:fill-box;transform-origin:35% 0%;animation:lcv3c-fin 3.2s ease-in-out infinite}
+.lcv3c-water-stream{animation:lcv3c-current 7s linear infinite}
+.lcv3c-ranger-cloak,.lcv3c-ranger-wings{transform-box:fill-box;transform-origin:50% 15%;animation:lcv3c-cloak 6.5s ease-in-out infinite}
+.lcv3c-ranger-lantern,.lcv3c-ranger-feather{transform-box:fill-box;transform-origin:45% 15%;animation:lcv3c-feather 5.4s ease-in-out infinite}
+.lcv3c-ranger-wind,.lcv3c-garden-breeze{animation:lcv3c-breeze 8s ease-in-out infinite}
+.lcv3c-windmill-rotor{transform-box:view-box;transform-origin:0 0;animation:lcv3c-rotor 16s linear infinite}
+.lcv3c-canal-glint{animation:lcv3c-light 4.2s ease-in-out infinite}
+.lcv3c-airship-propeller{transform-box:fill-box;transform-origin:center;animation:lcv3c-propeller 1.8s ease-in-out infinite}
+.lcv3c-airship-cruise,.lcv3c-city-ship{animation:lcv3c-cruise 27s ease-in-out infinite}
+.lcv3c-airship-distant{animation:lcv3c-distant 35s ease-in-out infinite}
+.lcv3c-high-clouds{animation:lcv3c-clouds 32s ease-in-out infinite}
+.lcv3c-low-clouds{animation:lcv3c-clouds 39s ease-in-out infinite reverse}
+.lcv3c-lion-breathe,.lcv3c-dragon-breathe{animation:lcv3c-breathe 6.4s ease-in-out infinite}
+.lcv3c-lion-mane{transform-box:fill-box;transform-origin:50% 65%;animation:lcv3c-mane 4.8s ease-in-out infinite}
+.lcv3c-lion-tail{transform-box:fill-box;transform-origin:0% 60%;animation:lcv3c-tail 6s ease-in-out infinite}
+.lcv3c-lion-tail-flame{transform-box:fill-box;transform-origin:50% 100%;animation:lcv3c-flame 3.1s ease-in-out infinite}
+.lcv3c-dragon-tail{transform-box:fill-box;transform-origin:50% 100%;animation:lcv3c-feather 5.8s ease-in-out infinite}
+.lcv3c-dragon-head{transform-box:fill-box;transform-origin:90% 80%;animation:lcv3c-dragon-nod 8s ease-in-out infinite}
+.lcv3c-dragon-pearl{animation:lcv3c-pearl 5.5s ease-in-out infinite}
+@keyframes lcv3c-light{0%,100%{opacity:.68}50%{opacity:1}}
+@keyframes lcv3c-swim{50%{transform:translate(1px,-1px)}}
+@keyframes lcv3c-tail{50%{transform:rotate(5deg)}}
+@keyframes lcv3c-fin{50%{transform:rotate(-7deg)}}
+@keyframes lcv3c-current{to{transform:translateX(120px)}}
+@keyframes lcv3c-cloak{50%{transform:scaleX(.965)}}
+@keyframes lcv3c-feather{50%{transform:rotate(-4deg)}}
+@keyframes lcv3c-breeze{50%{transform:translate(2px,-1px);opacity:.72}}
+@keyframes lcv3c-rotor{to{transform:rotate(360deg)}}
+@keyframes lcv3c-propeller{50%{transform:scaleY(.55)}}
+@keyframes lcv3c-cruise{0%,100%{transform:translate(-10px,1px)}50%{transform:translate(27px,-4px)}}
+@keyframes lcv3c-distant{0%,100%{transform:translate(11px,-1px)}50%{transform:translate(-21px,4px)}}
+@keyframes lcv3c-clouds{50%{transform:translateX(16px)}}
+@keyframes lcv3c-breathe{50%{transform:translateY(-1px)}}
+@keyframes lcv3c-mane{50%{transform:scale(1.025,.985)}}
+@keyframes lcv3c-flame{50%{transform:scale(.91,1.035);opacity:.83}}
+@keyframes lcv3c-dragon-nod{50%{transform:rotate(-2deg)}}
+@keyframes lcv3c-pearl{50%{transform:translateY(-2px);opacity:.87}}
+.no-motion .lcv3c-art,.no-motion .lcv3c-art *,
+html.focus-runtime-hidden .lcv3c-art,html.focus-runtime-hidden .lcv3c-art *,
+[hidden] .lcv3c-art,[hidden] .lcv3c-art *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.lcv3c-art,.lcv3c-art *{animation:none!important;transition:none!important}}
+:root[data-avatar="avatar-stormranger"]{--avatar-coat:#619487;--avatar-shade:#356663;--avatar-hat:#679c8d;--avatar-hat-shade:#3f746d}
+:root[data-avatar="avatar-stormranger"] #scene-traveler>:not(#equipped-player-regalia){visibility:hidden}
+:root[data-avatar="avatar-stormranger"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-stormranger"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-stormranger"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-stormranger"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-relic="relic-dragonpearl"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-theme="theme-cloudregatta"]{--theme-ground-top:#527b80;--theme-ground-bottom:#385d6b;--theme-rock-top:#30465e;--theme-rock-bottom:#203547;--theme-rock-side:#30465e;--theme-leaf-light:#bbd7c5;--theme-leaf-mid:#6d9c96;--theme-leaf-dark:#365c64}
+:root[data-theme="theme-cloudregatta"] #ground stop:first-child{stop-color:var(--theme-ground-top)}
+:root[data-theme="theme-cloudregatta"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}
+:root[data-theme="theme-cloudregatta"] #rock stop:first-child{stop-color:var(--theme-rock-top)}
+:root[data-theme="theme-cloudregatta"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}
+:root[data-theme="theme-cloudregatta"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}
+:root[data-theme="theme-cloudregatta"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}
+:root[data-theme="theme-cloudregatta"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}
+:root[data-theme="theme-cloudregatta"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}

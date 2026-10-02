@@ -1,7 +1,7 @@
 """Permanent cosmetic expansion. Existing catalog identifiers and prices are unchanged.
 
 Rows use the server's (id, slot, name, description, coins, diamonds) schema.
-Every ordinary paid cosmetic can be purchased or drawn; the twenty-four lottery-only
+Every ordinary paid cosmetic can be purchased or drawn; the thirty-six lottery-only
 collections stay in their separate rare pools.
 """
 
@@ -238,11 +238,83 @@ SHOP_CATALOG_EXTRA = (
     ('theme-astralrift', 'theme', '星界裂隙', '两重弯曲星幕与浮游晶体包围主岛，极光轨迹延伸到雨夜城市边缘。抽奖限定。', 0, 99),
     ('companion-prismwhale', 'companion', '幻晶星鲸', '透明晶鲸穿行三重星环，棱面折出蓝粉极光，背鳍与尾部伴随微小星群。抽奖限定。', 0, 99),
     ('relic-infinitygarden', 'relic', '无尽星庭', '莫比乌斯光环围起一座悬浮星庭，晶花、星泉与双层阶台缓缓共鸣，光粒循环归来。抽奖限定。', 0, 99),
+    ('bar-koidance', 'bar', '锦鲤逐浪', '红白锦鲤沿碧色水流追逐，鱼尾、鳍片与细密鳞光伴随真实进度向前。抽奖限定。', 9999, 0),
+    ('avatar-stormranger', 'avatar', '逐风游侠', '风羽披风与轻装游侠，随当天进度添上提灯、叶翼、羽冠与流转风痕。抽奖限定。', 9999, 0),
+    ('island-clockworkgarden', 'island', '风车花园城', '三座旋转风车与层叠花圃错落在主岛，水渠、暖窗与庭院微光相伴，保留路边篝火。抽奖限定。', 9999, 0),
+    ('theme-cloudregatta', 'theme', '云帆巡游', '两艘暖窗飞艇穿过层层云海，桨叶与轻云连起主岛天空，雨城远处也能看见缓缓驶过的云帆。抽奖限定。', 9999, 0),
+    ('companion-emberlion', 'companion', '灯焰小狮', '带灯焰鬃毛的小狮守在旅人身旁，尾端暖焰与金色胸纹轻轻呼吸。抽奖限定。', 9999, 0),
+    ('relic-dragonpearl', 'relic', '游龙戏珠', '青金游龙盘绕明珠，龙须、角枝与鳞片错层展开，替换主岛晶台与雨城橱窗展品。抽奖限定。', 9999, 0),
+    ('bar-stardragon', 'bar', '星龙溯光', '星龙沿虹色光河溯游，龙首、飘须与碎星鳞光守在真实进度前沿。抽奖限定。', 0, 99),
+    ('avatar-eclipseempress', 'avatar', '月蚀巡天者', '月蚀冠轮与层叠夜空斗篷组成巡天旅装，随当天进度展开星杖、光翼与星纹。抽奖限定。', 0, 99),
+    ('island-aethercitadel', 'island', '极昼浮空城', '错层浮空庭院、光桥、悬瀑与亮窗塔楼组成主岛后侧天际，保留路边篝火。抽奖限定。', 0, 99),
+    ('theme-stellarwhales', 'theme', '鲸落星海', '透明星鲸与幼鲸缓缓游过深蓝星潮，鳍尾与碎星尾迹延伸到主岛和雨夜城市的天空。抽奖限定。', 0, 99),
+    ('companion-ninefox', 'companion', '九曜天狐', '九条分叉长尾轻轻流动，银白灵狐带着星纹守在主岛与雨城旅人身旁。抽奖限定。', 0, 99),
+    ('relic-worldtree', 'relic', '万象世界树', '悬浮晶根托起分层世界树，立体枝冠、星果与泉光装点主岛晶台和雨城橱窗。抽奖限定。', 0, 99),
+    ('bar-toastdash', 'bar', '吐司早班', '奶油吐司停在进度前沿，烤色格纹与面包碎沿已完成的轨道铺开', 40, 0),
+    ('bar-puddleduck', 'bar', '鸭鸭过河', '小黄鸭拨开清浅水纹，水草与泡泡陪着真实进度向前', 75, 0),
+    ('bar-mushroomtrail', 'bar', '蘑菇漫步', '圆帽蘑菇撑着一片小叶伞，苔径与蘑菇芽随进度生长', 130, 0),
+    ('bar-marbletrack', 'bar', '弹珠滑道', '透亮弹珠沿双层木轨滚动，木榫与弯道刻线依照已完成进度亮起', 210, 0),
+    ('bar-cocoamelt', 'bar', '可可融雪', '热可可杯上浮起小棉花糖，雪白奶沫与可可旋纹铺满已完成的轨道', 300, 0),
+    ('bar-hummingbird', 'bar', '蜂鸟访花', '尖喙蜂鸟守着进度前沿轻轻振翅，花蔓与花蜜色细线一起延伸', 650, 0),
+    ('bar-crystalotter', 'bar', '晶溪海獭', '抱贝海獭浮在晶溪上，清透水晶与双层细浪映出已完成的进度', 0, 5),
+    ('bar-moonjelly', 'bar', '月灯水母', '月色水母拖着分层光须，泡泡与月相在透光水带中缓缓浮动', 0, 18),
+    ('avatar-noodlechef', 'avatar', '夜宵小厨', '蓬松厨师帽与暖色围裙，随当天进度添上围巾、面碗、筷子与热气', 60, 0),
+    ('avatar-mushroomwalker', 'avatar', '蘑菇旅者', '圆帽与林地短披肩，随当天进度添上叶扣、蘑菇篮、苔叶与小伞', 110, 0),
+    ('avatar-sailorcat', 'avatar', '猫港水手', '猫耳水手帽与短蓝衫，随当天进度添上领结、救生圈、鱼徽与小海鸥', 180, 0),
+    ('avatar-pocketdetective', 'avatar', '雨巷侦探', '格纹猎帽与风衣，随当天进度添上肩扣、放大镜、随身笔记与怀表', 280, 0),
+    ('avatar-cloudsleep', 'avatar', '云枕梦游者', '垂尾睡帽与星点睡袍，随当天进度添上月扣、抱枕、毛绒拖鞋与软云', 450, 0),
+    ('avatar-fireflykeeper', 'avatar', '萤灯巡林人', '叶片兜帽与护林披肩，随当天进度添上木扣、萤灯、藤纹与林间萤火', 850, 0),
+    ('avatar-pearlpilot', 'avatar', '珍珠潜航员', '圆形潜航头盔与海蓝旅装，随当天进度添上领环、珍珠灯、背鳍与漂浮泡泡', 0, 6),
+    ('avatar-solarpainter', 'avatar', '日光绘师', '斜檐画帽与颜料围裙，随当天进度添上日纹、调色盘、画笔与流动光彩', 0, 20),
+    ('companion-dormouse', 'companion', '榛果睡鼠', '圆耳小睡鼠抱着榛果，长尾轻轻蜷在脚边。', 55, 0),
+    ('companion-puffin', 'companion', '海崖角嘴雀', '黑白角嘴雀踩着橙色脚掌，彩色厚喙辨认得出海边的伙伴。', 85, 0),
+    ('companion-ferret', 'companion', '奶油雪貂', '细长的奶油雪貂盘着柔软尾巴，鼻尖安静地轻嗅。', 120, 0),
+    ('companion-sealpup', 'companion', '浮冰小海豹', '胖乎乎的小海豹伏在一块浮冰上，鳍脚和胡须随呼吸轻动。', 165, 0),
+    ('companion-fennec', 'companion', '沙丘耳廓狐', '沙色大耳狐裹着蓬松尾巴，耳朵内侧映着柔和珊瑚色。', 220, 0),
+    ('companion-alpaca', 'companion', '绒云羊驼', '卷毛羊驼戴着小围巾，长脖颈与软软的发顶像一朵云。', 300, 0),
+    ('companion-jellyfish', 'companion', '星露水母', '半透明水母托着一颗小星，四束触手在桥边轻柔摇曳。', 0, 4),
+    ('companion-axolotl', 'companion', '桃腮六角螈', '桃粉色外鳃、细小四肢与扁尾，让六角螈像在浅水里散步。', 0, 7),
+    ('companion-pegasus', 'companion', '月羽小天马', '月白小马展开分层羽翼，短鬃与蹄尖带一点暮色。', 0, 12),
+    ('companion-kingfisher', 'companion', '宝蓝翠鸟', '翠鸟停在细枝上，蓝绿背羽、橙色胸脯与长喙映出清溪。', 0, 18),
+    ('relic-acornlamp', 'relic', '橡果夜灯', '橡果壳托着一盏小暖灯，木纹帽沿和细叶组成灯座。', 40, 0),
+    ('relic-sailbottle', 'relic', '瓶中远帆', '横卧的玻璃瓶中藏着小帆船和一线潮水。', 75, 0),
+    ('relic-pressflower', 'relic', '押花标本', '木框中夹着一枝压平的花，纸张与枝叶保留细小纹理。', 110, 0),
+    ('relic-quartzcluster', 'relic', '山泉晶簇', '几枚六棱水晶从山石中生长，浅青切面映着细小水光。', 160, 0),
+    ('relic-minioven', 'relic', '刚出炉的小屋', '小砖炉里放着两只面包，烟囱上有一点温暖的蒸汽。', 240, 0),
+    ('relic-windchime', 'relic', '檐下风铃', '竹横梁吊着三根瓷管和一张短签，偶尔随风轻摆。', 390, 0),
+    ('relic-inkwell', 'relic', '青瓷墨池', '青瓷墨池、一枝羽笔和几滴墨迹组成安静的小桌景。', 650, 0),
+    ('relic-meteorite', 'relic', '陨星标本', '斜卧的陨石嵌着矿脉，深色石座旁有标本标签。', 0, 6),
+    ('relic-glassoctopus', 'relic', '琉璃章鱼', '玻璃小章鱼卷起透明腕足，瓶青和浅紫切面交叠。', 0, 14),
+    ('relic-pocketplanet', 'relic', '掌心小行星', '掌心大小的绿色星球托着小屋、山脊与一棵树，缓缓起伏。', 0, 24),
+    ('banner-gingham', 'banner', '野餐方格', '柔和织带与四角布纹，让旅人铭牌像一本随身的小布册。', 65, 0),
+    ('banner-ticketalbum', 'banner', '车票手账', '打孔票边、日期印记与压角纸条，收拢每一段出发。', 180, 0),
+    ('banner-cedarwindow', 'banner', '雪松窗棂', '木制窗棂和两枝雪松为铭牌留出清楚、安静的中央。', 900, 0),
+    ('banner-aurorafold', 'banner', '极光折页', '两枚半透明折角像极光落在纸上，边缘有轻微明暗变化。', 0, 2),
+    ('island-harborbench', 'island', '渡口长椅', '船形木椅、缆绳桩与小遮棚，在主岛后侧留一处歇脚渡口', 80, 0),
+    ('island-kiteatelier', 'island', '风筝小作坊', '斜顶作坊、菱形纸鸢与卷线架，细尾带随风轻轻摆动', 170, 0),
+    ('island-birdloft', 'island', '飞羽信舍', '高脚鸟舍、错层信巢与落鸟横杆，在后侧添一座小小信站', 290, 0),
+    ('island-sundialyard', 'island', '日影石庭', '放射刻度日晷、立针与错层青石台，留下清爽的观日庭院', 400, 0),
+    ('island-candleworkshop', 'island', '微光烛坊', '圆窗蜡坊、三盏高低烛灯与蜂蜡架，在主岛后侧亮起暖光', 700, 0),
+    ('island-rainstage', 'island', '雨幕小剧场', '扇形舞台、双层幕布与侧灯，在后侧留一座安静的小剧场', 0, 5),
+    ('island-orreryrail', 'island', '星轨车厅', '弧轨、双窗小车与星图站棚，轨道灯依次轻轻呼吸', 0, 15),
+    ('island-tidalarchives', 'island', '潮页档案馆', '阶梯书屋、拱形水窗与层叠书脊，潮光在廊下缓缓流动', 0, 28),
+    ('theme-bluefjord', 'theme', '蓝调峡湾', '远处陡崖与一线静水延伸至天际，主岛地景换上蓝灰岩色', 160, 0),
+    ('theme-marshmoon', 'theme', '月沼浅芦', '芦苇剪影与低月倒影映着静水，城市水岸也留有浅浅苇影', 340, 0),
+    ('theme-ambercanyon', 'theme', '琥珀峡谷', '阶状砂岩、峡谷岩窗与日落薄云，城市天际映出暖色岩层', 1050, 0),
+    ('theme-lakeconstellations', 'theme', '星图镜湖', '山影与镜湖倒映一张缓慢明灭的星图，细星路延伸到夜城', 0, 8),
+    ('theme-mushroomglen', 'theme', '眠菇微谷', '层叠菌伞、蕨叶与微光孢子组成谷地，远近大小各不相同', 0, 14),
+    ('theme-crystalcaves', 'theme', '水晶洞天', '分面岩拱、透光晶簇与地下静水形成洞天，晶色延伸到城市岩岸', 0, 32),
+    ('fx-swallows', 'fx', '归燕掠影', '小燕子舒展双翼，分批横越主岛与雨夜城市的天空', 40, 0),
+    ('fx-cottonpuffs', 'fx', '棉絮轻行', '松软小棉絮随气流浮起、侧移，离开画面后渐渐消散', 120, 0),
+    ('fx-raingems', 'fx', '雨珠折光', '透亮雨珠斜落时闪出细小折光，落地化成短暂水纹', 260, 0),
+    ('fx-juneblossom', 'fx', '桔梗花雨', '五角花瓣与小花苞随风翻转飘落，错开远近与速度', 600, 0),
+    ('fx-moonjellies', 'fx', '月游水母', '半透明水母舒展伞盖与短触须，缓缓游过主岛和雨城夜空', 0, 2),
+    ('fx-inkfishes', 'fx', '游墨飞鱼', '轻薄鱼群摆尾穿行，墨蓝鱼影与浅青鳍光留下水墨般的轨迹', 0, 12),
 )
 
 # Retain the export for older integrations; there are no shop-only cosmetics.
 SHOP_LOTTERY_EXCLUSIVE_IDS = frozenset()
-SHOP_LOTTERY_ONLY_BY_MACHINE = {'coin': ('bar-skyexpress', 'avatar-moonwarden', 'island-starhaven', 'theme-cometsea', 'companion-lumibird', 'relic-soulgarden', 'bar-tidewhale', 'avatar-forestcrown', 'island-lanternwharf', 'theme-fireflygrove', 'companion-clockfox', 'relic-cloudorrery'), 'diamond': ('bar-galaxy', 'avatar-stellararchon', 'island-celestialpalace', 'theme-nebulaverse', 'companion-celestialserpent', 'relic-cosmosheart', 'bar-eventhorizon', 'avatar-auroraweaver', 'island-lunarobservatory', 'theme-astralrift', 'companion-prismwhale', 'relic-infinitygarden')}
+SHOP_LOTTERY_ONLY_BY_MACHINE = {'coin': ('bar-skyexpress', 'avatar-moonwarden', 'island-starhaven', 'theme-cometsea', 'companion-lumibird', 'relic-soulgarden', 'bar-tidewhale', 'avatar-forestcrown', 'island-lanternwharf', 'theme-fireflygrove', 'companion-clockfox', 'relic-cloudorrery', 'bar-koidance', 'avatar-stormranger', 'island-clockworkgarden', 'theme-cloudregatta', 'companion-emberlion', 'relic-dragonpearl'), 'diamond': ('bar-galaxy', 'avatar-stellararchon', 'island-celestialpalace', 'theme-nebulaverse', 'companion-celestialserpent', 'relic-cosmosheart', 'bar-eventhorizon', 'avatar-auroraweaver', 'island-lunarobservatory', 'theme-astralrift', 'companion-prismwhale', 'relic-infinitygarden', 'bar-stardragon', 'avatar-eclipseempress', 'island-aethercitadel', 'theme-stellarwhales', 'companion-ninefox', 'relic-worldtree')}
 SHOP_LOTTERY_ONLY_IDS = frozenset(id for ids in SHOP_LOTTERY_ONLY_BY_MACHINE.values() for id in ids)
 SHOP_ITEM_META = {row[0]: {"lotteryEligible": True, "lotteryExclusive": False} for row in SHOP_CATALOG_EXTRA}
 for machine, ids in SHOP_LOTTERY_ONLY_BY_MACHINE.items():

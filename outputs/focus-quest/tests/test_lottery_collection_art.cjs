@@ -6,7 +6,7 @@ const path=require('node:path');
 const vm=require('node:vm');
 const {spawnSync}=require('node:child_process');
 const art=require('../static/lottery-collection-art.js');
-const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/limited_catalog.json'),'utf8'));
+const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/limited_catalog.json'),'utf8')).filter(entry=>art.has(entry.id));
 const wrap=body=>`<svg xmlns="http://www.w3.org/2000/svg">${body}</svg>`;
 const geometry=svg=>svg.replace(/\b(?:data-[\w-]+|class|style|fill|stroke|opacity|stop-color|id)="[^"]*"/g,'').replace(/url\(#[^)]+\)/g,'local-reference');
 function refs(svg,seen) {

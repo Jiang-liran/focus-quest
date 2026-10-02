@@ -735,7 +735,7 @@ class LotteryStoreTests(unittest.TestCase):
 
     def test_all_limited_items_owned_returns_advertised_fallback_and_cannot_direct_buy(self):
         limited = [item for item in server.SHOP_ITEMS.values() if item.get("lotteryOnly")]
-        self.assertEqual(len(limited), 24)
+        self.assertEqual(len(limited), 36)
         self.wallet()
         for item in limited:
             with self.assertRaisesRegex(ValueError, "抽奖限定"):
@@ -1212,8 +1212,8 @@ class LotteryRuleTests(unittest.TestCase):
                     self.assertTrue(item.get("lotteryEligible", True))
                     self.assertFalse(item.get("lotteryOnly", False))
                     self.assertNotEqual(item["id"], owned["id"])
-                self.assertEqual(len(pools["coinLimited"]), 12)
-                self.assertEqual(len(pools["diamondLimited"]), 12)
+                self.assertEqual(len(pools["coinLimited"]), 18)
+                self.assertEqual(len(pools["diamondLimited"]), 18)
                 self.assertGreater(rules.item_weight({"coins": 50}, "coinItem"), rules.item_weight({"coins": 2000}, "coinItem"))
             finally:
                 store.close()

@@ -1,0 +1,45 @@
+/* One quiet companion near the traveler; thumbnails animate only on approach. */
+.pet-life{outline:none;isolation:isolate;pointer-events:none}
+.pet-life-hit,.pet-life-focus{pointer-events:none}
+.pet-life-focus{opacity:0}
+.pet-life-motion{transform-box:fill-box;transform-origin:50% 88%;animation:pet-curious 18s ease-in-out infinite;animation-delay:var(--pet-phase,0s)}
+.pet-life-response{transform-origin:50px 86px}
+.pet-life--bird .pet-life-motion{animation-name:pet-bird;animation-duration:15s}
+.pet-life--swim .pet-life-motion{animation-name:pet-swim;animation-duration:11s}
+.pet-life--hop .pet-life-motion{animation-name:pet-hop;animation-duration:16s}
+.pet-life--gentle .pet-life-motion{animation-name:pet-rest;animation-duration:22s}
+.pet-life-tail{transform-origin:40px 70px;animation:pet-tail 5.6s ease-in-out infinite}
+.pet-life-ears{transform-origin:50px 32px;animation:pet-ears 11s ease-in-out infinite}
+.pet-life-wings,.pet-life-wing-left,.pet-life-wing-right{transform-origin:50px 48px;animation:pet-wings 9s ease-in-out infinite}
+.pet-life-fin{transform-origin:43px 59px;animation:pet-fin 4.5s ease-in-out infinite}
+.pet-life-head{transform-origin:38px 53px;animation:pet-head 12s ease-in-out infinite}
+.pet-life-eye{transform-box:fill-box;transform-origin:center;animation:pet-blink 8s ease-in-out infinite;animation-delay:var(--pet-phase,0s)}
+.pet-life-hello{opacity:0;transform:translateY(4px);transition:opacity .2s ease,transform .3s ease}
+.pet-life.pet-life *{animation-play-state:paused}
+:is(.quest-scene,.rain-city-art[data-interactive=true]) .pet-life *,.shop-card:hover .pet-life *,.shop-card:focus-within .pet-life *{animation-play-state:running}
+#equipped-companion .pet-life,.rain-city-art[data-interactive=true] .pet-life{pointer-events:visiblePainted}
+#equipped-companion .pet-life-hit,.rain-city-art[data-interactive=true] .pet-life-hit{pointer-events:all}
+.pet-life:is(:hover,:focus-visible) .pet-life-motion{animation-play-state:paused}
+.pet-life:is(:hover,:focus-visible) .pet-life-response{animation:pet-greet .85s ease-in-out 1}
+.pet-life:is(:hover,:focus-visible) .pet-life-hello{opacity:1;transform:translateY(-3px)}
+.pet-life:focus-visible .pet-life-focus{opacity:.7}
+.pet-life:is(:hover,:focus-visible) .pet-life-tail{animation-duration:1s}
+.pet-life:is(:hover,:focus-visible) :is(.pet-life-wings,.pet-life-wing-left,.pet-life-wing-right){animation-duration:1s}
+.pet-life:is(:hover,:focus-visible) :is(.scv3c-tail,.lca-fox-tail,.lcv3c-lion-tail){animation-duration:1.2s}
+.pet-life:is(:hover,:focus-visible) :is(.scv3c-wing,.scv3c-fin,.scv3c-gills,.scv3c-tentacles){animation-duration:2.4s}
+.pet-life:is(:hover,:focus-visible) .pet-life-head{animation-duration:2s}
+@keyframes pet-curious{0%,27%,56%,100%{transform:translate(0,0) rotate(0)}30%,34%{transform:translate(-4px,-1px) rotate(-4deg)}39%{transform:translate(3px,-3px) rotate(2deg)}44%{transform:translate(9px,0) rotate(0)}50%{transform:translate(4px,-2px) rotate(-2deg)}}
+@keyframes pet-bird{0%,39%,61%,100%{transform:translate(0,0) rotate(0)}43%{transform:translate(0,-5px) rotate(-5deg)}49%{transform:translate(4px,-9px) rotate(4deg)}55%{transform:translate(2px,-4px) rotate(-2deg)}}
+@keyframes pet-swim{0%,100%{transform:translate(-4px,2px) rotate(-3deg)}35%{transform:translate(6px,-7px) rotate(3deg)}70%{transform:translate(2px,-2px) rotate(-1deg)}}
+@keyframes pet-hop{0%,30%,56%,100%{transform:translate(0,0) scale(1)}33%{transform:translate(0,1px) scale(1.04,.96)}37%{transform:translate(5px,-9px) scale(.98,1.03)}41%{transform:translate(9px,0) scale(1.02,.97)}46%{transform:translate(5px,-5px) scale(1)}51%{transform:translate(0,0)}}
+@keyframes pet-rest{0%,45%,75%,100%{transform:rotate(0) scale(1)}50%,66%{transform:rotate(-3deg) scale(1.015,.98)}58%{transform:rotate(-2deg) scale(1.025,.995)}}
+@keyframes pet-tail{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(5deg)}}
+@keyframes pet-ears{0%,39%,51%,100%{transform:rotate(0)}43%{transform:rotate(-5deg)}47%{transform:rotate(3deg)}}
+@keyframes pet-wings{0%,35%,66%,100%{transform:scale(1)}42%,56%{transform:scale(.89,1.06)}49%,62%{transform:scale(1.04,.98)}}
+@keyframes pet-fin{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg)}}
+@keyframes pet-head{0%,34%,70%,100%{transform:rotate(0)}43%,55%{transform:rotate(-4deg)}62%{transform:rotate(2deg)}}
+@keyframes pet-blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.12)}}
+@keyframes pet-greet{0%,100%{transform:translateY(0) rotate(0)}24%{transform:translateY(-8px) rotate(-5deg)}50%{transform:translateY(-2px) rotate(4deg)}74%{transform:translateY(-5px) rotate(-2deg)}}
+.no-motion .pet-life *,html.focus-runtime-hidden .pet-life *,[hidden] .pet-life *{animation:none!important;transition:none!important}
+.no-motion .pet-life-motion,html.focus-runtime-hidden .pet-life-motion,[hidden] .pet-life-motion{transform:none!important}
+@media(prefers-reduced-motion:reduce){.pet-life *{animation:none!important;transition:none!important}.pet-life-motion{transform:none!important}}

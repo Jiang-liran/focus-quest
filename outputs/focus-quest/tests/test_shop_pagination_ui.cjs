@@ -7,7 +7,7 @@ const html=fs.readFileSync(require.resolve('../static/index.html'),'utf8');
 const flush=()=>new Promise(resolve=>setImmediate(resolve));
 const stamp=seconds=>new Date(Date.UTC(2026,9,1,12,0,seconds)).toISOString();
 
-function products(count=336){
+function products(count=408){
   return Array.from({length:count},(_,index)=>({id:`${['bar','fx','fire'][index%3]}-page-${index}`,
     slot:['bar','fx','fire'][index%3],name:`收藏 ${index}`,description:'独立收藏的预览与装备',
     coins:80,diamonds:0,currency:'coins',owned:false,equipped:false}));
@@ -70,22 +70,22 @@ function harness(){
     ids(){return element('shop-catalog').children.filter(node=>node.dataset.shopAction==='preview').map(node=>node.dataset.item);}};
 }
 
-test('real shop rendering mounts at most 24 cards and every one of 336 items is reachable with bounded page buttons',()=>{
+test('real shop rendering mounts at most 24 cards and every one of 408 items is reachable with bounded page buttons',()=>{
   const h=harness(),catalog=products();h.api.render(snapshot(catalog));
   assert.equal(h.ids().length,24);assert.equal(h.calls.drawings.length,24);
   assert.equal(h.element('shop-pagination').hidden,false);
   assert.equal(h.element('shop-page-prev').disabled,true);assert.equal(h.element('shop-page-next').disabled,false);
-  assert.equal(h.element('shop-page-count').textContent,'第 1 / 14 页');
+  assert.equal(h.element('shop-page-count').textContent,'第 1 / 17 页');
   const seen=[...h.ids()];
-  for(let page=2;page<=14;page++){
+  for(let page=2;page<=17;page++){
     h.click('shop-page-next');assert.equal(h.ids().length,24);seen.push(...h.ids());
-    assert.equal(h.element('shop-page-count').textContent,`第 ${page} / 14 页`);
+    assert.equal(h.element('shop-page-count').textContent,`第 ${page} / 17 页`);
     assert.equal(h.element('shop-catalog').children.length,48);
   }
-  assert.deepEqual(seen,catalog.map(item=>item.id));assert.equal(new Set(seen).size,336);
+  assert.deepEqual(seen,catalog.map(item=>item.id));assert.equal(new Set(seen).size,408);
   assert.equal(h.element('shop-page-next').disabled,true);
   const writes=h.element('shop-catalog').writes;h.click('shop-page-next');assert.equal(h.element('shop-catalog').writes,writes);
-  h.click('shop-page-prev');assert.equal(h.element('shop-page-count').textContent,'第 13 / 14 页');
+  h.click('shop-page-prev');assert.equal(h.element('shop-page-count').textContent,'第 16 / 17 页');
   assert.equal(h.calls.requests.length,0);
 });
 
@@ -95,7 +95,7 @@ test('market, region, category and camp or loadout shortcuts reset to their own 
   h.api.render(snapshot(catalog));h.click('shop-page-next');h.click('shop-page-next');
   h.click('filter-bar');assert.equal(h.element('shop-page-count').textContent,'第 1 / 4 页');assert.ok(h.ids().every(id=>id.startsWith('bar-')));
   h.click('shop-page-next');h.click('area-camp');assert.equal(h.element('shop-page-count').textContent,'第 1 / 4 页');assert.ok(h.ids().every(id=>id.startsWith('fire-')));
-  h.click('shop-page-next');h.click('market-diamonds');assert.equal(h.element('shop-page-count').textContent,'第 1 / 1 页');assert.equal(h.element('shop-pagination').hidden,true);
+  h.click('shop-page-next');h.click('market-diamonds');assert.equal(h.element('shop-page-count').textContent,'第 1 / 2 页');assert.equal(h.element('shop-pagination').hidden,false);
   h.click('area-all');h.click('market-owned');h.click('shop-page-next');h.click('shop-page-next');
   h.api.browseCollection('bar');assert.equal(h.element('shop-page-count').textContent,'第 1 / 3 页');
   h.click('shop-page-next');h.api.browseCamp();assert.equal(h.element('shop-page-count').textContent,'第 1 / 4 页');
@@ -111,7 +111,7 @@ test('polling and off-page catalog updates retain current SVG nodes and focus, w
   h.api.render({...initial,now:stamp(6),catalog:changed});
   assert.equal(h.element('shop-catalog').writes,writes);assert.equal(h.calls.drawings.length,draws);assert.equal(h.document.activeElement,focused);
   h.api.render({...initial,now:stamp(7),wallet:{coins:2000,diamonds:100}});
-  assert.equal(h.element('shop-page-count').textContent,'第 3 / 14 页');
+  assert.equal(h.element('shop-page-count').textContent,'第 3 / 17 页');
   assert.equal(h.document.activeElement.dataset.item,catalog[50].id);assert.equal(h.document.activeElement.dataset.shopAction,'preview');
 });
 
@@ -130,7 +130,7 @@ test('preview polling keeps the dialog focused and closing restores the new cont
   const id=catalog[25].id;h.control(id).focus();h.click('shop-catalog',{shopAction:'preview',item:id});
   const modalFocus=h.document.activeElement;assert.equal(modalFocus.id,'quest-action-cancel');
   h.api.render({...initial,now:stamp(1),wallet:{coins:9000,diamonds:100}});
-  assert.equal(h.document.activeElement,modalFocus);assert.equal(h.element('shop-page-count').textContent,'第 2 / 14 页');
+  assert.equal(h.document.activeElement,modalFocus);assert.equal(h.element('shop-page-count').textContent,'第 2 / 17 页');
   h.element('quest-action-dialog').close();assert.equal(h.document.activeElement,h.control(id));
   assert.equal(h.calls.requests.length,0);
 });
@@ -143,12 +143,12 @@ test('purchase and existing equip actions stay on the chosen page and never subm
   const bought={...initial,now:stamp(1),wallet:{coins:9920,diamonds:200},receipt:{itemId:id,alreadyOwned:false},
     catalog:catalog.map(item=>item.id===id?{...item,owned:true}:item)};
   h.calls.requests[0].resolve(bought);await buy;
-  assert.equal(h.element('shop-page-count').textContent,'第 2 / 14 页');assert.equal(h.element('quest-action-dialog').open,false);
+  assert.equal(h.element('shop-page-count').textContent,'第 2 / 17 页');assert.equal(h.element('quest-action-dialog').open,false);
   assert.equal(h.document.activeElement,h.control(id,'equip'));
   h.click('shop-catalog',{shopAction:'equip',item:id});assert.equal(h.calls.requests[1].path,'/api/shop/equip');
   const equipped={...bought,now:stamp(2),equipped:{...bought.equipped,bar:id},catalog:bought.catalog.map(item=>item.id===id?{...item,equipped:true}:item)};
   h.calls.requests[1].resolve(equipped);await flush();
-  assert.equal(h.element('shop-page-count').textContent,'第 2 / 14 页');assert.equal(h.document.documentElement.dataset.bar,id);
+  assert.equal(h.element('shop-page-count').textContent,'第 2 / 17 页');assert.equal(h.document.documentElement.dataset.bar,id);
   assert.equal(h.document.activeElement,h.control(id));assert.equal(h.calls.requests.length,2);
 });
 

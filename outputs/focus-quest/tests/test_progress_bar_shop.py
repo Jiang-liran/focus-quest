@@ -14,8 +14,8 @@ NOW = datetime(2026, 9, 28, 15, tzinfo=timezone(timedelta(hours=8)))
 LEGACY = (("bar-default", "初旅刻度", 0, 0), ("bar-mint", "薄荷新芽", 120, 0),
           ("bar-aurora", "极光流转", 240, 0), ("bar-comet", "彗星轨迹", 360, 0),
           ("bar-tide", "潮汐回响", 480, 0), ("bar-prism", "棱镜虹光", 0, 12))
-NEW = (("bar-koi", "锦鲤清渠", 0, 16), ("bar-fox", "狐伴花径", 0, 18),
-       ("bar-whale", "星鲸漫游", 0, 20), ("bar-dragon", "云龙巡天", 0, 24))
+NEW = (("bar-koi", "荷塘涟漪", 0, 16), ("bar-fox", "狐伴花径", 0, 18),
+       ("bar-whale", "潮间水母", 0, 20), ("bar-dragon", "纸鸢长风", 0, 24))
 NEW_IDS = {item[0] for item in NEW}
 
 

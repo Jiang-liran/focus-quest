@@ -28,13 +28,13 @@ test('all new player outfits have four valid growth stages including lottery-onl
   const stages=[0,1,2,3,4].map(n=>avatars.avatar('player',e.id,n));assert.equal(new Set(stages).size,5);for(let n=0;n<5;n++){assert.match(stages[n],new RegExp(`data-avatar-stage="${n}"`));for(let tier=1;tier<=4;tier++)assert.match(stages[n],new RegExp(`data-avatar-tier="${tier}" display="${n>=tier?'inline':'none'}"`));}assert.doesNotMatch(avatars.avatar('shop',e.id),new RegExp(e.id));
  }
 });
-test('all ordinary expansion items are available to lottery pools while twenty-four lottery-only items remain independent',()=>{
+test('all ordinary expansion items are available to lottery pools while thirty-six lottery-only items remain independent',()=>{
  const ordinary=expansion.entries.filter(e=>!e.lotteryOnly),limited=expansion.entries.filter(e=>e.lotteryOnly);
- assert.equal(ordinary.length,208);assert.equal(limited.length,24);
+ assert.equal(ordinary.length,268);assert.equal(limited.length,36);
  assert.ok(ordinary.every(e=>e.exclusive===false));
  assert.ok(ordinary.every(e=>e.coins>0||e.diamonds>0));
  assert.ok(ordinary.every(e=>e.lotteryMachine===null));
- for(const machine of ['coin','diamond'])assert.equal(limited.filter(e=>e.lotteryMachine===machine).length,12);
+ for(const machine of ['coin','diamond'])assert.equal(limited.filter(e=>e.lotteryMachine===machine).length,18);
  assert.ok(limited.every(e=>e.exclusive===false));
 });
 test('new progress bars keep zero progress empty and generate locally unique definitions',()=>{

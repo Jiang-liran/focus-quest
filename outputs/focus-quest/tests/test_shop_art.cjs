@@ -170,7 +170,7 @@ test('all paid island effects use the same persistent homepage mount and keep th
     h.api.apply({...defaults,fx:id,companion:'companion-fox',island:'island-garden'});
     const mount=h.nodes.get('equipped-extra-fx');original=original||mount;
     assert.equal(mount,original,id);
-    assert.equal(mount.getAttribute('data-fx-renderer'),'island');
+    assert.equal(mount.getAttribute('data-fx-renderer'),effects.has(id)?'island':'legacy');
     assert.equal(mount.getAttribute('data-skin-slots'),'fx');
     assert.notEqual(mount.raw,'',id);
     const writes=mount.writes;
@@ -265,7 +265,7 @@ test('missing mount containers are created safely once and previews never change
   assert.equal(h.document.created,5);
   assert.equal(h.island.children.length,4);
   assert.equal(h.scene.children.length,1);
-  for(const node of [...h.island.children,...h.scene.children])assert.equal(node.getAttribute('aria-hidden'),'true');
+  for(const node of [...h.island.children,...h.scene.children])assert.equal(node.getAttribute('aria-hidden'),node.id==='equipped-companion'?'false':'true');
   const before=JSON.stringify({dataset:h.document.documentElement.dataset,html:[...h.nodes.values()].map(node=>node.raw)});
   allIds.forEach(id=>assert.ok(h.api.preview(id)));
   assert.equal(JSON.stringify({dataset:h.document.documentElement.dataset,html:[...h.nodes.values()].map(node=>node.raw)}),before);

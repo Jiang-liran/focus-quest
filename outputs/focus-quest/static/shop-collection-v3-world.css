@@ -1,0 +1,56 @@
+/* Scene decorations inherit one shared illustration stage. Movement stays local. */
+.scv3w-svg{display:block;max-width:100%;overflow:hidden}
+.scv3w-art{isolation:isolate}
+.scv3w-light,.scv3w-constellation{animation:scv3w-light 6s ease-in-out infinite}
+.scv3w-kite{transform-box:fill-box;transform-origin:50% 80%;animation:scv3w-kite 7s ease-in-out infinite}
+.scv3w-bird{animation:scv3w-bird 9s ease-in-out infinite}
+.scv3w-water{animation:scv3w-water 10s ease-in-out infinite}
+.scv3w-cloud{animation:scv3w-cloud 24s ease-in-out infinite}
+.scv3w-spore{animation:scv3w-spore 9s ease-in-out infinite;animation-delay:var(--scv3w-delay,0s)}
+.scv3w-drift{animation-duration:var(--scv3w-duration,17s);animation-delay:var(--scv3w-delay,0s);animation-timing-function:linear;animation-iteration-count:infinite}
+.scv3w-flight{animation-name:scv3w-flight}
+.scv3w-cotton{animation-name:scv3w-cotton}
+.scv3w-rain{animation-name:scv3w-rain}
+.scv3w-blossom{animation-name:scv3w-blossom}
+.scv3w-jellies{animation-name:scv3w-jellies}
+.scv3w-fish{animation-name:scv3w-fish}
+.scv3w-flap{transform-box:fill-box;transform-origin:50% 50%;animation:scv3w-flap 1.9s ease-in-out infinite}
+.scv3w-drop-ring{transform-box:fill-box;transform-origin:50% 50%;animation:scv3w-ring 4s ease-out infinite}
+.scv3w-jelly{transform-box:fill-box;transform-origin:50% 35%;animation:scv3w-jelly 5s ease-in-out infinite}
+.scv3w-tentacles{transform-box:fill-box;transform-origin:50% 0%;animation:scv3w-tentacles 4s ease-in-out infinite}
+.scv3w-fishtail{transform-box:fill-box;transform-origin:90% 50%;animation:scv3w-fishtail 2.4s ease-in-out infinite}
+@keyframes scv3w-light{0%,100%{opacity:.65}50%{opacity:1}}
+@keyframes scv3w-kite{50%{transform:rotate(3deg)}}
+@keyframes scv3w-bird{45%{transform:translateY(0)}50%{transform:translateY(-2px)}55%{transform:translateY(0)}}
+@keyframes scv3w-water{50%{transform:translateX(3px);opacity:.65}}
+@keyframes scv3w-cloud{50%{transform:translateX(9px);opacity:.75}}
+@keyframes scv3w-spore{50%{transform:translate(2px,-4px);opacity:.35}}
+@keyframes scv3w-flight{0%{transform:translate(-100px,16px);opacity:0}10%{opacity:.85}50%{transform:translate(160px,-21px);opacity:.9}90%{opacity:.8}100%{transform:translate(380px,-39px);opacity:0}}
+@keyframes scv3w-cotton{0%{transform:translate(-50px,48px);opacity:0}15%{opacity:.72}55%{transform:translate(49px,-12px);opacity:.9}85%{opacity:.7}100%{transform:translate(125px,-55px);opacity:0}}
+@keyframes scv3w-rain{0%{transform:translate(0,-85px);opacity:0}15%{opacity:.7}82%{opacity:.85}100%{transform:translate(-63px,180px);opacity:0}}
+@keyframes scv3w-blossom{0%{transform:translate(-20px,-60px) rotate(-18deg);opacity:0}14%{opacity:.85}50%{transform:translate(25px,73px) rotate(75deg);opacity:.9}90%{opacity:.8}100%{transform:translate(103px,181px) rotate(145deg);opacity:0}}
+@keyframes scv3w-jellies{0%{transform:translate(-40px,73px);opacity:0}14%{opacity:.85}55%{transform:translate(56px,-12px);opacity:.95}90%{opacity:.75}100%{transform:translate(105px,-83px);opacity:0}}
+@keyframes scv3w-fish{0%{transform:translate(-105px,13px);opacity:0}10%{opacity:.7}50%{transform:translate(121px,-21px);opacity:.9}90%{opacity:.75}100%{transform:translate(320px,9px);opacity:0}}
+@keyframes scv3w-flap{50%{transform:scaleY(.42)}}
+@keyframes scv3w-ring{0%{transform:scale(.3);opacity:0}20%{opacity:.55}100%{transform:scale(1.35);opacity:0}}
+@keyframes scv3w-jelly{50%{transform:scale(.87,1.06)}}
+@keyframes scv3w-tentacles{50%{transform:skewX(8deg)}}
+@keyframes scv3w-fishtail{50%{transform:scaleX(.67)}}
+.no-motion .scv3w-art *,.no-motion .scv3w-art,
+html.focus-runtime-hidden .scv3w-art *,html.focus-runtime-hidden .scv3w-art,
+[hidden] .scv3w-art *,[hidden] .scv3w-art{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.scv3w-art,.scv3w-art *{animation:none!important;transition:none!important}}
+:root[data-theme="theme-bluefjord"]{--theme-ground-top:#668896;--theme-ground-bottom:#456477;--theme-rock-top:#344d62;--theme-rock-bottom:#1c3447;--theme-rock-side:#344d62;--theme-leaf-light:#b8d1d3;--theme-leaf-mid:#76999d;--theme-leaf-dark:#436670}
+:root[data-theme="theme-marshmoon"]{--theme-ground-top:#69847c;--theme-ground-bottom:#4d6864;--theme-rock-top:#3b5756;--theme-rock-bottom:#243c42;--theme-rock-side:#3b5756;--theme-leaf-light:#c1cba6;--theme-leaf-mid:#8fa889;--theme-leaf-dark:#547666}
+:root[data-theme="theme-ambercanyon"]{--theme-ground-top:#ac8478;--theme-ground-bottom:#8a6869;--theme-rock-top:#715768;--theme-rock-bottom:#48384f;--theme-rock-side:#715768;--theme-leaf-light:#cfb69a;--theme-leaf-mid:#9f9380;--theme-leaf-dark:#6e7170}
+:root[data-theme="theme-lakeconstellations"]{--theme-ground-top:#647d9e;--theme-ground-bottom:#4a5d83;--theme-rock-top:#344363;--theme-rock-bottom:#202d48;--theme-rock-side:#344363;--theme-leaf-light:#becddd;--theme-leaf-mid:#849eb7;--theme-leaf-dark:#4f6a88}
+:root[data-theme="theme-mushroomglen"]{--theme-ground-top:#648a80;--theme-ground-bottom:#4b6d69;--theme-rock-top:#3f5e64;--theme-rock-bottom:#293c49;--theme-rock-side:#3f5e64;--theme-leaf-light:#b7c7b5;--theme-leaf-mid:#89a99a;--theme-leaf-dark:#4d7569}
+:root[data-theme="theme-crystalcaves"]{--theme-ground-top:#64869c;--theme-ground-bottom:#4b6887;--theme-rock-top:#344b69;--theme-rock-bottom:#20354f;--theme-rock-side:#344b69;--theme-leaf-light:#bddfe4;--theme-leaf-mid:#8eb7c8;--theme-leaf-dark:#52798f}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) #ground stop:first-child{stop-color:var(--theme-ground-top)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) #ground stop:last-child{stop-color:var(--theme-ground-bottom)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) #rock stop:first-child{stop-color:var(--theme-rock-top)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) #rock stop:last-child{stop-color:var(--theme-rock-bottom)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}
+:root:is([data-theme="theme-bluefjord"],[data-theme="theme-marshmoon"],[data-theme="theme-ambercanyon"],[data-theme="theme-lakeconstellations"],[data-theme="theme-mushroomglen"],[data-theme="theme-crystalcaves"]) .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}

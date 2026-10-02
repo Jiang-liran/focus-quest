@@ -5,7 +5,7 @@ const rows=collection.entries,bySlot=slot=>rows.filter(row=>row.slot===slot);
 const geometry=svg=>svg.replace(/\s(?:data-[\w-]+|class|style|fill|stroke|opacity|stop-color)="[^"]*"/g,'').replace(/\bid="[^"]*"/g,'id="local"').replace(/url\(#[^)]+\)/g,'url(#local)');
 const asSvg=body=>`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 720">${body}</svg>`;
 test('ordinary collection manifest has 84 equipable products, broad prices, and exact catalog parity',()=>{
- const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/ordinary_catalog.json'),'utf8'));
+ const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'fixtures/ordinary_catalog.json'),'utf8')).filter(entry=>collection.has(entry.id));
  assert.deepEqual(rows,manifest);assert.equal(rows.length,84);assert.equal(new Set(rows.map(row=>row.id)).size,84);
  assert.deepEqual(Object.fromEntries([...new Set(rows.map(row=>row.slot))].map(slot=>[slot,bySlot(slot).length])),{bar:12,avatar:12,island:12,theme:8,companion:8,fx:8,fire:6,tent:6,campgear:6,banner:6});
  assert.equal(rows.filter(row=>row.coins>0).length,50);assert.equal(rows.filter(row=>row.diamonds>0).length,34);
