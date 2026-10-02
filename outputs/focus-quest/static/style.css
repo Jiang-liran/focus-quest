@@ -18,3 +18,5 @@
 
 /* Calendar source stays within the existing connection panel. */
 .source-group{border-bottom:1px solid #2a3042;padding:5px 0 12px;margin-bottom:8px}.source-group .source-detail-row:first-child span{color:#c4c4dd}.record-source{display:inline-block;margin-left:8px;padding:2px 5px;border:1px solid #80b4d329;border-radius:4px;color:#80b4d3;font-size:9px;white-space:nowrap}
+
+.calendar-pending{margin-top:20px;padding:14px 18px;border:1px solid #6f90a337;border-radius:10px;background:#17232e;color:#a6c3d4}.calendar-pending>strong{font-size:12px;font-weight:550}.calendar-pending p{margin-top:8px;font-size:12px;line-height:1.6;color:#97abbf}.calendar-pending p b{font-weight:500;color:#c8d8e4}.calendar-pending small{display:block;margin-top:8px;font-size:11px;color:#758e9f;line-height:1.6}

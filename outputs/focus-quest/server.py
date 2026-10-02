@@ -20,7 +20,8 @@ import sqlite3
 import threading
 import time
 import tempfile
-from datetime import date, datetime, timedelta
+import uuid
+from datetime import date, datetime, timedelta, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, unquote, urlsplit
@@ -156,8 +157,8 @@ def calendar_timestamp(value):
     return timestamp
 
 
-def normalize_calendar_record(event, calendar_id, allowed_titles, now_ms, range_start, range_end):
-    """Accept completed, named study events from the explicitly selected calendar."""
+def normalize_calendar_record(event, calendar_id, allowed_titles, now_ms, range_start, range_end, *, pending=False):
+    """Validate named study events; pending items are only used for status."""
     if not isinstance(event, dict):
         return None
     try:
@@ -172,9 +173,14 @@ def normalize_calendar_record(event, calendar_id, allowed_titles, now_ms, range_
             return None
         start_ms, end_ms = calendar_timestamp(event.get("start")), calendar_timestamp(event.get("end"))
         duration = end_ms - start_ms
-        if not 1000 <= duration <= 86_400_000 or end_ms > now_ms:
+        if not 1000 <= duration <= 86_400_000:
             return None
-        if end_ms <= range_start or start_ms >= range_end:
+        if pending:
+            if not start_ms <= now_ms < end_ms or end_ms > now_ms + 86_400_000:
+                return None
+        elif end_ms > now_ms:
+            return None
+        if end_ms <= range_start or (start_ms > range_end if pending else start_ms >= range_end):
             return None
         external_id = event.get("externalIdentifier")
         if external_id is not None and (not isinstance(external_id, str) or len(external_id) > 2000):
@@ -402,11 +408,13 @@ class FocusStore:
                      "pollSeconds": POLL_SECONDS}
         self.calendar_config = self.data_dir / "calendar-bridge-config.json"
         self.calendar_snapshot = self.data_dir / "calendar-bridge-snapshot.json"
+        self.calendar_refresh_request = self.data_dir / "calendar-bridge-refresh.json"
         self.source_task_names = set()
         self.calendar_sync = {"enabled": False, "connected": False, "calendarName": None,
                               "lastCheck": None, "lastImport": self._meta("calendarLastImport"),
                               "snapshotAt": None, "error": None, "importedCount": 0,
-                              "ignoredCount": 0, "pollSeconds": 30}
+                              "ignoredCount": 0, "pollSeconds": 30,
+                              "pendingCount": 0, "pendingRecords": []}
 
     def _meta(self, key):
         item = self.db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
@@ -542,6 +550,7 @@ class FocusStore:
     def import_calendar(self, now=None):
         with self.lock:
             self.calendar_sync["lastCheck"] = now_iso()
+            self.calendar_sync.update(pendingCount=0, pendingRecords=[])
             self.calendar_sync["importedCount"] = self.db.execute(
                 "SELECT COUNT(DISTINCT record_id) FROM record_aliases WHERE source='calendar'").fetchone()[0]
             if not self.calendar_config.exists():
@@ -579,6 +588,17 @@ class FocusStore:
                 events = snapshot.get("events")
                 if not isinstance(events, list) or len(events) > 50000:
                     raise ValueError("日历快照记录列表无效")
+                pending_events = snapshot.get("pendingEvents", [])
+                if not isinstance(pending_events, list) or len(pending_events) > 50000:
+                    raise ValueError("日历快照待结束记录列表无效")
+                pending_records = {}
+                for event in pending_events:
+                    pending_record = normalize_calendar_record(event, calendar_id, allowed, now_ms,
+                                                               range_start, range_end, pending=True)
+                    if pending_record:
+                        if pending_record[0] in pending_records and pending_records[pending_record[0]] != pending_record:
+                            raise ValueError("日历快照包含冲突的待结束记录")
+                        pending_records[pending_record[0]] = pending_record
                 records = [record for event in events if (record := normalize_calendar_record(
                     event, calendar_id, allowed, now_ms, range_start, range_end))]
                 # Duplicate identifiers with conflicting values are ambiguous:
@@ -600,6 +620,9 @@ class FocusStore:
                 title = calendar.get("title")
                 self.calendar_sync.update(connected=not stale, calendarName=title[:500] if isinstance(title, str) else None,
                     snapshotAt=snapshot["generatedAt"], ignoredCount=len(events) - len(records),
+                    pendingCount=len(pending_records),
+                    pendingRecords=[{"name": item[2], "start": iso_ms(item[4]), "end": iso_ms(item[5]), "minutes": item[3]}
+                                    for item in sorted(pending_records.values(), key=lambda item: (item[5], item[0]))[:10]],
                     error="日历读取暂未更新；已保存的记录仍然保留，唤醒 Mac 后会继续同步。" if stale else None,
                     importedCount=self.db.execute("SELECT COUNT(DISTINCT record_id) FROM record_aliases WHERE source='calendar'").fetchone()[0])
                 self.sync["importedCount"] = self.db.execute("SELECT COUNT(*) FROM records").fetchone()[0]
@@ -611,6 +634,28 @@ class FocusStore:
 
     def import_sources(self):
         return self.import_source() + self.import_calendar()
+
+    def request_calendar_refresh(self):
+        """Ask the native helper to read EventKit; ordinary archive polls do not."""
+        with self.lock:
+            try:
+                config = self._read_bridge_json(self.calendar_config)
+            except (OSError, ValueError, UnicodeError):
+                return {"calendarRequested": False}
+            if config.get("enabled") is not True:
+                return {"calendarRequested": False}
+            request = {"schemaVersion": 1,
+                       "requestedAt": datetime.now(timezone.utc).isoformat(timespec="microseconds").replace("+00:00", "Z"),
+                       "requestID": str(uuid.uuid4())}
+            descriptor, temporary = tempfile.mkstemp(prefix=".calendar-refresh-", dir=self.data_dir)
+            try:
+                with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                    json.dump(request, handle, ensure_ascii=False, allow_nan=False)
+                os.replace(temporary, self.calendar_refresh_request)
+            finally:
+                if os.path.exists(temporary):
+                    os.unlink(temporary)
+            return {"calendarRequested": True, "requestID": request["requestID"], "requestedAt": request["requestedAt"]}
 
     def update_settings(self, patch):
         with self.lock, self.db:
@@ -810,12 +855,14 @@ def make_handler(store, static_dir=STATIC_DIR):
                     raise ValueError("请求必须为 JSON 对象")
                 if path == "/api/settings":
                     store.update_settings(payload)
+                    self._send(200, store.state())
                 else:
                     store.import_sources()
-                self._send(200, store.state())
+                    request = store.request_calendar_refresh()
+                    self._send(200, dict(store.state(), refreshRequest=request))
             except (ValueError, UnicodeError) as error:
                 self._send(400, {"error": str(error)})
-            except sqlite3.Error:
+            except (sqlite3.Error, OSError):
                 self._send(500, {"error": "本地数据暂时无法保存"})
 
     return Handler

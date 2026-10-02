@@ -107,8 +107,25 @@ function render() {
   $('source-label').textContent=phone?.enabled ? (s.sync.connected&&phone.connected?'电脑 + 手机 · 已连接':phone.connected?'手机已连接 · 电脑待连接':s.sync.connected?'电脑已连接 · 手机待连接':'记录同步 · 等待连接') : (s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接');
   $('source-dot').classList.toggle('connected',s.sync.connected&&(!phone?.enabled||phone.connected));
   $('footer-sync').textContent=`本地存档 ${number(s.allTime.records,0)} 条 · ${phone?.enabled?(phone.connected?'手机日历自动同步中':'手机同步待恢复'):s.sync.connected?'每 '+s.sync.pollSeconds+' 秒自动捕获':'同步待恢复'}`;
+  renderCalendarPending();
   renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
+}
+
+function pendingEnd(value) {
+  const end=new Date(value);
+  if(Number.isNaN(+end))return '日历结束时间';
+  const day=`${end.getFullYear()}-${String(end.getMonth()+1).padStart(2,'0')}-${String(end.getDate()).padStart(2,'0')}`;
+  return (day===state.today?'今天 ':end.toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'})+' ')+timeOf(value);
+}
+function renderCalendarPending() {
+  const phone=state.calendarSync,box=$('calendar-pending');
+  const pending=phone?.enabled?(phone.pendingRecords||[]):[];
+  box.hidden=!pending.length;
+  if(!pending.length){box.innerHTML='';return;}
+  const lines=pending.slice(0,3).map(r=>`<p><b>${esc(r.name)}</b> · ${number(r.minutes)} 分钟 · 日历结束时间 ${esc(pendingEnd(r.end))}</p>`).join('');
+  const content=`<strong>手机记录已收到 · 等待入账</strong>${lines}<small>结束时间到达后自动计入进度，无需重新添加。${phone.pendingCount>3?`另有 ${phone.pendingCount-3} 条等待记录。`:''}</small>`;
+  if(box.innerHTML!==content)box.innerHTML=content;
 }
 
 function updateViewTitle() {
@@ -276,6 +293,8 @@ function renderSource() {
   const phoneRows=[['iPhone 日历',p?.enabled?(p.connected?'已连接 · 自动捕获中':'等待同步恢复'):'尚未启用']];
   if(p?.enabled){
     phoneRows.push(['同步日历',p.calendarName||'等待日历信息'],['最近读取',timeOf(p.snapshotAt)],['已同步的手机记录',number(p.importedCount,0)+' 条']);
+    if(p.pendingCount)phoneRows.push(['等待入账',`${p.pendingCount} 条 · 日历结束时间尚未到达`]);
+    for(const r of (p.pendingRecords||[]).slice(0,3))phoneRows.push([r.name,`${number(r.minutes)} 分钟 · ${pendingEnd(r.end)} 后计入`]);
     if(p.error)phoneRows.push(['手机同步提示',p.error]);
   }
   $('source-details').innerHTML='<div class="source-group">'+rows.map(row).join('')+'</div><div class="source-group">'+phoneRows.map(row).join('')+'</div>'+row(['全部学习存档',number(state.allTime.records,0)+' 条']);
@@ -283,9 +302,13 @@ function renderSource() {
 async function syncNow() {
   $('sync-now').disabled=true;$('refresh').disabled=true;
   try{
-    await api('/api/sync',{});await refresh(true);
+    const result=await api('/api/sync',{});await refresh(true);
     const phone=state.calendarSync,ready=state.sync.connected&&(!phone?.enabled||phone.connected);
-    toast(ready?'记录已核对':'部分来源等待连接',ready?(phone?.enabled?'已核对电脑记录和手机日历；iCloud 尚未送达的记录会继续自动等待。':'新的完成任务会自动入账，已有记录不会重复计算。'):(phone?.enabled&&!phone.connected?phone.error:state.sync.error)||'后台会继续重试。',!ready);
+    if(result.refreshRequest?.calendarRequested){
+      toast('已请求读取手机日历','读取结果会自动更新；结束时间未到的记录会显示等待入账。');
+    }else{
+      toast(ready?'记录已核对':'部分来源等待连接',ready?'新的完成任务会自动入账，已有记录不会重复计算。':(phone?.enabled&&!phone.connected?phone.error:state.sync.error)||'后台会继续重试。',!ready);
+    }
   }
   catch(error){toast('同步未完成',error.message,true);}
   finally{$('sync-now').disabled=false;$('refresh').disabled=false;}
