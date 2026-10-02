@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0"><dict>
+  <key>CFBundleIdentifier</key><string>com.local.focusquest.calendarprobe</string>
+  <key>CFBundleExecutable</key><string>CalendarProbeApp</string>
+  <key>CFBundleName</key><string>专注日历诊断</string>
+  <key>CFBundleDisplayName</key><string>专注日历诊断</string>
+  <key>CFBundlePackageType</key><string>APPL</string>
+  <key>CFBundleVersion</key><string>4</string>
+  <key>CFBundleShortVersionString</key><string>0.4</string>
+  <key>LSMinimumSystemVersion</key><string>14.0</string>
+  <key>NSHighResolutionCapable</key><true/>
+  <key>NSCalendarsFullAccessUsageDescription</key>
+  <string>用于只读同步番茄 ToDo 写入 iCloud 日历的专注记录。按你的配置持续读取指定日历，仅将指定任务名称的已开始记录保存到本机：已完成记录用于统计，尚未结束的记录用于等待提示；也可在诊断窗口手动读取所选日历最近一天的记录。不会创建、更改或删除日历事件。</string>
+</dict></plist>

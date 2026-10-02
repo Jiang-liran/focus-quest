@@ -1,0 +1,1639 @@
+{
+  "method": "Static audit of all 100 existing tests-directory files: local import resolution, filesystem path expressions, subprocess calls, Python AST imports, and DB-store/source constructor isolation. No tests were executed in this staging overlay.",
+  "file_count": 100,
+  "python_test_files": 36,
+  "node_test_files": 63,
+  "node_helper_files": [
+    "arcade_harness.cjs"
+  ],
+  "missing_fixture_dependencies_before_overlay": [
+    "outputs/focus-quest/work/shop-rich-v2/ordinary_catalog.json",
+    "work/shop-rich-v2/limited_catalog.json",
+    "outputs/初版软件-v1.0/专注远征.app/Contents/Resources/static/style.css"
+  ],
+  "other_project_external_source_dependencies_found": [],
+  "node_external_package_dependencies_found": [],
+  "node_missing_literal_source_dependencies_found": [],
+  "python_imports": [
+    "collections",
+    "concurrent.futures",
+    "contextlib",
+    "copy",
+    "csv",
+    "datetime",
+    "fractions",
+    "hashlib",
+    "http.client",
+    "importlib.util",
+    "io",
+    "itertools",
+    "json",
+    "math",
+    "os",
+    "pathlib",
+    "random",
+    "re",
+    "shop_catalog_expansion",
+    "socket",
+    "sqlite3",
+    "statistics",
+    "subprocess",
+    "sys",
+    "tempfile",
+    "test_server",
+    "tests.test_arcade",
+    "threading",
+    "time",
+    "unittest",
+    "unittest.mock",
+    "urllib.error",
+    "urllib.request",
+    "uuid",
+    "voyage_rules"
+  ],
+  "python_project_imports": [
+    "shop_catalog_expansion",
+    "voyage_rules",
+    "test_server",
+    "tests.test_arcade"
+  ],
+  "python_third_party_imports": [],
+  "hardcoded_python_interpreter": {
+    "path": "/usr/bin/python3",
+    "files": [
+      "tests/test_camp_world_art.cjs",
+      "tests/test_currency_art.cjs",
+      "tests/test_island_effects.cjs",
+      "tests/test_lottery_collection_art.cjs",
+      "tests/test_method_rewards_art.cjs",
+      "tests/test_return_trail_art.cjs",
+      "tests/test_shop_collection_v2.cjs",
+      "tests/test_shop_expansion.cjs"
+    ],
+    "count": 8,
+    "purpose": "Validate generated SVG XML with Python standard-library xml.etree.ElementTree. This is an interpreter/environment dependency, not missing source."
+  },
+  "test_runner_requirements": "Run from project root with tests and project root importable. Python tests include imports of local test_server and tests.test_arcade; Node tests use node:test and built-in Node modules. No npm installation required by the literal test imports.",
+  "db_source_isolation": "FocusStore calls pass temporary data/source paths. Live-capture subprocess explicitly passes --data-dir and --source under its TemporaryDirectory. Tests use synthetic fixture records; no production DB was opened for this audit.",
+  "potential_external_path_lines": [
+    {
+      "file": "tests/test_interface_switch.py",
+      "line": 136,
+      "source": "original = PROJECT.parent / \"初版软件-v1.0/专注远征.app/Contents/Resources/static/style.css\""
+    },
+    {
+      "file": "tests/test_lottery_collection_art.cjs",
+      "line": 9,
+      "source": "const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'../../../work/shop-rich-v2/limited_catalog.json'),'utf8'));"
+    },
+    {
+      "file": "tests/test_shop_collection_v2.cjs",
+      "line": 8,
+      "source": "const manifest=JSON.parse(fs.readFileSync(path.join(__dirname,'../work/shop-rich-v2/ordinary_catalog.json'),'utf8'));"
+    }
+  ],
+  "dependency_inventory": [
+    {
+      "file": "tests/arcade_harness.cjs",
+      "sha256": "7d122fb111897e7297f269db6dc69aa0170a3ec0309ba5364c5365cf1ccec111",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/arcade.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/arcade.js"
+        },
+        {
+          "specifier": "../static/minesweeper.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/minesweeper.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_advice.cjs",
+      "sha256": "4cc06c10faea599c061cdc05b5b388ed5ffc11987f9dcb6a38839f1befd5fc4e",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/advice.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/advice.js"
+        },
+        {
+          "specifier": "../static/advice.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/advice.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_ambience.cjs",
+      "sha256": "5e565cfdee43fdf6eaa62df1379057864cc375c756fc65ab71fc0a2c7beede73",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/ambience.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/ambience.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_app_render_cache.cjs",
+      "sha256": "8b534af9da8bec37c6036a65e0aa9b03d8b981ebcaf462d6e8089c7b0c2620c3",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_arcade.py",
+      "sha256": "c353a17b8b0fe34b1e6223171b95b5fa7e8b95983158184c3e9d8c460cf164fd",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_arcade_expansion.py",
+      "sha256": "00d20a65f57b73b7599b6b48b4697572fb6bf0995fd939f5fefc4abfa29c9384",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_arcade_ui.cjs",
+      "sha256": "2578c1817db20cd83f6305d1617827924a7466c1d5cf96e27bc7c8fda22ae1f9",
+      "literal_dependencies": [
+        {
+          "specifier": "./arcade_harness.cjs",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "tests/arcade_harness.cjs"
+        },
+        {
+          "specifier": "../static/currency-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/currency-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_audio.cjs",
+      "sha256": "0a671aff15943c6ad1c879e9cc5ec473e040a6ce2741621c5af8e980d645b2de",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/audio.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/audio.js"
+        },
+        {
+          "specifier": "../static/audio.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/audio.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_avatar_growth.cjs",
+      "sha256": "46897de123cce51af6d2420a4f891ed836a61d1f62909c5f54630fddd74a1d35",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_calendar_sync.py",
+      "sha256": "d4046d148d5a2ed24781db10d1623e2210465b86b3490b340ae8af048b8d7e7d",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_camp_world_art.cjs",
+      "sha256": "2fa56bf44f82da9eb4f5f13f388e562ce2c9e1b1e65246df7c735b91200e99d6",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/camp-world-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/camp-world-art.js"
+        },
+        {
+          "specifier": "../static/campfire-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_campfire_art.cjs",
+      "sha256": "6c53e475d54838b2c15e2b205d18e7ed96a2ae16d5adc7742aeb1029f6039eb4",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/campfire-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/campfire-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_campfire_dialogue.cjs",
+      "sha256": "4af19f5273c9d139f2892bdfe69747fa74101d0ee4846b25a79e20409a2170e3",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/campfire-dialogue.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-dialogue.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_campfire_room.cjs",
+      "sha256": "e15dfb59a87160be251ded8b0f52c301006b223d01d3b824997cabd0a9aa3472",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/record-time.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/record-time.js"
+        },
+        {
+          "specifier": "../static/campfire-room.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-room.js"
+        },
+        {
+          "specifier": "../static/index.html",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/index.html"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_campfire_shop.py",
+      "sha256": "87e2e5d47352839c88d582f12c0ae71338a68ec02b0af6744c91405e9f9dd318",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_campfire_shop_art.cjs",
+      "sha256": "33785989038108b9f986a19303fbcc3ce16d803f3ff8acc93b65e0918f7d9588",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/campfire-shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-shop-art.js"
+        },
+        {
+          "specifier": "../static/campfire-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-art.js"
+        },
+        {
+          "specifier": "../static/campfire-shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-shop-art.js"
+        },
+        {
+          "specifier": "../static/campfire-shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-shop-art.js"
+        },
+        {
+          "specifier": "../static/camp-world-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/camp-world-art.js"
+        },
+        {
+          "specifier": "../static/campfire-shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-shop-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_campfire_shop_ui.cjs",
+      "sha256": "9aa5e161bb7e94f0f348e7012d0d7d83bbe1d496e459895f1537490efa9e1557",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_campfire_ui.cjs",
+      "sha256": "90e308b41eeb754e60af08aa9250421cefa6cfefba06d2b21bdebbd46eca903b",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_citadel_art.cjs",
+      "sha256": "6f87bafa28964a13d72c440479fdc9010fdd84834d56679e984bd68a02bf17c9",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/citadel-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/citadel-art.js"
+        },
+        {
+          "specifier": "../static/citadel-route.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/citadel-route.js"
+        },
+        {
+          "specifier": "../static/citadel-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/citadel-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_citadel_controller.cjs",
+      "sha256": "14bbeb740f2133774a59878d7fc6ec32f3696083237ee948e5ba4987a275a0b5",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_citadel_route.cjs",
+      "sha256": "0e1ff468f2d58ed186a908759000ee4ac72437035b62243734d1ab3942c9da16",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/citadel-route.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/citadel-route.js"
+        },
+        {
+          "specifier": "../static/citadel-route.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/citadel-route.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_city_life.py",
+      "sha256": "7e9179b955f9e15d70cd5620cbf4960ad97f1f088ca4c88224cfb12b99b1dcae",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_city_life_ui.cjs",
+      "sha256": "f055b90d802560a2879bb4ffd455802dfd14ae0505a1c5eeaef7b544e81a9845",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/city-life.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/city-life.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_compass.py",
+      "sha256": "afa213d2c4b25b51290856d7c38330e65da4eb6745a3f8613e9548cf7ad4686b",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_compass_ui.cjs",
+      "sha256": "ad4dea55362432629d0ab50d6ef52c962f9e86599b7bc6c1556f367932d8dbf3",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/compass.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/compass.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_continuous_quests.py",
+      "sha256": "efc60e0486555d40ca8b2966e9932d9bbb60b37b45143c96ad088d0e5c08eb5d",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_cross_source_dedup.py",
+      "sha256": "ba9cdc4d30c68439789c0a80e718ec519da488b618ce90bea7b22ff411f98da0",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_currency_art.cjs",
+      "sha256": "66ee24aad5486897f90eb9bcc051ca25c9db537f22f05b409b03f66191582b0c",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/currency-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/currency-art.js"
+        },
+        {
+          "specifier": "../static/rain-city-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_dice.py",
+      "sha256": "b41df2c201e64fb515f6fe8b3dc147a44d22788cd10df0573086545979b82e05",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_effect_integration.cjs",
+      "sha256": "fdd20aeafd4ba681ef3f94427dc95644766ee627a847422ae87b225d645efa30",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        },
+        {
+          "specifier": "../static/effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/effects.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_effects.cjs",
+      "sha256": "2c3436d05b782a0dfd84bc5ad9a23eb56fb5f7f57abebe4404d3fd8aa090b942",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/effects.js"
+        },
+        {
+          "specifier": "../static/effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/effects.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_expedition_art.cjs",
+      "sha256": "b67cfc6cd689460a83fb40e0c851dbd097d015df99f4b3d91f7b695dc754cdcf",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/expedition-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-art.js"
+        },
+        {
+          "specifier": "../static/expedition-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-art.js"
+        },
+        {
+          "specifier": "../static/expedition-art.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-art.css"
+        },
+        {
+          "specifier": "../static/expedition-art.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-art.css"
+        },
+        {
+          "specifier": "../static/expedition-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_expedition_controller.cjs",
+      "sha256": "61ec2afc35bd279f4231765e7b38f273a7cea1f0211ccb6052253af4212f810a",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/effects.js"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_expedition_model.cjs",
+      "sha256": "b1838b273cc1c1823d6c490376d09275db0d88ce676c2ee870ba44e452604af0",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/expedition-model.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-model.js"
+        },
+        {
+          "specifier": "../static/expedition-model.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-model.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_goal_history.py",
+      "sha256": "6017f2bf64a91485b7a2c94aec0b5f3b0255a244aebde3a7b966dbe952070bd8",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_goals_ui.cjs",
+      "sha256": "a81284264ef70641135d73eba009a7303e25b109f83e94f77a700392be765fc4",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/goals.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/goals.js"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        },
+        {
+          "specifier": "../static/index.html",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/index.html"
+        },
+        {
+          "specifier": "./arcade_harness.cjs",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "tests/arcade_harness.cjs"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_history_import.py",
+      "sha256": "57bd57f6819e4dce55c9e58eedabe5a63363d9368cde2c6450a7b6b07e33dbc9",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_horizontal_navigation.cjs",
+      "sha256": "d2f0e4a370cd5b9eebf8942ef83078302b9c0e2f07c031e5c4a19fb0ee0ddb28",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/horizontal-navigation.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/horizontal-navigation.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_idle_sync.py",
+      "sha256": "62ef1ed6c3ed7d6cc38d9efe8926337e1c0d4ee28377b2b7393d762dcaecc889",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_interface_adaptation.cjs",
+      "sha256": "034b0a130e1154a2cec19e85384fe3276bfe5f346497a4366a5bea755f3de657",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/interface-adaptation.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/interface-adaptation.css"
+        },
+        {
+          "specifier": "../static/index.html",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/index.html"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_interface_shop.py",
+      "sha256": "608529b032df51e77d355aa2f69ad1a53eb4b6f72a4c7c57fe0fe54b10674ed1",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_interface_switch.cjs",
+      "sha256": "17125efa558d99c1c5845b21c9e68f6a472397f6cda1fdc151a22109f22f9d93",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_interface_switch.py",
+      "sha256": "bc56216e2c761689bf1bb817ccf06ac201b3e004421e6c785d9752a4c8f6ea1c",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_interface_theme_styles.cjs",
+      "sha256": "8004a9efbcd542819a91c391cb2743852b7ac779723e82d3ac51d04b6b228334",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/interface-themes.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/interface-themes.css"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_interface_themes.cjs",
+      "sha256": "4c9dd57acef355bcef46c275e0ee20619bfed4ea2feb8ce839c3deff4b6b3342",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/interface-themes.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/interface-themes.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_island_effects.cjs",
+      "sha256": "6b1b655706fb57d7225e00c6e1112c92d8835615f4af8d8e008c5a0a4fa9362a",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/island-effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/island-effects.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_island_rewards.py",
+      "sha256": "f19900d27200cf5357e667aef7d2ef4815612bc7102810cfdecc1175a32ff486",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_island_rewards_ui.cjs",
+      "sha256": "177debf79264fa64029b4ca44e0bb729e16f2d6e67b62703447d493f7705a243",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/island-rewards.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/island-rewards.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_island_shop.py",
+      "sha256": "8e4e4f51952c50913cb10a2a6fbd0edeb42c2c21d5f2cde9c82912bea9ae015a",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_live_capture.py",
+      "sha256": "a63f8995429a97c04b6b20f9ec780356238c0c32def1206f382da6fe39f4ebcb",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_lottery.py",
+      "sha256": "e7268f26148c9297f8e839134ad6c6ac6d4bc26cdd96d789bd78de6f56337be4",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_lottery_collection_art.cjs",
+      "sha256": "c9187a92d223aae0a96cdbe82c9971afa0c855fe1e3f7bb470175ecd08b2dbba",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/lottery-collection-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/lottery-collection-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_lottery_receipt_integration.cjs",
+      "sha256": "77aeed33530edd794ffc010e3aac5145fa2ad79259b0b27e2e0378a6603a44fe",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_lottery_ui.cjs",
+      "sha256": "6f0eb84f816fa3c5d3c3226d387bcbbe119721e49b9b7147478960f6343fd25f",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/lottery.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/lottery.js"
+        },
+        {
+          "specifier": "../static/lottery.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/lottery.css"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/currency-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/currency-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_method_rewards.py",
+      "sha256": "255c2a00f0fb8a4f7ae6d4e7de4d38ea5e6d2a31ac5e89e4474e415d6131880a",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_method_rewards_art.cjs",
+      "sha256": "bbe7128302fa1653ac780a24a78434bd01223b3a8b0ad5eaa0ee151d5367b180",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/method-rewards-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/method-rewards-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_method_rewards_integration.cjs",
+      "sha256": "a8f7902aa3f4ca8f64aa93872255888fa44bb1310910bce1cf8b4e7f71e3243d",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_method_rewards_navigation.cjs",
+      "sha256": "6aec7589196518978b2c73069b33f3b4298b35a98754c1a57690305e58a25566",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_method_rewards_ui.cjs",
+      "sha256": "82632d5760b7ef41dacd5a8103159379c9f2e3aa93f0cbe4ec2356f387ddc2e2",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/method-rewards.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/method-rewards.js"
+        },
+        {
+          "specifier": "../static/method-rewards.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/method-rewards.css"
+        },
+        {
+          "specifier": "../static/method-rewards.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/method-rewards.css"
+        },
+        {
+          "specifier": "../static/lottery.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/lottery.js"
+        },
+        {
+          "specifier": "../static/lottery.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/lottery.js"
+        },
+        {
+          "specifier": "../static/currency-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/currency-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_method_round_tickets.py",
+      "sha256": "0f537514f3f4a7a8151d6d6d483c6f2721390e8a70cb701db282b020bb3df9a0",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_minesweeper.py",
+      "sha256": "df512d61565cfe16205f1dc8840d165e8dc43cf9b8ce9532fa8b8b54f175bf83",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_minesweeper_ui.cjs",
+      "sha256": "b287b789b9751dfbdf6d8c09d456f25d7a5ae47e7ac93ad1c9e71909a1a4beb8",
+      "literal_dependencies": [
+        {
+          "specifier": "./arcade_harness.cjs",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "tests/arcade_harness.cjs"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_mystery_art.cjs",
+      "sha256": "3f2ba6938d25a147d74fa98dcf79ba59325b73b7077e324dd57e44c78c41b3df",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/mystery-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/mystery-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_mystery_quests.py",
+      "sha256": "e3931cd720923121a2312b8e3998222e1c9add329ba644884ee3a8bc6d1ec32b",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_mystery_ui.cjs",
+      "sha256": "472026d166a59f7c68a60513d397e707acfd69da874c79fc2442aa105d136e19",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/mystery.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/mystery.js"
+        },
+        {
+          "specifier": "../static/mystery-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/mystery-art.js"
+        },
+        {
+          "specifier": "../static/currency-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/currency-art.js"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_npc_removal.py",
+      "sha256": "cb3913e021f5e3264fd07287214405531ad5fd559a47799f0156a5156a33b2de",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_opening.cjs",
+      "sha256": "82200146e543f3c73c27c45c4c12b503cdb340ba6f906ed312b6393592d5cf4d",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/opening.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/opening.js"
+        },
+        {
+          "specifier": "../static/opening.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/opening.js"
+        },
+        {
+          "specifier": "../static/opening.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/opening.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_opening.py",
+      "sha256": "185c3430b6a04e936d499fd6c10b84f2ce5c7f8f6ee09d0ea4e92bd26d6f6ee7",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_opening_integration.cjs",
+      "sha256": "620dce5b90bb416c741bb4cbfaa2ac91c814531483098c80155660a8e56c7403",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        },
+        {
+          "specifier": "../static/opening.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/opening.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_performance_styles.cjs",
+      "sha256": "213a01b76d0b624f37f9e4eda8222f4665775fdf4580b935da5bbf971140b331",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_play_ticket_wallet.py",
+      "sha256": "18fee2553dcda15d8b36285567fed6b9f5653e46897bf80d0da5774104e5abc1",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_progress_bar_shop.py",
+      "sha256": "39f090746dbd49384dcf0e45e79ac77fdb4ea7bf3fc4debe116675df161723ac",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_progress_bars.cjs",
+      "sha256": "eb63874d3041ce3f01418bbca03ababf3a9260be6feb337163937e761a61bf4c",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/progress-bars.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.js"
+        },
+        {
+          "specifier": "../static/progress-bars.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.js"
+        },
+        {
+          "specifier": "../static/progress-bars.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.css"
+        },
+        {
+          "specifier": "../static/index.html",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/index.html"
+        },
+        {
+          "specifier": "../static/progress-bars.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.css"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_quest_art.cjs",
+      "sha256": "ed2c247e26bc65c40ff9c97a7bd7b2f5d3967b340f08fbdbf628dce89a591bc7",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/cosmetics.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/cosmetics.css"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_quest_ui.cjs",
+      "sha256": "5364c392ec0a193aab5a7ab979679d0e77be3faba68f5c41395435c29e043d91",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/quests.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quests.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/lottery.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/lottery.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/rain-city-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.js"
+        },
+        {
+          "specifier": "../static/citadel.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/citadel.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/interface-themes.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/interface-themes.js"
+        },
+        {
+          "specifier": "../static/currency-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/currency-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_quests.py",
+      "sha256": "c5525e37a668bd41924bcc60ef7a89fb98a2e1c12f0be9ee26d582dcbbb706e3",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_quick_skins_ui.cjs",
+      "sha256": "e576f0c0d1c2a6ea47a97ed6e5462eed4e33b171387ee1514ca5fb40c6ef0f4e",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/quick-skins.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quick-skins.js"
+        },
+        {
+          "specifier": "../static/interface-themes.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/interface-themes.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_rain_city_art.cjs",
+      "sha256": "adea19b14ec666cef9fcf321815501f9246ea3f6b26136342259f37f4ba1784d",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/rain-city-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.js"
+        },
+        {
+          "specifier": "../static/rain-city-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.js"
+        },
+        {
+          "specifier": "../static/rain-city-art.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.css"
+        },
+        {
+          "specifier": "../static/island-effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/island-effects.js"
+        },
+        {
+          "specifier": "../static/rain-city-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        },
+        {
+          "specifier": "../static/rain-city-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/rain-city-art.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_rain_city_integration.cjs",
+      "sha256": "6e856d465654e8db04c6fd2b53aa8c4d648a33a27f26b163187f87fc113f2512",
+      "literal_dependencies": [
+        {
+          "specifier": "./arcade_harness.cjs",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "tests/arcade_harness.cjs"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_record_time.cjs",
+      "sha256": "6204c67ec4cbfecc5255c06c492c346f03bd5c2a630c7ac29fefbe4ea9c24d95",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/record-time.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/record-time.js"
+        },
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_record_times.py",
+      "sha256": "cd37b49bba0e46f6a3819031a7f3b8f45397b3bad1d08c75c3e14201e6b0a8af",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_return_trail_art.cjs",
+      "sha256": "1f62693ae44730248bd586fe7fb194269995d5d4e0edb82662827ed89451a8b4",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/return-trail-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/return-trail-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_return_trail_controller.cjs",
+      "sha256": "1874708bb929626578c00cdac0c8734556aa62c57f887edbee6bfa3652293758",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/return-trail.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/return-trail.js"
+        },
+        {
+          "specifier": "../static/expedition-model.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/expedition-model.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_reverse_exchange.py",
+      "sha256": "07c0e2bbfbc6664c682baf938e545726b731046a257607afb232b2378583dd8e",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_review_heatmap.cjs",
+      "sha256": "47ace8cce8f26bd82d13a453e8e86381a114305f7678489f995fc21966409d70",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/review-heatmap.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/review-heatmap.js"
+        },
+        {
+          "specifier": "../static/review-heatmap.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/review-heatmap.css"
+        },
+        {
+          "specifier": "../static/review-heatmap.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/review-heatmap.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_roadside_entry.cjs",
+      "sha256": "3a076323f5ece1eb6d3bfc67d85e38f63e198d1b4a165cb1fbf2bf183a8e8ac2",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_runtime.cjs",
+      "sha256": "f2ac474d55b0d362c985e9a1a90e6d6e15f6eae2fdc82b0366fb5c7794673908",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/runtime.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/runtime.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_server.py",
+      "sha256": "8490d4ec55a7dbc57c0816652342be5b931b3b638b130994728f800901031a09",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_shop_art.cjs",
+      "sha256": "836b35181bc72b0b2fa5d858a22f7fac6f10c64d8c1c6287d035be26b6d8e082",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/index.html",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/index.html"
+        },
+        {
+          "specifier": "../static/progress-bars.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/island-effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/island-effects.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        },
+        {
+          "specifier": "../static/island-effects.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/island-effects.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        },
+        {
+          "specifier": "../static/camp-world-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/camp-world-art.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        },
+        {
+          "specifier": "../static/shop-art.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.css"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_shop_catalog_expansion.py",
+      "sha256": "345076bd92f3eb66329b3e85974023f0a60de15d2fd7e35e90e43ef8af2f735a",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_shop_collection_v2.cjs",
+      "sha256": "9f80e81992df2bafd9daf5f2b7399ee505d6aa8aac83289d9997604aba13f6ea",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/shop-collection-v2.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-collection-v2.js"
+        },
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/camp-world-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/camp-world-art.js"
+        },
+        {
+          "specifier": "../static/campfire-shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-shop-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/progress-bars.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.js"
+        },
+        {
+          "specifier": "../static/shop-collection-v2.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-collection-v2.js"
+        },
+        {
+          "specifier": "../static/shop-collection-v2.css",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-collection-v2.css"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_shop_expansion.cjs",
+      "sha256": "d1567d23420c54dc43c463643f38c81f4319a99021e59d963af39829b12c7d6e",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/shop-expansion.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-expansion.js"
+        },
+        {
+          "specifier": "../static/shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/shop-art.js"
+        },
+        {
+          "specifier": "../static/camp-world-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/camp-world-art.js"
+        },
+        {
+          "specifier": "../static/campfire-shop-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/campfire-shop-art.js"
+        },
+        {
+          "specifier": "../static/quest-art.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quest-art.js"
+        },
+        {
+          "specifier": "../static/progress-bars.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/progress-bars.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_shop_pagination_ui.cjs",
+      "sha256": "cbd6f063f942db05eca3a7e8066807d57ea4a98a7effec840c90baca4a4b0779",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/quests.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/quests.js"
+        },
+        {
+          "specifier": "../static/index.html",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/index.html"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_shop_v18.py",
+      "sha256": "d6104b4618fb712cad21c2dfbfea40975ae65124f7eb436fc7f1f2ed7bc3bbd0",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_survivor.py",
+      "sha256": "a0a82c527d14189976648bd2c959b992057c4d19859bcce7bbdd15326d86f4f0",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_survivor_ui.cjs",
+      "sha256": "94526138da29dc1822f238eee3c501c3cb0b265da7120906b1f4b46504a3ea8c",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/survivor.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/survivor.js"
+        }
+      ]
+    },
+    {
+      "file": "tests/test_timed_bonus.py",
+      "sha256": "09b484a65d06f0675993714ea083599507890d6cb027bf8b9e3bcb32e6aa1e68",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_upgrade.py",
+      "sha256": "73c155352bf96a7e3b5681fac6fec5f5998d316277acb5b2504f28197b5f201a",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_voyage.py",
+      "sha256": "0e8acce40e46d4e0a5a30505d7477dfbc199f8b816013149ce0fa0a4c0b9bfca",
+      "literal_dependencies": []
+    },
+    {
+      "file": "tests/test_week_navigation.cjs",
+      "sha256": "31bd11b6511aa999a8342d740b86aa39153ddbe555419abaf793b297910badcc",
+      "literal_dependencies": [
+        {
+          "specifier": "../static/app.js",
+          "inside_project": true,
+          "exists": true,
+          "project_path": "static/app.js"
+        }
+      ]
+    }
+  ]
+}

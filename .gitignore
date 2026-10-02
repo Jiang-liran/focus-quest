@@ -1,15 +1,68 @@
+# 本机工作过程、真实状态与私人备份；只忽略仓库顶层 work。
 /work/
+
+# macOS/编辑器/Python/Node 缓存。
 .DS_Store
+Thumbs.db
 __pycache__/
 *.py[cod]
-*.sqlite*
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+node_modules/
+*.swp
+*.swo
+
+# 私人数据库与 SQLite 旁文件。
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+*.sqlite3
+*.sqlite3-wal
+*.sqlite3-shm
 *.db
 *.db-wal
 *.db-shm
-*.app/
-*.zip
+
+# 秘密与本机日历同步数据。示例环境文件可保留。
 .env
 .env.*
+!.env.example
+!.env.sample
 *.pem
 *.key
+*.p12
+*.pfx
+syncdata/
+calendar-diagnostics/
+calendar-bridge-config.json
+calendar-bridge-snapshot.json
+calendar-bridge-refresh.json
+
+# outputs 内生成的 app、安装包、构建目录与签名；原始安装包另存 Release。
+/outputs/**/*.app/
+/outputs/**/*.zip
+/outputs/**/_CodeSignature/
+/outputs/**/build/
+/outputs/**/dist/
+/outputs/**/*.iconset/
+/outputs/**/*.log
+
+# 商品审阅图与快照；纯商品目录和生成源码仍保留。
+/outputs/focus-quest/work/shop-rich-v2/ordinary-art-contact.png
+/outputs/focus-quest/work/shop-rich-v2/ordinary-art-contact.svg
+/outputs/focus-quest/work/shop-rich-v2/ordinary-previews.json
+/outputs/focus-quest/work/currency-art/currency-contact.png
+/outputs/focus-quest/work/currency-art/currency-contact.svg
+
+# 不忽略所有 JSON、Plist、ICNS、PNG、SVG 或 outputs 本身。
+# static、tests、macos 图标以及手机日历桥 Plist 都是必要源码资源。
+
+# 本机审阅素材和早期独立备份，已精选成测试夹具与 Release 附件。
 /outputs/focus-quest/work/
+/outputs/初版软件-v1.0/
+/outputs/手机同步诊断/健康记录名称诊断.md
+/outputs/手机同步诊断/同步方案核验.md
+/tests/

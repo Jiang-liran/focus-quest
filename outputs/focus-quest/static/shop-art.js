@@ -207,6 +207,25 @@
       if(shape&&element.getAttribute('d')!==shape)element.setAttribute('d',shape);
     });
   }
+  function syncTerrainFloat(doc,fx){
+    const terrain=fx?.querySelector?.('.fx-terrain');
+    if(!terrain?.getAnimations)return;
+    const island=doc.querySelector('.quest-scene .island-art:not(.island-camp-overlay) .floating-island')||doc.querySelector('.floating-island');
+    if(!island?.getAnimations)return;
+    try{
+      const source=island.getAnimations().find(animation=>animation.animationName==='float');
+      const target=terrain.getAnimations().find(animation=>animation.animationName==='float');
+      if(!source||!target||source===target)return;
+      // The independent bright overlay borrows the island's clock. Repeated
+      // polls only correct a real offset, including after motion is re-enabled.
+      const sourceStart=source.startTime,targetStart=target.startTime,sourceTime=source.currentTime,targetTime=target.currentTime;
+      if(source.playState==='running'&&target.playState==='running'&&source.timeline===target.timeline&&source.playbackRate===target.playbackRate&&Number.isFinite(sourceStart)&&Number.isFinite(targetStart)){
+        if(Math.abs(sourceStart-targetStart)>.5)target.startTime=sourceStart;
+      }else if(Number.isFinite(sourceTime)&&(!Number.isFinite(targetTime)||Math.abs(sourceTime-targetTime)>.5))target.currentTime=sourceTime;
+    }catch(error){
+      // Older WebViews may expose animations without writable timing fields.
+    }
+  }
   function apply(equipped){
     const valid={};
     for(const slot of Object.keys(inventory)){
@@ -236,11 +255,12 @@
     put(backdrop,valid.theme,themeBackdrop(items.get(valid.theme).variant));
     let fx=doc.getElementById('equipped-extra-fx');
     const sharedFx=islandEffects?.has(valid.fx)===true;
-    if(sharedFx||expansion?.has(valid.fx,'fx'))fx=mount(doc,'equipped-extra-fx','.floating-island',true);
+    if(sharedFx||expansion?.has(valid.fx,'fx'))fx=mount(doc,'equipped-extra-fx',doc.getElementById('equipped-fx-weather-layer')?'#equipped-fx-weather-layer':'.floating-island',true);
     if(fx){
       const renderer=sharedFx?'island':'legacy';
       if(fx.getAttribute('data-fx-renderer')!==renderer)fx.setAttribute('data-fx-renderer',renderer);
       put(fx,valid.fx,sharedFx?islandEffects.scene(valid.fx,'home'):expansion?.has(valid.fx,'fx')?expansion.effectScene(valid.fx,'home'):'');
+      syncTerrainFloat(doc,fx);
     }
     (nodeProgressBars||root.FocusProgressBars)?.decorate(doc);
     return valid;

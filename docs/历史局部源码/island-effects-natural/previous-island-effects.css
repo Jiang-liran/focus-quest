@@ -1,0 +1,39 @@
+/* Scene effects are separate from card previews and never intercept navigation. */
+.fx-scene,.fx-scene *{pointer-events:none!important;stroke-linecap:round;stroke-linejoin:round}
+.fx-scene{isolation:isolate}
+#equipped-extra-fx{pointer-events:none;stroke:none}
+.quest-scene:has(#equipped-extra-fx[data-fx-renderer="island"])>.equipped-particles{display:none!important}
+.fx-scene .fx-mote-motion,.fx-scene .fx-core-motion,.fx-scene .fx-wing,.fx-scene .fx-waterline,.fx-scene .fx-rosette,.fx-scene .fx-veil{transform-box:fill-box;transform-origin:center}
+.fx-scene .fx-mote-motion{animation-duration:var(--fx-period,10s);animation-delay:var(--fx-delay,0s);animation-timing-function:ease-in-out;animation-iteration-count:infinite}
+.fx-scene .fx-float{animation-name:fx-scene-float}
+.fx-scene .fx-fall{animation-name:fx-scene-drift}
+.fx-scene .fx-stream{animation-name:fx-scene-stream}
+.fx-scene .fx-core-motion{animation:fx-scene-core 7.5s ease-in-out infinite alternate}
+.fx-scene .fx-veil{animation:fx-scene-veil 12s ease-in-out infinite alternate}
+.fx-scene .fx-wing{animation:fx-scene-wing 2.7s ease-in-out infinite}
+.fx-scene .fx-waterline{animation:fx-scene-waterline 6.5s ease-in-out infinite alternate}
+.fx-scene .fx-rosette{animation:fx-scene-rosette 16s ease-in-out infinite alternate}
+.fx-scene .fx-mote-near .fx-mote-motion{animation-direction:alternate}
+@keyframes fx-scene-float{0%,100%{transform:translate(0,3px);opacity:.76}50%{transform:translate(4px,-7px);opacity:1}}
+@keyframes fx-scene-drift{0%,100%{transform:translate(0,-3px) rotate(calc(var(--fx-lean,-4deg) * -1));opacity:.82}50%{transform:translate(var(--fx-shift,7px),9px) rotate(var(--fx-lean,-4deg));opacity:1}}
+@keyframes fx-scene-stream{0%,100%{transform:translate(-4px,2px);opacity:.75}50%{transform:translate(var(--fx-shift,7px),-4px);opacity:1}}
+@keyframes fx-scene-core{from{transform:translateY(2px);opacity:.8}to{transform:translateY(-3px);opacity:1}}
+@keyframes fx-scene-veil{from{transform:translateY(1px);opacity:.65}to{transform:translateY(-3px);opacity:1}}
+@keyframes fx-scene-wing{0%,100%{transform:scaleX(.94)}50%{transform:scaleX(.73)}}
+@keyframes fx-scene-waterline{from{transform:scale(.94);opacity:.6}to{transform:scale(1.05);opacity:1}}
+@keyframes fx-scene-rosette{from{transform:rotate(-5deg)}to{transform:rotate(7deg)}}
+/* Hidden scenes stop their animation work. Static/reduced-motion scenes keep
+   their complete silhouettes and lighting, so a purchased effect stays visible. */
+html.focus-runtime-hidden .fx-scene *,
+[hidden] .fx-scene *,
+[inert] .fx-scene *,
+dialog:not([open]) .fx-scene *,
+.motion-paused .fx-scene *,
+.runtime-paused .fx-scene *,
+[data-paused="true"] .fx-scene *{animation-play-state:paused!important;transition:none!important}
+[data-motion="false"] .fx-scene *,
+html.no-motion .fx-scene *,
+.no-motion .fx-scene *,
+.fx-scene.no-motion *,
+.reduced-motion .fx-scene *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.fx-scene *{animation:none!important;transition:none!important}}

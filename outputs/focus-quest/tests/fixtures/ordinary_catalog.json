@@ -1,0 +1,674 @@
+[
+  {
+    "id": "bar-snailtrail",
+    "slot": "bar",
+    "name": "苔径慢慢走",
+    "description": "苔点与圆润蜗牛沿真实进度前行，空进度不点亮轨道",
+    "coins": 70,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-kiteflight",
+    "slot": "bar",
+    "name": "放飞一线风",
+    "description": "风筝与折线风纹停在进度前沿，长尾轻轻摇动",
+    "coins": 150,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-paperboat",
+    "slot": "bar",
+    "name": "纸舟细流",
+    "description": "折纸小船驶过细波与岸边刻度，波纹随进度铺开",
+    "coins": 260,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-teacups",
+    "slot": "bar",
+    "name": "一盏慢茶",
+    "description": "茶杯、蒸汽与茶水刻度组成安静的进度轨道",
+    "coins": 420,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-needlework",
+    "slot": "bar",
+    "name": "缝好这一程",
+    "description": "线轴、交错针脚与卷线组成细密的专注进度",
+    "coins": 650,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-lilyriver",
+    "slot": "bar",
+    "name": "荷下游鱼",
+    "description": "荷叶与小鱼相伴，水纹沿已完成的进度流过",
+    "coins": 980,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-foxsteps",
+    "slot": "bar",
+    "name": "林间狐步",
+    "description": "尖耳小狐停在进度前沿，足迹与灌木刻度逐一展开",
+    "coins": 1450,
+    "diamonds": 0
+  },
+  {
+    "id": "bar-clockpendulum",
+    "slot": "bar",
+    "name": "钟摆分秒",
+    "description": "小钟摆守着齿形刻度，双层细线随真实进度延伸",
+    "coins": 0,
+    "diamonds": 4
+  },
+  {
+    "id": "bar-bamboocascade",
+    "slot": "bar",
+    "name": "竹涧水车",
+    "description": "小水轮与竹节水槽沿进度流动，呈现温柔溪流",
+    "coins": 0,
+    "diamonds": 8
+  },
+  {
+    "id": "bar-crystalvine",
+    "slot": "bar",
+    "name": "晶藤开花",
+    "description": "分枝晶藤、小花与露珠依次铺满已完成的轨道",
+    "coins": 0,
+    "diamonds": 16
+  },
+  {
+    "id": "bar-solarfleet",
+    "slot": "bar",
+    "name": "日帆远航",
+    "description": "扇形太阳帆与光轨刻度相伴，小飞船停在进度前沿",
+    "coins": 0,
+    "diamonds": 30
+  },
+  {
+    "id": "bar-prismcurrent",
+    "slot": "bar",
+    "name": "折光潮汐",
+    "description": "多层彩虹细流穿过折光晶片，保持进度条尺寸与真实进度",
+    "coins": 0,
+    "diamonds": 58
+  },
+  {
+    "id": "avatar-postrider",
+    "slot": "avatar",
+    "name": "邮路骑手",
+    "description": "邮帽、邮袋与信件旅装；随主线0—4阶段添上扣饰、投递包与路徽",
+    "coins": 90,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-teakeeper",
+    "slot": "avatar",
+    "name": "茶间小主人",
+    "description": "软帽、围裙与茶杯旅装；随主线成长添上茶叶、托盘与热气",
+    "coins": 210,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-windscout",
+    "slot": "avatar",
+    "name": "风向侦察员",
+    "description": "护目镜、短外套与风向旗；随主线成长添上工具与风纹",
+    "coins": 360,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-potter",
+    "slot": "avatar",
+    "name": "陶泥手艺人",
+    "description": "束发巾、宽围裙与小陶瓶；随主线成长添上纹样与陶艺工具",
+    "coins": 570,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-gardener",
+    "slot": "avatar",
+    "name": "晴雨园丁",
+    "description": "宽檐帽、口袋外套与花铲；随主线成长添上叶饰与盆栽",
+    "coins": 850,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-stargazer",
+    "slot": "avatar",
+    "name": "山顶观星客",
+    "description": "软圆帽、披肩与小望远镜；随主线成长添上星图与肩饰",
+    "coins": 1200,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-catwalker",
+    "slot": "avatar",
+    "name": "猫耳漫游者",
+    "description": "猫耳针织帽、背包与猫爪衣饰；随主线成长添上毛球与伙伴徽章",
+    "coins": 1700,
+    "diamonds": 0
+  },
+  {
+    "id": "avatar-mariner",
+    "slot": "avatar",
+    "name": "暮海领航人",
+    "description": "水手帽、海纹领结与罗盘；随主线成长添上缆绳与船锚饰",
+    "coins": 0,
+    "diamonds": 5
+  },
+  {
+    "id": "avatar-snowweaver",
+    "slot": "avatar",
+    "name": "雪屋织梦人",
+    "description": "护耳绒帽、厚围巾与针线包；随主线成长添上针织纹与雪晶",
+    "coins": 0,
+    "diamonds": 10
+  },
+  {
+    "id": "avatar-mothsage",
+    "slot": "avatar",
+    "name": "夜蛾引路人",
+    "description": "触角兜帽、叶脉翅披与小灯；随主线成长展开翅纹与月饰",
+    "coins": 0,
+    "diamonds": 20
+  },
+  {
+    "id": "avatar-cloudsmith",
+    "slot": "avatar",
+    "name": "云间修造师",
+    "description": "机械护帽、工具外套与小锤；随主线成长添上齿轮、云托与护臂",
+    "coins": 0,
+    "diamonds": 38
+  },
+  {
+    "id": "avatar-tidesinger",
+    "slot": "avatar",
+    "name": "潮歌奏者",
+    "description": "珊瑚冠、鳍形披肩与小竖琴；随主线成长添上珍珠、曲线水环与海光",
+    "coins": 0,
+    "diamonds": 65
+  },
+  {
+    "id": "island-herbpatch",
+    "slot": "island",
+    "name": "小小香草圃",
+    "description": "主岛后侧摆香草育苗台，左前角放木箱与草盆，留出路边篝火",
+    "coins": 55,
+    "diamonds": 0
+  },
+  {
+    "id": "island-bikecorner",
+    "slot": "island",
+    "name": "骑行歇脚亭",
+    "description": "主岛后侧摆单车棚与车轮，左前角添矮凳，留出路边篝火",
+    "coins": 150,
+    "diamonds": 0
+  },
+  {
+    "id": "island-pondbridge",
+    "slot": "island",
+    "name": "池畔弯桥",
+    "description": "主岛后侧添弯桥与池塘，左前角添水草踏石，留出路边篝火",
+    "coins": 330,
+    "diamonds": 0
+  },
+  {
+    "id": "island-orchard",
+    "slot": "island",
+    "name": "梨树小院",
+    "description": "主岛后侧添果树与梯架，左前角添果箱，留出路边篝火",
+    "coins": 560,
+    "diamonds": 0
+  },
+  {
+    "id": "island-raincafe",
+    "slot": "island",
+    "name": "雨檐咖啡屋",
+    "description": "主岛后侧添带雨棚的双窗咖啡屋，左前角添茶桌，保留营火道路",
+    "coins": 900,
+    "diamonds": 0
+  },
+  {
+    "id": "island-pottery",
+    "slot": "island",
+    "name": "暖窑陶房",
+    "description": "主岛后侧添圆窑与陶房，左前角添陶罐架，保留营火道路",
+    "coins": 1300,
+    "diamonds": 0
+  },
+  {
+    "id": "island-canaltown",
+    "slot": "island",
+    "name": "微缩运河街",
+    "description": "主岛后侧添错落小屋与拱桥，左前角添系舟桩，保留营火道路",
+    "coins": 2000,
+    "diamonds": 0
+  },
+  {
+    "id": "island-beaconpier",
+    "slot": "island",
+    "name": "暮海灯标码头",
+    "description": "条纹灯标、短栈桥与航灯组成后侧码头，前角点缀旅行箱",
+    "coins": 0,
+    "diamonds": 8
+  },
+  {
+    "id": "island-gardenspire",
+    "slot": "island",
+    "name": "层叶花园塔",
+    "description": "三层错落花园阳台与尖顶绿塔组成岛上庭院，前角摆花箱",
+    "coins": 0,
+    "diamonds": 16
+  },
+  {
+    "id": "island-moonviaduct",
+    "slot": "island",
+    "name": "月桥回廊",
+    "description": "三孔月桥、双端小亭与栏杆组成后侧回廊，前角摆石灯",
+    "coins": 0,
+    "diamonds": 28
+  },
+  {
+    "id": "island-cloudtram",
+    "slot": "island",
+    "name": "云轨小站",
+    "description": "架空缆车、双柱小站与云纹站台组成岛上车站，前角摆站牌",
+    "coins": 0,
+    "diamonds": 46
+  },
+  {
+    "id": "island-starglassgarden",
+    "slot": "island",
+    "name": "星璃温室庭",
+    "description": "圆形玻璃温室、放射框架与环形花坛组成后侧庭院，留出路边篝火",
+    "coins": 0,
+    "diamonds": 80
+  },
+  {
+    "id": "theme-canalnight",
+    "slot": "theme",
+    "name": "运河微夜",
+    "description": "地景换上蓝灰水岸，添弯月、垂柳与细流纹，雨城边缘也有运河倒影",
+    "coins": 280,
+    "diamonds": 0
+  },
+  {
+    "id": "theme-mossvalley",
+    "slot": "theme",
+    "name": "苔谷深处",
+    "description": "地景换上苔绿石色，添蕨叶、空心苔石与谷地层次，雨城两侧增添石庭",
+    "coins": 620,
+    "diamonds": 0
+  },
+  {
+    "id": "theme-rooftoprain",
+    "slot": "theme",
+    "name": "雨落瓦檐",
+    "description": "地景换上雨夜石板，添瓦檐线与远处亮窗，雨城天际加入细密楼影",
+    "coins": 1100,
+    "diamonds": 0
+  },
+  {
+    "id": "theme-goldharvest",
+    "slot": "theme",
+    "name": "麦风归乡",
+    "description": "地景换上暖麦地色，添麦穗、丘陵与远风车，雨城屋顶映出收获暮色",
+    "coins": 1800,
+    "diamonds": 0
+  },
+  {
+    "id": "theme-tidalglass",
+    "slot": "theme",
+    "name": "潮汐琉璃",
+    "description": "地景换上深蓝透明水色，添浪边、透光镜片与层叠潮线，雨城河岸浮起细波",
+    "coins": 0,
+    "diamonds": 6
+  },
+  {
+    "id": "theme-inkmountains",
+    "slot": "theme",
+    "name": "墨山听雨",
+    "description": "地景换上墨青山色，添山峦、竹影与留白水纹，雨城天际连起沉静远山",
+    "coins": 0,
+    "diamonds": 16
+  },
+  {
+    "id": "theme-snowlantern",
+    "slot": "theme",
+    "name": "雪灯安居",
+    "description": "地景换上雪蓝浅色，添积雪轮廓、暖纸灯与雪松，雨城楼边有雪沿与灯影",
+    "coins": 0,
+    "diamonds": 32
+  },
+  {
+    "id": "theme-skyterraces",
+    "slot": "theme",
+    "name": "云阶浮庭",
+    "description": "地景换上深青天空与浅金石面，添悬浮云台、低拱与流云，雨城天际点缀远处浮庭",
+    "coins": 0,
+    "diamonds": 60
+  },
+  {
+    "id": "companion-duckling",
+    "slot": "companion",
+    "name": "小黄鸭散步",
+    "description": "圆嘴小鸭带着水纹与短翅，陪在主岛与雨城桥边",
+    "coins": 60,
+    "diamonds": 0
+  },
+  {
+    "id": "companion-corgi",
+    "slot": "companion",
+    "name": "短腿柯基",
+    "description": "立耳、白胸与小短腿组成柯基，陪在主岛与雨城桥边",
+    "coins": 180,
+    "diamonds": 0
+  },
+  {
+    "id": "companion-redpanda",
+    "slot": "companion",
+    "name": "竹林红团",
+    "description": "圆耳红熊猫抱竹枝，环纹长尾绕在身侧，陪伴主岛与雨城旅人",
+    "coins": 420,
+    "diamonds": 0
+  },
+  {
+    "id": "companion-squirrel",
+    "slot": "companion",
+    "name": "松枝小栗",
+    "description": "竖起的大卷尾、短耳与栗子组成小松鼠，陪伴主岛与雨城旅人",
+    "coins": 780,
+    "diamonds": 0
+  },
+  {
+    "id": "companion-tortoise",
+    "slot": "companion",
+    "name": "背叶慢龟",
+    "description": "穹形龟壳、短脚与顶叶组成小龟，陪伴主岛与雨城旅人",
+    "coins": 1200,
+    "diamonds": 0
+  },
+  {
+    "id": "companion-moonmoth",
+    "slot": "companion",
+    "name": "月蛾小信使",
+    "description": "宽阔四片翅、叶脉与羽状触角组成月蛾，在岛边与桥边轻轻呼吸",
+    "coins": 0,
+    "diamonds": 5
+  },
+  {
+    "id": "companion-seahorse",
+    "slot": "companion",
+    "name": "潮湾海马",
+    "description": "细长头颈、弯尾与小鳍组成海马，陪在主岛与雨城桥边",
+    "coins": 0,
+    "diamonds": 15
+  },
+  {
+    "id": "companion-origamidove",
+    "slot": "companion",
+    "name": "折纸云鸽",
+    "description": "折纸大翼、尖尾与分面身躯组成云鸽，陪在主岛与雨城桥边",
+    "coins": 0,
+    "diamonds": 35
+  },
+  {
+    "id": "fx-dewdrops",
+    "slot": "fx",
+    "name": "草叶露光",
+    "description": "草木与地面上的细小露珠在主岛和雨城边缘微微闪光",
+    "coins": 45,
+    "diamonds": 0
+  },
+  {
+    "id": "fx-maplekeys",
+    "slot": "fx",
+    "name": "风中的翅果",
+    "description": "带旋翼的种子在主岛与雨夜城市中旋转落下",
+    "coins": 160,
+    "diamonds": 0
+  },
+  {
+    "id": "fx-papercycles",
+    "slot": "fx",
+    "name": "纸翼慢行",
+    "description": "小纸飞机轻轻横越主岛与雨夜城市，飞向画面之外",
+    "coins": 350,
+    "diamonds": 0
+  },
+  {
+    "id": "fx-rainrings",
+    "slot": "fx",
+    "name": "雨点涟漪",
+    "description": "细小涟漪在主岛与雨城地面逐圈扩散，再渐渐隐去",
+    "coins": 620,
+    "diamonds": 0
+  },
+  {
+    "id": "fx-ginkgobreeze",
+    "slot": "fx",
+    "name": "银杏小风",
+    "description": "银杏叶在主岛与雨夜城市中翻转飘落，随着微风轻轻摇摆",
+    "coins": 1100,
+    "diamonds": 0
+  },
+  {
+    "id": "fx-silverwaves",
+    "slot": "fx",
+    "name": "银潮细线",
+    "description": "银色细水纹沿主岛与雨城地面缓缓流动",
+    "coins": 0,
+    "diamonds": 5
+  },
+  {
+    "id": "fx-moonpetals",
+    "slot": "fx",
+    "name": "月瓣回旋",
+    "description": "月色花瓣在主岛与雨夜城市中轻轻翻转，随风落下",
+    "coins": 0,
+    "diamonds": 14
+  },
+  {
+    "id": "fx-prismtides",
+    "slot": "fx",
+    "name": "棱光帆影",
+    "description": "彩色反光细流沿主岛与雨城地面缓缓流动",
+    "coins": 0,
+    "diamonds": 35
+  },
+  {
+    "id": "fire-ironbasket",
+    "slot": "fire",
+    "name": "铁网围炉",
+    "description": "圆底铁丝火篮与交叉网格围住暖色火苗",
+    "coins": 60,
+    "diamonds": 0
+  },
+  {
+    "id": "fire-slatehearth",
+    "slot": "fire",
+    "name": "叠石小炉",
+    "description": "三层扁石与木柴围成低矮暖炉，保留火光",
+    "coins": 170,
+    "diamonds": 0
+  },
+  {
+    "id": "fire-braziertripod",
+    "slot": "fire",
+    "name": "三足温盏",
+    "description": "三足铜盆、外环与短支柱托住暖火",
+    "coins": 380,
+    "diamonds": 0
+  },
+  {
+    "id": "fire-roundstove",
+    "slot": "fire",
+    "name": "圆炉暖夜",
+    "description": "带格栅炉门、小烟囱与炉顶茶壶的圆炉替换篝火",
+    "coins": 750,
+    "diamonds": 0
+  },
+  {
+    "id": "fire-glasshearth",
+    "slot": "fire",
+    "name": "玻璃暖芯",
+    "description": "透明圆筒、圆弧高光与内焰组成透光暖炉",
+    "coins": 0,
+    "diamonds": 6
+  },
+  {
+    "id": "fire-orbitbowl",
+    "slot": "fire",
+    "name": "浮环火盏",
+    "description": "上下错层悬环与弧形托架环绕暖色火焰",
+    "coins": 0,
+    "diamonds": 18
+  },
+  {
+    "id": "tent-tarp",
+    "slot": "tent",
+    "name": "林下天幕",
+    "description": "偏心天幕、支杆与绳桩构成轻巧露营顶棚",
+    "coins": 65,
+    "diamonds": 0
+  },
+  {
+    "id": "tent-foldcabin",
+    "slot": "tent",
+    "name": "折檐小屋",
+    "description": "折线低屋顶、暖窗与开放入口组成便携小屋",
+    "coins": 240,
+    "diamonds": 0
+  },
+  {
+    "id": "tent-wagoncamp",
+    "slot": "tent",
+    "name": "蓬车歇宿",
+    "description": "弧顶蓬车、双轮与小侧帘组成可住人的营地旅车",
+    "coins": 600,
+    "diamonds": 0
+  },
+  {
+    "id": "tent-rainhut",
+    "slot": "tent",
+    "name": "听雨木舍",
+    "description": "高檐木屋、雨棚与门前短台阶组成温暖歇宿点",
+    "coins": 1200,
+    "diamonds": 0
+  },
+  {
+    "id": "tent-podhouse",
+    "slot": "tent",
+    "name": "叶间眠舱",
+    "description": "椭圆眠舱、分片窗与叶形顶棚组成舒适小住处",
+    "coins": 0,
+    "diamonds": 10
+  },
+  {
+    "id": "tent-cloudyurt",
+    "slot": "tent",
+    "name": "云边圆帐",
+    "description": "环形圆帐、双层顶、弧门与编织边饰组成营地居所",
+    "coins": 0,
+    "diamonds": 30
+  },
+  {
+    "id": "campgear-teatray",
+    "slot": "campgear",
+    "name": "营火茶盘",
+    "description": "竹茶盘、双杯、茶壶与一枝嫩叶摆在营地",
+    "coins": 70,
+    "diamonds": 0
+  },
+  {
+    "id": "campgear-records",
+    "slot": "campgear",
+    "name": "野外唱片角",
+    "description": "低矮唱片机、黑胶唱片与唱片箱组成营地音乐角",
+    "coins": 230,
+    "diamonds": 0
+  },
+  {
+    "id": "campgear-birdbath",
+    "slot": "campgear",
+    "name": "鸟语水盆",
+    "description": "细柱鸟浴盆、小鸟与水纹组成营地摆设",
+    "coins": 480,
+    "diamonds": 0
+  },
+  {
+    "id": "campgear-readingbench",
+    "slot": "campgear",
+    "name": "灯下读书凳",
+    "description": "弧背长凳、摊开的书与弯杆暖灯组成营地书角",
+    "coins": 900,
+    "diamonds": 0
+  },
+  {
+    "id": "campgear-terracegarden",
+    "slot": "campgear",
+    "name": "阶梯苗圃",
+    "description": "三层错落花架、小温箱与藤叶组成营地苗圃",
+    "coins": 0,
+    "diamonds": 8
+  },
+  {
+    "id": "campgear-projectiontable",
+    "slot": "campgear",
+    "name": "微光星图桌",
+    "description": "圆桌、透明星球投影与轨道弧线组成营地观星桌",
+    "coins": 0,
+    "diamonds": 24
+  },
+  {
+    "id": "banner-fieldnote",
+    "slot": "banner",
+    "name": "旅途随手页",
+    "description": "装订孔、侧边线圈与折角纸页组成旅人铭牌",
+    "coins": 55,
+    "diamonds": 0
+  },
+  {
+    "id": "banner-compassrose",
+    "slot": "banner",
+    "name": "风向便笺",
+    "description": "两端圆罗盘、方位针与双细边组成旅人铭牌",
+    "coins": 260,
+    "diamonds": 0
+  },
+  {
+    "id": "banner-woodcarving",
+    "slot": "banner",
+    "name": "刻木来信",
+    "description": "木纹双框、雕叶边角与插接榫组成旅人铭牌",
+    "coins": 780,
+    "diamonds": 0
+  },
+  {
+    "id": "banner-origamiframe",
+    "slot": "banner",
+    "name": "折角纸庭",
+    "description": "多层斜折角、纸带与透空双边组成旅人铭牌",
+    "coins": 0,
+    "diamonds": 5
+  },
+  {
+    "id": "banner-tideglass",
+    "slot": "banner",
+    "name": "潮纹琉框",
+    "description": "圆角透光双框、水线与气泡边角组成旅人铭牌",
+    "coins": 0,
+    "diamonds": 14
+  },
+  {
+    "id": "banner-sunarchive",
+    "slot": "banner",
+    "name": "日光藏页",
+    "description": "书页形底框、翼形边饰与小日轮组成旅人铭牌",
+    "coins": 0,
+    "diamonds": 30
+  }
+]

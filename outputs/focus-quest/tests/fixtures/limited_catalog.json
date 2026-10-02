@@ -1,0 +1,134 @@
+[
+  {
+    "id": "bar-tidewhale",
+    "slot": "bar",
+    "name": "潮汐鲸航",
+    "description": "鲸影沿潮汐游动，水面光纹与浪花一起向前；进度越深，鲸航越远。抽奖限定。",
+    "coins": 9999,
+    "diamonds": 0,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "coin"
+  },
+  {
+    "id": "avatar-forestcrown",
+    "slot": "avatar",
+    "name": "森冠巡游者",
+    "description": "披叶纹长袍的林间巡游者，随当天进度长出枝冠、萤灯、叶翼与环绕的森灵。抽奖限定。",
+    "coins": 9999,
+    "diamonds": 0,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "coin"
+  },
+  {
+    "id": "island-lanternwharf",
+    "slot": "island",
+    "name": "千灯水榭",
+    "description": "主岛后侧升起临水楼阁与悬灯长廊，前沿水渠轻轻映灯，留出路边篝火与行走空间。抽奖限定。",
+    "coins": 9999,
+    "diamonds": 0,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "coin"
+  },
+  {
+    "id": "theme-fireflygrove",
+    "slot": "theme",
+    "name": "萤森幻境",
+    "description": "苔绿地景与枝叶包围月光森林，缓缓闪烁的萤火装点主岛与雨夜城市边缘。抽奖限定。",
+    "coins": 9999,
+    "diamonds": 0,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "coin"
+  },
+  {
+    "id": "companion-clockfox",
+    "slot": "companion",
+    "name": "时光灵狐",
+    "description": "银蓝小狐背着轻转的时钟，尾巴化作三重时针光弧，耳畔钟星轻轻跳动。抽奖限定。",
+    "coins": 9999,
+    "diamonds": 0,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "coin"
+  },
+  {
+    "id": "relic-cloudorrery",
+    "slot": "relic",
+    "name": "云海天球仪",
+    "description": "悬浮云台托起立体天球，倾斜星环与流云错层运转，中心星辰缓缓呼吸。抽奖限定。",
+    "coins": 9999,
+    "diamonds": 0,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "coin"
+  },
+  {
+    "id": "bar-eventhorizon",
+    "slot": "bar",
+    "name": "星门跃迁",
+    "description": "双层星门牵引光束穿过暗色轨道，透镜弧线、星屑和跃迁飞梭交错前行。抽奖限定。",
+    "coins": 0,
+    "diamonds": 99,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "diamond"
+  },
+  {
+    "id": "avatar-auroraweaver",
+    "slot": "avatar",
+    "name": "极光织梦者",
+    "description": "以晶纱编织极光的旅人，随当天进度展开光绸、星梭、晶翼与完整极光冠。抽奖限定。",
+    "coins": 0,
+    "diamonds": 99,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "diamond"
+  },
+  {
+    "id": "island-lunarobservatory",
+    "slot": "island",
+    "name": "悬月天文宫",
+    "description": "月轮托起错层天文宫，观星穹顶、悬浮望远镜与轨道光桥围绕主岛后侧缓缓运转。抽奖限定。",
+    "coins": 0,
+    "diamonds": 99,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "diamond"
+  },
+  {
+    "id": "theme-astralrift",
+    "slot": "theme",
+    "name": "星界裂隙",
+    "description": "两重弯曲星幕与浮游晶体包围主岛，极光轨迹延伸到雨夜城市边缘。抽奖限定。",
+    "coins": 0,
+    "diamonds": 99,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "diamond"
+  },
+  {
+    "id": "companion-prismwhale",
+    "slot": "companion",
+    "name": "幻晶星鲸",
+    "description": "透明晶鲸穿行三重星环，棱面折出蓝粉极光，背鳍与尾部伴随微小星群。抽奖限定。",
+    "coins": 0,
+    "diamonds": 99,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "diamond"
+  },
+  {
+    "id": "relic-infinitygarden",
+    "slot": "relic",
+    "name": "无尽星庭",
+    "description": "莫比乌斯光环围起一座悬浮星庭，晶花、星泉与双层阶台缓缓共鸣，光粒循环归来。抽奖限定。",
+    "coins": 0,
+    "diamonds": 99,
+    "exclusive": false,
+    "lotteryOnly": true,
+    "lotteryMachine": "diamond"
+  }
+]

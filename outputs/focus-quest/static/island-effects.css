@@ -1,39 +1,108 @@
-/* Scene effects are separate from card previews and never intercept navigation. */
+/* Landscape motion: no border of icons, no fixed enlarged centrepieces. */
 .fx-scene,.fx-scene *{pointer-events:none!important;stroke-linecap:round;stroke-linejoin:round}
-.fx-scene{isolation:isolate}
 #equipped-extra-fx{pointer-events:none;stroke:none}
+.equipped-fx-weather-art{position:absolute;inset:0;width:100%;height:100%;max-width:none;overflow:visible;z-index:3;pointer-events:none!important;filter:none;stroke:none}
+.fx-terrain{animation:float 7s ease-in-out infinite}
 .quest-scene:has(#equipped-extra-fx[data-fx-renderer="island"])>.equipped-particles{display:none!important}
-.fx-scene .fx-mote-motion,.fx-scene .fx-core-motion,.fx-scene .fx-wing,.fx-scene .fx-waterline,.fx-scene .fx-rosette,.fx-scene .fx-veil{transform-box:fill-box;transform-origin:center}
-.fx-scene .fx-mote-motion{animation-duration:var(--fx-period,10s);animation-delay:var(--fx-delay,0s);animation-timing-function:ease-in-out;animation-iteration-count:infinite}
-.fx-scene .fx-float{animation-name:fx-scene-float}
-.fx-scene .fx-fall{animation-name:fx-scene-drift}
-.fx-scene .fx-stream{animation-name:fx-scene-stream}
-.fx-scene .fx-core-motion{animation:fx-scene-core 7.5s ease-in-out infinite alternate}
-.fx-scene .fx-veil{animation:fx-scene-veil 12s ease-in-out infinite alternate}
-.fx-scene .fx-wing{animation:fx-scene-wing 2.7s ease-in-out infinite}
-.fx-scene .fx-waterline{animation:fx-scene-waterline 6.5s ease-in-out infinite alternate}
-.fx-scene .fx-rosette{animation:fx-scene-rosette 16s ease-in-out infinite alternate}
-.fx-scene .fx-mote-near .fx-mote-motion{animation-direction:alternate}
-@keyframes fx-scene-float{0%,100%{transform:translate(0,3px);opacity:.76}50%{transform:translate(4px,-7px);opacity:1}}
-@keyframes fx-scene-drift{0%,100%{transform:translate(0,-3px) rotate(calc(var(--fx-lean,-4deg) * -1));opacity:.82}50%{transform:translate(var(--fx-shift,7px),9px) rotate(var(--fx-lean,-4deg));opacity:1}}
-@keyframes fx-scene-stream{0%,100%{transform:translate(-4px,2px);opacity:.75}50%{transform:translate(var(--fx-shift,7px),-4px);opacity:1}}
-@keyframes fx-scene-core{from{transform:translateY(2px);opacity:.8}to{transform:translateY(-3px);opacity:1}}
-@keyframes fx-scene-veil{from{transform:translateY(1px);opacity:.65}to{transform:translateY(-3px);opacity:1}}
-@keyframes fx-scene-wing{0%,100%{transform:scaleX(.94)}50%{transform:scaleX(.73)}}
-@keyframes fx-scene-waterline{from{transform:scale(.94);opacity:.6}to{transform:scale(1.05);opacity:1}}
-@keyframes fx-scene-rosette{from{transform:rotate(-5deg)}to{transform:rotate(7deg)}}
-/* Hidden scenes stop their animation work. Static/reduced-motion scenes keep
-   their complete silhouettes and lighting, so a purchased effect stays visible. */
-html.focus-runtime-hidden .fx-scene *,
-[hidden] .fx-scene *,
-[inert] .fx-scene *,
-dialog:not([open]) .fx-scene *,
-.motion-paused .fx-scene *,
-.runtime-paused .fx-scene *,
+.fx-travel{transform:translate(var(--fx-static-x,0px),var(--fx-static-y,0px));opacity:var(--fx-ink,.8);animation-duration:var(--fx-time,12s);animation-delay:var(--fx-delay,0s);animation-iteration-count:infinite;animation-timing-function:linear}
+.fx-shape,.fx-wing,.fx-ripple{transform-box:fill-box;transform-origin:center}
+.fx-falling{animation-name:fx-natural-fall}
+.fx-falling .fx-shape{animation:fx-natural-leaf-turn calc(var(--fx-time,12s) * .37) ease-in-out var(--fx-delay,0s) infinite}
+.fx-snowfall{animation-name:fx-natural-snow}
+.fx-firefly{animation-name:fx-natural-firefly;animation-timing-function:ease-in-out}
+.fx-butterfly{animation-name:fx-natural-butterfly;animation-timing-function:ease-in-out}
+.fx-butterfly .fx-wing{animation:fx-natural-wing .48s ease-in-out infinite}
+.fx-windborne{animation-name:fx-natural-wind}
+.fx-windborne .fx-shape{animation:fx-natural-seed-sway 4.8s ease-in-out var(--fx-delay,0s) infinite alternate}
+.fx-rising{animation-name:fx-natural-rise}
+.fx-ascending{animation-name:fx-natural-lantern}
+.fx-paperflight{animation-name:fx-natural-paper}
+.fx-ribbonflight{animation-name:fx-natural-wind}
+.fx-ribbonflight .fx-shape{animation:fx-natural-ribbon-sway 5s ease-in-out var(--fx-delay,0s) infinite alternate}
+.fx-shooting{animation-name:fx-natural-meteor}
+.fx-twinkle{opacity:.64;animation:fx-natural-twinkle var(--fx-time,7s) ease-in-out var(--fx-delay,0s) infinite}
+.fx-ripple{transform:scale(.85);opacity:.3;animation:fx-natural-ripple var(--fx-time,6s) linear var(--fx-delay,0s) infinite}
+.fx-waterflow{animation-name:fx-natural-water}
+.fx-haze{opacity:.9;animation:fx-natural-haze var(--fx-time,32s) ease-in-out var(--fx-delay,0s) infinite alternate}
+.fx-starline{opacity:.42;animation:fx-natural-starline 17s ease-in-out -6s infinite}
+/* Long travel distances create falling, migration and rising, rather than the
+   old few-pixel oscillation. Phases make emergence and departure asynchronous. */
+@keyframes fx-natural-fall{
+  0%{transform:translate(0,0);opacity:0}
+  10%{opacity:var(--fx-ink)}
+  24%{transform:translate(var(--fx-x1),var(--fx-y1))}
+  51%{transform:translate(var(--fx-x2),var(--fx-y2))}
+  77%{transform:translate(var(--fx-x3),var(--fx-y3));opacity:var(--fx-ink)}
+  100%{transform:translate(var(--fx-dx),var(--fx-dy));opacity:0}
+}
+@keyframes fx-natural-leaf-turn{0%{transform:rotate(var(--fx-lean,-18deg)) scaleX(1)}45%{transform:rotate(calc(var(--fx-turn,145deg) * .47)) scaleX(.42)}100%{transform:rotate(var(--fx-turn,145deg)) scaleX(.95)}}
+@keyframes fx-natural-snow{
+  0%{transform:translate(0,0);opacity:0}
+  9%,82%{opacity:var(--fx-ink)}
+  50%{transform:translate(var(--fx-x2),var(--fx-y2))}
+  100%{transform:translate(var(--fx-dx),var(--fx-dy));opacity:0}
+}
+@keyframes fx-natural-firefly{
+  0%,100%{transform:translate(0,0);opacity:.15}
+  20%{transform:translate(var(--fx-x1),var(--fx-y1));opacity:.58}
+  46%{transform:translate(var(--fx-dx),var(--fx-dy));opacity:var(--fx-ink)}
+  72%{transform:translate(var(--fx-x2),calc(var(--fx-y2) * -1));opacity:.3}
+}
+@keyframes fx-natural-butterfly{
+  0%,100%{transform:translate(0,0) rotate(-8deg);opacity:.25}
+  22%{transform:translate(var(--fx-x1),calc(var(--fx-y1) - 18px)) rotate(9deg);opacity:var(--fx-ink)}
+  51%{transform:translate(var(--fx-dx),var(--fx-dy)) rotate(-11deg)}
+  78%{transform:translate(var(--fx-x2),calc(var(--fx-y2) + 14px)) rotate(5deg);opacity:var(--fx-ink)}
+}
+@keyframes fx-natural-wing{0%,100%{transform:scaleX(1)}50%{transform:scaleX(.24)}}
+@keyframes fx-natural-wind{
+  0%{transform:translate(0,0);opacity:0}
+  12%{opacity:var(--fx-ink)}
+  24%{transform:translate(var(--fx-x1),var(--fx-y1))}
+  51%{transform:translate(var(--fx-x2),calc(var(--fx-y2) - 9px))}
+  77%{transform:translate(var(--fx-x3),var(--fx-y3));opacity:var(--fx-ink)}
+  100%{transform:translate(var(--fx-dx),var(--fx-dy));opacity:0}
+}
+@keyframes fx-natural-seed-sway{from{transform:rotate(-17deg)}to{transform:rotate(15deg)}}
+@keyframes fx-natural-ribbon-sway{from{transform:rotate(-7deg) scaleY(.72)}to{transform:rotate(6deg) scaleY(1.12)}}
+@keyframes fx-natural-rise{
+  0%{transform:translate(0,0) scale(.7);opacity:0}
+  12%{opacity:var(--fx-ink)}
+  51%{transform:translate(var(--fx-x2),var(--fx-y2)) scale(.95)}
+  82%{opacity:var(--fx-ink)}
+  100%{transform:translate(var(--fx-dx),var(--fx-dy)) scale(1.13);opacity:0}
+}
+@keyframes fx-natural-lantern{
+  0%{transform:translate(0,0) scale(1);opacity:0}
+  10%{opacity:var(--fx-ink)}
+  51%{transform:translate(var(--fx-x2),var(--fx-y2)) scale(.76);opacity:var(--fx-ink)}
+  100%{transform:translate(var(--fx-dx),var(--fx-dy)) scale(.4);opacity:0}
+}
+@keyframes fx-natural-paper{
+  0%,13%{transform:translate(0,0) rotate(-7deg);opacity:0}
+  17%{opacity:var(--fx-ink)}
+  37%{transform:translate(var(--fx-x1),var(--fx-y1)) rotate(5deg)}
+  56%{transform:translate(var(--fx-x2),calc(var(--fx-y2) - 13px)) rotate(-4deg)}
+  75%{transform:translate(var(--fx-x3),var(--fx-y3)) rotate(9deg);opacity:var(--fx-ink)}
+  89%,100%{transform:translate(var(--fx-dx),var(--fx-dy)) rotate(-3deg);opacity:0}
+}
+@keyframes fx-natural-meteor{
+  0%,70%{transform:translate(0,0);opacity:0}
+  72%{transform:translate(0,0);opacity:0}
+  74%{transform:translate(var(--fx-x1),var(--fx-y1));opacity:var(--fx-ink)}
+  80%{transform:translate(var(--fx-x3),var(--fx-y3));opacity:.65}
+  84%,100%{transform:translate(var(--fx-dx),var(--fx-dy));opacity:0}
+}
+@keyframes fx-natural-twinkle{0%,100%{opacity:.12}30%{opacity:.4}48%{opacity:1}67%{opacity:.3}}
+@keyframes fx-natural-ripple{0%{transform:scale(.2);opacity:0}10%{opacity:.7}42%{opacity:.46}85%,100%{transform:scale(1.65);opacity:0}}
+@keyframes fx-natural-water{0%{transform:translate(0,0);opacity:0}20%{opacity:var(--fx-ink)}68%{opacity:.55}100%{transform:translate(var(--fx-dx),var(--fx-dy));opacity:0}}
+@keyframes fx-natural-haze{from{transform:translate(0,0);opacity:.6}to{transform:translate(var(--fx-dx),-5px);opacity:1}}
+@keyframes fx-natural-starline{0%,100%{opacity:.12}40%{opacity:.7}65%{opacity:.4}}
+/* Pausing background work preserves phases. Reduced motion instead shows a
+   modest sample of the same landscape effect, still clipped to real windows. */
+html.focus-runtime-hidden .fx-scene *,[hidden] .fx-scene *,[inert] .fx-scene *,
+dialog:not([open]) .fx-scene *,.motion-paused .fx-scene *,.runtime-paused .fx-scene *,
 [data-paused="true"] .fx-scene *{animation-play-state:paused!important;transition:none!important}
-[data-motion="false"] .fx-scene *,
-html.no-motion .fx-scene *,
-.no-motion .fx-scene *,
-.fx-scene.no-motion *,
-.reduced-motion .fx-scene *{animation:none!important;transition:none!important}
+[data-motion="false"] .fx-scene *,html.no-motion .fx-scene *,.no-motion .fx-scene *,
+.fx-scene.no-motion *,.reduced-motion .fx-scene *{animation:none!important;transition:none!important}
 @media(prefers-reduced-motion:reduce){.fx-scene *{animation:none!important;transition:none!important}}

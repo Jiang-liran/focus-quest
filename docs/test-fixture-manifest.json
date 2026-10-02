@@ -1,0 +1,63 @@
+{
+  "purpose": "Overlay tests/ onto the portable latest project. Test assertions and all non-fixture paths remain exactly unchanged.",
+  "fixtures": [
+    {
+      "source": "outputs/focus-quest/work/shop-rich-v2/ordinary_catalog.json",
+      "target": "tests/fixtures/ordinary_catalog.json",
+      "source_sha256": "62439b214231546e6c370935c40e5846eb359722ce683288b2a61078332a5726",
+      "target_sha256": "62439b214231546e6c370935c40e5846eb359722ce683288b2a61078332a5726",
+      "bytes": 18259,
+      "exact_copy": true,
+      "catalog_entries": 84
+    },
+    {
+      "source": "work/shop-rich-v2/limited_catalog.json",
+      "target": "tests/fixtures/limited_catalog.json",
+      "source_sha256": "d8f3e17359904ac8aa616704de28492d2723af10af6944698d35410c786c7697",
+      "target_sha256": "d8f3e17359904ac8aa616704de28492d2723af10af6944698d35410c786c7697",
+      "bytes": 4152,
+      "exact_copy": true,
+      "catalog_entries": 12
+    },
+    {
+      "source": "outputs/初版软件-v1.0/专注远征.app/Contents/Resources/static/style.css",
+      "target": "tests/fixtures/initial-v1.0-style.css",
+      "source_sha256": "ae8b66411d63d967314038be09f6f6f036e50ea672bdd111618d4a08144e83ac",
+      "target_sha256": "ae8b66411d63d967314038be09f6f6f036e50ea672bdd111618d4a08144e83ac",
+      "bytes": 30224,
+      "exact_copy": true
+    }
+  ],
+  "patched_tests": [
+    {
+      "source": "outputs/focus-quest/tests/test_shop_collection_v2.cjs",
+      "target": "tests/test_shop_collection_v2.cjs",
+      "source_sha256": "9f80e81992df2bafd9daf5f2b7399ee505d6aa8aac83289d9997604aba13f6ea",
+      "target_sha256": "dbf9638ba91ad9c7974a3a2c53d4510fe1d19eade4d5bf5aff21bbd2abccf1f5",
+      "replacement_count": 1,
+      "old_path_expression": "'../work/shop-rich-v2/ordinary_catalog.json'",
+      "new_path_expression": "'fixtures/ordinary_catalog.json'",
+      "all_other_bytes_unchanged": true
+    },
+    {
+      "source": "outputs/focus-quest/tests/test_lottery_collection_art.cjs",
+      "target": "tests/test_lottery_collection_art.cjs",
+      "source_sha256": "c9187a92d223aae0a96cdbe82c9971afa0c855fe1e3f7bb470175ecd08b2dbba",
+      "target_sha256": "5322072b4a71f5db5a4a683bd934a099729941dc24dbfb376168e2f0ea111e38",
+      "replacement_count": 1,
+      "old_path_expression": "'../../../work/shop-rich-v2/limited_catalog.json'",
+      "new_path_expression": "'fixtures/limited_catalog.json'",
+      "all_other_bytes_unchanged": true
+    },
+    {
+      "source": "outputs/focus-quest/tests/test_interface_switch.py",
+      "target": "tests/test_interface_switch.py",
+      "source_sha256": "bc56216e2c761689bf1bb817ccf06ac201b3e004421e6c785d9752a4c8f6ea1c",
+      "target_sha256": "d02aece80d803c42df6f04db4cd9dffc0bb1276dbcb5631211af3cef9c2b34f7",
+      "replacement_count": 1,
+      "old_path_expression": "PROJECT.parent / \"初版软件-v1.0/专注远征.app/Contents/Resources/static/style.css\"",
+      "new_path_expression": "PROJECT / \"tests/fixtures/initial-v1.0-style.css\"",
+      "all_other_bytes_unchanged": true
+    }
+  ]
+}

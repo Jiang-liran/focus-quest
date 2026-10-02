@@ -1,0 +1,156 @@
+[
+  {
+    "location": "work/arcade-expansion/arcade-before.js",
+    "sha256": "b9fbb5598dc3af4016daf24139c255665ee973d251bbd8f24941d530135ef253",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 35,
+        "version": "1.30",
+        "source_path": "static/arcade.js"
+      },
+      {
+        "build": 36,
+        "version": "1.30.1",
+        "source_path": "static/arcade.js"
+      }
+    ]
+  },
+  {
+    "location": "work/classic-switch/before-index.html",
+    "sha256": "001fbeca061783e5c4b128f28d2749ada235f641427235cafc4aa669c201d6f1",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 57,
+        "version": "1.43",
+        "source_path": "static/index.html"
+      }
+    ]
+  },
+  {
+    "location": "work/performance-audit/server-before.py",
+    "sha256": "0d57f6bba409095823aacb3fcb8d951bae4c95d19dcec9acdb12ef2e783c518c",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 38,
+        "version": "1.32",
+        "source_path": "server.py"
+      },
+      {
+        "build": 39,
+        "version": "1.33",
+        "source_path": "server.py"
+      }
+    ]
+  },
+  {
+    "location": "work/prism-glass/before-progress-bars.css",
+    "sha256": "78eee5a3c3bd66ed10e0351ecb3e92ee94cc6a36c12a7d53a00b74f44d6f509e",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 52,
+        "version": "1.41.1",
+        "source_path": "static/progress-bars.css"
+      }
+    ]
+  },
+  {
+    "location": "work/prism-glass/before-progress-bars.js",
+    "sha256": "ebe65d01c4ed7f5f0a4fe6d409143c25d1883b1615b1ce3548a8e8331140eec0",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 52,
+        "version": "1.41.1",
+        "source_path": "static/progress-bars.js"
+      }
+    ]
+  },
+  {
+    "location": "work/prism-layout/before-progress-bars.css",
+    "sha256": "9f0484cc4b2e7a8a5361427bd151bd1c38b77f373fa11b70a5c2d80a7a7290a3",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 53,
+        "version": "1.41.2",
+        "source_path": "static/progress-bars.css"
+      }
+    ]
+  },
+  {
+    "location": "work/island-effects-natural/previous-island-effects.css",
+    "sha256": "6590f868debc35d5e5b3a0f29d4035762549ea6cc0a092d0652a5eaa994edcce",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 79,
+        "version": "1.49.14",
+        "source_path": "static/island-effects.css"
+      }
+    ]
+  },
+  {
+    "location": "work/island-effects-natural/previous-island-effects.js",
+    "sha256": "b701a388facfaa3ca16eef563bfd1a3c2d2ef958b503be4b0179703e1bb7d006",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 79,
+        "version": "1.49.14",
+        "source_path": "static/island-effects.js"
+      }
+    ]
+  },
+  {
+    "location": "work/npc-avatar-before.svg",
+    "sha256": "f96c1db764cf093cfa765e432ca291febf65dea6cb06a347a33af36a01403d68",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": []
+  },
+  {
+    "location": "work/rain-city/catalog-before.json",
+    "sha256": "32a0b72116959159edff3fd918831019ca4330d73257d88fedce4d9ed5b5e78f",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": []
+  },
+  {
+    "location": "work/survivor-upgrade/arcade-adventures.js",
+    "sha256": "51004675bf4c5a6968647605b35f239897b019e63ccc340f9a2300d71b2e5d40",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 37,
+        "version": "1.31",
+        "source_path": "static/arcade-adventures.js"
+      }
+    ]
+  },
+  {
+    "location": "work/survivor-upgrade/arcade-adventures.css",
+    "sha256": "c0d9b50e21f2d0fd71d7a5f85472ea41fddbcafc508ccbdaea0df966b5fd6472",
+    "complete_original_development_project": false,
+    "complete_distributed_runtime_source": false,
+    "exact_matches": [
+      {
+        "build": 37,
+        "version": "1.31",
+        "source_path": "static/arcade-adventures.css"
+      }
+    ]
+  }
+]

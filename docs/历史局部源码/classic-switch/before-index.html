@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>专注远征 · 把努力变成看得见的成长</title>
+  <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="/scene.css">
+  <link rel="stylesheet" href="/subject-art.css">
+  <link rel="stylesheet" href="/opening.css">
+  <link rel="stylesheet" href="/quests.css">
+  <link rel="stylesheet" href="/mystery.css">
+  <link rel="stylesheet" href="/cosmetics.css">
+  <link rel="stylesheet" href="/shop-art.css">
+  <link rel="stylesheet" href="/campfire.css">
+  <link rel="stylesheet" href="/campfire-shop.css">
+  <link rel="stylesheet" href="/quick-skins.css">
+  <link rel="stylesheet" href="/review.css">
+  <link rel="stylesheet" href="/method-rewards.css">
+  <link rel="stylesheet" href="/goals.css">
+  <link rel="stylesheet" href="/review-heatmap.css">
+  <link rel="stylesheet" href="/citadel-art.css">
+  <link rel="stylesheet" href="/citadel.css">
+<link rel="stylesheet" href="/expedition-art.css"/><link rel="stylesheet" href="/expedition.css"/>
+  <link rel="stylesheet" href="/camp-world-art.css">
+  <link rel="stylesheet" href="/screen-layout.css">
+  <link rel="stylesheet" href="/wide-shell.css">
+  <link rel="stylesheet" href="/wide-pages.css">
+  <link rel="stylesheet" href="/campfire-room.css">
+  <link rel="stylesheet" href="/arcade.css">
+  <link rel="stylesheet" href="/survivor.css">
+  <link rel="stylesheet" href="/arcade-hub.css">
+  <link rel="stylesheet" href="/minesweeper.css">
+  <link rel="stylesheet" href="/interface-themes.css">
+  <link rel="stylesheet" href="/island-rewards.css">
+  <link rel="stylesheet" href="/rain-city-art.css">
+  <link rel="stylesheet" href="/rain-city.css">
+  <link rel="stylesheet" href="/city-entry.css">
+  <link rel="stylesheet" href="/ambience.css">
+  <link rel="stylesheet" href="/city-life.css">
+  <link rel="stylesheet" href="/record-time.css">
+  <link rel="stylesheet" href="/progress-bars.css">
+  <link rel="stylesheet" href="/return-trail-art.css">
+  <link rel="stylesheet" href="/return-trail.css">
+  <link rel="stylesheet" href="/performance.css">
+</head>
+<body data-page="today">
+  <svg class="svg-defs" aria-hidden="true"><defs>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-7Z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 1-5 5 1.2 7L12 18l-6.2 3.5 1.2-7-5-5 7-1Z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v6c0 6-10 6-10 0Zm0 2H3v3c0 3 3 4 5 3m9-6h4v3c0 3-3 4-5 3m-4 4v5m-5 1h10"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7m2-5v7l4 2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A9 9 0 0 1 10 3a9 9 0 1 0 10 11Z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 22V3c5-3 9 4 14 0v11c-5 4-9-3-14 0"/></symbol>
+  </defs></svg>
+
+  <aside class="sidebar">
+    <a class="brand" href="#today" aria-label="专注远征首页" data-skin-slots="interface" title="右键更换界面主题"><span class="brand-mark"><svg><use href="#i-compass"/></svg></span><span>专注远征<small>FOCUS QUEST</small></span></a>
+    <div class="nav-label">你的冒险日志</div>
+    <nav aria-label="主要导航">
+      <button class="nav-item active" data-view="today"><svg><use href="#i-compass"/></svg>今日远征<span class="nav-dot"></span></button>
+      <button class="nav-item" data-view="quests"><svg><use href="#i-flag"/></svg>委托广场</button>
+      <button class="nav-item" data-view="review"><svg><use href="#i-grid"/></svg>学习复盘</button>
+      <button class="nav-item" data-view="shop"><svg><use href="#i-star"/></svg>星织商店</button>
+      <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
+      <button class="nav-item" data-view="city"><svg><use href="#i-moon"/></svg>星辉城</button>
+    </nav>
+    <div class="side-note"><div class="small-orbit">✦</div><p>每一段专注，<br>都在让未来更近一点。</p><span>不必完美，持续向前。</span></div>
+    <div class="sidebar-bottom">
+      <button class="wallet-side" data-view="shop" aria-label="查看钱包与商店"><span><i class="coin-mark">●</i> <b id="wallet-side-coins">0</b></span><span><i class="diamond-mark">◆</i> <b id="wallet-side-diamonds">0</b></span></button>
+      <button class="nav-item" id="settings-open"><svg><use href="#i-settings"/></svg>远征设置</button>
+      <button class="source-status" id="source-open" aria-label="学习记录同步信息"><i id="source-dot"></i><span id="source-label">正在连接番茄 ToDo</span><span>↗</span></button>
+      <div class="local-label">本地保存 · 记录只属于你</div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar"><div class="breadcrumb">我的营地 <span>/</span> <b id="page-crumb">今日远征</b></div><div class="topbar-right"><span class="live-clock" id="clock"></span><button class="date-button" id="date-button" title="选择日期"></button><input type="date" id="date-picker" aria-label="查看日期"><button class="today-shortcut" id="header-today" aria-label="回到今天" title="快速回到今天">回到今天</button><button class="icon-button" id="refresh" title="立即同步" aria-label="立即同步">↻</button></div></header>
+    <div id="error-banner" class="error-banner" hidden></div>
+    <aside id="calendar-pending" class="calendar-pending" aria-label="手机记录等待入账" aria-live="polite" hidden></aside>
+    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill arcade-pill city-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div id="city-pill-icon" class="arcade-pill-icon" aria-hidden="true"></div><div class="arcade-pill-copy"><span>星辉城 · 雨夜街巷</span><strong id="city-pill-title">灯还亮着，进城坐坐。</strong><small id="city-pill-status">书屋、茶馆，还有一盏家里的灯。</small><div class="arcade-pill-bottom"><small id="city-pill-meta">写几句心事，或回家听雨。</small><button type="button" class="text-button" id="city-open" aria-controls="citadel-view">走进星辉城 ↗</button></div></div></div></section>
+
+    <div id="view-today" class="view">
+
+      <section class="quest-hero expedition-hero" id="quest-hero" data-stage="0">
+        <div class="hero-top"><span class="section-kicker"><i></i>每日主线 · 星海群岛</span><div class="skin-actions"><button type="button" class="ghost-button" id="expedition-immerse" aria-pressed="false">展开主舞台 ↗</button><button type="button" class="ghost-button" data-skin-open="theme fx avatar companion relic portal island bar banner">快速换装</button><button class="ghost-button" id="preview-effects">✧ 预览成长动画</button></div></div>
+        <div class="effects-preview" id="effects-preview" hidden>
+          <div class="preview-heading"><strong>成长动画预览 <b id="preview-percent">0%</b></strong><button class="text-button" id="preview-stop">结束预览 ×</button></div>
+          <input id="preview-progress" type="range" min="0" max="100" step="1" value="0" aria-label="预览每日进度"/>
+          <div class="preview-stages"><button data-preview-progress="0">启程</button><button data-preview-progress="25">25% · 引路</button><button data-preview-progress="50">50% · 苏醒</button><button data-preview-progress="75">75% · 共鸣</button><button data-preview-progress="100">100% · 通关</button></div>
+          <div class="preview-subjects"><span>科目达标动画</span><button data-preview-subject="math">数学</button><button data-preview-subject="cs">408</button><button data-preview-subject="politics">政治</button><button data-preview-subject="english">英语</button><button id="preview-resonance">✦ 四科全部达成</button></div>
+          <p>仅预览动画，学习记录不变。关闭后回到真实进度。</p>
+        </div>
+        <div class="hero-content">
+          <div class="hero-copy"><span class="stage-tag" id="stage-tag">整装出发</span><h2 id="hero-heading">每一分钟，<br>都算数。</h2><p id="hero-message">今天的远征，从一小段专注开始。</p><div class="hero-numbers"><strong id="total-time">—</strong><span>/ <b id="total-target">8</b> 小时目标</span></div><div class="total-progress-label"><span id="remaining">正在读取学习记录</span><strong id="total-percent">—%</strong></div><div class="total-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="每日总进度" aria-valuemin="0" aria-valuemax="100"><i id="total-bar"></i></div></div>
+          <div class="expedition-map-frame" data-scene-frame>
+          <div data-scene-ratio="1.851851852" class="expedition-canvas" id="expedition-canvas" aria-label="学习驱动的星海群岛">
+            <div class="expedition-world" id="expedition-world"></div>
+            <div class="expedition-resonance" id="expedition-resonance" aria-hidden="true"></div>
+            <div id="island-rewards" hidden></div>
+            <div class="expedition-map-heading"><span>THE ISLES OF YOUR EFFORT</span><strong id="expedition-map-title">雾中的群岛，正等待第一束光。</strong></div>
+            <div class="expedition-scene-state" id="expedition-scene-state" role="status" hidden></div>
+          <div class="quest-scene" data-skin-slots="island theme fx companion relic portal avatar">
+            <div class="scene-theme-backdrop" aria-hidden="true"></div>
+            <div class="equipped-particles" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+            <div class="scene-readout"><span id="scene-mode">星岛能量</span><strong id="scene-energy">0%</strong></div><div class="scene-halo"></div><div class="stars"><i>✧</i><i>✦</i><i>·</i><i>✧</i><i>·</i><i>✦</i></div>
+            <svg class="island-art" viewBox="0 0 590 350" fill="none" role="group" aria-label="主岛">
+              <defs><linearGradient id="rock" x1="200" y1="170" x2="320" y2="350" gradientUnits="userSpaceOnUse"><stop stop-color="#40396f"/><stop offset="1" stop-color="#191b38"/></linearGradient><linearGradient id="ground" x1="100" y1="80" x2="410" y2="280" gradientUnits="userSpaceOnUse"><stop stop-color="#48527e"/><stop offset="1" stop-color="#343253"/></linearGradient><linearGradient id="gem" x1="296" y1="45" x2="336" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#e5deff"/><stop offset=".35" stop-color="#bea0ff"/><stop offset="1" stop-color="#7050eb"/></linearGradient><linearGradient id="beam" x1="313" y1="0" x2="313" y2="165" gradientUnits="userSpaceOnUse"><stop stop-color="#b6a1ff" stop-opacity="0"/><stop offset="1" stop-color="#b6a1ff" stop-opacity=".5"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="4"/></filter></defs>
+              <g class="sky-orbit"><circle cx="318" cy="155" r="114"/><circle id="sky-energy" cx="318" cy="155" r="114" pathLength="100" stroke-dasharray="100" stroke-dashoffset="100" transform="rotate(-90 318 155)"/></g><ellipse cx="300" cy="319" rx="166" ry="16" fill="#090d21" opacity=".4"/>
+              <g class="floating-island"><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="url(#rock)"/><path d="m190 245 28 62 83 19-22-85m85-23-26 88 67-35 76-81" fill="#252744"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="url(#ground)" stroke="#605787" stroke-width="2"/><path d="m101 209 66 33 100 35 138-25 75-65" stroke="#9381c4" stroke-opacity=".35" stroke-width="4"/>
+                <path class="scene-path" d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" stroke="#9d86c9" stroke-opacity=".3" stroke-width="16"/><path id="journey-path" pathLength="100" class="scene-path-lit" d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" stroke="#d0baff" stroke-width="3" stroke-dasharray="100"/>
+                <g id="equipped-island" data-skin-slots="island" aria-hidden="true"></g>
+                <g opacity=".85"><path d="m156 163-15 16 15 8 15-8Z" fill="#1f4b52"/><path d="m156 137-21 33 21 12 20-12Z" fill="#406273"/><path d="m156 125-15 28 15 8 15-8Z" fill="#53818a"/><path d="M156 179v19" stroke="#665781" stroke-width="5"/><path d="m216 112-23 39 23 12 23-12Z" fill="#335364"/><path d="m216 98-16 30 16 10 16-10Z" fill="#608090"/><path d="M216 155v15" stroke="#665781" stroke-width="5"/><path d="m435 171-22 36 22 12 22-12Z" fill="#385462"/><path d="m435 156-17 32 17 8 17-8Z" fill="#538086"/><path d="M435 212v15" stroke="#665781" stroke-width="5"/></g>
+                <g class="crystal-shrine" data-skin-slots="relic"><ellipse cx="322" cy="159" rx="47" ry="22" fill="#9980f0" opacity=".15"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Z" fill="#675e92"/><path d="m322 175 38-23v13l-38 23Z" fill="#8d7caf"/><path d="m300 143 22-13 24 13-24 14Z" fill="#dfcdf5"/><path d="m300 143 22 14v10l-22-13Zm22 14 24-14v10l-24 14Z" fill="#9c85bd"/><path class="light-beam" d="m301 143-16-140h75l-15 140Z" fill="url(#beam)"/>
+                  <g class="crystal"><path d="m321 63-24 38 24 44 25-44Z" fill="#b49cfb" opacity=".6" filter="url(#glow)"/><path d="m321 60-23 39 23 42 24-42Z" fill="url(#gem)"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ff" opacity=".65"/><path d="m321 60 24 39-21 3Z" fill="#9271ea"/><path d="m310 80-8 17" stroke="white" stroke-width="2" stroke-linecap="round"/></g>
+                </g>
+                <g id="equipped-portal" data-skin-slots="portal"></g><g id="equipped-relic" data-skin-slots="relic"></g><g id="equipped-companion" data-skin-slots="companion"></g>
+                <g class="path-beacons"><g class="path-beacon" data-checkpoint="25"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="50"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="75"><circle r="8"/><circle r="3"/></g><g class="path-beacon" data-checkpoint="100"><circle r="8"/><circle r="3"/></g></g><g class="traveler" data-skin-slots="avatar" id="scene-traveler"><ellipse cx="171" cy="220" rx="13" ry="6" fill="#13172d" opacity=".4"/><path d="m170 193-10 20 12 5 11-6-8-20Z" fill="#c3a4f9" class="traveler-cloak"/><path d="m170 193-3 22 5 3 11-6-8-20Z" fill="#8e6ad2" class="traveler-cloak-shade"/><circle cx="172" cy="185" r="8" fill="#e4c0ae"/><path d="m171 169-14 20 27 1Z" fill="#d0b0ff" class="traveler-hat"/><path d="m171 169 13 21-12-2Z" fill="#9c7ddb" class="traveler-hat-shade"/><path d="m188 191-3 28" stroke="#d7bd96" stroke-width="3" stroke-linecap="round"/><circle cx="188" cy="189" r="4" fill="#ead5ff"/></g>
+                <g fill="#9990cd"><path d="m244 255 6-5 7 3-2 5Z"/><path d="m376 128 9-4 9 7-12 3Z"/><path d="m130 202 5-6 9 4-4 7Z"/></g>
+                <g class="island-sparkles" fill="#ddd0ff"><path d="m256 157 2-6 2 6 6 2-6 2-2 6-2-6-6-2Z"/><path d="m377 210 2-5 2 5 5 2-5 2-2 5-2-5-5-2Z"/><circle cx="370" cy="91" r="2"/><circle cx="227" cy="197" r="2"/></g>
+
+              </g>
+              <g opacity=".35"><path d="m63 252 24-14 22 13-19 11Z" fill="#69618f"/><path d="m63 252 27 28 19-29-19 11Z" fill="#34334d"/><path d="m484 111 22-13 29 16-24 12Z" fill="#69618f"/><path d="m484 111 27 40 24-37-24 12Z" fill="#34334d"/></g>
+            </svg>
+            <svg class="island-art island-camp-overlay" viewBox="0 0 590 350" fill="none" role="group" aria-label="路边篝火营地"><g class="floating-island">
+                <g id="campfire-room-open" class="island-camp-entry" role="button" tabindex="0" aria-label="走进篝火营地" aria-controls="campfire-room" data-skin-slots="fire">
+                  <title>走进篝火营地 · 右键更换篝火样式</title>
+                  <ellipse class="island-camp-hit" cx="338" cy="234" rx="36" ry="30" fill="transparent"/>
+                  <ellipse class="island-camp-focus" cx="338" cy="242" rx="33" ry="13" stroke="#e3be83" stroke-width="1.5" fill="none"/>
+                  <g id="campfire-entrance-art" aria-hidden="true"></g>
+                  <g class="island-camp-label" aria-hidden="true" transform="translate(338 264)"><rect x="-30" y="-8" width="60" height="17" rx="8.5" fill="#332a35" fill-opacity=".96"/><text y="3.8" text-anchor="middle" fill="#ffe0a0" stroke="none" font-size="10.5">篝火营地 ↗</text></g>
+                </g>
+            </g></svg>
+            <div class="scene-mist"></div><div class="scene-subjects" id="scene-subjects"></div><div class="scene-caption" id="scene-caption"><span>✦</span> 每一段专注，都让星岛更明亮。</div>
+          </div>
+            <button type="button" id="citadel-enter" class="citadel-enter" aria-label="进入星辉城">进入星辉城 <span>↗</span></button>
+            <div id="expedition-map-note" class="expedition-map-note" role="status" hidden></div>
+            <div class="expedition-map-footer"><span id="expedition-map-caption">点击四座岛屿，看看今天的建设。</span><span id="expedition-world-count">四科共鸣 0 / 4</span></div>
+            <div class="expedition-arrival" id="expedition-arrival" role="status" aria-live="polite" hidden></div>
+          </div>
+          </div>
+            <div id="expedition-replay-controls" class="expedition-replay-controls" hidden>
+              <div><button type="button" id="expedition-play" aria-label="播放或暂停回放">暂停</button><button type="button" id="expedition-step" aria-label="回放下一幕">下一幕 →</button><span id="expedition-frame-number">0 / 0</span><button type="button" id="expedition-live">返回实时 ×</button></div>
+              <input type="range" id="expedition-scrub" min="0" max="1" step="1" value="0" aria-label="选择远征回放画面"/>
+              <p id="expedition-frame-copy" role="status"></p>
+            </div>
+          <div id="expedition-subjects" class="expedition-subjects" role="group" aria-label="探访四科岛屿"></div>
+        </div>
+        <div class="expedition-deck">
+          <section class="expedition-inspector" aria-label="岛屿与沿途见闻">
+            <div class="expedition-inspector-kicker"><span id="expedition-detail-kicker">沿途见闻</span><button type="button" id="expedition-overview" class="text-button">返回群岛总览</button></div>
+            <h3 id="expedition-detail-title">启程的微光</h3><p id="expedition-detail-copy">今天的每段专注，都会在这里留下痕迹。</p>
+            <p id="expedition-next" class="expedition-next"></p>
+            <button type="button" id="expedition-discover-toggle" class="expedition-discover-toggle" aria-controls="citadel-view">雨夜散步 <span id="expedition-discovery-count">星辉城</span> ↗</button>
+          </section>
+          <section class="expedition-log" aria-label="远征回放">
+            <div class="expedition-log-heading"><div><span>YOUR JOURNEY, FRAME BY FRAME</span><h3>把努力，再看一遍。</h3></div><button type="button" id="expedition-replay" class="secondary-button">回放这一天 ▷</button></div>
+            <p id="expedition-log-summary">每一段已完成的专注，都是一帧真实的旅程。</p>
+            <div id="expedition-trail" class="expedition-trail" role="group" aria-label="最近的学习航迹"></div>
+          </section>
+        </div>
+        <div id="expedition-discoveries" class="expedition-discoveries" aria-label="沿途见闻集" hidden></div>
+      </section>
+
+      <nav class="home-shortcuts" aria-label="营地快捷入口">
+        <button type="button" class="review-shortcut" data-view="review" aria-label="打开学习复盘"><span class="invitation-emblem"><svg aria-hidden="true"><use href="#i-grid"/></svg></span><span><strong>学习复盘</strong><small>学习热力图、目标航图与听课做题分析</small></span><span class="invitation-link">查看复盘 ↗</span></button>
+      <button class="quest-invitation" aria-label="打开委托广场" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>委托广场</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
+      </nav>
+
+    </div>
+
+    <div id="view-review" class="view" hidden>
+      <section class="weekly-goal" aria-labelledby="weekly-goal-title">
+        <div class="weekly-goal-heading"><span class="weekly-goal-icon"><svg><use href="#i-flag"/></svg></span><div><h2 id="weekly-goal-title">本周远征</h2><p id="weekly-range">周一至周日</p></div><span id="weekly-target-status">本周目标待确认</span></div>
+        <div class="weekly-goal-progress"><div class="weekly-numbers"><span><strong id="weekly-minutes">—</strong><small> / <b id="weekly-target">50</b> 小时</small></span><strong id="weekly-percent">0%</strong></div><div class="weekly-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" id="weekly-progress" role="progressbar" aria-label="周目标进度" aria-valuemin="0" aria-valuemax="100"><i id="weekly-bar"></i></div><p id="weekly-remaining">七天，不必每天都一样。累计向前就很好。</p></div>
+      </section>
+
+      <section id="goal-keeper" aria-label="司衡的目标航图"></section>
+      <section id="review-heatmap" aria-label="学习热力图"></section>
+      <section id="method-rewards" aria-label="砚青的知行研习所" tabindex="-1"></section>
+      <section class="panel activity-panel" aria-labelledby="activity-heading"><div class="section-heading"><h2 id="activity-heading">听课与做题 <span>LEARN & PRACTICE</span></h2><button class="text-button" id="activity-settings">调整学习方式 ↗</button></div><div class="activity-summary" id="activity-summary"></div><div class="activity-table-heading" aria-hidden="true"><span>科目</span><span>听课时长</span><span>做题时长</span><span>节奏观察</span></div><div id="activity-rows"></div><div class="activity-overview" id="activity-overview"></div><p class="activity-rule">按所选日期统计 · 单科听课满 60 分钟、做题不足听课一半时给出提醒，仅供安排节奏参考。</p></section>
+      <div class="bottom-grid"><section class="panel weekly-panel"><div class="section-heading"><h2><b id="week-chart-title">本周足迹</b> <span>MON — SUN</span></h2><span class="muted" id="weekly-total"></span></div><div class="week-navigation"><button class="week-arrow" id="prev-week" aria-label="上一周" title="上一周">‹</button><div><span id="week-chart-range"></span><button class="text-button" id="week-reset" hidden>回到本周</button></div><button class="week-arrow" id="next-week" aria-label="下一周" title="下一周">›</button></div><div class="week-chart" id="week-chart"></div><div class="chart-footer"><span><i></i>每日专注时长</span><span>走慢一点也没关系，脚印会留下。</span></div></section><section class="panel recent-panel"><div class="section-heading"><h2>最近的收获</h2><button class="text-button" id="all-records">全部记录 ↗</button></div><div id="recent-records" class="records-list"></div></section></div>
+    </div>
+
+    <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><button class="secondary-button" id="trash-open">回收站</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>学习方式</th><th>开始 → 结束</th><th>专注时长</th><th>操作</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">来源中删除的记录会在同步确认后移到回收站。这里的「移除」只影响专注远征，可在回收站恢复。</p></section></div>
+    <div id="view-achievements" class="view" hidden>
+      <div class="arcade-city-breadcrumb"><button type="button" id="arcade-city-return">← 回到星辉城</button><span>雨巷东街 · 星海游乐场</span></div>
+      <section id="arcade-root" aria-label="星海游乐场"><p class="muted">正在打开游戏大厅…</p></section>
+      <details class="arcade-archive"><summary>沿途足迹与远征勋章</summary><div class="stats-row" id="achievement-stats"></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。</p></details>
+    </div>
+
+    <div id="view-quests" class="view" hidden>
+      <div class="q-topline"><div><span class="eyebrow">OPEN COMMISSIONS</span><p id="quest-today-label">全天自由委托</p></div><div class="q-wallet" aria-label="委托钱包"><span><i class="coin-mark">●</i><b id="quest-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="quest-diamonds">0</b><small>钻石</small></span><button class="text-button" data-view="shop">去商店 ↗</button></div></div>
+      <button type="button" id="method-rewards-open" class="method-invitation" aria-controls="method-rewards"><span class="method-invitation-mark" aria-hidden="true">✎</span><span><strong>知行研习所 · 研习导师砚青</strong><small id="method-invitation-text">把听到的方法落在纸上，也有额外收获。</small></span><span class="method-invitation-link">查看研习奖励 ↗</span></button>
+      <div id="quest-board" class="quest-board"></div>
+      <section id="mystery-quest" class="mystery-quest" aria-labelledby="mystery-name" hidden></section>
+      <details class="q-rules"><summary>持续委托与奖励规则 <span>基础奖励始终相同，推荐时段另有首轮加赠</span></summary><div><p>数学、政治、408、英语都能全天接取，也可同时接取。每科只需手动接取一次，从接取后开始持续累计；交付后继续有效，跨天保留进度。听课、做题和其他有效专注均计入。</p><p><strong>普通委托基础奖励：</strong>数学、408 首次目标为 60 分钟，政治、英语为 30 分钟。首次达标后，每有效分钟奖励 2 金币，每完整一倍目标奖励 2 钻石；之后有新增金币即可再次交付。基础奖励没有时段限制、每日交付次数限制或奖励上限，18:00 后继续学习也照常累计。</p><p>基础金币和钻石的未满部分跨次保留。例如数学先学 90 分钟，基础奖励为 180 金币与 2 钻石；再学 30 分钟，再领 60 金币与 2 钻石。分次交付与一次交付的基础总奖励相同。</p><p><strong>晨光首轮：</strong>每天 00:00–12:00，数学累计 60 分钟额外获得 60 金币与 1 钻石，政治累计 30 分钟额外获得 30 金币与 1 钻石。<strong>午后首轮：</strong>每天 12:00–18:00，408 累计 60 分钟额外获得 60 金币与 1 钻石，英语累计 30 分钟额外获得 30 金币与 1 钻石。</p><p>首轮只计接取后、对应学习窗口内的有效专注，每天每科一次；从更新当天开始，今天接取后的学习一并计入；此前日期不补发新加成。加赠是基础奖励之外的一份小收获，其他时段的基础奖励始终相同。</p><p>奖励按学习发生的时段判断，不按交付时间判断。已达成的首轮会为你保留，不用赶着交付；晚些交付、次日再来，或手机记录稍后同步，都可以补领。未在窗口内达标也不影响基础奖励。</p><p>交付时按已同步的有效记录结算；稍后到达的手机记录仍能补入下一次交付。未完成、休息或跨天都不会扣除奖励。达成拾星的开启条件后，新增四科专注改由神秘委托结算，不再重复推进普通委托。已结算记录不会重复发奖，删改记录也不回扣已入袋的奖励。</p></div></details>
+      <section class="q-ledger panel"><div class="section-heading"><h2>交付手记 <span>RECENT REWARDS</span></h2><span class="muted">最近 20 次委托收获</span></div><div id="quest-history"></div></section>
+    </div>
+    <div id="view-shop" class="view" hidden>
+      <section class="shop-welcome"><div class="shop-keeper" id="shop-keeper" aria-hidden="true"></div><div class="shop-words"><span class="eyebrow">THE STARWEAVER’S ATELIER</span><h2>星织的收藏铺</h2><p>「把一路收集的星光，缝进你的下一次出发。」</p><small>用金币与钻石兑换外观，购买后永久收藏，可随时换装。</small></div><div class="q-wallet"><span><i class="coin-mark">●</i><b id="shop-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="shop-diamonds">0</b><small>钻石</small></span></div></section>
+      <section class="q-loadout equipped-player-card" data-skin-slots="banner avatar"><div id="player-outfit" class="player-outfit" data-skin-slots="avatar" aria-hidden="true"></div><div class="loadout-heading"><span class="eyebrow">YOUR ADVENTURER</span><h3>我的远征装扮</h3><p id="equipped-summary"></p></div><button class="text-button" data-view="today">到星岛看看 ↗</button><details class="loadout-details"><summary>查看我的搭配 <span><b id="loadout-slot-count">18</b> 个装扮位置 · 含 8 类营地布置</span></summary><div id="equipped-slots" class="equipped-slots"></div></details></section>
+      <section class="shop-exchange" aria-labelledby="exchange-title"><div class="exchange-emblem" aria-hidden="true">◆</div><div class="exchange-intro"><h3 id="exchange-title">星光兑换所</h3><p><b id="exchange-rate">75</b> 金币 <span>→</span> 1 钻石 <small>零散努力，也能汇成星光</small></p></div><div class="exchange-controls"><label for="exchange-amount">兑换钻石</label><input id="exchange-amount" type="number" min="1" max="1000" step="1" value="1" inputmode="numeric"><span class="exchange-cost" id="exchange-cost"></span><button class="secondary-button" id="exchange-open">兑换</button></div><p id="exchange-hint" class="exchange-hint"></p><div class="exchange-reverse"><div><strong>钻石换金币</strong><p id="exchange-reverse-rate">1 钻石 = 75 金币 · 每次 1 钻石，每天最多 5 次</p></div><span id="exchange-reverse-status" role="status">正在同步今日兑换次数</span><button type="button" class="secondary-button" id="exchange-reverse-open" disabled>1 钻石换 75 金币</button></div><details class="exchange-history"><summary>兑换手记</summary><div id="exchange-history"></div></details></section>
+      <div class="shop-markets" role="group" aria-label="选择商店"><button class="active" data-shop-market="coins" aria-pressed="true"><i class="coin-mark">●</i><span>金币商店<small>日常的小小犒赏</small></span><b id="market-coins-count"></b></button><button data-shop-market="diamonds" aria-pressed="false"><i class="diamond-mark">◆</i><span>钻石商店<small>为下一场远征攒星光</small></span><b id="market-diamonds-count"></b></button><button data-shop-market="owned" aria-pressed="false"><i>✧</i><span>我的收藏<small>换装与初始外观</small></span><b id="market-owned-count"></b></button></div>
+      <div class="shop-browser-heading"><p id="shop-market-description"></p><span id="shop-result-count"></span></div>
+      <div class="shop-areas" role="group" aria-label="选择收藏区域"><button type="button" data-shop-area="all" aria-pressed="true" class="active">全部收藏</button><button type="button" data-shop-area="journey" aria-pressed="false">远征装扮</button><button type="button" data-shop-area="interface" aria-pressed="false">界面主题 <small>4 套新风格</small></button><button type="button" data-shop-area="camp" aria-pressed="false">篝火营地 <small>8 类布置</small></button><button type="button" id="campfire-shop-return" class="text-button">到篝火旁看看 ↗</button></div>
+      <div class="shop-filter" role="group" aria-label="外观分类"><button class="active" data-shop-filter="all" aria-pressed="true">全部</button><button data-shop-filter="bar" aria-pressed="false">进度条</button><button data-shop-filter="fx" aria-pressed="false">星岛特效</button><button data-shop-filter="avatar" aria-pressed="false">我的时装</button><button data-shop-filter="banner" aria-pressed="false">旅人铭牌</button><button data-shop-filter="theme" aria-pressed="false">星岛环境</button><button data-shop-filter="interface" aria-pressed="false">界面主题</button><button data-shop-filter="companion" aria-pressed="false">随行伙伴</button><button data-shop-filter="relic" aria-pressed="false">星岛圣物</button><button data-shop-filter="portal" aria-pressed="false">远征之门</button><button data-shop-filter="island" aria-pressed="false">主岛布置</button><button data-shop-filter="camp" aria-pressed="false">营地地貌</button><button data-shop-filter="fire" aria-pressed="false">篝火样式</button><button data-shop-filter="tent" aria-pressed="false">歇脚帐篷</button><button data-shop-filter="campgear" aria-pressed="false">营地陈设</button><button data-shop-filter="campglow" aria-pressed="false">营地氛围</button><button data-shop-filter="chatframe" aria-pressed="false">对话外观</button><button data-shop-filter="camptrail" aria-pressed="false">营地小径</button><button data-shop-filter="campmark" aria-pressed="false">营地地标</button></div>
+      <div id="shop-catalog" class="shop-catalog" aria-label="商店商品"></div>
+      <p class="q-shop-note">每类可装备一款，<span id="shop-slot-count">18</span> 类自由搭配。购买后永久收藏；关闭动态光效后保留静态外观。</p>
+    </div>
+
+    <footer><span>✧ 专注远征</span><span id="footer-sync">正在连接本地记录…</span><span>让努力有回响。</span></footer>
+  </main>
+
+  <div class="quick-skins" id="quick-skins" role="dialog" aria-label="就地更换外观" aria-labelledby="quick-skin-title" hidden><header><div><h2 id="quick-skin-title">更换外观</h2><small>你的收藏 · 原地预览，点击换上</small></div><button type="button" id="quick-skin-close" class="icon-button" aria-label="关闭快捷换装">×</button></header><div id="quick-skin-tabs" class="quick-skin-tabs" role="group" aria-label="选择换装部位"></div><div id="quick-skin-items" class="quick-skin-items" role="group" aria-label="已拥有的外观"></div><p id="quick-skin-status" class="quick-skin-status" role="status" aria-live="polite">移到外观上预览，点击即可换上。</p></div>
+  <dialog id="quest-action-dialog" aria-labelledby="quest-action-title"><div class="dialog-heading"><div><span class="eyebrow" id="quest-action-eyebrow">CAMP COMMISSION</span><h2 id="quest-action-title"></h2></div><button class="icon-button close-dialog" aria-label="关闭详情">×</button></div><div id="quest-action-art" class="q-action-art" aria-hidden="true"></div><div id="quest-action-body"></div><p class="form-error" id="quest-action-error" role="status" hidden></p><div class="dialog-footer"><button class="secondary-button close-dialog" id="quest-action-cancel">再想一想</button><button class="primary-button" id="quest-action-confirm">确认</button></div></dialog>
+  <dialog id="mystery-dialog" aria-labelledby="mystery-dialog-title"><div class="dialog-heading"><div><span class="eyebrow">A GIFT FROM THE AFTERGLOW</span><h2 id="mystery-dialog-title">把余辉交给拾星</h2></div><button type="button" class="icon-button close-dialog" aria-label="关闭余辉交付">×</button></div><div id="mystery-dialog-art" aria-hidden="true"></div><div id="mystery-dialog-body"></div><p id="mystery-dialog-error" class="form-error" role="status" hidden></p><div class="dialog-footer"><button type="button" class="secondary-button close-dialog">稍后再来</button><button type="button" class="primary-button" id="mystery-confirm">确认交付</button></div></dialog>
+  <dialog id="settings-dialog"><form id="settings-form"><div class="dialog-heading"><div><span class="eyebrow">MAKE IT YOURS</span><h2>设置你的远征</h2></div><button type="button" class="icon-button close-dialog" aria-label="关闭设置">×</button></div><p class="dialog-intro">在这里整理任务归类，选择适合自己的声音与动态反馈。</p><div class="goal-settings-note"><p>今日目标由学习复盘中的司衡调整，每天最多两次。周目标在每周首次进入时确认，本周锁定。每日总目标不少于 8 小时才可开启神秘委托。</p><button type="button" class="secondary-button" id="settings-goals-open">去找司衡 ↗</button></div><div class="settings-label">任务归类与学习方式 <span>修改后同步应用到同名历史记录</span></div><p class="mapping-help">「复习数学／408／政治／英语」按听课统计；背单词等保留为复习 / 其他，可在这里调整。</p><div class="mapping-table-head"><span>任务</span><span>科目</span><span>学习方式</span></div><div id="mapping-fields" class="mapping-fields"></div><div class="opening-settings"><div><strong>每日开场</strong><p>每天首次进入时，听一句属于此刻的开场白。</p><small>预览按当前时间和今日学习情况展示，不占用每日首次开场。</small></div><button type="button" class="secondary-button" id="opening-preview">预览此刻开场</button></div><div class="settings-label">反馈偏好</div><label class="toggle-row"><div>动态光效与庆祝<span>可随时关闭，系统减少动态效果设置也会生效</span></div><input type="checkbox" id="motion-input" role="switch"></label><label class="toggle-row"><div>学习与交互音效<span>专注结束、委托交付、建筑落成、购买与换装</span></div><input type="checkbox" id="sound-input" role="switch"></label><p id="settings-error" class="form-error" hidden></p><div class="dialog-footer"><button type="button" class="secondary-button close-dialog">取消</button><button type="submit" class="primary-button" id="save-settings">保存设置</button></div></form></dialog>
+
+  <dialog id="trash-dialog"><div class="dialog-heading"><div><span class="eyebrow">RESTORE YOUR RECORDS</span><h2>回收站</h2></div><button class="icon-button close-dialog" aria-label="关闭回收站">×</button></div><p class="dialog-intro" id="trash-summary"></p><div id="trash-records"></div><p class="trash-note">恢复后会在本机保留这条记录，不再随来源删除而自动移除，也不会写回番茄 ToDo 或日历。</p></dialog>
+
+  <dialog id="source-dialog"><div class="dialog-heading"><div><span class="eyebrow">CONNECTED TO YOUR FOCUS</span><h2>学习记录同步</h2></div><button class="icon-button close-dialog" aria-label="关闭连接信息">×</button></div><div id="source-details"></div><div class="source-explanation"><strong>完成一次专注，自动交一次任务。</strong><p>每 3 秒检查电脑端记录。来源删除经重复核对后同步移除，并保留在回收站。不会改写番茄 ToDo 数据。</p><p>手机完成的任务经 iCloud 日历到达 Mac 后，每 30 秒自动读取。只接收所选日历中与你的番茄任务同名的记录。</p><p>同一次专注经电脑和日历重复到达时只计一次；两边匹配后，以番茄的有效学习分钟数计算学习进度。</p><p>手机需保持番茄 ToDo「写入系统日历」开启。iCloud 可能有延迟；启用前未写进日历的历史记录仍需另行补入。</p><p>手机删除会在最近 90 天的读取范围内同步核对；更早的存档可在「专注档案」中手动移除。连接异常时暂停删除判断。</p></div><button class="primary-button" id="sync-now">立即检查记录</button></dialog>
+
+  <dialog id="celebration-dialog"><button class="icon-button celebration-close" aria-label="关闭奖励">×</button><div class="confetti" id="confetti"></div><div class="celebration-art" id="celebration-art"><div class="celebration-gem">✦</div></div><div class="eyebrow" id="celebration-kicker">DAILY QUEST COMPLETE</div><h2 id="celebration-title">今日远征，圆满通关。</h2><p id="celebration-body"></p><div class="reward-pill" id="celebration-reward"></div><p class="reward-note" id="celebration-note">这段努力，已经计入你的成长。</p><button class="primary-button" id="celebration-done">收下这份成就</button></dialog>
+  <dialog id="opening-dialog" aria-labelledby="opening-title"><button id="opening-close" class="icon-button" aria-label="关闭开场">×</button><div class="opening-scene" id="opening-scene" aria-hidden="true"><svg viewBox="0 0 540 220" aria-hidden="true" focusable="false">
+  <g class="opening-stars" fill="currentColor"><circle cx="78" cy="40" r="1.5"/><circle cx="175" cy="28" r="1"/><circle cx="322" cy="32" r="1.6"/><circle cx="454" cy="30" r="1"/><path d="m133 68 2-5 2 5 5 2-5 2-2 5-2-5-5-2zm321 5 2-5 2 5 5 2-5 2-2 5-2-5-5-2z"/></g>
+  <g class="opening-sun"><circle class="opening-sun-halo" cx="388" cy="66" r="46"/><circle cx="388" cy="66" r="24"/></g>
+  <g class="opening-moon"><circle class="opening-sun-halo" cx="388" cy="61" r="43"/><path d="M398 36a27 27 0 1 0 17 43 24 24 0 0 1-17-43Z"/></g>
+  <path class="opening-distant" d="M0 156 47 119l38 15 62-55 49 46 49-21 59 50 81-57 68 41 49-34 38 35v81H0Z"/>
+  <path class="opening-ridge" d="m0 195 89-52 74 17 101-42 93 56 86-41 97 44v43H0Z"/>
+  <g class="opening-clouds" fill="none"><path d="M36 91h60m15 0h23M278 79h39m13 0h14M414 108h65"/></g>
+  <path class="opening-ground" d="m66 192 100-37 132-5 130 31 45 23H64Z"/>
+  <path class="opening-road" d="M144 205c20-17 35-8 60-21s23-24 67-26"/>
+  <g class="opening-gate"><path class="opening-gate-glow" d="M247 164V113a25 25 0 0 1 50 0v51Z"/><path class="opening-gate-frame" d="M241 166v-52a31 31 0 0 1 62 0v52m-9-2v-51a22 22 0 0 0-44 0v51"/><path class="opening-step" d="m235 167 36-12 41 12-38 14Z"/><path class="opening-step-line" d="m235 167 39 14 38-14"/><path class="opening-gate-light" d="M263 120v30m8-38v35m8-27v30"/></g>
+  <g class="opening-traveler"><ellipse cx="164" cy="194" rx="12" ry="4"/><path class="opening-cloak" d="m162 173-10 17 12 6 10-5-6-19Z"/><circle class="opening-face" cx="164" cy="164" r="5"/><path class="opening-hat" d="m164 151-10 15 20 1Z"/><path class="opening-staff" d="m178 172-1 22"/><circle class="opening-staff-light" cx="179" cy="171" r="3"/></g>
+  <g class="opening-lanterns"><circle cx="209" cy="174" r="2"/><circle cx="223" cy="124" r="1.7"/><circle cx="316" cy="131" r="2"/><circle cx="329" cy="162" r="1.5"/></g>
+</svg></div><div class="opening-copy"><div id="opening-eyebrow" class="eyebrow"></div><p id="opening-time" class="opening-time"></p><h2 id="opening-title"></h2><p id="opening-body"></p><p id="opening-closing"></p><p id="opening-note"></p><button id="opening-done" class="primary-button">开启今日远征</button></div></dialog>
+  <div class="toast-stack" id="toasts" role="status" aria-live="polite"></div>
+  <section id="campfire-room" class="campfire-room" role="region" aria-labelledby="campfire-heading" hidden>
+    <header class="campfire-room-bar">
+      <button type="button" id="campfire-room-close">← 返回远征</button>
+      <div><span>THE QUIET BETWEEN JOURNEYS</span><h2 id="campfire-heading">篝火营地</h2></div>
+      <div class="campfire-header-actions"><button type="button" data-skin-open="camp fire tent campgear campglow chatframe camptrail campmark">更换布置</button><button type="button" id="campfire-shop-open">营地商店 ↗</button></div>
+    </header>
+    <div class="campfire-world-status"><p id="campfire-world-greeting">风经过树梢，火光落在杯沿。</p><span id="campfire-world-record"></span></div>
+    <div class="campfire-world-layout">
+      <div class="campfire-world-map">
+        <div id="campfire-scene" aria-label="篝火营地区域"></div>
+        <div class="campfire-place-caption"><span>此刻停留</span><strong id="campfire-place-name">炉边茶歇</strong><p id="campfire-place-detail">阿榆给你留了一杯热茶。</p></div>
+        <p class="campfire-world-hint">点击伙伴聊聊 · 沿路牌去归途小径散步 · 右键更换营地布置</p>
+      </div>
+      <aside class="campfire-card" id="advice-card" aria-label="伙伴的对话与工作台">
+        <div class="campfire-talk">
+          <div class="campfire-speaker"><div class="campfire-portrait" id="campfire-portrait" aria-hidden="true"></div><div><strong id="campfire-name">阿榆</strong><small id="campfire-role">守火人</small><p id="campfire-description">照看炉火、热茶和一锅慢慢变香的汤。</p></div></div>
+          <div class="campfire-topics" role="group" aria-label="选择聊天话题"><button type="button" data-campfire-topic="relax" aria-pressed="true">歇一会儿</button><button type="button" data-campfire-topic="story" aria-pressed="false">听段见闻</button><button type="button" data-campfire-topic="advice" aria-pressed="false">聊聊学习</button></div>
+          <div class="campfire-line" data-skin-slots="chatframe" tabindex="0" title="右键更换对话外观" id="advice-line" role="status" aria-live="polite" aria-atomic="true"><span id="advice-topic" hidden>歇一会儿</span><strong id="advice-title">火边留了一个位置</strong><p id="advice-text">水快热了，先坐下吧。</p></div>
+          <div class="campfire-talk-footer"><span id="campfire-context">火还温着，慢慢聊就好。</span><button type="button" class="campfire-next" id="advice-next">再聊一句 <span aria-hidden="true">↻</span></button></div>
+        </div>
+        <section class="campfire-duty" data-camp-duty="hearth" aria-label="阿榆的茶歇">
+          <span class="campfire-duty-kicker">HEARTH & TEA</span><h3>让这一盏茶慢慢热</h3><p>抬抬头，松开肩膀。阿榆替你看着时间。</p>
+          <div class="campfire-rest-clock"><strong id="campfire-rest-time">03:00</strong><span id="campfire-rest-status">三分钟，只留给自己。</span></div>
+          <div class="campfire-rest-progress" aria-hidden="true"><i id="campfire-rest-fill"></i></div>
+          <button type="button" class="campfire-duty-action" id="campfire-rest-toggle">泡一盏茶 · 休息3分钟</button><small>休息不会计入学习时长或奖励。</small>
+        </section>
+        <section class="campfire-duty" data-camp-duty="guide" aria-label="栖灯的地图桌" hidden>
+          <span class="campfire-duty-kicker">A MAP FOR YOUR PACE</span><h3>摊开今天的地图</h3><div class="campfire-duty-summary"><strong id="campfire-map-total">—</strong><span id="campfire-map-target"></span></div><p id="campfire-map-copy"></p><button type="button" class="campfire-duty-action" id="campfire-guide-advice">听栖灯说说下一步</button><button type="button" class="campfire-duty-link" data-camp-page="quests">去委托广场接一份任务 ↗</button>
+        </section>
+        <section class="campfire-duty" data-camp-duty="wanderer" aria-label="闻舟的旅途手记" hidden>
+          <span class="campfire-duty-kicker">MOMENTS WORTH KEEPING</span><h3>把走过的路，留在纸上</h3><p id="campfire-memory-summary"></p><ol id="campfire-memory-records" class="campfire-memory-records"></ol><button type="button" class="campfire-duty-link" data-camp-page="history">翻开完整的专注档案 ↗</button>
+        </section>
+        <section class="campfire-duty" data-camp-duty="stargazer" aria-label="望舒的四科星图" hidden>
+          <span class="campfire-duty-kicker">CONSTELLATIONS OF EFFORT</span><h3>今夜，四颗星的亮度</h3><div id="campfire-study-stars" class="campfire-study-stars"></div><p>每颗星按自己的目标发光，超过目标的努力也会留下。</p><button type="button" class="campfire-duty-link" data-camp-page="review">到学习复盘看得更仔细 ↗</button>
+        </section>
+      </aside>
+    </div>
+  </section>
+  <section id="citadel-view" class="citadel-view rain-city" role="region" aria-labelledby="citadel-title" hidden>
+    <header class="citadel-header city-header">
+      <button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button>
+      <div class="citadel-heading"><span>A QUIET CORNER OF THE NIGHT</span><h2 id="citadel-title">星辉城</h2><small id="citadel-theme">雨夜里的灯，始终为你亮着</small></div>
+      <div class="citadel-header-actions"><div id="city-ambience"></div><button type="button" id="city-trail-open" aria-controls="return-trail-view">城外小径 ↗</button><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">星织小铺 ↗</button></div>
+    </header>
+    <div id="city-street" class="city-street">
+      <div class="city-street-topline"><span class="city-weather"><i aria-hidden="true"></i>雨夜 · 静谧街区</span><p id="city-street-caption">沿着雨巷走走 · 点击亮着灯的建筑，进去坐坐</p></div>
+      <div class="citadel-stage city-street-stage" id="citadel-stage" data-skin-slots="theme fx companion relic portal avatar">
+        <div id="citadel-camera" class="citadel-camera"><div id="citadel-scene" class="citadel-scene"></div></div>
+        <div class="city-street-corner"><span>STARLIGHT CITY</span><small>不必赶路，随处都可以停留。</small></div>
+        <div class="citadel-map-controls"><button type="button" id="citadel-overview">全景</button><button type="button" id="citadel-zoom-out" aria-label="缩小星辉城">−</button><span id="citadel-zoom">100%</span><button type="button" id="citadel-zoom-in" aria-label="放大星辉城">＋</button></div>
+      </div>
+      <nav id="citadel-locations" class="citadel-locations city-locations" aria-label="星辉城街区"></nav>
+      <p class="city-hint">点击建筑入内 · 桥边路牌通往归途小径 · 滚轮缩放街景 · 右键搭配外观</p>
+    </div>
+    <div id="city-room" class="city-room" hidden>
+      <div id="city-interior-art" class="city-interior-art" aria-hidden="true"></div>
+      <div class="city-room-vignette" aria-hidden="true"></div>
+      <section id="city-room-content" class="city-room-content" aria-label="室内互动"></section>
+      <span class="city-room-sign">STARLIGHT CITY / STAY A LITTLE</span>
+    </div>
+  </section>
+  <script src="/record-time.js"></script>
+  <script src="/audio.js"></script>
+  <script src="/ambience.js"></script>
+  <script src="/advice.js"></script>
+  <script src="/effects.js"></script>
+  <script src="/subject-art.js"></script>
+  <script src="/opening.js"></script>
+  <script src="/quest-art.js"></script>
+  <script src="/interface-themes.js"></script>
+  <script src="/progress-bars.js"></script>
+  <script src="/shop-art.js"></script>
+  <script src="/mystery-art.js"></script>
+  <script src="/mystery.js"></script>
+  <script src="/method-rewards-art.js"></script>
+  <script src="/method-rewards.js"></script>
+  <script src="/quests.js"></script>
+  <script src="/campfire-dialogue.js"></script>
+  <script src="/campfire-art.js"></script>
+  <script src="/campfire-shop-art.js"></script>
+  <script src="/camp-world-art.js"></script>
+  <script src="/campfire.js"></script>
+  <script src="/quick-skins.js"></script>
+  <script src="/expedition-model.js"></script>
+  <script src="/expedition-art.js"></script>
+  <script src="/island-rewards.js"></script>
+  <script src="/expedition.js"></script>
+  <script src="/rain-city-art.js"></script>
+  <script src="/city-life.js"></script>
+  <script src="/citadel.js"></script>
+  <script src="/campfire-room.js"></script>
+  <script src="/return-trail-art.js"></script>
+  <script src="/return-trail.js"></script>
+  <script src="/horizontal-navigation.js"></script>
+  <script src="/screen-layout.js"></script>
+  <script src="/runtime.js"></script>
+  <script src="/survivor.js"></script>
+  <script src="/minesweeper.js"></script>
+  <script src="/arcade.js"></script>
+  <script src="/goals.js"></script>
+  <script src="/review-heatmap.js"></script>
+  <script src="/app.js"></script>
+</body></html>
