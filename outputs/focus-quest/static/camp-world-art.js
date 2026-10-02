@@ -172,9 +172,9 @@
       <rect x="552" y="633" width="324" height="104" rx="18" fill="transparent"/>
       <g class="camp-trail-sign"><ellipse class="camp-trail-sign-glow" cx="759" cy="703" rx="99" ry="32" fill="#f3c881" opacity=".06"/>
       <path d="M709 702v-51" stroke="#9d9075" stroke-width="6"/>
-      <path d="m681 649 157-4 20 19-20 21-157-5Z" fill="#324a4c" stroke="#acb89a" stroke-width="1.8"/>
+      <path d="M681 640 838 637 858 668 838 699 681 696Z" fill="#324a4c" stroke="#acb89a" stroke-width="1.8"/>
       <text x="763" y="665" text-anchor="middle" fill="#e9d6ae" font-size="18" font-family="-apple-system,BlinkMacSystemFont,sans-serif">归途小径 →</text>
-      <text x="763" y="684" text-anchor="middle" fill="#a7baba" font-size="11" font-family="-apple-system,BlinkMacSystemFont,sans-serif">七处风景 · 通往星辉城</text>
+      <text x="763" y="686" text-anchor="middle" fill="#a7baba" font-size="11" font-family="-apple-system,BlinkMacSystemFont,sans-serif">七处风景 · 通往星辉城</text>
       <path d="M660 701v-41h11v9" stroke="#9e9980" stroke-width="2" fill="none"/>
       <path d="m665 669 12 0 3 17h-18Z" fill="#ceb57d"/><path d="M668 673h7v10h-7Z" fill="#ffe3a3"/>
       <circle class="camp-world-lantern-glow" cx="671" cy="678" r="20" fill="#f4cf8d" opacity=".12"/></g>

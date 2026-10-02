@@ -43,3 +43,14 @@
 @media(max-width:760px){#citadel-view.rain-city .city-locations{grid-template-columns:repeat(3,minmax(0,1fr))}#citadel-view.rain-city .citadel-header-actions{display:none}.city-street-corner{display:none}.city-room-content{left:18px!important;bottom:18px!important;max-width:calc(100% - 36px)!important}.city-room-sign{display:none}}
 
 #citadel-view.rain-city .city-locations button::after{content:none}
+
+/* Compact, always reachable city sound controls, including indoor visits. */
+#citadel-view.rain-city .citadel-header-actions{align-items:center;justify-content:flex-end;flex-wrap:wrap;min-width:0}
+#city-ambience .ambience-controls{padding:6px 9px;gap:6px;font-size:12px;max-width:285px}
+#city-ambience .ambience-controls button{font-size:inherit;padding:5px 8px}
+#city-ambience .ambience-status{display:none}#city-ambience .has-message .ambience-status{display:block}
+#city-ambience .ambience-volume input{width:50px}
+@media(min-width:2000px){#city-ambience .ambience-controls{font-size:15px;max-width:365px;padding:8px 12px}#city-ambience .ambience-volume input{width:68px}}
+@media(max-width:1150px){#city-ambience .ambience-controls{font-size:11px}#city-ambience .ambience-volume [data-ambience-volume-label]{display:none}#city-ambience .ambience-volume input{width:40px}}
+
+@media(max-width:760px){#citadel-view.rain-city .city-header{flex-wrap:wrap}#citadel-view.rain-city .citadel-header-actions{display:flex;width:100%}#citadel-view.rain-city .citadel-header-actions>button{display:none}}

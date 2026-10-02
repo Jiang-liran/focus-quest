@@ -10,6 +10,18 @@
 .rain-city-art .rain-city-place-interactive:hover .rain-city-building,.rain-city-art .rain-city-place-interactive:focus-visible .rain-city-building{filter:brightness(1.18)}
 .rain-city-art .rain-city-place-interactive:hover .rain-city-place-sign,.rain-city-art .rain-city-place-interactive:focus-visible .rain-city-place-sign{transform:translateY(-3px)}
 .rain-city-art .rain-city-place-interactive:focus-visible .rain-city-focus,.rain-city-art .rain-city-place.is-selected .rain-city-focus{opacity:.8}
+/* A lit waypost at the bridge foot leads back out of town, without another building or panel. */
+.rain-city-art .rain-city-trail-exit{pointer-events:none;outline:none}
+.rain-city-art .rain-city-trail-interactive{pointer-events:auto;cursor:pointer}
+.rain-city-art .rain-city-trail-hit{pointer-events:all}
+.rain-city-art .rain-city-trail-board{transition:transform .24s ease,filter .24s ease}
+.rain-city-art .rain-city-trail-warmth,.rain-city-art .rain-city-trail-halo{transition:opacity .24s ease;pointer-events:none}
+.rain-city-art .rain-city-trail-focus{opacity:0;transition:opacity .2s ease;pointer-events:none}
+.rain-city-art .rain-city-trail-interactive:is(:hover,:focus-visible) .rain-city-trail-board{transform:translateY(-2px);filter:brightness(1.12)}
+.rain-city-art .rain-city-trail-interactive:is(:hover,:focus-visible) .rain-city-trail-warmth{opacity:.19}
+.rain-city-art .rain-city-trail-interactive:is(:hover,:focus-visible) .rain-city-trail-halo{opacity:.23}
+.rain-city-art .rain-city-trail-interactive:focus-visible .rain-city-trail-focus{opacity:.8}
+.rain-city-art[data-interactive=false] .rain-city-trail-exit{pointer-events:none}
 .rain-city-art .rain-city-rain-layer{fill:none;stroke:#aac3d5;stroke-width:1;stroke-linecap:round;animation:rain-city-rain-fall 1.7s linear infinite}
 .rain-city-art .rain-city-rain-1{opacity:.55;animation-duration:2.6s;animation-delay:-1s}
 .rain-city-art .rain-city-reflections{animation:rain-city-river-glow 7s ease-in-out infinite alternate}

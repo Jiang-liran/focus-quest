@@ -645,7 +645,7 @@ globalThis.FocusCityLife?.init({api,toast,playSound,refresh:()=>refresh(true,tru
   globalThis.FocusQuests?.render(snapshot);globalThis.FocusQuickSkins?.render(snapshot);
   globalThis.FocusCitadel?.applyEquipment(snapshot.equipped,snapshot.now);
 }});
-globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},onOpen:()=>setNavSelection('city'),afterClose:()=>{setNavSelection(currentView);setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);},openShop:()=>switchView('shop'),openReview:()=>switchView('review'),openArcade:()=>globalThis.FocusArcade?.open(),openCamp:()=>{switchView('today');globalThis.FocusCampfireRoom?.open($('campfire-room-open'));}});
+globalThis.FocusCitadel?.init({getState:()=>state,playSound,openTrail:anchor=>globalThis.FocusReturnTrail?.open(anchor,{from:'city'}),leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},onOpen:()=>setNavSelection('city'),afterClose:()=>{setNavSelection(currentView);setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);},openShop:()=>switchView('shop'),openReview:()=>switchView('review'),openArcade:()=>globalThis.FocusArcade?.open(),openCamp:()=>{switchView('today');globalThis.FocusCampfireRoom?.open($('campfire-room-open'));}});
 $('city-open')?.addEventListener('click',event=>openCity(event.currentTarget));
 $('arcade-city-return')?.addEventListener('click',()=>openCity($('citadel-enter')));
 globalThis.FocusHorizontalNavigation?.init({canNavigate:()=>Boolean(state)&&currentView==='today'&&!globalThis.FocusGoals?.required(),beforeOpen:()=>{stopScenePreview();globalThis.FocusExpedition?.leave();}});

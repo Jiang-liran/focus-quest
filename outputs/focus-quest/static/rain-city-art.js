@@ -60,6 +60,19 @@
     const api=shopArt||root.ShopArt,svg=api?.preview?.(eq[slot]);if(!svg)return '';
     return `<g class="rain-city-equipment rain-city-equipment-${slot}" data-skin-slots="${slot}" data-citadel-equipment="${eq[slot]}" transform="translate(${x} ${y}) scale(${scale})">${strip(svg)}</g>`;
   }
+  function trailExit(p,interactive){
+    const attrs=interactive?' data-city-trail="open" role="button" tabindex="0" aria-label="沿归途小径返回篝火营地" aria-controls="return-trail-view"':'';
+    // The bridge foot stays between the station and tea-house hit areas, below every cosmetic slot.
+    return `<g class="rain-city-trail-exit${interactive?' rain-city-trail-interactive':''}"${attrs}><title>归途小径 · 沿七处风景，走回篝火营地</title>
+      <path d="M599 676q-24 13-66 44" fill="none" stroke="#7a897e" stroke-width="24" opacity=".5"/><path d="M592 681q-21 13-52 39" fill="none" stroke="#b7b19a" stroke-width="1.5" stroke-dasharray="3 10" opacity=".45"/>
+      <ellipse class="rain-city-trail-warmth" cx="654" cy="698" rx="88" ry="15" fill="${p.window}" opacity=".09"/>
+      ${interactive?'<rect class="rain-city-trail-hit" x="510" y="627" width="245" height="89" rx="14" fill="transparent"/>':''}
+      <path d="M570 678v29m119-29v22" stroke="#8c9282" stroke-width="6" stroke-linecap="round"/><path d="M572 678v29m119-29v22" stroke="#c0b697" stroke-width="1.5" opacity=".5"/>
+      <g class="rain-city-trail-board"><path d="m539 642-20 21 20 22h184v-43Z" fill="#354d52" stroke="#8d9f94" stroke-width="1.5"/><path d="M540 648h176m-176 32h176" stroke="#c5c4a2" stroke-opacity=".15" stroke-width="1"/><path d="m540 658-6 5 6 5m-6-5h15" stroke="#e0d0a6" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/><text x="628" y="661" text-anchor="middle" fill="#e2d7b9" font-size="17" font-weight="550" letter-spacing="1">归途小径</text><text x="628" y="676" text-anchor="middle" fill="#b7c4ba" font-size="10.5" letter-spacing=".6">七处风景 · 回篝火营地</text><circle cx="708" cy="650" r="1.6" fill="#bac2a9"/><circle cx="708" cy="677" r="1.6" fill="#bac2a9"/></g>
+      <g class="rain-city-trail-lantern"><path d="M742 701v-58q0-9-9-9h-5" fill="none" stroke="#82968f" stroke-width="2.5"/><ellipse class="rain-city-trail-halo" cx="730" cy="653" rx="23" ry="28" fill="${p.window}" opacity=".1"/><path d="m721 644 9-9 9 9Z" fill="${p.roof}" stroke="#a4b39f" stroke-width="1"/><path d="m722 644 2 18h12l2-18Z" fill="${p.window}" stroke="#9ba995" stroke-width="1.2"/><path d="M730 645v16m-6-1h12" stroke="#8b8f78" stroke-width="1"/><path d="M719 664h22" stroke="#83998c" stroke-width="2" stroke-linecap="round"/></g>
+      <rect class="rain-city-trail-focus" x="513" y="630" width="239" height="83" rx="13" fill="none" stroke="#dbc9a3" stroke-width="1.5"/>
+    </g>`;
+  }
   function player(eq,x,y,scale=.7){const art=questArt||root.QuestArt;return `<g class="rain-city-traveler" data-skin-slots="avatar" data-citadel-equipment="${eq.avatar}" transform="translate(${x} ${y}) scale(${scale})">${strip(art?.avatar?.('player',eq.avatar,0))}</g>`;}
   function effects(eq){
     const variant=eq.fx.slice(3);if(variant==='default')return '';
@@ -73,7 +86,7 @@
     if(options.compact)return thumbnail(equipment);
     const s=normalize(equipment,options),{eq,p}=s,id=`rain-city-${++serial}`;
     const buildings=[['observatory',731,320,observatory(p),[-77,-222,180,278]],['arcade',968,408,arcade(p),[-102,-130,217,186]],['library',237,454,library(p),[-109,-212,239,268]],['atelier',506,475,atelier(p),[-87,-153,189,209]],['tea',873,599,tea(p),[-107,-151,244,207]],['station',239,640,station(p),[-161,-132,312,190]]];
-    return `<svg class="citadel-art rain-city-art" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" style="stroke:none" data-interactive="${s.interactive}" data-city-mode="${s.mode}" data-city-theme="${eq.theme}" ${s.interactive?'role="group" aria-label="星辉城，雨夜中可以进入的六处街角"':'aria-hidden="true" focusable="false"'}>
+    return `<svg class="citadel-art rain-city-art" viewBox="0 0 1200 720" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" style="stroke:none" data-interactive="${s.interactive}" data-city-mode="${s.mode}" data-city-theme="${eq.theme}" ${s.interactive?'role="group" aria-label="星辉城，雨夜中可以进入的六处街角，以及通往篝火的归途小径"':'aria-hidden="true" focusable="false"'}>
     <defs><linearGradient id="${id}-sky" x2="0" y2="1"><stop stop-color="#101b2d"/><stop offset=".6" stop-color="#233c55"/><stop offset="1" stop-color="#152639"/></linearGradient><linearGradient id="${id}-street" x2=".9" y2="1"><stop stop-color="#3e566d"/><stop offset=".55" stop-color="#263d52"/><stop offset="1" stop-color="#455a6b"/></linearGradient><linearGradient id="${id}-water" x2="0" y2="1"><stop stop-color="#173249"/><stop offset="1" stop-color="#101f33"/></linearGradient><radialGradient id="${id}-haze"><stop stop-color="#8ba3bc" stop-opacity=".12"/><stop offset="1" stop-color="#8ba3bc" stop-opacity="0"/></radialGradient></defs>
     <rect width="1200" height="720" rx="20" fill="url(#${id}-sky)"/><circle cx="1044" cy="99" r="33" fill="#93aaba" opacity=".15"/><path d="M898 97q81-34 171-8 74 9 127-15" stroke="#526980" opacity=".15" stroke-width="25" stroke-linecap="round"/>
     ${skyline(p)}<ellipse cx="563" cy="271" rx="650" ry="170" fill="url(#${id}-haze)"/>
@@ -87,7 +100,7 @@
     <path d="M552 600q91-81 187-32l10 82-28 6q-11-83-145-6l-32-11Z" fill="#475e72"/><path d="M552 600q91-81 187-32l12 16q-95-46-199 33Z" fill="#8495a1"/><path d="M552 600v38m28-58v41m30-59v41m31-54v41m32-45v41m32-34v40m31-22v35" stroke="#8398a9" stroke-width="4"/><path d="M552 600q91-81 187-32" stroke="#a6b3bb" stroke-width="3" fill="none"/>
     ${buildings.map(([key,x,y,art,box])=>buildingPlace(places.find(a=>a.id===key),x,y,art,box,p,s)).join('')}
     <g pointer-events="none">${tree(1036,548,.85)}${tree(96,486,.75)}${tree(405,534,.62)}${tree(809,363,.43)}${lamp(594,406,p,.8)}${lamp(1032,474,p,.82)}${lamp(437,573,p,.82)}${lamp(687,625,p,.8)}${bench(774,496,p,.75)}${bench(112,525,p,.72)}<path d="M367 533q29-12 58 0" fill="none" stroke="#819aab" opacity=".2"/><path d="M608 505q30-12 76 1m-30 8 35 1" fill="none" stroke="#a6a899" opacity=".18"/>${player(eq,618,529,.57)}${equipmentArt(eq,'companion',661,554,.35)}${equipmentArt(eq,'relic',515,441,.2)}${equipmentArt(eq,'portal',215,602,.35)}</g>
-    ${effects(eq)}${rain(id)}<path d="M0 711h1200" stroke="#8ca3b9" opacity=".09"/>
+    ${effects(eq)}${rain(id)}<path d="M0 711h1200" stroke="#8ca3b9" opacity=".09"/>${trailExit(p,s.interactive)}
     </svg>`;
   }
   function roomWindow(x,y,w,h,p,id,mode){

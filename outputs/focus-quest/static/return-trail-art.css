@@ -13,7 +13,10 @@
   -webkit-user-select: none;
 }
 .return-trail-art text { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; pointer-events: none; }
-.return-trail-art .trail-player-avatar { display: block; width: 60px; height: 67.5px; max-width: none; max-height: none; overflow: visible; }
+/* The app's icon rule targets every svg directly. The nested player needs its
+   own reset: an outer scene's stroke:none does not defeat that direct rule.
+   Reset only the SVG root so the outfit's explicitly drawn trim stays intact. */
+.return-trail-art .trail-player-avatar { display: block; width: 60px; height: 67.5px; max-width: none; max-height: none; overflow: visible; stroke: none; }
 .return-trail-art [role="button"] { cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
 .return-trail-art .trail-hit-area,
 .return-trail-art .trail-waypost-hit { pointer-events: all; }

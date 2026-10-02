@@ -54,15 +54,17 @@
     const view=$('citadel-view'),eq=visibleEquipment(),inRoom=!!selected;
     view.dataset.motion=String(motionAllowed());view.dataset.paused=String(!isVisible());view.dataset.room=selected||'street';view.dataset.homeView=selected==='observatory'?homeView:'';
     $('city-street').hidden=inRoom;$('city-room').hidden=!inRoom;
+    if($('city-ambience'))$('city-ambience').hidden=selected==='observatory';
     setText('citadel-title',selected==='observatory'?(homeView==='panorama'?'窗边夜景':homeView==='rooftop'?'屋顶天台':'我的家'):inRoom?place(selected).name:'星辉城');
     setText('citadel-theme',inRoom?'星辉城 / '+place(selected).subtitle:'雨夜里的灯，始终为你亮着');
     setText('citadel-close',selected==='observatory'&&homeView!=='home'?'← 回到家里':inRoom?'← 返回街道':'← 返回群岛');
     setText('city-street-caption','沿着雨巷走走 · 点击亮着灯的建筑，进去坐坐');
     const key=JSON.stringify(eq);
     if(!inRoom&&key!==streetKey){
-      streetKey=key;const focused=$('citadel-scene').contains(document.activeElement)?document.activeElement?.closest('[data-city-place]')?.dataset.cityPlace:null;
+      streetKey=key;const focused=$('citadel-scene').contains(document.activeElement)?document.activeElement?.closest('[data-city-place],[data-city-trail]'):null;
+      const focusSelector=focused?.hasAttribute('data-city-trail')?'[data-city-trail]':focused?`[data-city-place="${focused.dataset.cityPlace}"]`:null;
       $('citadel-scene').innerHTML=root.FocusRainCityArt.scene(state,eq,{interactive:true});
-      if(focused)$('citadel-scene').querySelector(`[data-city-place="${focused}"]`)?.focus({preventScroll:true});
+      if(focusSelector)$('citadel-scene').querySelector(focusSelector)?.focus({preventScroll:true});
     }
     $('city-interior-art').setAttribute('aria-hidden',selected==='observatory'?'false':'true');
     if(inRoom){
@@ -103,7 +105,7 @@
     clearCameraGesture();selected=null;zoom=1;panX=panY=0;streetKey=roomKey=contentKey='';
     for(const [element] of inertBefore)element.inert=true;
     $('citadel-view').inert=false;$('citadel-view').hidden=false;document.documentElement.classList.add('has-citadel-view');
-    camera();paint();$('citadel-close').focus({preventScroll:true});bridge.onOpen?.();return true;
+    camera();paint();root.FocusAmbience?.mount($('city-ambience'),'city');root.FocusAmbience?.setScene('city');$('citadel-close').focus({preventScroll:true});bridge.onOpen?.();return true;
   }
   function close(restoreFocus=true){
     if(!isOpen())return false;
@@ -115,7 +117,7 @@
     if(restoreFocus&&!focusEntry(from))focusEntry($('citadel-enter'));
     bridge.afterClose?.();return true;
   }
-  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();root.FocusCityLife?.unmount();selected=id;homeView='home';root.FocusAmbience?.setScene(id==='observatory'?'home':null);roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
+  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();root.FocusCityLife?.unmount();selected=id;homeView='home';root.FocusAmbience?.setScene(id==='observatory'?'home':'city');roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
   function setHomeView(next){
     if(selected!=='observatory'||!['home','panorama','rooftop'].includes(next))return false;
     homeView=next;paint();$('citadel-close').focus({preventScroll:true});return true;
@@ -123,7 +125,7 @@
   function backToStreet(){
     if(!selected||!isOpen())return false;
     if(selected==='observatory'&&homeView!=='home')return setHomeView('home');
-    const previous=selected;root.FocusQuickSkins?.close(false);root.FocusAmbience?.setScene(null);root.FocusCityLife?.unmount();selected=null;paint();
+    const previous=selected;root.FocusQuickSkins?.close(false);root.FocusAmbience?.setScene('city');root.FocusCityLife?.unmount();selected=null;paint();
     focusEntry($('citadel-scene').querySelector(`[data-city-place="${previous}"]`))||focusEntry($('citadel-close'));return true;
   }
   function action(id){
@@ -136,6 +138,10 @@
     if(id==='sky'){rooftopMode=rooftopMode==='rain'?'stars':'rain';paint();return;}
     const jump={arcade:'openArcade',review:'openReview',shop:'openShop',camp:'openCamp'}[id];
     if(jump&&bridge[jump]){close(false);bridge[jump]();}else if(id==='home')close();
+  }
+  function openTrail(from){
+    if(!isOpen()||selected||document.querySelector('dialog[open]')||($('quick-skins')&&!$('quick-skins').hidden))return false;
+    clearCameraGesture();bridge.openTrail?.(from);return true;
   }
   function preview(itemId,base){
     const latest=bridge.getState?.()||state,item=(latest?.quests?.catalog||[]).find(item=>item.id===itemId&&slots.has(item.slot));
@@ -151,8 +157,8 @@
     $('citadel-shop').addEventListener('click',()=>{close(false);bridge.openShop?.();});
     setHTML('citadel-locations',places().map((p,i)=>`<button type="button" data-city-select="${p.id}"><span class="city-address">${String(i+1).padStart(2,'0')}</span><strong>${esc(p.name)}</strong><small>${esc(p.subtitle)}</small><span class="city-visit">↗</span></button>`).join(''));
     $('citadel-locations').addEventListener('click',event=>{const button=event.target.closest('[data-city-select]');if(button)openPlace(button.dataset.citySelect);});
-    $('citadel-scene').addEventListener('click',event=>{if(event.ctrlKey||event.button!==0||Date.now()<suppressClickUntil)return;const node=event.target.closest('[data-city-place]');if(node)openPlace(node.dataset.cityPlace);});
-    $('citadel-scene').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){const node=event.target.closest('[data-city-place]');if(node){event.preventDefault();openPlace(node.dataset.cityPlace);}}});
+    $('citadel-scene').addEventListener('click',event=>{if(event.ctrlKey||event.button!==0||Date.now()<suppressClickUntil)return;const trail=event.target.closest('[data-city-trail]');if(trail){openTrail(trail);return;}const node=event.target.closest('[data-city-place]');if(node)openPlace(node.dataset.cityPlace);});
+    $('citadel-scene').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){const trail=event.target.closest('[data-city-trail]');if(trail){event.preventDefault();openTrail(trail);return;}const node=event.target.closest('[data-city-place]');if(node){event.preventDefault();openPlace(node.dataset.cityPlace);}}});
     $('city-interior-art').addEventListener('click',event=>{if(event.button!==0||event.ctrlKey)return;const node=event.target.closest('[data-home-action]');if(node)action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));});
     $('city-interior-art').addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;const node=event.target.closest('[data-home-action]');if(node){event.preventDefault();action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));}});
     $('city-room-content').addEventListener('click',event=>{const button=event.target.closest('[data-city-action]');if(button)action(button.dataset.cityAction);});
