@@ -1026,7 +1026,10 @@ class FocusStore:
             if epoch:
                 targets, source = json.loads(epoch[0])["targets"], "legacy-recorded"
             else:
-                targets, source, estimated = dict(self.settings["targets"]), "estimated", True
+                # The user chose 8h / 3-3-1-1 as the historical rule for days
+                # without an archive. Keep its provenance explicit, independent
+                # of today's changes, and leave reward epochs/receipts intact.
+                targets, source = {"math": 180, "cs": 180, "politics": 60, "english": 60}, "historical-default"
         return {"day": day, "targets": targets, "total": sum(targets.values()),
                 "changesUsed": changes, "changesRemaining": max(0, DAILY_GOAL_CHANGE_LIMIT-changes) if day == current.date().isoformat() else 0,
                 "changeLimit": DAILY_GOAL_CHANGE_LIMIT, "defaultTargets": self._goal_defaults(),

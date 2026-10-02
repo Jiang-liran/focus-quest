@@ -99,6 +99,9 @@
 #review-heatmap .hm-detail-total>strong{font-size:32px;line-height:1;font-weight:500;font-variant-numeric:tabular-nums}
 #review-heatmap .hm-detail-total>strong small{font-size:12px;color:var(--hm-muted);font-weight:400;margin-left:6px}
 #review-heatmap .hm-detail-total>span{font-size:11px;color:var(--hm-muted)}
+#review-heatmap .hm-detail-evaluation{margin:0 0 22px;padding:11px 12px;border-left:2px solid var(--hm-accent);border-radius:0 6px 6px 0;background:color-mix(in srgb,var(--hm-accent) 5%,transparent);line-height:1.8;overflow-wrap:anywhere}
+#review-heatmap .hm-detail-evaluation strong{display:block;font-size:11px;font-weight:500;color:var(--hm-ink)}
+#review-heatmap .hm-detail-evaluation span{display:block;font-size:10px;color:var(--hm-muted);margin-top:3px}
 #review-heatmap .hm-detail-subjects{display:flex;flex-direction:column;gap:15px}
 #review-heatmap .hm-detail-subjects>div{display:grid;grid-template-columns:40px 1fr auto;align-items:baseline;gap:3px 6px;position:relative;padding-left:10px}
 #review-heatmap .hm-detail-subjects>div:before{content:'';position:absolute;width:3px;height:13px;left:0;top:2px;border-radius:3px;background:var(--hm-accent)}
@@ -149,6 +152,7 @@
   #review-heatmap .hm-detail-total>strong{font-size:43px}#review-heatmap .hm-detail-total>strong small,#review-heatmap .hm-detail-total>span{font-size:14px}
   #review-heatmap .hm-detail-subjects{gap:21px}#review-heatmap .hm-detail-subjects>div{grid-template-columns:48px 1fr auto}#review-heatmap .hm-detail-subjects span,#review-heatmap .hm-detail-subjects strong{font-size:15px}#review-heatmap .hm-detail-subjects small{font-size:12px}
   #review-heatmap .hm-detail-note,#review-heatmap .hm-legend,#review-heatmap .hm-footnote,#review-heatmap .hm-detail-emblem{font-size:13px}
+  #review-heatmap .hm-detail-evaluation strong{font-size:14px}#review-heatmap .hm-detail-evaluation span{font-size:13px}
   #review-heatmap .hm-open-day{font-size:14px;padding:13px 16px}#review-heatmap .hm-month-summary>strong{font-size:24px}#review-heatmap .hm-month-summary>span,#review-heatmap .hm-month-summary>small{font-size:12px}
   #review-heatmap .hm-year-day{min-height:0;padding:0}#review-heatmap .hm-year-day .hm-day-seal{inset:1px;width:auto;height:auto}
 }
@@ -166,6 +170,7 @@
   #review-heatmap .hm-detail-heading{grid-column:1}#review-heatmap .hm-detail-emblem{grid-column:2;grid-row:1;margin:0}
   #review-heatmap .hm-detail-total{grid-column:1;margin:0}#review-heatmap .hm-detail-subjects{grid-column:2;grid-row:2 / span 2}
   #review-heatmap .hm-detail-note{grid-column:1;margin:0}#review-heatmap .hm-open-day{grid-column:1 / span 2}
+  #review-heatmap .hm-detail-evaluation{grid-column:1;margin:0}
   #review-heatmap .hm-stats>span{flex-direction:column}#review-heatmap .hm-stats i{border:0;padding:0}
   #review-heatmap .hm-period-heading{margin-bottom:16px}#review-heatmap .hm-month-summaries{grid-template-columns:repeat(6,minmax(0,1fr))}
 }

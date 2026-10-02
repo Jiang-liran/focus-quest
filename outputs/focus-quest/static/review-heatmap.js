@@ -44,16 +44,37 @@
     if (day.achieved) return finite(day.minutes) >= finite(day.target)*1.25 ? 'surpassed' : 'achieved';
     return day.minutes > 0 ? 'active' : 'empty';
   }
+  function dayEvaluation(day, today) {
+    if (day.future) return {caption:'',message:'尚未到来',gap:null};
+    if (day.targetEstimated || day.achieved==null) return {caption:'目标未存档',message:'当日目标未存档，不判断达标',gap:null};
+    if (day.achieved) return {caption:'已达标',message:'当日目标已达成，每一段投入都留下了光。',gap:0};
+    const minutes=finite(day.minutes),target=finite(day.target),gap=Math.max(0,target-minutes);
+    const ratio=target>0?minutes/target:0,isToday=day.date===today;
+    // Relative distance also works for a short or individually adjusted goal.
+    const tiers=[
+      [.95,'几近圆满','即将达成','这一天离约定只差一点，已经走得很远。','终点就在眼前，也别忘了照顾自己的状态。'],
+      [.875,'离约很近','最后一程','这一天已走到约定附近，投入值得珍惜。','已经离约定很近，按自己的节奏收尾。'],
+      [.75,'步履扎实','稳步接近','大半程的积累，都是扎扎实实的努力。','已经完成大半程，留一点从容给最后的路。'],
+      [.5,'半程有光','已过半程','半程以上的积累，值得好好肯定自己。','已走过半程，休息一下再稳稳向前。'],
+      [.25,'稳稳积累','渐入佳境','这一天的积累，已经有了自己的分量。','投入正在积累，一段一段走就好。'],
+      [0,'微光已留','在路上','哪怕路程短一些，认真投入的时间也不会白费。','已经迈出一步，下一段可以从一个小学习块开始。'],
+    ];
+    const tier=tiers.find(([threshold])=>ratio>=threshold);
+    const caption=minutes>0?tier[isToday?2:1]:isToday?'待点亮':'歇脚蓄力';
+    const encouragement=minutes>0?tier[isToday?4:3]:isToday?'从一个小学习块开始，今天还有新的可能。':'给自己一点宽容，下一天仍可以重新出发。';
+    const remaining=gap<1?'不到1分钟':duration(Math.ceil(gap));
+    const distance=isToday?`距今日目标还差${remaining}`:`与当日目标相差${remaining}`;
+    return {caption,message:`${distance}。${encouragement}`,gap};
+  }
   function dayLabel(day, today) {
-    const status = dayStatus(day);
-    const suffix = status==='future' ? '尚未到来' : day.targetEstimated || day.achieved==null ? '当日目标未存档，不判断达标' : day.achieved ? '当日目标已达成' : day.date===today ? '今天的专注仍在积累' : day.minutes ? '点滴皆算' : '慢慢来，每一天都可以重新开始';
-    return `${day.date}，专注${duration(day.minutes)}，${suffix}`;
+    const evaluation=dayEvaluation(day,today);
+    return `${day.date}，专注${duration(day.minutes)}，${evaluation.caption}，${evaluation.message}`;
   }
   function dayButton(day, selected, today, annual=false) {
     const status=dayStatus(day), achieved=status==='achieved'||status==='surpassed';
     const level=day.future?0:Math.min(4,Math.ceil(finite(day.minutes)/120));
     const certificate=achieved?`<span class="hm-day-seal" title="当日目标已达成">${gem}</span>`:day.targetEstimated && !day.future?'<span class="hm-estimate" aria-hidden="true">~</span>':'';
-    const caption=day.future?'':day.targetEstimated || day.achieved==null?'目标未存档':day.date<today?(day.minutes?'点滴皆算':'慢慢来'):day.minutes?'在路上':'待点亮';
+    const caption=dayEvaluation(day,today).caption;
     const content=achieved?`<span class="hm-completion">${certificate}<span class="hm-day-state">已达标</span></span>`:`<strong>${day.future?'—':`${hours(day.minutes)}<small>h</small>`}</strong>${certificate}<span class="hm-day-state">${caption}</span>`;
     return `<button type="button" class="hm-day${annual?' hm-year-day':''}${day.date===today?' is-today':''}" data-hm-day="${esc(day.date)}" data-status="${status}" data-level="${level}" aria-pressed="${day.date===selected}" aria-label="${esc(dayLabel(day,today))}" title="${esc(achieved?'目标已达成 · 点击查看当天详情':dayLabel(day,today))}"${day.future?' disabled':''}>${annual?certificate:`<span class="hm-day-number">${Number(day.date.slice(-2))}${day.date===today?'<i>今</i>':''}</span>${content}`}</button>`;
   }
@@ -94,9 +115,10 @@
     const day=data.days.find(item=>item.date===selected);
     if(!day) return '<div class="hm-detail-empty">点亮的日子，值得再看一眼。<span>点击一个日期，查看当天专注和当时的目标。</span></div>';
     const known=!day.targetEstimated && day.achieved!=null,met=known&&day.achieved;
-    const note=day.future?'这一天还没到来。':!known?'当时的目标尚未留档。这里保留真实时长，不补算达标。':day.date===data.today?'今日最终目标会留作存档；以当天结束时的目标判定。':day.targetSource==='legacy-recorded'?'根据已有的目标变更记录还原。':'使用当天保存的目标，后续调整不会改写这一天。';
+    const evaluation=dayEvaluation(day,data.today);
+    const note=day.future?'这一天还没到来。':!known?'当时的目标尚未留档。这里保留真实时长，不补算达标。':day.date===data.today?'今日最终目标会留作存档；以当天结束时的目标判定。':day.targetSource==='historical-default'?'这一天原本没有目标存档，按总目标8小时、数学／408／政治／英语3／3／1／1小时匹配。':day.targetSource==='legacy-recorded'?'根据已有的目标变更记录还原。':'使用当天保存的目标，后续调整不会改写这一天。';
     const subjects=day.subjects.length?day.subjects:Object.entries(SUBJECTS).map(([id,name])=>({id,name,minutes:0,target:day.targets?.[id]}));
-    return `<div class="hm-detail-heading"><span>这一日的足迹</span><h3>${esc(dayTitle(day.date))}</h3><small>${esc(day.date)}</small></div><div class="hm-detail-emblem" data-achieved="${met}">${met?gem:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3M2 12h3m14 0h3M12 2v3m0 14v3"/></svg>'}<span>${met?'今日之约 · 已达成':known?'每一段都留下了足迹':'真实专注 · 如实留存'}</span></div><div class="hm-detail-total"><strong>${hours(day.minutes)}<small>小时</small></strong><span>${known?`当日目标 ${hours(day.target)} 小时`:'当日目标未存档'}</span></div><div class="hm-detail-subjects">${subjects.filter(subject=>SUBJECTS[subject.id]).map(subject=>`<div data-subject="${esc(subject.id)}"><span>${esc(subject.name||SUBJECTS[subject.id])}</span><strong>${duration(subject.minutes)}</strong><small>${known?`/ ${duration(subject.target)}`:'目标未知'}</small>${known&&subject.achieved?'<i title="本科目标已达成">✓</i>':''}</div>`).join('')}</div><p class="hm-detail-note">${note}</p><button type="button" class="hm-open-day" data-hm-action="open-day">查看当天复盘 <span aria-hidden="true">↗</span></button>`;
+    return `<div class="hm-detail-heading"><span>这一日的足迹</span><h3>${esc(dayTitle(day.date))}</h3><small>${esc(day.date)}</small></div><div class="hm-detail-emblem" data-achieved="${met}">${met?gem:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l4 3M2 12h3m14 0h3M12 2v3m0 14v3"/></svg>'}<span>${met?'今日之约 · 已达成':known?'每一段都留下了足迹':'真实专注 · 如实留存'}</span></div><div class="hm-detail-total"><strong>${hours(day.minutes)}<small>小时</small></strong><span>${known?`当日目标 ${hours(day.target)} 小时`:'当日目标未存档'}</span></div>${known&&!met?`<p class="hm-detail-evaluation"><strong>${esc(evaluation.caption)}</strong><span>${esc(evaluation.message)}</span></p>`:''}<div class="hm-detail-subjects">${subjects.filter(subject=>SUBJECTS[subject.id]).map(subject=>`<div data-subject="${esc(subject.id)}"><span>${esc(subject.name||SUBJECTS[subject.id])}</span><strong>${duration(subject.minutes)}</strong><small>${known?`/ ${duration(subject.target)}`:'目标未知'}</small>${known&&subject.achieved?'<i title="本科目标已达成">✓</i>':''}</div>`).join('')}</div><p class="hm-detail-note">${note}</p><button type="button" class="hm-open-day" data-hm-action="open-day">查看当天复盘 <span aria-hidden="true">↗</span></button>`;
   }
   function heading(data) {
     if(data.period==='year') return `${data.start.slice(0,4)} 年`;
@@ -109,7 +131,7 @@
     const active=summary.activeDays??data.days.filter(day=>day.minutes>0).length;
     const unknown=summary.estimatedGoalDays??data.days.filter(day=>!day.future&&day.targetEstimated).length;
     const known=summary.knownGoalDays??data.days.filter(day=>!day.future&&!day.targetEstimated&&day.achieved!=null).length;
-    return `<div class="hm-stats"><span><strong>${hours(actual)}<small>小时</small></strong>本${PERIODS[data.period]}专注</span><span><strong>${active}<small>天</small></strong>有过投入</span><span><strong>${achieved}<small>天</small></strong>目标已达成${unknown?`<i title="${unknown} 天的历史目标未留档，不参与达标统计">${known} 天可核对</i>`:''}</span></div><div class="hm-content" data-period="${data.period}"><div class="hm-map"><div class="hm-period-heading"><h3>${heading(data)}</h3><span>${data.period==='year'?'四季的积累，落在这一张星图上。':data.period==='month'?'把安静的努力，收成一页星光。':'这一周，留下自己的节奏。'}</span></div>${calendar(data,selected,today)}<div class="hm-legend"><div><span>少</span>${[0,1,2,3,4].map(level=>`<i data-level="${level}" title="${level===0?'无记录':level===4?'超过6小时':`${(level-1)*2}–${level*2}小时`}"></i>`).join('')}<span>多</span></div><span>${gem} 日目标达成</span><span>${crown} 周目标达成</span></div><p class="hm-footnote">色深表示专注时长；晶印与王冠只认证当时已存档的目标。${unknown?' “~” 表示历史目标未留档。':''}</p></div><aside class="hm-detail" aria-label="所选日期的学习详情">${details(data,selected)}</aside></div>`;
+    return `<div class="hm-stats"><span><strong>${hours(actual)}<small>小时</small></strong>本${PERIODS[data.period]}专注</span><span><strong>${active}<small>天</small></strong>有过投入</span><span><strong>${achieved}<small>天</small></strong>目标已达成${unknown?`<i title="${unknown} 天的历史目标未留档，不参与达标统计">${known} 天可核对</i>`:''}</span></div><div class="hm-content" data-period="${data.period}"><div class="hm-map"><div class="hm-period-heading"><h3>${heading(data)}</h3><span>${data.period==='year'?'四季的积累，落在这一张星图上。':data.period==='month'?'把安静的努力，收成一页星光。':'这一周，留下自己的节奏。'}</span></div>${calendar(data,selected,today)}<div class="hm-legend"><div><span>少</span>${[0,1,2,3,4].map(level=>`<i data-level="${level}" title="${level===0?'无记录':level===4?'超过6小时':`${(level-1)*2}–${level*2}小时`}"></i>`).join('')}<span>多</span></div><span>${gem} 日目标达成</span><span>${crown} 周目标达成</span></div><p class="hm-footnote">色深表示专注时长；晶印表示日目标达成，王冠表示已确认的周目标达成。未留档的历史日目标按8小时与3／3／1／1小时匹配。${unknown?' “~” 表示历史目标未留档。':''}</p></div><aside class="hm-detail" aria-label="所选日期的学习详情">${details(data,selected)}</aside></div>`;
   }
   function fingerprint(state) {
     return JSON.stringify([state?.today,state?.heatmapRevision,state?.allTime,state?.totals,state?.subjects,state?.goals,state?.weekly]);
@@ -188,5 +210,5 @@
       onLeave(){requestSerial++;},
     };
   }
-  return {date,addDays,monday,bounds,shift,rangeDays,duration,dayStatus,dayLabel,dayButton,weekLabel,weekStamp,normalise,calendar,details,bodyHTML,fingerprint,createController};
+  return {date,addDays,monday,bounds,shift,rangeDays,duration,dayStatus,dayEvaluation,dayLabel,dayButton,weekLabel,weekStamp,normalise,calendar,details,bodyHTML,fingerprint,createController};
 });
