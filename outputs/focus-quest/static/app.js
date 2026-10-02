@@ -20,6 +20,7 @@ let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 let recordMutationBusy = false;
 let scenePreviewPercent = null, subjectRenderKey = null, sceneSubjectKey = null;
 let claimedEffects = null, celebrationQueue = [];
+let openingPending = true, openingBusy = false, openingReady = null, openingCheckedDay = null, openingRetryAt = 0;
 const subjectRewards = {math:['几何星图，已点亮。','思路一步步连起来，数学的今日目标已经完成。'],cs:['核心电路，已连通。','知识节点连接成网，408 的今日目标已经完成。'],politics:['信念旗帜，已升起。','一点一滴的理解，汇成了政治的今日成果。'],english:['语言之书，已展开。','每一次积累都在生长，英语的今日目标已经完成。']};
 
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -117,6 +118,57 @@ function render() {
   renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
   if($('trash-dialog').open)renderTrash();
+  maybeDailyOpening();
+}
+
+function noteOpeningArrival() {
+  if(openingCheckedDay!==localDay())openingPending=true;
+  maybeDailyOpening();
+}
+async function maybeDailyOpening() {
+  if(!state || document.hidden || openingBusy || document.querySelector('dialog[open]'))return;
+  if(openingReady){
+    const ready=openingReady;openingReady=null;
+    if(ready.day===localDay()){showOpening(ready);return;}
+    openingPending=true;
+  }
+  if(!openingPending || Date.now()<openingRetryAt)return;
+  if(openingCheckedDay===localDay()){openingPending=false;return;}
+  openingBusy=true;
+  try{
+    // The service owns the daily claim, so reopening a window, reloading, or
+    // opening another client cannot consume a second opening for the same day.
+    const result=await api('/api/opening/claim',{});
+    openingCheckedDay=result.day;openingPending=false;openingRetryAt=0;
+    if(result.show)openingReady=result;
+  }catch(_){
+    // Opening copy is optional; a transient error must not interrupt learning.
+    openingRetryAt=Date.now()+30000;
+  }finally{
+    openingBusy=false;
+    if(openingReady)maybeDailyOpening();
+    else playNextCelebration();
+  }
+}
+function showOpening(context,preview=false) {
+  const copy=FocusOpening.compose(context),dialog=$('opening-dialog');
+  dialog.dataset.theme=copy.theme;dialog.dataset.period=copy.period;dialog.dataset.preview=String(preview);
+  $('opening-eyebrow').textContent=copy.eyebrow;
+  $('opening-time').textContent=`${dateText(context.day)} · ${timeOf(context.now)}`;
+  $('opening-title').textContent=copy.title;$('opening-body').textContent=copy.body;
+  $('opening-closing').textContent=copy.closing;
+  $('opening-note').textContent=preview?'此刻开场预览 · 不占用每日首次，不增加记录或经验。':context.minutes>0?`今日已专注 ${duration(context.minutes)} · 每一段投入，都已记下。`:'每日开场 · 从此刻开始。';
+  $('opening-done').textContent=preview?'返回设置':copy.button;
+  if(!dialog.open)dialog.showModal();
+}
+async function previewOpening() {
+  const button=$('opening-preview');button.disabled=true;
+  try{
+    const context=await api('/api/opening');
+    // Keep the settings form underneath, including any unsaved edits.
+    if($('settings-dialog').open)showOpening(context,true);
+  }catch(error){toast('暂时无法预览开场',error.message,true);}
+  finally{button.disabled=false;}
 }
 
 function pendingEnd(value) {
@@ -416,6 +468,7 @@ function celebrationFor(event,preview=false) {
   return {title:stageTitles[event.stage],body:['','引路石被点亮了。每一段专注，都在把迷雾推远。','水晶正在苏醒，星岛已经记下你走过的一半路程。','星环与水晶开始共鸣。你已完成今日目标的四分之三。','四周的光汇聚到星岛。今天已经做得足够好了。'][event.stage],reward:`每日主线 ${event.stage*25}% · ${stageNames[event.stage]}`,stage:event.stage,preview};
 }
 function playNextCelebration() {
+  if(openingBusy || openingReady)return;
   if(state?.settings.motion===false){celebrationQueue=[];return;}
   if(!celebrationQueue.length || document.querySelector('dialog[open]'))return;
   showCelebration(celebrationQueue.shift());
@@ -465,6 +518,9 @@ $('trash-records').addEventListener('click',event=>{const button=event.target.cl
 $('advice-request').addEventListener('click',()=>requestAdvice(true));
 $('advice-next').addEventListener('click',()=>requestAdvice(false));
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
+$('opening-preview').addEventListener('click',previewOpening);
+$('opening-close').addEventListener('click',()=>$('opening-dialog').close());
+$('opening-done').addEventListener('click',()=>$('opening-dialog').close());
 $('weekly-target-edit').addEventListener('click',()=>{showSettings();$('weekly-target-input').focus();});
 $('activity-settings').addEventListener('click',()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});});
 $('settings-form').addEventListener('submit',saveSettings);$('target-inputs').addEventListener('input',updateTargetSum);
@@ -488,8 +544,10 @@ document.querySelectorAll('[data-preview-subject]').forEach(button=>button.addEv
 document.querySelector('.celebration-close').addEventListener('click',()=>{celebrationQueue=[];$('celebration-dialog').close();});
 $('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());
 $('celebration-dialog').addEventListener('cancel',()=>{celebrationQueue=[];});
-document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(playNextCelebration,0)));
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)));
 document.addEventListener('click',()=>{if(state?.settings.sound)ensureAudio();},{once:true});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteOpeningArrival();refresh();}});
+window.addEventListener('focus',noteOpeningArrival);
+window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);

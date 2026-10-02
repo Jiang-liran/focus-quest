@@ -404,6 +404,9 @@ class FocusStore:
                 merged_at TEXT NOT NULL, original_records TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS records_match ON records(source,name,start_ms);
+            CREATE TABLE IF NOT EXISTS daily_openings (
+                day TEXT PRIMARY KEY, shown_at TEXT NOT NULL
+            );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
@@ -451,6 +454,34 @@ class FocusStore:
     def _bump_revision(self):
         self.revision += 1
         self._set_meta("revision", self.revision)
+
+    def _opening_state(self, current):
+        day = current.date().isoformat()
+        row = self.db.execute("""SELECT COALESCE(SUM(r.minutes),0) AS minutes,
+            EXISTS(SELECT 1 FROM daily_openings WHERE day=?) AS seen
+            FROM records r WHERE r.day=? AND NOT EXISTS
+                (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+            (day, day)).fetchone()
+        return {"day": day, "now": current.isoformat(), "minutes": round(row["minutes"], 4),
+                "target": sum(self.settings["targets"].values()), "seen": bool(row["seen"])}
+
+    def opening(self, now=None):
+        """Read today's greeting context without consuming its first opening."""
+        with self.lock:
+            current = now or datetime.now().astimezone()
+            if current.tzinfo is None or current.utcoffset() is None:
+                raise ValueError("开场时间必须包含时区")
+            return self._opening_state(current)
+
+    def claim_opening(self, now=None):
+        """Atomically show one daily opening, independently of record revision."""
+        with self.lock, self.db:
+            current = now or datetime.now().astimezone()
+            if current.tzinfo is None or current.utcoffset() is None:
+                raise ValueError("开场时间必须包含时区")
+            claimed = self.db.execute("INSERT OR IGNORE INTO daily_openings(day,shown_at) VALUES (?,?)",
+                                      (current.date().isoformat(), current.isoformat())).rowcount == 1
+            return dict(self._opening_state(current), show=claimed)
 
     def _active_count(self, source=None):
         sql = """SELECT COUNT(*) FROM records r WHERE NOT EXISTS
@@ -1040,6 +1071,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                 elif url.path == "/api/state":
                     query = parse_qs(url.query)
                     self._send(200, store.state(query.get("date", [None])[0]))
+                elif url.path == "/api/opening":
+                    if url.query:
+                        raise ValueError("开场使用电脑当前日期和时间，不接受查询参数")
+                    self._send(200, store.opening())
                 elif url.path == "/api/export":
                     self._send(200, store.export_csv(), "text/csv; charset=utf-8", "focus-quest-records.csv")
                 elif url.path == "/api/trash":
@@ -1066,8 +1101,9 @@ def make_handler(store, static_dir=STATIC_DIR):
             if not self._authorized(writing=True):
                 return
             try:
-                path = urlsplit(self.path).path
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore"):
+                url = urlsplit(self.path)
+                path = url.path
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim"):
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -1084,6 +1120,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                 if path == "/api/settings":
                     store.update_settings(payload)
                     self._send(200, store.state())
+                elif path == "/api/opening/claim":
+                    if not raw or payload or url.query:
+                        raise ValueError("开场认领仅接受空 JSON 对象，不接受日期或时间参数")
+                    self._send(200, store.claim_opening())
                 elif path in ("/api/records/trash", "/api/records/restore"):
                     if set(payload) != {"id"}:
                         raise ValueError("请提供要操作的记录标识")
