@@ -12,6 +12,7 @@ const stageNames = ['整装出发','突破外围','深入核心','决战在即',
 const stageTitles = ['每一分钟，都算数。','第一道迷雾，已散去。','路程过半，稳步向前。','光就在前方，继续前行。','今日远征，圆满通关。'];
 const stageMessages = ['今天的远征，从一小段专注开始。','第一座路标已点亮，脚步正在变成力量。','你的投入，正在慢慢变成看得见的积累。','已经走过四分之三，按自己的节奏完成。','今天已经做得足够好了，安心收下这份成就。'];
 const viewNames = {today:'今日远征',history:'专注档案',achievements:'成长图鉴'};
+const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set(), audioContext = null;
 let dismissedAdvice = new Set();
@@ -39,17 +40,18 @@ async function api(path, body) {
   return data;
 }
 
-async function refresh(force=false) {
+async function refresh(force=false, quietRewards=false) {
   if(inFlight && !force) return;
   inFlight=true;
   const seq=++requestSequence;
   try {
     const data=await api('/api/state'+(selectedDate?'?date='+encodeURIComponent(selectedDate):''));
     if(seq!==requestSequence)return;
-    checkNewRecords(data);
+    checkNewRecords(data, quietRewards);
     state=data;
     render();
     $('error-banner').hidden=true;
+    return data;
   } catch(error) {
     if(seq!==requestSequence)return;
     $('error-banner').textContent='暂时连接不到本地记录服务。已保存的记录仍在电脑里；程序会自动重试。';
@@ -59,7 +61,7 @@ async function refresh(force=false) {
   } finally { if(seq===requestSequence) inFlight=false; }
 }
 
-function checkNewRecords(next) {
+function checkNewRecords(next, quietRewards=false) {
   const recent=next.latestRecords || next.records;
   if(!baselineReady){recent.forEach(r=>seenRecords.add(r.id));baselineReady=true;return;}
   const incoming=recent.filter(r=>!seenRecords.has(r.id));
@@ -71,7 +73,7 @@ function checkNewRecords(next) {
   const gained=fresh.reduce((sum,r)=>sum+r.minutes,0);
   const oldStage=state && state.date===next.date ? stageOf(state.totals.percent) : 0;
   const newStage=stageOf(next.totals.percent);
-  if(state && next.date===next.today && state.date===next.date && newStage>oldStage){
+  if(!quietRewards && state && next.date===next.today && state.date===next.date && newStage>oldStage){
     showCelebration({title:stageTitles[newStage],body:`${fresh.length===1?fresh[0].name:`${fresh.length} 段专注`}已入账，今日推进至 ${pct(next.totals.percent)}。`,reward:`+${number(gained)} XP · ${stageNames[newStage]}`,preview:false,stage:newStage});
   } else {
     toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · +${number(gained)} XP${state && next.totals.level>state.totals.level?` · 升至 Lv. ${next.totals.level}`:''}`);
@@ -85,6 +87,7 @@ function render() {
   document.documentElement.classList.toggle('no-motion',!s.settings.motion);
   $('date-button').textContent=dateText(s.date)+(s.date===s.today?' · 今天':'');
   $('date-picker').value=s.date;
+  $('header-today').disabled=s.date===s.today;
   $('level').textContent=`Lv. ${t.level}`;
   $('level-name').textContent=t.level<10?'启程学徒':t.level<50?'知识游侠':t.level<150?'远征守护者':'长期主义者';
   $('level-xp').textContent=`${t.levelXp} / ${t.levelTarget} XP · 下一级`;
@@ -92,7 +95,7 @@ function render() {
   $('source-label').textContent=s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接';
   $('source-dot').classList.toggle('connected',s.sync.connected);
   $('footer-sync').textContent=s.sync.connected?`本地存档 ${number(s.sync.importedCount,0)} 条 · 每 ${s.sync.pollSeconds} 秒自动捕获`:'同步暂不可用 · 已保存的记录仍可查看';
-  renderHero();renderSubjects();renderAdvice();renderWeek();renderRecords();renderAchievements();updateViewTitle();
+  renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
 }
 
@@ -127,7 +130,6 @@ function renderHero() {
   $('total-bar').style.width=Math.min(100,t.percent)+'%';
   const progress=document.querySelector('.total-progress');
   progress.setAttribute('aria-valuenow',Math.min(100,t.percent));progress.setAttribute('aria-valuetext',pct(t.percent));
-  $('milestones').innerHTML=[25,50,75,100].map((point,i)=>`<div class="milestone ${t.percent>=point?'reached':''}"><div class="milestone-icon">${t.percent>=point?'✦':i===3?'♜':'◇'}</div><div><strong>${stageNames[i+1]}</strong><small>${point}% · ${duration(t.target*point/100)}</small></div></div>`).join('');
 }
 
 function renderSubjects() {
@@ -140,19 +142,61 @@ function renderAdvice() {
   $('advice-card').hidden=dismissedAdvice.has(state.date+':'+a.id);
 }
 
+async function requestAdvice() {
+  $('advice-request').disabled=true;
+  try {
+    const fresh=await refresh(true,true);
+    if(!fresh)throw new Error('暂时无法取得最新记录，请稍后再试。');
+    dismissedAdvice.delete(fresh.date+':'+fresh.advice.id);
+    try{localStorage.setItem('focusquest.dismissedAdvice',JSON.stringify([...dismissedAdvice].slice(-100)));}catch(_){}
+    renderAdvice();
+    $('advice-dialog-title').textContent=fresh.date===fresh.today?'接下来，怎样安排更合适？':'回看这一天的学习安排';
+    $('advice-context').textContent=`${fresh.date} · 已完成 ${duration(fresh.totals.minutes)} · ${timeOf(new Date().toISOString())} 重新分析`;
+    const insights=[{label:'先看整体节奏',...fresh.advice}];
+    const heavy=fresh.activities.subjects.filter(s=>s.advice.id==='lecture-heavy');
+    if(heavy.length)heavy.forEach(s=>insights.push({label:`${s.name} · 听课 ${duration(s.lecture)} / 做题 ${duration(s.practice)}`,...s.advice}));
+    else insights.push({label:'听课与做题',...fresh.activities.advice});
+    const w=fresh.weekly;
+    const pastWeek=w.end<fresh.today;
+    insights.push({label:`周一至周日 · ${w.start} — ${w.end}`,title:pastWeek?'回看这一周的积累':w.percent>=100?'这周的目标已经完成':'让一周的积累稳步向前',text:pastWeek?`该周累计 ${duration(w.minutes)} / ${hours(w.target)} 小时，完成 ${pct(w.percent)}。可以据此调整之后的周计划，过去的差额不需要补追。`:w.percent>=100?`已累计 ${duration(w.minutes)}，达到周目标的 ${pct(w.percent)}。额外的时间已如实记录，记得留出恢复精力的空间。`:`这周已累计 ${duration(w.minutes)} / ${hours(w.target)} 小时，完成 ${pct(w.percent)}。可以按这一周的实际安排分配余下时间，不必要求每天完全一样。`,tone:'weekly'});
+    $('advice-results').innerHTML=insights.map(a=>`<article class="advice-result ${esc(a.tone)}"><span>${esc(a.label)}</span><h3>${esc(a.title)}</h3><p>${esc(a.text)}</p></article>`).join('');
+    if(!$('advice-dialog').open)$('advice-dialog').showModal();
+  }catch(error){toast('暂时未能生成建议',error.message,true);}
+  finally{$('advice-request').disabled=false;}
+}
+
 function renderWeek() {
-  const max=Math.max(state.totals.target,...state.week.map(d=>d.minutes),1);
-  const total=state.week.reduce((sum,d)=>sum+d.minutes,0);
-  $('weekly-total').textContent='累计 '+duration(total);
-  $('week-chart').innerHTML=state.week.map(d=>`<button class="chart-column ${d.date===state.date?'today':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}" aria-label="查看${d.date}，学习${duration(d.minutes)}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
+  const w=state.weekly;
+  const current=w.start<=state.today && state.today<=w.end;
+  $('weekly-goal-title').textContent=current?'本周远征':'该周远征';
+  $('weekly-range').textContent=`${w.start.replaceAll('-','.')} — ${w.end.replaceAll('-','.')} · 周一至周日`;
+  $('weekly-minutes').innerHTML=durationHTML(w.minutes);
+  $('weekly-target').textContent=hours(w.target);
+  $('weekly-percent').textContent=pct(w.percent);
+  $('weekly-bar').style.width=Math.min(100,w.percent)+'%';
+  $('weekly-progress').setAttribute('aria-valuenow',Math.min(100,w.percent));
+  $('weekly-progress').setAttribute('aria-valuetext',pct(w.percent));
+  $('weekly-remaining').textContent=w.minutes>=w.target ? `周目标已达成${w.minutes>w.target?' · 超额 '+duration(w.minutes-w.target):''}，收下这周的积累。` : `已出征 ${w.activeDays} 天 · 距离周目标还差 ${duration(w.target-w.minutes)}`;
+  $('weekly-total').textContent='累计 '+duration(w.minutes);
+  $('week-chart-title').textContent=current?'本周足迹':'该周足迹';
+  const max=Math.max(state.totals.target,...w.days.map(d=>d.minutes),1);
+  $('week-chart').innerHTML=w.days.map(d=>`<button class="chart-column ${d.date===state.date?'today':''} ${d.date>state.today?'future':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}" aria-label="查看${d.date}，学习${duration(d.minutes)}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
+}
+
+function renderActivities() {
+  const a=state.activities;
+  $('activity-summary').innerHTML=Object.entries(activityNames).map(([id,label])=>`<div class="activity-total ${id}"><span><i></i>${label}</span><strong>${durationHTML(a.totals[id])}</strong></div>`).join('');
+  $('activity-rows').innerHTML=a.subjects.map(s=>`<article class="activity-row" aria-label="${esc(s.name)}学习方式统计"><div class="activity-subject"><span class="subject-icon" style="--subject-color:${meta(s.id).color}">${icon(meta(s.id).icon)}</span><div><strong>${esc(s.name)}</strong><small>${s.other?`另有 ${duration(s.other)}复习 / 其他`:`累计 ${duration(s.minutes)}`}</small></div></div><div class="activity-time lecture" role="group" aria-label="听课时长"><span>听课</span><strong>${duration(s.lecture)}</strong></div><div class="activity-time practice" role="group" aria-label="做题时长"><span>做题</span><strong>${duration(s.practice)}</strong></div><div class="activity-insight ${s.advice.tone}"><strong>${esc(s.advice.title)}</strong><p>${esc(s.advice.text)}</p></div></article>`).join('');
+  $('activity-overview').textContent=a.advice.text;
+  $('activity-overview').hidden=a.totals.other===0;
 }
 
 function renderRecords() {
   const records=state.records;
-  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span><span class="record-xp">+${number(r.minutes)} XP</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
+  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span><span class="record-xp">+${number(r.minutes)} XP</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
   $('history-stats').innerHTML=statCard('本日专注',durationHTML(state.totals.minutes))+statCard('完成任务',`${state.dayRecordCount??records.length}<small>个</small>`)+statCard('每日主线进度',`${pct(state.totals.percent)}`);
   $('archive-note').textContent=`${dateText(state.date)} · ${state.date} · ${(state.dayRecordCount??records.length)>100?'展示最近 100 条，全部记录可导出':'全部完成记录'}`;
-  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
+  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
 }
 
 function statCard(label,value) { return `<div class="stat-card"><span>${esc(label)}</span><strong>${value}</strong></div>`; }
@@ -175,7 +219,8 @@ function showSettings() {
   if(!state)return;
   $('target-inputs').innerHTML=state.subjects.map(s=>`<label>${esc(s.name)}<input id="target-${s.id}" data-target="${s.id}" type="number" min="0.016666666666666666" max="24" step="any" required value="${s.target/60}" aria-label="${esc(s.name)}每日目标小时"></label>`).join('');
   const taskNames=state.taskNames||[...new Set([...state.records.map(r=>r.name),...Object.keys(state.settings.mapping),...state.unmapped])];
-  $('mapping-fields').innerHTML=taskNames.map((name,i)=>{const current=Object.prototype.hasOwnProperty.call(state.settings.mapping,name)?state.settings.mapping[name]:classifyLocally(name);return `<div class="mapping-row"><label for="mapping-${i}" title="${esc(name)}">${esc(name)}</label><select id="mapping-${i}" data-task-name="${esc(name)}" aria-label="${esc(name)}归属科目">${Object.entries(subjectsMeta).map(([id,m])=>`<option value="${id}" ${id===current?'selected':''}>${m.name}</option>`).join('')}</select></div>`;}).join('')||'<p class="muted">捕获第一条完成记录后，可以在这里指定它的科目。</p>';
+  $('mapping-fields').innerHTML=taskNames.map((name,i)=>{const current=Object.prototype.hasOwnProperty.call(state.settings.mapping,name)?state.settings.mapping[name]:classifyLocally(name);const activity=Object.prototype.hasOwnProperty.call(state.taskActivities,name)?state.taskActivities[name]:'other';return `<div class="mapping-row"><label for="mapping-${i}" title="${esc(name)}">${esc(name)}</label><select id="mapping-${i}" data-task-name="${esc(name)}" aria-label="${esc(name)}归属科目">${Object.entries(subjectsMeta).map(([id,m])=>`<option value="${id}" ${id===current?'selected':''}>${m.name}</option>`).join('')}</select><select data-activity-task="${esc(name)}" aria-label="${esc(name)}学习方式">${Object.entries(activityNames).map(([id,label])=>`<option value="${id}" ${id===activity?'selected':''}>${label}</option>`).join('')}</select></div>`;}).join('')||'<p class="muted">捕获第一条完成记录后，可以在这里指定它的科目与学习方式。</p>';
+  $('weekly-target-input').value=state.settings.weeklyTarget/60;
   $('motion-input').checked=state.settings.motion;$('sound-input').checked=state.settings.sound;
   $('settings-error').hidden=true;updateTargetSum();$('settings-dialog').showModal();
 }
@@ -190,12 +235,13 @@ function updateTargetSum() { const sum=[...document.querySelectorAll('[data-targ
 
 async function saveSettings(event) {
   event.preventDefault();
-  const targets={},mapping=Object.create(null);
+  const targets={},mapping=Object.create(null),activityMapping=Object.create(null);
   document.querySelectorAll('[data-target]').forEach(el=>targets[el.dataset.target]=Math.round(Number(el.value)*60));
   document.querySelectorAll('[data-task-name]').forEach(el=>mapping[el.dataset.taskName]=el.value);
+  document.querySelectorAll('[data-activity-task]').forEach(el=>activityMapping[el.dataset.activityTask]=el.value);
   $('save-settings').disabled=true;$('settings-error').hidden=true;
   try {
-    await api('/api/settings',{targets,mapping,motion:$('motion-input').checked,sound:$('sound-input').checked});
+    await api('/api/settings',{targets,mapping,activityMapping,weeklyTarget:Math.round(Number($('weekly-target-input').value)*60),motion:$('motion-input').checked,sound:$('sound-input').checked});
     if($('sound-input').checked) { ensureAudio(); }
     $('settings-dialog').close();await refresh(true);toast('远征设置已保存','接下来的进度会按新目标计算。');
   } catch(error){$('settings-error').textContent=error.message;$('settings-error').hidden=false;}
@@ -240,7 +286,10 @@ function stepDate(amount) { if(!state)return;const d=new Date(state.date+'T12:00
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();chooseDate(localDay());switchView('today');});
 $('all-records').addEventListener('click',()=>switchView('history'));
+$('advice-request').addEventListener('click',requestAdvice);
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
+$('weekly-target-edit').addEventListener('click',()=>{showSettings();$('weekly-target-input').focus();});
+$('activity-settings').addEventListener('click',()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});});
 $('settings-form').addEventListener('submit',saveSettings);$('target-inputs').addEventListener('input',updateTargetSum);
 document.querySelectorAll('.close-dialog').forEach(el=>el.addEventListener('click',()=>el.closest('dialog').close()));
 $('source-open').addEventListener('click',()=>{if(state){renderSource();$('source-dialog').showModal();}});
@@ -249,6 +298,7 @@ $('date-button').addEventListener('click',()=>{$('date-picker').classList.toggle
 $('date-picker').addEventListener('change',e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))chooseDate(e.target.value);});
 $('week-chart').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b)chooseDate(b.dataset.date);});
 $('prev-day').addEventListener('click',()=>stepDate(-1));$('next-day').addEventListener('click',()=>stepDate(1));$('go-today').addEventListener('click',()=>chooseDate(localDay()));
+$('header-today').addEventListener('click',()=>{selectedDate=null;$('date-picker').classList.remove('visible');refresh(true);});
 $('advice-dismiss').addEventListener('click',()=>{if(!state)return;dismissedAdvice.add(state.date+':'+state.advice.id);try{localStorage.setItem('focusquest.dismissedAdvice',JSON.stringify([...dismissedAdvice].slice(-100)));}catch(_){}renderAdvice();});
 $('preview-effects').addEventListener('click',()=>{showCelebration({title:'今日远征，圆满通关。',body:'目标达成时，浮空岛将被点亮，属于你的庆祝也会出现。',reward:'✦ 今日主线 100% · 成就达成',preview:true});if(state?.settings.sound)playChime();});
 document.querySelector('.celebration-close').addEventListener('click',()=>$('celebration-dialog').close());$('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());

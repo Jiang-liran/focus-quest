@@ -34,9 +34,19 @@ SUBJECTS = (
     ("english", "英语", "#75c9ff"),
 )
 SUBJECT_IDS = {s[0] for s in SUBJECTS}
+ACTIVITY_TYPES = (
+    ("lecture", "听课"),
+    ("practice", "做题"),
+    ("other", "复习 / 其他"),
+)
+ACTIVITY_IDS = {item[0] for item in ACTIVITY_TYPES}
+# These exact task names were confirmed by the user to mean attending lessons.
+# Other tasks containing “复习” are intentionally left unclassified.
+CONFIRMED_LECTURE_TASKS = {"复习数学", "复习408", "复习政治", "复习英语"}
 DEFAULT_SETTINGS = {
     "targets": {"math": 180, "cs": 180, "politics": 60, "english": 60},
-    "mapping": {}, "motion": True, "sound": False,
+    "weeklyTarget": 3000,
+    "mapping": {}, "activityMapping": {}, "motion": True, "sound": False,
 }
 
 
@@ -81,6 +91,18 @@ def classify(name, mapping):
     if any(word in name for word in ("英语", "单词")):
         return "english"
     return "other"
+
+
+def classify_activity(name, mapping):
+    if name in mapping:
+        return mapping[name]
+    if name in CONFIRMED_LECTURE_TASKS:
+        return "lecture"
+    lecture = any(word in name for word in ("听课", "听讲", "网课", "课程", "看课", "看视频"))
+    practice = any(word in name for word in ("做题", "刷题", "练题", "练习", "习题", "真题"))
+    if lecture == practice:
+        return "other"
+    return "lecture" if lecture else "practice"
 
 
 def normalize_record(record):
@@ -134,6 +156,11 @@ def validate_settings(current, patch):
             result["targets"][subject] = int(value)
         if sum(result["targets"].values()) > 1440:
             raise ValueError("每日目标合计不能超过 24 小时")
+    if "weeklyTarget" in patch:
+        value = finite_number(patch["weeklyTarget"], minimum=1, maximum=10080)
+        if int(value) != value:
+            raise ValueError("周目标请使用整数分钟")
+        result["weeklyTarget"] = int(value)
     if "mapping" in patch:
         mapping = patch["mapping"]
         if not isinstance(mapping, dict) or len(mapping) > 5000:
@@ -149,6 +176,21 @@ def validate_settings(current, patch):
                 result["mapping"][name] = subject
         if len(result["mapping"]) > 5000:
             raise ValueError("任务分类数量过多")
+    if "activityMapping" in patch:
+        mapping = patch["activityMapping"]
+        if not isinstance(mapping, dict) or len(mapping) > 5000:
+            raise ValueError("学习方式分类字段无效")
+        for name, activity in mapping.items():
+            if not isinstance(name, str) or not name.strip() or len(name) > 500:
+                raise ValueError("任务名称无效")
+            if activity is None:
+                result["activityMapping"].pop(name, None)
+            elif not isinstance(activity, str) or activity not in ACTIVITY_IDS:
+                raise ValueError("学习方式分类无效")
+            else:
+                result["activityMapping"][name] = activity
+        if len(result["activityMapping"]) > 5000:
+            raise ValueError("学习方式分类数量过多")
     for key in ("motion", "sound"):
         if key in patch:
             if type(patch[key]) is not bool:
@@ -194,6 +236,85 @@ def make_advice(day, subjects, minutes, records, now=None):
     return {"id": "steady", "title": "稳稳推进，就是在升级", "text": "每一分钟都已记入你的经验。按自己的节奏完成下一小段，专注之后也记得休息。", "tone": "neutral"}
 
 
+def make_activity_advice(day, subject, daily_minutes, daily_target, now, overall_advice=None):
+    """Offer a lightweight time-allocation heuristic, not a learning diagnosis."""
+    name = subject["name"]
+    historical = day != now.date().isoformat()
+    period = "这一天" if historical else "今天"
+    if historical:
+        next_step = "下次学习时，可以安排 25 分钟做题，检验听课内容。"
+    elif daily_minutes >= daily_target:
+        next_step = "今天的总目标已达成，先安心休息；下次学习时再安排 25 分钟做题。"
+    elif now.hour >= 22 or now.hour < 7:
+        next_step = "现在先休息，下一天的学习中可安排 25 分钟做题。"
+    elif overall_advice and overall_advice["tone"] == "rest":
+        next_step = "先休息、恢复精力；之后的学习中再安排 25 分钟做题。"
+    else:
+        next_step = "下一段可以安排 25 分钟做题，把听到的方法用起来。"
+    lecture, practice = subject["lecture"], subject["practice"]
+    if lecture >= 60 and practice < lecture * 0.5:
+        return {"id": "lecture-heavy", "title": f"{name}听课偏多",
+                "text": f"{period}已记录的{name}听课至少 1 小时，做题时长不足听课的一半。{next_step}",
+                "tone": "balance"}
+    if subject["minutes"] == 0:
+        return {"id": "no-records", "title": f"{name}暂无完成记录",
+                "text": f"{period}还没有{name}的完成记录。完成任务后，听课与做题时间会自动统计。",
+                "tone": "neutral"}
+    if lecture + practice == 0:
+        return {"id": "unclassified", "title": f"{name}的学习方式等待记录",
+                "text": f"{period}暂无可区分的{name}听课或做题记录。可在设置中给含糊任务指定学习方式；复习、背诵等也可以保留为其他。",
+                "tone": "neutral"}
+    if practice >= 60 and lecture == 0:
+        return {"id": "practice-focused", "title": f"{name}做题已有积累",
+                "text": f"{period}记录以做题为主。下次复盘时可整理错因、回看不熟悉的知识点，无需为了凑比例增加听课。",
+                "tone": "neutral"}
+    return {"id": "steady", "title": f"{name}按自己的节奏推进",
+            "text": f"{period}的听课与做题时间已记录。下次安排可结合题目掌握情况调整，不必追求固定比例。",
+            "tone": "neutral"}
+
+
+def activity_summary(day, daily, settings, daily_minutes, daily_target, now, overall_advice=None):
+    totals = {aid: 0 for aid in ACTIVITY_IDS}
+    by_subject = {sid: {"id": sid, "name": name, "minutes": 0,
+                        "lecture": 0, "practice": 0, "other": 0}
+                  for sid, name, _ in SUBJECTS}
+    for record in daily:
+        sid = classify(record["name"], settings["mapping"])
+        activity = classify_activity(record["name"], settings["activityMapping"])
+        totals[activity] += record["minutes"]
+        if sid not in by_subject:
+            by_subject[sid] = {"id": "other", "name": "待分类科目", "minutes": 0,
+                               "lecture": 0, "practice": 0, "other": 0}
+        by_subject[sid][activity] += record["minutes"]
+        by_subject[sid]["minutes"] += record["minutes"]
+    subjects = list(by_subject.values())
+    for subject in subjects:
+        for key in ("minutes", "lecture", "practice", "other"):
+            subject[key] = round(subject[key], 4)
+        identified = subject["lecture"] + subject["practice"]
+        subject["practiceShare"] = percent(subject["practice"], identified) if identified else None
+        subject["advice"] = make_activity_advice(day, subject, daily_minutes, daily_target, now, overall_advice)
+    heavy = [subject for subject in subjects if subject["advice"]["id"] == "lecture-heavy"]
+    if heavy:
+        # Surface the largest lecture/practice gap; each subject retains its own advice.
+        advice = dict(max(heavy, key=lambda item: item["lecture"] - item["practice"])["advice"])
+    elif daily_minutes == 0:
+        advice = {"id": "no-records", "title": "所选日期暂无完成记录",
+                  "text": "完成任务后，听课与做题时间会自动统计。",
+                  "tone": "neutral"}
+    elif totals["lecture"] + totals["practice"] == 0:
+        advice = {"id": "unclassified", "title": "给学习方式补上标签",
+                  "text": "暂无可区分的听课或做题记录。可在设置中给含糊任务指定学习方式，复习、背诵等也可以保留为其他。",
+                  "tone": "neutral"}
+    else:
+        advice = {"id": "steady", "title": "学习方式已记录，按掌握情况调整",
+                  "text": "听课帮助理解，做题帮助检验。下次安排可结合各科掌握情况和错题反馈调整，不必追求固定比例。",
+                  "tone": "neutral"}
+    advice["text"] += " 建议仅依据已记录时长，不评判学习效果。"
+    return {"totals": {key: round(value, 4) for key, value in totals.items()},
+            "subjects": subjects, "advice": advice}
+
+
 class FocusStore:
     def __init__(self, data_dir=DEFAULT_DATA, source=DEFAULT_SOURCE):
         self.data_dir = Path(data_dir).expanduser()
@@ -216,6 +337,10 @@ class FocusStore:
         stored = self._meta("settings")
         if stored:
             self.settings = validate_settings(self.settings, json.loads(stored))
+            # Materialize defaults once when opening an archive from version 1.
+            if self.settings != json.loads(stored):
+                with self.db:
+                    self._set_meta("settings", json.dumps(self.settings, ensure_ascii=False, allow_nan=False))
         self.revision = int(self._meta("revision") or 0)
         self.sync = {"connected": False, "sourcePath": str(self.source), "lastCheck": None,
                      "lastImport": self._meta("lastImport"), "error": None,
@@ -316,11 +441,13 @@ class FocusStore:
                          "target": settings["targets"][sid], "percent": percent(totals_by_subject[sid], settings["targets"][sid])}
                         for sid, name, color in SUBJECTS]
             target = sum(settings["targets"].values())
+            advice = make_advice(selected_day, subjects, minutes, daily, now)
             # No multipliers: rewards reflect actual completed minutes.
             xp = math.floor(all_minutes)
             level = xp // 120 + 1
             def serialize(row):
                 return {"id": row["id"], "name": row["name"], "subject": classify(row["name"], settings["mapping"]),
+                        "activity": classify_activity(row["name"], settings["activityMapping"]),
                         "minutes": row["minutes"], "start": iso_ms(row["start_ms"]), "end": iso_ms(row["end_ms"]),
                         "day": row["day"], "source": row["source"]}
             serialized = [serialize(row) for row in daily[:100]]
@@ -330,6 +457,15 @@ class FocusStore:
             week = [{"date": (selected - timedelta(days=offset)).isoformat(),
                      "minutes": round(weekly_totals.get((selected - timedelta(days=offset)).isoformat(), 0), 4),
                      "target": target} for offset in range(6, -1, -1)]
+            week_start = selected - timedelta(days=selected.weekday())
+            week_days = [{"date": (week_start + timedelta(days=offset)).isoformat(),
+                          "minutes": round(weekly_totals.get((week_start + timedelta(days=offset)).isoformat(), 0), 4),
+                          "target": target} for offset in range(7)]
+            week_minutes = round(sum(item["minutes"] for item in week_days), 4)
+            weekly = {"date": selected_day, "start": week_days[0]["date"], "end": week_days[-1]["date"],
+                      "minutes": week_minutes, "target": settings["weeklyTarget"],
+                      "percent": percent(week_minutes, settings["weeklyTarget"]), "days": week_days,
+                      "activeDays": sum(item["minutes"] > 0 for item in week_days)}
             badges = [
                 {"id": "first", "name": "初次出征", "description": "完成第一个专注任务", "earned": bool(all_records)},
                 {"id": "hours-10", "name": "专注学徒", "description": "累计专注 10 小时", "earned": all_minutes >= 600},
@@ -341,12 +477,16 @@ class FocusStore:
             return {"date": selected_day, "today": now.date().isoformat(),
                     "totals": {"minutes": minutes, "target": target, "percent": percent(minutes, target), "xp": xp,
                                "level": level, "levelXp": xp % 120, "levelTarget": 120},
-                    "subjects": subjects, "records": serialized, "week": week,
+                    "subjects": subjects, "records": serialized, "week": week, "weekly": weekly,
+                    "activities": activity_summary(selected_day, daily, settings, minutes, target, now, advice),
+                    "activityTypes": [{"id": aid, "name": name} for aid, name in ACTIVITY_TYPES],
+                    "taskActivities": {name: classify_activity(name, settings["activityMapping"])
+                                       for name in sorted({row["name"] for row in all_records})},
                     "taskNames": sorted({row["name"] for row in all_records}),
                     "dayRecordCount": len(daily),
                     "latestRecords": [serialize(row) for row in all_records[:20]],
                     "allTime": {"minutes": all_minutes, "records": len(all_records), "activeDays": len(weekly_totals)},
-                    "badges": badges, "advice": make_advice(selected_day, subjects, minutes, daily, now),
+                    "badges": badges, "advice": advice,
                     "sync": dict(self.sync), "settings": settings,
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
                     "revision": self.revision}
@@ -355,14 +495,16 @@ class FocusStore:
         with self.lock:
             stream = io.StringIO(newline="")
             writer = csv.writer(stream)
-            writer.writerow(["记录ID", "日期", "任务", "科目", "分钟", "开始时间", "完成时间", "来源"])
+            writer.writerow(["记录ID", "日期", "任务", "科目", "学习方式", "分钟", "开始时间", "完成时间", "来源"])
             names = {sid: name for sid, name, _ in SUBJECTS} | {"other": "待分类"}
+            activity_names = dict(ACTIVITY_TYPES)
             for row in self.db.execute("SELECT * FROM records ORDER BY day, end_ms"):
                 # Escape spreadsheet formulas in user-controlled names/IDs.
                 def safe(value):
                     value = str(value)
                     return "'" + value if value[:1] in ("=", "+", "-", "@", "\t", "\r") else value
                 writer.writerow([safe(row["id"]), row["day"], safe(row["name"]), names[classify(row["name"], self.settings["mapping"])],
+                                 activity_names[classify_activity(row["name"], self.settings["activityMapping"])],
                                  row["minutes"], iso_ms(row["start_ms"]), iso_ms(row["end_ms"]), row["source"]])
             return ("\ufeff" + stream.getvalue()).encode("utf-8")
 
