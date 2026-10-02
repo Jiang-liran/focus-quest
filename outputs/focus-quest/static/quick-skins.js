@@ -13,6 +13,7 @@
     for(const key of Object.keys(names))if(equipped[key])document.documentElement.dataset[key]=equipped[key];
     root.FocusInterfaceThemes?.apply(equipped.interface);
     root.ShopArt?.apply(equipped);
+    root.FocusProgressBars?.decorate(document);
     root.FocusCampfire?.previewEquipment(preview?{[preview.slot]:preview.id}:null);
     root.FocusCitadel?.previewEquipment(preview?{[preview.slot]:preview.id}:null);
     const player=$('player-outfit');
@@ -28,6 +29,7 @@
   }
   function owned(){return (state?.catalog||[]).filter(item=>item.slot===slot&&item.owned&&Object.hasOwn(names,item.slot)&&(item.slot!=='interface'||root.FocusInterfaceThemes?.has(item.id)));}
   function thumb(item){
+    if(item.slot==='bar'&&root.FocusProgressBars?.has(item.id))return root.FocusProgressBars.preview(item.id);
     return campSlots.has(item.slot)?root.FocusCampfireShopArt?.preview(item.id,state.equipped)||'':root.ShopArt?.preview(item.id)||'';
   }
   function list(){
@@ -156,5 +158,5 @@
     root.addEventListener('blur',()=>{if(visible())close(false);});
     document.addEventListener('scroll',event=>{if(visible()&&!$('quick-skins').contains(event.target))close(false);},true);
   }
-  root.FocusQuickSkins={init,render,open,close};
+  root.FocusQuickSkins={init,render,open,close,previewBar:()=>preview?.slot==='bar'&&preview.owned?preview.id:null};
 })(typeof globalThis!=='undefined'?globalThis:this);

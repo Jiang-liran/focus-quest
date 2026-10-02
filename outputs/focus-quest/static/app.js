@@ -288,6 +288,7 @@ function renderHero() {
   $('total-bar').style.width=Math.min(100,rawPercent)+'%';
   const progress=document.querySelector('.total-progress');
   progress.setAttribute('aria-valuenow',Math.min(100,rawPercent));progress.setAttribute('aria-valuetext',pct(shownPercent));
+  globalThis.FocusProgressBars?.decorate(progress);
   renderScene(expedition?.percent??scenePreviewPercent??rawPercent);
 }
 
@@ -353,6 +354,7 @@ function renderWeek() {
   $('weekly-bar').style.width=Math.min(100,w.percent)+'%';
   $('weekly-progress').setAttribute('aria-valuenow',Math.min(100,w.percent));
   $('weekly-progress').setAttribute('aria-valuetext',pct(w.percent));
+  globalThis.FocusProgressBars?.decorate($('weekly-progress'));
   $('weekly-remaining').textContent=pending?'请先确认这周的学习目标，确认后本周不能再修改。':estimated?`已出征 ${w.activeDays} 天 · 这周没有留存目标，仅展示参考比例，不判断是否达成。`:w.minutes>=w.target ? `周目标已达成${w.minutes>w.target?' · 超额 '+duration(w.minutes-w.target):''}，收下这周的积累。` : `已出征 ${w.activeDays} 天 · 距离周目标还差 ${duration(w.target-w.minutes)}`;
   const chart=weekChartState||w;
   const chartIsCurrent=chart.start<=state.today && state.today<=chart.end;

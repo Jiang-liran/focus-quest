@@ -1,12 +1,12 @@
 (function (root, factory) {
-  const api = factory(root, typeof module === 'object' && module.exports ? require('./quest-art.js') : null, typeof module === 'object' && module.exports ? require('./camp-world-art.js') : null, typeof module === 'object' && module.exports ? require('./interface-themes.js') : null);
+  const api = factory(root, typeof module === 'object' && module.exports ? require('./quest-art.js') : null, typeof module === 'object' && module.exports ? require('./camp-world-art.js') : null, typeof module === 'object' && module.exports ? require('./interface-themes.js') : null, typeof module === 'object' && module.exports ? require('./progress-bars.js') : null);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.ShopArt = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeArt, nodeCampArt, nodeInterfaceThemes) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeArt, nodeCampArt, nodeInterfaceThemes, nodeProgressBars) {
   'use strict';
 
   const inventory = {
-    bar: ['default', 'mint', 'aurora', 'comet', 'tide', 'prism'],
+    bar: ['default', 'mint', 'aurora', 'comet', 'tide', 'prism', 'koi', 'fox', 'whale', 'dragon'],
     fx: ['default', 'fireflies', 'petals', 'snow', 'meteor', 'nebula'],
     avatar: ['default', 'ranger', 'voyager', 'alchemist', 'star', 'royal'],
     banner: ['default', 'leaf', 'parchment', 'obsidian', 'celestial', 'sovereign'],
@@ -42,11 +42,6 @@
     archive: `${shadow}<path d="M17 82h66l5 7H12Z" fill="#8a7474"/><path d="M28 76h44l7 6H21Z" fill="#c4ad93"/><path d="M24 80V34q26-29 52 0v46Z" fill="#3e354b" stroke="#c7ad91" stroke-width="4"/><rect x="18" y="31" width="12" height="50" rx="2" fill="#ad8f7c"/><rect x="70" y="31" width="12" height="50" rx="2" fill="#ad8f7c"/><path d="M17 44h14m-14 19h14m38-19h14M69 63h14" stroke="#dfc8a8" stroke-width="2"/><path d="M23 14q15-5 27 3 12-8 27-3v17q-15-5-27 3-12-8-27-3Z" fill="#e2ceb2"/><path d="M50 17v17m-19-14 12 2m-12 4 12 2m14-6 12-2m-12 8 12-2" stroke="#ad947f" stroke-width="1.2"/><g class="shop-portal-glimmer">${sparkle(50,49,8,'#d3bbdb')}<path d="M40 63h20" stroke="#a89abf" stroke-width="1.3"/></g>`,
     cosmos: `${shadow}<path d="M24 83h52l8 6H16Z" fill="#867896"/><path d="M50 8 78 20l12 28-12 28-28 12-28-12-12-28 12-28Z" fill="#4d456f" stroke="#b8a1d1" stroke-width="2.5"/><path d="m50 17 22 9 9 22-9 22-22 9-22-9-9-22 9-22Z" fill="#282c49" stroke="#a89cc8" stroke-width="1.2"/><g class="shop-orbit-slow"><ellipse cx="50" cy="48" rx="26" ry="15" fill="none" stroke="#a5b9cd" stroke-width="1.2" transform="rotate(-32 50 48)"/><circle cx="28" cy="61" r="3" fill="#d8c3ac"/><circle cx="72" cy="34" r="2" fill="#b7cfcc"/></g><g class="shop-portal-glimmer">${sparkle(50,47,10,'#d5c2e8')}${sparkle(62,63,3,'#dfcfaf')}${sparkle(39,31,2,'#bdcbdc')}</g><circle cx="50" cy="8" r="3" fill="#dfcda9"/><circle cx="90" cy="48" r="3" fill="#c2b7d6"/><circle cx="10" cy="48" r="3" fill="#c2b7d6"/>`,
   };
-  const bars = {
-    default: ['#8776b4','#a18ac9','#c2a5ef'], mint: ['#568f80','#8fcbb0','#d7edd2'],
-    aurora: ['#77c5aa','#8bd6d6','#b99cde','#e0c0eb'], comet: ['#987fce','#ce91b6','#edbe94','#fff0c0'],
-    tide: ['#426e9e','#68aaba','#b5dde0','#e6efe0'], prism: ['#ba90c9','#d5a7b5','#e5cc9f','#a7cfbd','#a7b7df','#d7bcf0'],
-  };
   const bannerColors = {
     default: ['#8a7caa','#27263a','#b5a0d0'], leaf: ['#96b49c','#293b38','#d0d8ae'],
     parchment: ['#c8b28c','#403733','#ecdbb8'], obsidian: ['#8e96a9','#222633','#c4cbda'],
@@ -57,11 +52,6 @@
     ocean: ['#263f58','#51899f','#22374c','#bbdadd'], sakura: ['#4d3d52','#a58196','#46374d','#e5c3ca'],
     aurora: ['#303857','#628991','#2c3350','#b8d6cc'],
   };
-
-  function barPreview(variant) {
-    const colors = bars[variant];
-    return `<path d="M19 79h122" stroke="#6b62833a" stroke-width="1"/><rect x="16" y="42" width="128" height="13" rx="6.5" fill="#34344c"/><g class="shop-preview-bar">${colors.map((color,index)=>`<rect x="${18+index*104/colors.length}" y="44" width="${104/colors.length+5}" height="9" rx="4.5" fill="${color}"/>`).join('')}</g>${sparkle(126,35,4,colors.at(-1))}<circle cx="32" cy="68" r="2" fill="${colors[0]}"/><circle cx="43" cy="68" r="2" fill="${colors[Math.min(1,colors.length-1)]}"/><circle cx="54" cy="68" r="2" fill="${colors.at(-1)}"/>`;
-  }
 
   function fxPreview(variant) {
     if (variant === 'default') return `${sparkle(80,54,15,'#aea0c9')}<circle cx="80" cy="54" r="33" fill="none" stroke="#766d962b"/>`;
@@ -139,14 +129,15 @@
     if(interfaceThemes?.has(itemId))return interfaceThemes.preview(itemId);
     const item=items.get(itemId);if(!item)return '';
     const {slot,variant}=item;
+    const progressBars=nodeProgressBars||root.FocusProgressBars;
+    if(slot==='bar')return progressBars?.has(itemId)?progressBars.preview(itemId):'';
     let content;
     if(slot==='avatar'){
       const art=nodeArt||root.QuestArt;
       if(!art)return '';
       const character=art.avatar('player',itemId).replace(/^<svg[^>]*>|<\/svg>$/g,'');
       content=`<ellipse cx="80" cy="92" rx="34" ry="7" fill="#82709910"/><g transform="translate(48 16)">${character}</g>`;
-    }else if(slot==='bar')content=barPreview(variant);
-    else if(slot==='fx')content=fxPreview(variant);
+    }else if(slot==='fx')content=fxPreview(variant);
     else if(slot==='banner')content=bannerPreview(variant);
     else if(slot==='theme')content=themePreview(variant);
     else if(slot==='island')content=`<g transform="translate(-3 5) scale(.28)">${islandScene(itemId)}</g>`;
@@ -233,6 +224,7 @@
     put(relic,valid.relic,valid.relic==='relic-default'?'':`<g class="shop-relic-core">${relics[items.get(valid.relic).variant]}</g>`,'translate(278 62) scale(.88)');
     put(portal,valid.portal,valid.portal==='portal-default'?'':portals[items.get(valid.portal).variant],'translate(220 123) scale(.57)');
     put(backdrop,valid.theme,themeBackdrop(items.get(valid.theme).variant));
+    (nodeProgressBars||root.FocusProgressBars)?.decorate(doc);
     return valid;
   }
 

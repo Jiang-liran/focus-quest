@@ -10,7 +10,7 @@
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
   const statuses={locked:'尚未发布',available:'可以接取',active:'进行中',ready:'可以交付',expired:'今日已结束',claimed:'已交付'};
   const mentors={morning:{name:'司晨',title:'晨间导师',quote:'「先以数学磨砺思路，再用政治梳理脉络。把上午交给扎实的理解。」',hours:'00:00 — 12:00',grace:'12:30',subjects:'数学 · 政治'},afternoon:{name:'逐光',title:'午后领航员',quote:'「让知识连成网络，让语言打开远方。午后的航程，由你来选择。」',hours:'12:00 — 18:00',grace:'18:30',subjects:'408 · 英语'}};
-  let data=null,bridge=null,filter='all',market='coins',area='all',busy=false,intent=null,lastStamp=-Infinity;
+  let data=null,bridge=null,filter='all',market='coins',area='all',busy=false,intent=null,lastStamp=-Infinity,shopCatalogKey=null;
   const markupCache=new Map();
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -49,7 +49,7 @@
     const el=$(id);
     // Browsers normalize SVG and boolean attributes in innerHTML. Compare the
     // original markup, so polling preserves focus and ongoing shop animations.
-    if(el&&markupCache.get(id)!==html){el.innerHTML=html;markupCache.set(id,html);}
+    if(el&&markupCache.get(id)!==html){el.innerHTML=html;markupCache.set(id,html);window.FocusProgressBars?.decorate(el);}
   }
   function actionFor(q){
     if(q.status==='available')return {action:'accept',label:'接取委托'};
@@ -94,10 +94,12 @@
     if(Number.isFinite(stamp)&&stamp<lastStamp)return;
     if(Number.isFinite(stamp))lastStamp=stamp;
     data=next;
+    const previewBar=window.FocusQuickSkins?.previewBar?.();
+    const appearance=previewBar&&data.catalog.some(item=>item.id===previewBar&&item.slot==='bar'&&item.owned)?{...data.equipped,bar:previewBar}:data.equipped||{};
     delete document.documentElement.dataset.npc;
-    for(const [slot,id] of Object.entries(data.equipped||{}))document.documentElement.dataset[slot]=id;
+    for(const [slot,id] of Object.entries(appearance))document.documentElement.dataset[slot]=id;
     window.FocusInterfaceThemes?.apply(data.equipped?.interface);
-    window.ShopArt?.apply(data.equipped||{});
+    window.ShopArt?.apply(appearance);
     window.FocusCitadel?.applyEquipment?.(data.equipped||{},data.now);
     window.FocusCampfire?.applyEquipment(data.equipped||{},data.now);
     for(const prefix of ['wallet-side','quest','shop']){
@@ -126,6 +128,7 @@
     replace('quest-history',data.history.length?data.history.map(historyMarkup).join(''):'<div class="q-empty"><span>✧</span><p>第一份委托，等你亲手交付。</p><small>完成后，金币、钻石和这次努力会一起记在这里。</small></div>');
     window.FocusQuickSkins?.render(data);
     window.FocusMystery?.render(data);
+    window.FocusProgressBars?.decorate(document);
   }
   function renderShop(){
     const inArea=i=>area==='all'||(area==='interface'?i.slot==='interface':area==='camp'?campSlots.has(i.slot):i.slot!=='interface'&&!campSlots.has(i.slot));
@@ -148,7 +151,11 @@
     if(filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
-    replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
+    const catalogKey=JSON.stringify([area,market,filter,items,data.wallet,data.equipped,busy]);
+    if(catalogKey!==shopCatalogKey){
+      replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
+      shopCatalogKey=catalogKey;
+    }
   }
   function exchangeAmount(){
     const amount=Number($('exchange-amount').value);
@@ -188,8 +195,10 @@
     $('quest-action-dialog').classList.toggle('citadel-item-dialog',art.includes('citadel-full-preview'));
     $('quest-action-dialog').classList.toggle('island-item-dialog',art.includes('island-full-preview'));
     $('quest-action-dialog').classList.toggle('interface-item-dialog',art.includes('interface-full-preview'));
+    $('quest-action-dialog').classList.toggle('progress-bar-item-dialog',art.includes('progress-bar-full-preview'));
     $('quest-action-title').textContent=title;$('quest-action-eyebrow').textContent=eyebrow;
     $('quest-action-art').innerHTML=art;$('quest-action-body').innerHTML=body;
+    window.FocusProgressBars?.decorate($('quest-action-dialog'));
     $('quest-action-error').hidden=true;$('quest-action-confirm').textContent=label;
     $('quest-action-confirm').hidden=!label;$('quest-action-confirm').disabled=busy;
     $('quest-action-cancel').textContent=cancel;
@@ -217,6 +226,7 @@
     return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampWorldArt?.scene(equipped,{interactive:false})||window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
   }
   function itemPreview(item){
+    if(item.slot==='bar'&&window.FocusProgressBars?.has(item.id))return window.FocusProgressBars.fullPreview(item.id);
     if(item.slot==='interface'&&window.FocusInterfaceThemes)return window.FocusInterfaceThemes.fullPreview(item.id,data.equipped,window.ShopArt);
     if(campSlots.has(item.slot))return campPreview(item);
     if(item.slot==='island'&&window.ShopArt?.islandPreview)return `<div class="island-full-preview">${window.ShopArt.islandPreview(item.id,data.equipped)}<p>首页主岛整套布置 · 替换当前布置，保留其余装备与篝火入口</p></div>`;

@@ -1,0 +1,65 @@
+/* Decorations live inside the existing completed-width element. They never own progress. */
+:root .pb-enhanced[data-pb-skin]{position:relative;overflow:visible!important;isolation:isolate;background:#20293c!important;border-color:#a5bbd324!important;box-shadow:inset 0 0 0 1px #a0b3cf0b}
+:root .pb-enhanced[data-pb-skin]>i{position:relative;max-width:100%;min-width:0;overflow:visible!important;background:transparent!important;box-shadow:none!important;animation:none!important;isolation:isolate}
+:root .pb-enhanced[data-pb-skin] .pb-art{position:absolute;inset:0;display:block;border-radius:inherit;pointer-events:none!important;user-select:none}
+.pb-art *{pointer-events:none!important}
+:root .pb-enhanced[data-pb-skin] .pb-ribbon{position:absolute;inset:0;display:block;overflow:hidden;border-radius:inherit}
+:root .pb-enhanced[data-pb-skin] .pb-ribbon-svg{display:block;width:100%;height:100%;stroke:none;fill:none;overflow:hidden}
+:root .pb-enhanced[data-pb-skin] .pb-leader{position:absolute;right:0;top:50%;width:40px;max-width:100%;aspect-ratio:5/3;display:block;transform:translateY(-50%);pointer-events:none}
+:root .pb-enhanced[data-pb-skin] .pb-leader-svg{display:block;width:100%;height:100%;stroke:none;fill:none;overflow:hidden}
+:root .pb-enhanced[data-pb-compact=true] .pb-leader{width:26px}
+:root .pb-enhanced[data-pb-skin=bar-default] .pb-leader{width:12px}
+:root .pb-enhanced[data-pb-skin=bar-prism] .pb-leader{display:none}
+:root .pb-enhanced[data-pb-empty=true]>i>.pb-art{visibility:hidden}
+:root .pb-enhanced[data-pb-skin=bar-mint],:root .pb-enhanced[data-pb-skin=bar-fox]{background:#22392f!important;box-shadow:inset 0 0 0 1px #83b68018}
+:root .pb-enhanced[data-pb-skin=bar-tide],:root .pb-enhanced[data-pb-skin=bar-koi]{background:#173640!important;box-shadow:inset 0 0 0 1px #75c8cc17}
+:root .pb-enhanced[data-pb-skin=bar-prism]{background:#111c2f!important;box-shadow:inset 0 0 0 1px #7d9cf329}
+:root .pb-enhanced[data-pb-skin=bar-whale],:root .pb-enhanced[data-pb-skin=bar-aurora]{background:#202b48!important;box-shadow:inset 0 0 0 1px #b28bef1c}
+:root .pb-enhanced[data-pb-skin=bar-comet]{background:#352c40!important}
+:root .pb-enhanced[data-pb-skin=bar-dragon]{background:#243e46!important}
+.pb-rgb-flow{animation:pb-rgb-travel 9s linear infinite}
+.pb-aurora-flow{animation:pb-aurora-drift 7s ease-in-out infinite alternate}
+.pb-comet-dust{animation:pb-comet-trace 9s linear infinite}
+.pb-water-flow{animation:pb-water-drift 5s linear infinite}
+.pb-cloud-flow{animation:pb-cloud-drift 8s linear infinite}
+.pb-star-flow{animation:pb-stars-breathe 6s ease-in-out infinite alternate}
+.pb-animal-tail{transform-box:fill-box;transform-origin:100% 50%;animation:pb-tail-sway 3.8s ease-in-out infinite alternate}
+.pb-enhanced[data-pb-skin=bar-mint] .pb-leader-svg{transform-origin:50% 85%;animation:pb-sprout-sway 5s ease-in-out infinite alternate}
+@keyframes pb-rgb-travel{from{transform:translateX(0)}to{transform:translateX(-600px)}}
+@keyframes pb-aurora-drift{from{transform:translate(-12px,-1px)}to{transform:translate(12px,1px)}}
+@keyframes pb-comet-trace{from{stroke-dashoffset:0}to{stroke-dashoffset:-115}}
+@keyframes pb-water-drift{from{transform:translateX(0)}to{transform:translateX(60px)}}
+@keyframes pb-cloud-drift{from{transform:translateX(0)}to{transform:translateX(84px)}}
+@keyframes pb-stars-breathe{from{opacity:.42}to{opacity:.8}}
+@keyframes pb-tail-sway{from{transform:rotate(-4deg)}to{transform:rotate(4deg)}}
+@keyframes pb-sprout-sway{from{transform:rotate(-3deg)}to{transform:rotate(3deg)}}
+/* Shared illustration styles are explicit so interface themes cannot recolor them. */
+svg.progress-bar-thumbnail,svg.progress-bar-sample{display:block;fill:none;stroke:none;width:100%;height:auto;overflow:visible;pointer-events:none;isolation:isolate}
+.progress-bar-thumbnail svg,.progress-bar-sample svg{display:block;stroke:none;fill:none}
+.progress-bar-full-preview{width:100%;max-width:740px;margin:auto;color:var(--ui-ink,#d4deec);text-align:left}
+.progress-bar-full-preview header{padding:8px 4px 22px}
+.progress-bar-full-preview header small{font-size:10px;letter-spacing:.12em;color:var(--ui-muted,#94a4bb)}
+.progress-bar-full-preview h3{font-size:24px;letter-spacing:.04em;margin:11px 0 12px;font-weight:550}
+.progress-bar-full-preview header p{font-size:13px;line-height:1.9;color:var(--ui-muted,#a2b1c6)}
+.progress-bar-stages{display:grid;gap:8px}
+.progress-bar-stage{display:grid;grid-template-columns:47px minmax(0,1fr);align-items:center;gap:4px;padding:0 15px;border:1px solid var(--ui-line,#a3bbd419);background:var(--ui-surface,#14202f77);border-radius:11px}
+.progress-bar-stage>span{font-size:12px;font-variant-numeric:tabular-nums;color:var(--ui-muted,#a6b9cf);text-align:center}
+.progress-bar-sample{max-height:88px}
+.progress-bar-preview-note{font-size:11px;line-height:1.8;color:var(--ui-muted,#91a4bc);padding:17px 3px 3px}
+dialog.progress-bar-item-dialog{width:min(780px,94vw);max-height:92vh;overflow:auto}
+@media(min-width:2000px){.progress-bar-full-preview h3{font-size:29px}.progress-bar-full-preview header p{font-size:16px}.progress-bar-full-preview header small,.progress-bar-preview-note{font-size:13px}}
+html.no-motion :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *{animation:none!important;transition:none!important}
+html.focus-runtime-hidden :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,[hidden] :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,dialog:not([open]) :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,[data-pb-empty=true] .pb-art *{animation-play-state:paused!important}
+html.has-citadel-view main .pb-art *,html.has-campfire-room main .pb-art *,html.has-campfire-view main .pb-art *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){:is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *{animation:none!important;transition:none!important}}
+/* The legacy purchase dialog used a fixed 150px thumbnail; full progress previews need natural height. */
+#quest-action-dialog.progress-bar-item-dialog{width:min(760px,94vw);max-height:92vh;overflow:auto;padding:23px 27px}
+#quest-action-dialog.progress-bar-item-dialog .q-action-art{height:auto;min-height:0;overflow:visible;background:var(--ui-surface,#14202f);padding:14px 18px;border-radius:12px}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-full-preview header{padding:0 3px 10px}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-full-preview header small,#quest-action-dialog.progress-bar-item-dialog .progress-bar-full-preview h3{display:none}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-full-preview header p{font-size:12px;line-height:1.65;margin:0}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-stages{gap:5px}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-stage{height:49px;padding:0 8px;grid-template-columns:37px minmax(0,1fr)}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-sample{height:47px}
+#quest-action-dialog.progress-bar-item-dialog .progress-bar-preview-note{padding:10px 3px 0;font-size:10px;line-height:1.5;margin:0}
+@media(max-height:760px){#quest-action-dialog.progress-bar-item-dialog{padding:18px 23px}#quest-action-dialog.progress-bar-item-dialog .q-action-art{padding:11px 14px}#quest-action-dialog.progress-bar-item-dialog .progress-bar-stage{height:42px}#quest-action-dialog.progress-bar-item-dialog .progress-bar-sample{height:40px}}
