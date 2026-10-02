@@ -3654,6 +3654,20 @@ class FocusStore:
                     "actions": self.actions_state(now.astimezone()),
                     "arcade": self.arcade_state(now.astimezone()), "revision": self.revision}
 
+    def interface_mode(self):
+        """One collector and one archive serve both the current and v1.0 UI."""
+        with self.lock:
+            mode = self._meta("interface_mode")
+            return mode if mode in ("modern", "classic") else "modern"
+
+    def set_interface_mode(self, mode):
+        if not isinstance(mode, str) or mode not in ("modern", "classic"):
+            raise ValueError("请选择最新版或第一版")
+        with self.lock, self.db:
+            if self._meta("interface_mode") != mode:
+                self._set_meta("interface_mode", mode)
+        return {"mode": mode, "url": "/"}
+
     def export_csv(self):
         with self.lock:
             stream = io.StringIO(newline="")
@@ -3734,6 +3748,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                 url = urlsplit(self.path)
                 if url.path == "/api/health":
                     self._send(200, {"ok": True})
+                elif url.path == "/api/interface":
+                    if url.query:
+                        raise ValueError("版本选择不接受查询参数")
+                    self._send(200, {"mode": store.interface_mode(), "url": "/"})
                 elif url.path == "/api/state":
                     query = parse_qs(url.query)
                     self._send(200, store.state(query.get("date", [None])[0]))
@@ -3773,9 +3791,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                 elif url.path.startswith("/api/"):
                     self._send(404, {"error": "接口不存在"})
                 else:
-                    path = (static_dir / unquote(url.path).lstrip("/")).resolve()
-                    if path == static_dir:
-                        path = static_dir / "index.html"
+                    requested = unquote(url.path).lstrip("/")
+                    if not requested:
+                        requested = "classic/index.html" if store.interface_mode() == "classic" else "index.html"
+                    elif requested == "classic/":
+                        requested = "classic/index.html"
+                    path = (static_dir / requested).resolve()
                     if static_dir not in path.parents or not path.is_file():
                         self._send(404, {"error": "页面不存在"})
                         return
@@ -3813,7 +3834,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                 "/api/city-life/outfit": store.city_life_outfit,
                                 "/api/city-life/outfit-apply": store.city_life_outfit_apply,
                                 "/api/city-life/outfit-archive": store.city_life_outfit_archive}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
+                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3827,7 +3848,11 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path in city_actions:
+                if path == "/api/interface":
+                    if url.query or set(payload) != {"mode"}:
+                        raise ValueError("请仅提供要切换的版本")
+                    self._send(200, store.set_interface_mode(payload["mode"]))
+                elif path in city_actions:
                     if url.query:
                         raise ValueError("城市生活修改不接受查询参数")
                     self._send(200, city_actions[path](payload))

@@ -1,0 +1,17 @@
+{
+  "version": "1.0",
+  "build": "1",
+  "archive": "专注远征-v1.0.zip",
+  "originalSha256": {
+    "index.html": "290fc30b646c71621a5102a6665a2a4fd0e5de499d6894d39985e6c9dacae605",
+    "style.css": "ae8b66411d63d967314038be09f6f6f036e50ea672bdd111618d4a08144e83ac",
+    "app.js": "41b07bfbdf9cb40687e15c380edbe919f442e2cef6ef07ea703d7625877d0405"
+  },
+  "compatibility": [
+    "Shared current record service",
+    "Persistent two-way interface switch",
+    "Current daily/weekly goal rules",
+    "Native visibility suspension",
+    "Existing newer settings preserved"
+  ]
+}

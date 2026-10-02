@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark"><title>专注远征 · 把努力变成看得见的成长</title>
+  <link rel="stylesheet" href="/classic/style.css">
+  <link rel="stylesheet" href="/goals.css">
+  <link rel="stylesheet" href="/interface-switch.css">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+</head>
+<body data-interface-mode="classic">
+  <svg class="svg-defs" aria-hidden="true"><defs>
+    <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m16 8-2.5 5.5L8 16l2.5-5.5Z"/></symbol>
+    <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M12 5c-3-2-6-2-9-1v15c3-1 6-1 9 1 3-2 6-2 9-1V4c-3-1-6-1-9 1Zm0 0v15"/></symbol>
+    <symbol id="i-bolt" viewBox="0 0 24 24"><path d="m13 2-9 12h7l-1 8 10-13h-7Z"/></symbol>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="m12 2 3 6.5 7 1-5 5 1.2 7L12 18l-6.2 3.5 1.2-7-5-5 7-1Z"/></symbol>
+    <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M7 3h10v6c0 6-10 6-10 0Zm0 2H3v3c0 3 3 4 5 3m9-6h4v3c0 3-3 4-5 3m-4 4v5m-5 1h10"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 11a9 9 0 1 1 2 7M3 4v7h7m2-5v7l4 2"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 7h16M4 17h16"/><circle cx="9" cy="7" r="3"/><circle cx="15" cy="17" r="3"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 12h14m-5-5 5 5-5 5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14A9 9 0 0 1 10 3a9 9 0 1 0 10 11Z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 24 24"><path d="m8 6-6 6 6 6m8-12 6 6-6 6m-3-15-2 18"/></symbol>
+    <symbol id="i-flag" viewBox="0 0 24 24"><path d="M5 22V3c5-3 9 4 14 0v11c-5 4-9-3-14 0"/></symbol>
+  </defs></svg>
+
+  <aside class="sidebar">
+    <a class="brand" href="#today" aria-label="专注远征首页"><span class="brand-mark"><svg><use href="#i-compass"/></svg></span><span>专注远征<small>FOCUS QUEST</small></span></a>
+    <div class="nav-label">你的冒险日志</div>
+    <nav aria-label="主要导航">
+      <button class="nav-item active" data-view="today"><svg><use href="#i-compass"/></svg>今日远征<span class="nav-dot"></span></button>
+      <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
+      <button class="nav-item" data-view="achievements"><svg><use href="#i-trophy"/></svg>成长图鉴</button>
+    </nav>
+    <div class="side-note"><div class="small-orbit">✦</div><p>每一段专注，<br>都在让未来更近一点。</p><span>不必完美，持续向前。</span></div>
+    <div class="sidebar-bottom">
+      <button class="nav-item" id="settings-open"><svg><use href="#i-settings"/></svg>远征设置</button>
+      <button class="source-status" id="source-open" aria-label="番茄 ToDo 连接信息"><i id="source-dot"></i><span id="source-label">正在连接番茄 ToDo</span><span>↗</span></button>
+      <div class="local-label">本地保存 · 记录只属于你</div>
+    </div>
+  </aside>
+
+  <main>
+    <header class="topbar"><div class="breadcrumb">我的营地 <span>/</span> <b id="page-crumb">今日远征</b></div><div class="topbar-right"><button type="button" class="classic-return" data-interface-mode="modern" aria-label="返回最新版">返回最新版 ↗</button><span class="live-clock" id="clock"></span><button class="date-button" id="date-button" title="选择日期"></button><input type="date" id="date-picker" aria-label="查看日期"><button class="icon-button" id="refresh" title="立即同步" aria-label="立即同步">↻</button></div></header>
+    <p class="interface-status-banner" data-interface-status hidden></p><div id="error-banner" class="error-banner" hidden></div>
+    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill"><div class="level-emblem"><svg><use href="#i-star"/></svg></div><div><strong id="level">Lv. —</strong><span id="level-name">远征者</span><div class="mini-progress"><i id="level-bar"></i></div><small id="level-xp">正在读取经验…</small></div></div></section>
+
+    <div id="view-today" class="view">
+      <section class="quest-hero" id="quest-hero" data-stage="0">
+        <div class="hero-top"><span class="section-kicker"><i></i>每日主线 · 穿越迷雾之境</span><button class="ghost-button" id="preview-effects">✧ 预览通关特效</button></div>
+        <div class="hero-content">
+          <div class="hero-copy"><span class="stage-tag" id="stage-tag">整装出发</span><h2 id="hero-heading">每一分钟，<br>都算数。</h2><p id="hero-message">今天的远征，从一小段专注开始。</p><div class="hero-numbers"><strong id="total-time">—</strong><span>/ <b id="total-target">8</b> 小时目标</span></div><div class="total-progress-label"><span id="remaining">正在读取学习记录</span><strong id="total-percent">—%</strong></div><div class="total-progress" role="progressbar" aria-label="每日总进度" aria-valuemin="0" aria-valuemax="100"><i id="total-bar"></i></div></div>
+          <div class="quest-scene" aria-hidden="true">
+            <div class="scene-halo"></div><div class="stars"><i>✧</i><i>✦</i><i>·</i><i>✧</i><i>·</i><i>✦</i></div>
+            <svg class="island-art" viewBox="0 0 590 350" fill="none">
+              <defs><linearGradient id="rock" x1="200" y1="170" x2="320" y2="350" gradientUnits="userSpaceOnUse"><stop stop-color="#40396f"/><stop offset="1" stop-color="#191b38"/></linearGradient><linearGradient id="ground" x1="100" y1="80" x2="410" y2="280" gradientUnits="userSpaceOnUse"><stop stop-color="#48527e"/><stop offset="1" stop-color="#343253"/></linearGradient><linearGradient id="gem" x1="296" y1="45" x2="336" y2="150" gradientUnits="userSpaceOnUse"><stop stop-color="#e5deff"/><stop offset=".35" stop-color="#bea0ff"/><stop offset="1" stop-color="#7050eb"/></linearGradient><linearGradient id="beam" x1="313" y1="0" x2="313" y2="165" gradientUnits="userSpaceOnUse"><stop stop-color="#b6a1ff" stop-opacity="0"/><stop offset="1" stop-color="#b6a1ff" stop-opacity=".5"/></linearGradient><filter id="glow"><feGaussianBlur stdDeviation="4"/></filter></defs>
+              <ellipse cx="300" cy="319" rx="166" ry="16" fill="#090d21" opacity=".4"/>
+              <g class="floating-island"><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="url(#rock)"/><path d="m190 245 28 62 83 19-22-85m85-23-26 88 67-35 76-81" fill="#252744"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="url(#ground)" stroke="#605787" stroke-width="2"/><path d="m101 209 66 33 100 35 138-25 75-65" stroke="#9381c4" stroke-opacity=".35" stroke-width="4"/>
+                <path class="scene-path" d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" stroke="#9d86c9" stroke-opacity=".3" stroke-width="16"/><path class="scene-path-lit" d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" stroke="#d0baff" stroke-width="3" stroke-dasharray="4 9"/>
+                <g opacity=".85"><path d="m156 163-15 16 15 8 15-8Z" fill="#1f4b52"/><path d="m156 137-21 33 21 12 20-12Z" fill="#406273"/><path d="m156 125-15 28 15 8 15-8Z" fill="#53818a"/><path d="M156 179v19" stroke="#665781" stroke-width="5"/><path d="m216 112-23 39 23 12 23-12Z" fill="#335364"/><path d="m216 98-16 30 16 10 16-10Z" fill="#608090"/><path d="M216 155v15" stroke="#665781" stroke-width="5"/><path d="m435 171-22 36 22 12 22-12Z" fill="#385462"/><path d="m435 156-17 32 17 8 17-8Z" fill="#538086"/><path d="M435 212v15" stroke="#665781" stroke-width="5"/></g>
+                <g class="crystal-shrine"><ellipse cx="322" cy="159" rx="47" ry="22" fill="#9980f0" opacity=".15"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Z" fill="#675e92"/><path d="m322 175 38-23v13l-38 23Z" fill="#8d7caf"/><path d="m300 143 22-13 24 13-24 14Z" fill="#dfcdf5"/><path d="m300 143 22 14v10l-22-13Zm22 14 24-14v10l-24 14Z" fill="#9c85bd"/><path class="light-beam" d="m301 143-16-140h75l-15 140Z" fill="url(#beam)"/>
+                  <g class="crystal"><path d="m321 63-24 38 24 44 25-44Z" fill="#b49cfb" opacity=".6" filter="url(#glow)"/><path d="m321 60-23 39 23 42 24-42Z" fill="url(#gem)"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ff" opacity=".65"/><path d="m321 60 24 39-21 3Z" fill="#9271ea"/><path d="m310 80-8 17" stroke="white" stroke-width="2" stroke-linecap="round"/></g>
+                </g>
+                <g class="traveler"><ellipse cx="171" cy="220" rx="13" ry="6" fill="#13172d" opacity=".4"/><path d="m170 193-10 20 12 5 11-6-8-20Z" fill="#c3a4f9"/><path d="m170 193-3 22 5 3 11-6-8-20Z" fill="#8e6ad2"/><circle cx="172" cy="185" r="8" fill="#e4c0ae"/><path d="m171 169-14 20 27 1Z" fill="#d0b0ff"/><path d="m171 169 13 21-12-2Z" fill="#9c7ddb"/><path d="m188 191-3 28" stroke="#d7bd96" stroke-width="3" stroke-linecap="round"/><circle cx="188" cy="189" r="4" fill="#ead5ff"/></g>
+                <g fill="#9990cd"><path d="m244 255 6-5 7 3-2 5Z"/><path d="m376 128 9-4 9 7-12 3Z"/><path d="m130 202 5-6 9 4-4 7Z"/></g>
+                <g class="island-sparkles" fill="#ddd0ff"><path d="m256 157 2-6 2 6 6 2-6 2-2 6-2-6-6-2Z"/><path d="m377 210 2-5 2 5 5 2-5 2-2 5-2-5-5-2Z"/><circle cx="370" cy="91" r="2"/><circle cx="227" cy="197" r="2"/></g>
+              </g>
+              <g opacity=".35"><path d="m63 252 24-14 22 13-19 11Z" fill="#69618f"/><path d="m63 252 27 28 19-29-19 11Z" fill="#34334d"/><path d="m484 111 22-13 29 16-24 12Z" fill="#69618f"/><path d="m484 111 27 40 24-37-24 12Z" fill="#34334d"/></g>
+            </svg>
+            <div class="scene-caption"><span>✦</span> 迷雾终会散去，脚步都有回响。</div>
+          </div>
+        </div>
+        <div class="milestones" id="milestones"></div>
+      </section>
+
+      <section class="subjects-section"><div class="section-heading"><h2>四科战线 <span>SUBJECT QUESTS</span></h2><button class="text-button" id="targets-edit">调整目标 <span>↗</span></button></div><div class="subject-grid" id="subjects"></div></section>
+      <section class="advice-card" id="advice-card"><div class="advice-icon"><svg><use href="#i-compass"/></svg></div><div><strong id="advice-title">旅途中的小建议</strong><p id="advice-text">先专注眼前的一小步。</p></div><button class="text-button" id="advice-dismiss" aria-label="暂时收起这条建议">知道了</button></section>
+      <div class="bottom-grid"><section class="panel weekly-panel"><div class="section-heading"><h2>本周足迹 <span>LAST 7 DAYS</span></h2><span class="muted" id="weekly-total"></span></div><div class="week-chart" id="week-chart"></div><div class="chart-footer"><span><i></i>每日专注时长</span><span>走慢一点也没关系，脚印会留下。</span></div></section><section class="panel recent-panel"><div class="section-heading"><h2>最近的收获</h2><button class="text-button" id="all-records">全部记录 ↗</button></div><div id="recent-records" class="records-list"></div></section></div>
+    </div>
+
+    <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>开始 → 完成</th><th>专注时长</th><th>经验</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">记录来自番茄 ToDo 已保存的完成任务。首次导入与重复同步不会重复奖励。</p></section></div>
+    <div id="view-achievements" class="view" hidden><div class="stats-row" id="achievement-stats"></div><section class="panel growth-panel"><div><div class="eyebrow">A LITTLE, EVERY DAY</div><h2>你走过的路，<br>都成为了你的力量。</h2><p>每专注 1 分钟，积累 1 XP。每 120 XP 升一级。<br>今天的进度会重置，积累的成长不会。</p></div><div class="growth-orb"><svg><use href="#i-trophy"/></svg></div></section><div class="section-heading"><h2>远征勋章 <span>YOUR COLLECTION</span></h2><span class="muted">投入与均衡，都值得被看见</span></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。不设断签惩罚，也没有超时经验倍率。</p></div>
+
+    <footer><span>✧ 专注远征</span><span id="footer-sync">正在连接本地记录…</span><span>让努力有回响。</span></footer>
+  </main>
+
+  <div id="goal-keeper" hidden></div>
+  <dialog id="settings-dialog"><form id="settings-form"><div class="dialog-heading"><div><span class="eyebrow">MAKE IT YOURS</span><h2>设置你的远征</h2></div><button type="button" class="icon-button close-dialog" aria-label="关闭设置">×</button></div><p class="dialog-intro">第一版 · 最初的界面，继续记录此刻的学习。</p><div class="settings-label">所选日期的目标 <span>与最新版共用同一份航图</span></div><div class="target-inputs" id="target-inputs"></div><div class="target-summary">每日主线 <strong id="target-sum">8 小时</strong></div><div class="classic-goal-note">今日目标仍由司衡调整，每天最多两次；周目标每周首次确认后锁定。<br><button type="button" class="secondary-button" id="classic-goals-open">与司衡调整今日目标 ↗</button></div><div class="settings-label">任务自动归类 <span>更改后会重新计算历史记录</span></div><div id="mapping-fields" class="mapping-fields"></div><section class="interface-switch" aria-label="版本切换"><div class="interface-switch-copy"><strong>当前：第一版 1.0</strong><p>最初的浮空岛、四科进度与成长图鉴。后台继续同步电脑与手机记录。</p><small>新版的金币、钻石和收藏仍然保留，返回后即可继续使用。</small><p data-interface-status hidden></p></div><button type="button" data-interface-mode="modern">返回最新版 ↗</button></section><div class="settings-label">反馈偏好</div><label class="toggle-row"><div>动态光效与庆祝<span>可随时关闭，系统减少动态效果设置也会生效</span></div><input type="checkbox" id="motion-input" role="switch"></label><label class="toggle-row"><div>完成提示音<span>收到新完成记录时播放轻提示音</span></div><input type="checkbox" id="sound-input" role="switch"></label><p id="settings-error" class="form-error" hidden></p><div class="dialog-footer"><button type="button" class="secondary-button close-dialog">取消</button><button type="submit" class="primary-button" id="save-settings">保存设置</button></div></form></dialog>
+
+  <dialog id="source-dialog"><div class="dialog-heading"><div><span class="eyebrow">CONNECTED TO YOUR FOCUS</span><h2>番茄 ToDo 连接</h2></div><button class="icon-button close-dialog" aria-label="关闭连接信息">×</button></div><div id="source-details"></div><div class="source-explanation"><strong>完成一次专注，自动交一次任务。</strong><p>每 3 秒检查一次电脑端本地完成记录，独立保存存档。不会修改番茄 ToDo 数据，也不需要账号密码。</p><p>这里只统计已写入这台电脑的数据。手机上单独完成的记录，只有进入电脑的本地记录后才会显示。</p></div><button class="primary-button" id="sync-now">立即检查记录</button></dialog>
+
+  <dialog id="celebration-dialog"><button class="icon-button celebration-close" aria-label="关闭奖励">×</button><div class="confetti" id="confetti"></div><div class="celebration-gem">✦</div><div class="eyebrow" id="celebration-kicker">DAILY QUEST COMPLETE</div><h2 id="celebration-title">今日远征，圆满通关。</h2><p id="celebration-body"></p><div class="reward-pill" id="celebration-reward"></div><p class="reward-note" id="celebration-note">这段努力，已经计入你的成长。</p><button class="primary-button" id="celebration-done">收下这份成就</button></dialog>
+  <div class="toast-stack" id="toasts" role="status" aria-live="polite"></div>
+  <script src="/runtime.js"></script>
+  <script src="/goals.js"></script>
+  <script src="/interface-switch.js"></script>
+  <script src="/classic/app.js"></script>
+</body></html>

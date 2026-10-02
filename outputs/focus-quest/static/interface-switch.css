@@ -1,0 +1,19 @@
+.interface-switch{display:flex;align-items:center;gap:20px;margin:20px 0;padding:18px 20px;border:1px solid var(--ui-line,#454057);border-radius:var(--ui-radius,12px);background:var(--ui-soft,#bda4f609)}
+.interface-switch-copy{flex:1;min-width:0}
+.interface-switch-copy>strong{display:block;font-size:14px;color:var(--ui-ink,#ddd7ee);font-weight:600}
+.interface-switch-copy>p{margin:7px 0 0;font-size:12px;line-height:1.8;color:var(--ui-muted,#a29caf)}
+.interface-switch-copy>small{display:block;margin-top:5px;font-size:11px;line-height:1.8;color:var(--ui-muted,#a29caf)}
+.interface-switch button,.classic-return{flex-shrink:0;padding:11px 15px;border:1px solid var(--ui-line,#665778);border-radius:8px;background:var(--ui-control,#222033);color:var(--ui-ink,#e3d8f4);font-size:12px;line-height:1.5;white-space:nowrap;cursor:pointer}
+.interface-switch button:hover,.classic-return:hover{border-color:var(--ui-accent,#c2addf);background:var(--ui-surface-raised,#302a41)}
+.interface-switch button:disabled,.classic-return:disabled{cursor:wait;opacity:.6}
+[data-interface-status]{font-size:12px;color:var(--ui-accent,#c2addf);line-height:1.8;margin:8px 0}
+[data-interface-status][role=alert]{color:#dc9e99}
+[data-interface-status][hidden],#goal-keeper[hidden]{display:none!important}
+.interface-status-banner{padding:10px 14px;border:1px solid #665778;border-radius:8px;background:#222033}
+.interface-switch button:focus-visible,.classic-return:focus-visible{outline:2px solid var(--ui-accent,#c2addf);outline-offset:3px}
+body[data-interface-mode=classic] .classic-return{padding:7px 12px;font-size:11px}
+body[data-interface-mode=classic] .target-inputs input:disabled{opacity:.75;cursor:default}
+body[data-interface-mode=classic] .classic-goal-note{font-size:12px;color:#a29caf;line-height:1.8;margin:10px 0 15px}
+body[data-interface-mode=classic] .classic-goal-note button{margin-top:9px}
+body[data-interface-mode=classic] .focus-runtime-hidden *,html.focus-runtime-hidden body[data-interface-mode=classic] *{animation-play-state:paused!important}
+@media(max-width:650px){.interface-switch{align-items:flex-start;flex-direction:column;gap:12px;padding:16px}.interface-switch button{align-self:flex-end}}
