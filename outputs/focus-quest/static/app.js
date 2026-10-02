@@ -103,9 +103,10 @@ function render() {
   $('level-name').textContent=t.level<10?'启程学徒':t.level<50?'知识游侠':t.level<150?'远征守护者':'长期主义者';
   $('level-xp').textContent=`${t.levelXp} / ${t.levelTarget} XP · 下一级`;
   $('level-bar').style.width=(t.levelXp/t.levelTarget*100)+'%';
-  $('source-label').textContent=s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接';
-  $('source-dot').classList.toggle('connected',s.sync.connected);
-  $('footer-sync').textContent=s.sync.connected?`本地存档 ${number(s.sync.importedCount,0)} 条 · 每 ${s.sync.pollSeconds} 秒自动捕获`:'同步暂不可用 · 已保存的记录仍可查看';
+  const phone=s.calendarSync;
+  $('source-label').textContent=phone?.enabled ? (s.sync.connected&&phone.connected?'电脑 + 手机 · 已连接':phone.connected?'手机已连接 · 电脑待连接':s.sync.connected?'电脑已连接 · 手机待连接':'记录同步 · 等待连接') : (s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接');
+  $('source-dot').classList.toggle('connected',s.sync.connected&&(!phone?.enabled||phone.connected));
+  $('footer-sync').textContent=`本地存档 ${number(s.allTime.records,0)} 条 · ${phone?.enabled?(phone.connected?'手机日历自动同步中':'手机同步待恢复'):s.sync.connected?'每 '+s.sync.pollSeconds+' 秒自动捕获':'同步待恢复'}`;
   renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
 }
@@ -212,10 +213,10 @@ function renderActivities() {
 
 function renderRecords() {
   const records=state.records;
-  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span><span class="record-xp">+${number(r.minutes)} XP</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
+  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span><span class="record-xp">+${number(r.minutes)} XP</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
   $('history-stats').innerHTML=statCard('本日专注',durationHTML(state.totals.minutes))+statCard('完成任务',`${state.dayRecordCount??records.length}<small>个</small>`)+statCard('每日主线进度',`${pct(state.totals.percent)}`);
   $('archive-note').textContent=`${dateText(state.date)} · ${state.date} · ${(state.dayRecordCount??records.length)>100?'展示最近 100 条，全部记录可导出':'全部完成记录'}`;
-  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
+  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
 }
 
 function statCard(label,value) { return `<div class="stat-card"><span>${esc(label)}</span><strong>${value}</strong></div>`; }
@@ -268,14 +269,24 @@ async function saveSettings(event) {
 }
 
 function renderSource() {
-  const s=state.sync;
-  const rows=[['连接状态',s.connected?'正常 · 自动捕获中':'暂不可用 · 正在重试'],['保存的有效记录',number(s.importedCount,0)+' 条'],['最近检查',timeOf(s.lastCheck)],['最近记录更新',s.lastImport?new Date(s.lastImport).toLocaleString('zh-CN',{hour12:false}):'尚未导入'],['只读来源',s.sourcePath]];
-  if(s.error)rows.push(['同步提示',s.error]);
-  $('source-details').innerHTML=rows.map(([k,v])=>`<div class="source-detail-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join('');
+  const s=state.sync,p=state.calendarSync;
+  const row=([k,v])=>`<div class="source-detail-row"><span>${esc(k)}</span><b>${esc(v)}</b></div>`;
+  const rows=[['电脑番茄 ToDo',s.connected?'已连接 · 自动捕获中':'暂不可用 · 正在重试'],['最近检查',timeOf(s.lastCheck)],['只读来源',s.sourcePath]];
+  if(s.error)rows.push(['电脑同步提示',s.error]);
+  const phoneRows=[['iPhone 日历',p?.enabled?(p.connected?'已连接 · 自动捕获中':'等待同步恢复'):'尚未启用']];
+  if(p?.enabled){
+    phoneRows.push(['同步日历',p.calendarName||'等待日历信息'],['最近读取',timeOf(p.snapshotAt)],['已同步的手机记录',number(p.importedCount,0)+' 条']);
+    if(p.error)phoneRows.push(['手机同步提示',p.error]);
+  }
+  $('source-details').innerHTML='<div class="source-group">'+rows.map(row).join('')+'</div><div class="source-group">'+phoneRows.map(row).join('')+'</div>'+row(['全部学习存档',number(state.allTime.records,0)+' 条']);
 }
 async function syncNow() {
   $('sync-now').disabled=true;$('refresh').disabled=true;
-  try{await api('/api/sync',{});await refresh(true);toast(state.sync.connected?'记录已核对':'暂时未能同步',state.sync.connected?'新的完成任务会自动入账，已有记录不会重复计算。':state.sync.error,!state.sync.connected);}
+  try{
+    await api('/api/sync',{});await refresh(true);
+    const phone=state.calendarSync,ready=state.sync.connected&&(!phone?.enabled||phone.connected);
+    toast(ready?'记录已核对':'部分来源等待连接',ready?(phone?.enabled?'已核对电脑记录和手机日历；iCloud 尚未送达的记录会继续自动等待。':'新的完成任务会自动入账，已有记录不会重复计算。'):(phone?.enabled&&!phone.connected?phone.error:state.sync.error)||'后台会继续重试。',!ready);
+  }
   catch(error){toast('同步未完成',error.message,true);}
   finally{$('sync-now').disabled=false;$('refresh').disabled=false;}
 }

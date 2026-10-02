@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import csv
+import hashlib
 import io
 import json
 import math
@@ -18,6 +19,7 @@ import signal
 import sqlite3
 import threading
 import time
+import tempfile
 from datetime import date, datetime, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -27,6 +29,7 @@ DEFAULT_SOURCE = Path.home() / "Library/Application Support/tomatodo/tomatodo_db
 DEFAULT_DATA = Path.home() / "Library/Application Support/FocusQuest"
 STATIC_DIR = Path(__file__).resolve().parent / "static"
 POLL_SECONDS = 3
+CALENDAR_STALE_SECONDS = 180
 SUBJECTS = (
     ("math", "数学", "#65e4b4"),
     ("cs", "408", "#ab9bff"),
@@ -137,6 +140,52 @@ def normalize_record(record):
         iso_ms(completed_ms)
         key = f"{source_id}:{start_ms}"
         return (key, str(source_id), name.strip(), float(minutes), start_ms, completed_ms, day, "tomatodo")
+    except (ValueError, TypeError, OverflowError, OSError):
+        return None
+
+
+def calendar_timestamp(value):
+    """Calendar bridge timestamps must include a timezone; never guess one."""
+    if not isinstance(value, str) or len(value) > 50:
+        raise ValueError("日历时间格式无效")
+    parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    if parsed.tzinfo is None:
+        raise ValueError("日历时间缺少时区")
+    timestamp = int(parsed.timestamp() * 1000)
+    finite_number(timestamp, minimum=1, maximum=32503680000000)
+    return timestamp
+
+
+def normalize_calendar_record(event, calendar_id, allowed_titles, now_ms, range_start, range_end):
+    """Accept completed, named study events from the explicitly selected calendar."""
+    if not isinstance(event, dict):
+        return None
+    try:
+        if (event.get("calendarID") != calendar_id or event.get("isAllDay") is not False
+                or event.get("isRecurring") is True):
+            return None
+        title = event.get("title")
+        if not isinstance(title, str) or title not in allowed_titles:
+            return None
+        item_id = event.get("calendarItemIdentifier")
+        if not isinstance(item_id, str) or not item_id or len(item_id) > 2000:
+            return None
+        start_ms, end_ms = calendar_timestamp(event.get("start")), calendar_timestamp(event.get("end"))
+        duration = end_ms - start_ms
+        if not 1000 <= duration <= 86_400_000 or end_ms > now_ms:
+            return None
+        if end_ms <= range_start or start_ms >= range_end:
+            return None
+        external_id = event.get("externalIdentifier")
+        if external_id is not None and (not isinstance(external_id, str) or len(external_id) > 2000):
+            return None
+        # iCloud's external UID survives a full EventKit cache refresh, unlike
+        # calendarItemIdentifier. Tomato writes independent, nonrecurring events.
+        identity = ["external", external_id] if external_id else ["item", item_id]
+        source_key = json.dumps([calendar_id] + identity, ensure_ascii=False, separators=(",", ":"))
+        key = "calendar:" + hashlib.sha256(source_key.encode("utf-8")).hexdigest()
+        day = datetime.fromtimestamp(end_ms / 1000).astimezone().date().isoformat()
+        return (key, source_key, title, round(duration / 60_000, 8), start_ms, end_ms, day, "calendar")
     except (ValueError, TypeError, OverflowError, OSError):
         return None
 
@@ -331,6 +380,11 @@ class FocusStore:
                 day TEXT NOT NULL, source TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS records_day ON records(day);
+            CREATE TABLE IF NOT EXISTS record_aliases (
+                source TEXT NOT NULL, source_key TEXT NOT NULL, record_id TEXT NOT NULL,
+                PRIMARY KEY (source, source_key)
+            );
+            CREATE INDEX IF NOT EXISTS record_aliases_record ON record_aliases(record_id);
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         self.settings = json.loads(json.dumps(DEFAULT_SETTINGS))
@@ -346,6 +400,13 @@ class FocusStore:
                      "lastImport": self._meta("lastImport"), "error": None,
                      "importedCount": self.db.execute("SELECT COUNT(*) FROM records").fetchone()[0],
                      "pollSeconds": POLL_SECONDS}
+        self.calendar_config = self.data_dir / "calendar-bridge-config.json"
+        self.calendar_snapshot = self.data_dir / "calendar-bridge-snapshot.json"
+        self.source_task_names = set()
+        self.calendar_sync = {"enabled": False, "connected": False, "calendarName": None,
+                              "lastCheck": None, "lastImport": self._meta("calendarLastImport"),
+                              "snapshotAt": None, "error": None, "importedCount": 0,
+                              "ignoredCount": 0, "pollSeconds": 30}
 
     def _meta(self, key):
         item = self.db.execute("SELECT value FROM meta WHERE key=?", (key,)).fetchone()
@@ -374,12 +435,48 @@ class FocusStore:
                     raise ValueError("源文件正在更新，请稍后重试")
                 if not isinstance(document, dict) or not isinstance(document.get("PCRecord"), list):
                     raise ValueError("未找到番茄 ToDo 的 PCRecord 记录数组")
+                templates = document.get("PCToDo", [])
+                if isinstance(templates, list):
+                    self.source_task_names = {item["name"].strip() for item in templates
+                                              if isinstance(item, dict) and isinstance(item.get("name"), str)
+                                              and 0 < len(item["name"].strip()) <= 500}
                 return document["PCRecord"]
             except (OSError, ValueError, UnicodeError) as error:
                 last_error = error
                 if attempt < 2:
                     time.sleep(0.03)
         raise last_error
+
+    def _upsert_record(self, record):
+        """Keep one archive row across sources, and retain its original reward ID."""
+        source, source_key = record[7], record[1] if record[7] == "calendar" else record[0]
+        alias = self.db.execute("SELECT record_id FROM record_aliases WHERE source=? AND source_key=?",
+                                (source, source_key)).fetchone()
+        record_id = alias[0] if alias else record[0]
+        previous = self.db.execute("SELECT * FROM records WHERE id=?", (record_id,)).fetchone()
+        if previous is None:
+            other_source = "calendar" if source == "tomatodo" else "tomatodo"
+            candidates = self.db.execute("""SELECT r.* FROM records r
+                WHERE r.source=? AND r.name=? AND ABS(r.start_ms-?)<=5000
+                  AND ABS(r.end_ms-?)<=5000 AND ABS(r.minutes-?)<=0.05
+                  AND NOT EXISTS (SELECT 1 FROM record_aliases a
+                                  WHERE a.record_id=r.id AND a.source=?)""",
+                (other_source, record[2], record[4], record[5], record[3], source)).fetchall()
+            if len(candidates) == 1:
+                previous, record_id = candidates[0], candidates[0]["id"]
+        self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (source, source_key, record_id))
+        # A matching desktop record includes Tomato's measured focus minutes,
+        # which are more authoritative than a calendar event's elapsed span.
+        if previous is not None and source == "calendar" and previous["source"] == "tomatodo":
+            return 0
+        record = (record_id,) + record[1:]
+        if previous is not None and tuple(previous) == record:
+            return 0
+        self.db.execute("""INSERT INTO records VALUES (?,?,?,?,?,?,?,?)
+            ON CONFLICT(id) DO UPDATE SET source_id=excluded.source_id,
+            name=excluded.name, minutes=excluded.minutes, start_ms=excluded.start_ms,
+            end_ms=excluded.end_ms, day=excluded.day, source=excluded.source""", record)
+        return 1
 
     def import_source(self):
         with self.lock:
@@ -390,14 +487,7 @@ class FocusStore:
                 changed = 0
                 with self.db:
                     for record in records:
-                        previous = self.db.execute("SELECT * FROM records WHERE id=?", (record[0],)).fetchone()
-                        if previous is not None and tuple(previous) == record:
-                            continue
-                        self.db.execute("""INSERT INTO records VALUES (?,?,?,?,?,?,?,?)
-                            ON CONFLICT(id) DO UPDATE SET source_id=excluded.source_id,
-                            name=excluded.name, minutes=excluded.minutes, start_ms=excluded.start_ms,
-                            end_ms=excluded.end_ms, day=excluded.day, source=excluded.source""", record)
-                        changed += 1
+                        changed += self._upsert_record(record)
                     if changed:
                         self.sync["lastImport"] = now_iso()
                         self._set_meta("lastImport", self.sync["lastImport"])
@@ -413,6 +503,114 @@ class FocusStore:
                     message = f"暂时无法读取记录，将自动重试：{error}"
                 self.sync.update(connected=False, error=message)
                 return 0
+
+    @staticmethod
+    def _read_bridge_json(path):
+        if path.stat().st_size > 20_000_000:
+            raise ValueError("日历同步文件过大")
+        with path.open("r", encoding="utf-8") as handle:
+            value = json.load(handle, parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
+        if not isinstance(value, dict) or type(value.get("schemaVersion")) is not int or value["schemaVersion"] != 1:
+            raise ValueError("日历同步文件版本无效")
+        return value
+
+    def _refresh_calendar_titles(self, config):
+        titles = config.get("allowedTitles")
+        if not isinstance(titles, list) or len(titles) > 5000 or any(
+                not isinstance(title, str) or not title.strip() or len(title) > 500 for title in titles):
+            raise ValueError("日历任务名称列表无效")
+        allowed = set(titles) | self.source_task_names | {
+            row[0] for row in self.db.execute("SELECT DISTINCT name FROM records") if 0 < len(row[0]) <= 500}
+        if len(allowed) > 5000:
+            raise ValueError("日历任务名称数量过多")
+        if allowed != set(titles):
+            # Replace atomically so the native collector cannot see half a JSON.
+            # Preserve selected calendar, enable switch and any helper options.
+            latest = self._read_bridge_json(self.calendar_config)
+            if latest == config:
+                config = dict(config, allowedTitles=sorted(allowed))
+                descriptor, temporary = tempfile.mkstemp(prefix=".calendar-config-", dir=self.data_dir)
+                try:
+                    with os.fdopen(descriptor, "w", encoding="utf-8") as handle:
+                        json.dump(config, handle, ensure_ascii=False, allow_nan=False)
+                    os.replace(temporary, self.calendar_config)
+                finally:
+                    if os.path.exists(temporary):
+                        os.unlink(temporary)
+        return allowed
+
+    def import_calendar(self, now=None):
+        with self.lock:
+            self.calendar_sync["lastCheck"] = now_iso()
+            self.calendar_sync["importedCount"] = self.db.execute(
+                "SELECT COUNT(DISTINCT record_id) FROM record_aliases WHERE source='calendar'").fetchone()[0]
+            if not self.calendar_config.exists():
+                self.calendar_sync.update(enabled=False, connected=False, error=None, calendarName=None)
+                return 0
+            try:
+                config = self._read_bridge_json(self.calendar_config)
+                if type(config.get("enabled")) is not bool:
+                    raise ValueError("日历同步开关无效")
+                self.calendar_sync["enabled"] = config["enabled"]
+                if not config["enabled"]:
+                    self.calendar_sync.update(connected=False, error=None)
+                    return 0
+                calendar_id = config.get("calendarID")
+                if not isinstance(calendar_id, str) or not calendar_id or len(calendar_id) > 2000:
+                    raise ValueError("尚未选择用于同步的日历")
+                allowed = self._refresh_calendar_titles(config)
+                snapshot = self._read_bridge_json(self.calendar_snapshot)
+                if snapshot.get("kind") != "focus_calendar_snapshot":
+                    raise ValueError("日历快照类型无效")
+                if snapshot.get("status") != "ok":
+                    message = snapshot.get("error")
+                    raise ValueError(message[:500] if isinstance(message, str) and message else "手机日历同步暂未运行")
+                calendar = snapshot.get("calendar")
+                if not isinstance(calendar, dict) or calendar.get("calendarID") != calendar_id:
+                    raise ValueError("日历快照与所选日历不一致，等待重新读取")
+                now_ms = int((now or datetime.now().astimezone()).timestamp() * 1000)
+                generated_ms = calendar_timestamp(snapshot.get("generatedAt"))
+                if generated_ms > now_ms + 60_000:
+                    raise ValueError("日历快照的生成时间无效")
+                range_start = calendar_timestamp(snapshot.get("requestedStart"))
+                range_end = calendar_timestamp(snapshot.get("requestedEnd"))
+                if range_end <= range_start or range_end - range_start > 367 * 86_400_000:
+                    raise ValueError("日历快照查询范围无效")
+                events = snapshot.get("events")
+                if not isinstance(events, list) or len(events) > 50000:
+                    raise ValueError("日历快照记录列表无效")
+                records = [record for event in events if (record := normalize_calendar_record(
+                    event, calendar_id, allowed, now_ms, range_start, range_end))]
+                # Duplicate identifiers with conflicting values are ambiguous:
+                # reject the whole snapshot rather than oscillating the archive.
+                unique = {}
+                for record in records:
+                    if record[0] in unique and unique[record[0]] != record:
+                        raise ValueError("日历快照包含冲突的重复记录")
+                    unique[record[0]] = record
+                changed = 0
+                with self.db:
+                    for record in unique.values():
+                        changed += self._upsert_record(record)
+                    if changed:
+                        self.calendar_sync["lastImport"] = now_iso()
+                        self._set_meta("calendarLastImport", self.calendar_sync["lastImport"])
+                        self._bump_revision()
+                stale = now_ms - generated_ms > CALENDAR_STALE_SECONDS * 1000
+                title = calendar.get("title")
+                self.calendar_sync.update(connected=not stale, calendarName=title[:500] if isinstance(title, str) else None,
+                    snapshotAt=snapshot["generatedAt"], ignoredCount=len(events) - len(records),
+                    error="日历读取暂未更新；已保存的记录仍然保留，唤醒 Mac 后会继续同步。" if stale else None,
+                    importedCount=self.db.execute("SELECT COUNT(DISTINCT record_id) FROM record_aliases WHERE source='calendar'").fetchone()[0])
+                self.sync["importedCount"] = self.db.execute("SELECT COUNT(*) FROM records").fetchone()[0]
+                return changed
+            except (OSError, ValueError, UnicodeError, sqlite3.Error, OverflowError) as error:
+                message = "等待手机日历同步服务读取记录。" if isinstance(error, FileNotFoundError) else f"日历同步将自动重试：{error}"
+                self.calendar_sync.update(connected=False, error=message)
+                return 0
+
+    def import_sources(self):
+        return self.import_source() + self.import_calendar()
 
     def update_settings(self, patch):
         with self.lock, self.db:
@@ -487,7 +685,7 @@ class FocusStore:
                     "latestRecords": [serialize(row) for row in all_records[:20]],
                     "allTime": {"minutes": all_minutes, "records": len(all_records), "activeDays": len(weekly_totals)},
                     "badges": badges, "advice": advice,
-                    "sync": dict(self.sync), "settings": settings,
+                    "sync": dict(self.sync), "calendarSync": dict(self.calendar_sync), "settings": settings,
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
                     "revision": self.revision}
 
@@ -613,7 +811,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                 if path == "/api/settings":
                     store.update_settings(payload)
                 else:
-                    store.import_source()
+                    store.import_sources()
                 self._send(200, store.state())
             except (ValueError, UnicodeError) as error:
                 self._send(400, {"error": str(error)})
@@ -634,11 +832,11 @@ def main(argv=None):
     store = FocusStore(args.data_dir, args.source)
     server = FocusHTTPServer(("127.0.0.1", args.port), make_handler(store))
     stop = threading.Event()
-    store.import_source()
+    store.import_sources()
 
     def poll():
         while not stop.wait(POLL_SECONDS):
-            store.import_source()
+            store.import_sources()
 
     poller = threading.Thread(target=poll, name="tomatodo-read-only-import", daemon=True)
     poller.start()
