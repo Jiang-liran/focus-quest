@@ -1,0 +1,51 @@
+/* The old badge frame remains compatible with all owned traveller banners. */
+.greeting .compass-pill{width:300px;min-width:265px;max-width:36%;padding:10px 14px;gap:12px;flex-shrink:0}
+.compass-pill .compass-pill-icon{width:47px;height:56px;flex-shrink:0}
+.compass-rose{display:block;width:100%;height:100%;stroke:none;fill:none}
+.greeting .compass-pill>.compass-pill-copy{display:flex!important;flex-direction:column;align-items:stretch!important;gap:3px!important;min-width:0;flex:1}
+.greeting .compass-pill span{margin:0;color:#a3c5bb;font-size:9px;line-height:1.4}
+.greeting .compass-pill strong{font-weight:550;line-height:1.5;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;letter-spacing:0}
+.greeting .compass-pill small{font-size:9px;line-height:1.5;color:#9598af;letter-spacing:0}
+.compass-pill-links{display:flex;justify-content:space-between;gap:8px}
+.compass-pill-links button{padding:1px 0;text-align:left;font-size:9px;color:#baacd6;white-space:nowrap}
+.compass-pill-links button:first-child{color:#8f98a9}.compass-pill-links button:disabled{opacity:.3;cursor:default}
+.compass-intro{display:flex;justify-content:space-between;align-items:center;gap:24px;margin-bottom:16px}
+.compass-intro h2{font-size:27px;line-height:1.4;margin:12px 0 10px;letter-spacing:1px}
+.compass-intro p,.compass-options>p{font-size:12px;line-height:1.9;color:#9aa6b7}
+.compass-local{font-size:10px;color:#b7bea6;border:1px solid #a4b69635;background:#a2b88d0a;padding:9px 13px;border-radius:20px;white-space:nowrap}
+.compass-context{font-size:10px;color:#7e8c9f;margin:0 0 21px;line-height:1.7}
+.compass-layout{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(245px,.8fr);gap:22px;align-items:start}
+.compass-editor{padding:27px;border:1px solid #8589a74d;border-radius:17px;background:radial-gradient(ellipse at 95% 0,#678b8524,transparent 55%),linear-gradient(150deg,#232637,#192331);min-width:0}
+.compass-action-top{display:flex;align-items:center;gap:12px}.compass-action-top>div{flex:1;min-width:0}.compass-action-top h2{font-size:24px;line-height:1.55;margin:11px 0;color:#e7e5dd}.compass-action-top p{font-size:12px;color:#a1b4b9;line-height:1.85}.compass-action-top>.compass-rose{width:112px;height:112px;flex-shrink:0}
+.compass-action-meta{display:flex;flex-wrap:wrap;gap:8px 15px;font-size:10px;color:#a6b7aa;margin:21px 0 18px;padding-bottom:16px;border-bottom:1px solid #7c90a334}
+.compass-steps{padding:0;list-style:none;display:grid;gap:10px;margin:0 0 22px}
+.compass-steps li{background:#10172455;border:1px solid #90a2b429;border-radius:10px;padding:14px 15px;font-size:12px;line-height:1.85;color:#cbd2dc}
+.compass-steps li>div,.compass-steps label{display:flex;gap:12px;align-items:flex-start}
+.compass-steps label{cursor:pointer}.compass-steps label>span{display:flex;gap:12px;align-items:baseline}.compass-steps b{color:#96b2a5;font-size:10px;letter-spacing:1px;flex-shrink:0}
+.compass-steps input{accent-color:#9ed2b9;margin:5px 0 0;width:15px;height:15px;flex-shrink:0}
+.compass-steps li.done{border-color:#9ccca660;background:#829e7414}.compass-steps li.done b{color:#c8dfb9}
+.compass-note-label{display:block;font-size:13px;color:#c7d3c4;margin-bottom:7px}.compass-note-label small{color:#889989;margin-left:8px;font-size:10px}
+.compass-prompt{font-size:11px;line-height:1.8;color:#8ea1b2;margin-bottom:11px}
+#compass-note{display:block;width:100%;resize:vertical;min-height:96px;max-height:300px;background:#10172588;border:1px solid #7886975c;color:#d8dce7;border-radius:9px;padding:13px;font:inherit;font-size:12px;line-height:1.9}
+#compass-note::placeholder{color:#708095}.compass-save-line{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;margin:9px 0 20px;font-size:9px;color:#85959f;line-height:1.8}.compass-save-line button{font-size:9px;white-space:nowrap}
+.compass-actions{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}.compass-actions button{font-size:11px}.compass-actions button:first-child{margin-right:auto}
+.compass-action-note{font-size:11px;line-height:1.9;color:#94a4b5;margin-bottom:21px}.compass-editor>.primary-button{font-size:12px;padding:12px 19px}
+.compass-editor button:disabled,.compass-options button:disabled{cursor:default}
+.compass-options{min-width:0}.compass-options .section-heading{margin-bottom:9px}.compass-options>p{font-size:11px;margin-bottom:17px}
+#compass-recommendations{display:grid;gap:10px}.compass-choice{text-align:left;border:1px solid #78818d30;border-radius:12px;padding:15px 17px;background:#191f2d;min-width:0;transition:border-color .2s,background .2s}
+.compass-choice span{display:block;font-size:9px;color:#8cb4a9;letter-spacing:.6px}.compass-choice strong{display:block;font-size:13px;line-height:1.6;margin:7px 0;color:#c8cddd}.compass-choice small{display:block;font-size:10px;color:#8995ab;line-height:1.85}
+.compass-choice:hover:not(:disabled),.compass-choice.selected{border-color:#acd6b783;background:#28353175}.compass-choice:disabled{opacity:.6}.compass-choice.selected:disabled{opacity:.9}
+.compass-journal{margin-top:32px}.compass-entry{border:1px solid #77809430;background:#171e2b;border-radius:12px;margin-bottom:10px;overflow:hidden}
+.compass-entry summary{display:flex;align-items:center;gap:14px;padding:16px 20px;cursor:pointer;list-style:none}.compass-entry summary::-webkit-details-marker{display:none}.compass-entry-mark{width:32px;height:32px;border-radius:50%;display:grid;place-items:center;color:#b3acd0;background:#a290c216}.compass-entry-mark.complete{color:#b4d5ba;background:#9fbb9016}.compass-entry summary>span:nth-child(2){flex:1;min-width:0}.compass-entry strong{font-size:13px;line-height:1.6}.compass-entry small{display:block;font-size:10px;color:#7f90a7;margin-top:4px}.compass-entry em{font-size:10px;font-style:normal;color:#a0b5aa}.compass-entry>div{padding:0 22px 20px 66px}.compass-entry-note{white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.9;color:#c8d1d9}.compass-entry ul{list-style:none;padding:14px 0;margin:0;font-size:11px;color:#8299ab;line-height:2}.compass-entry .text-button{font-size:11px}
+.compass-empty{padding:35px;border:1px dashed #8694ac30;border-radius:14px;text-align:center;background:#1e273533}.compass-empty>span{font-size:26px;display:block;color:#a7bda0}.compass-empty strong{display:block;font-size:14px;color:#b8c6c6;margin:12px}.compass-empty p{font-size:11px;line-height:1.9;color:#8596ac}
+.compass-archive{border-top:1px solid #7880942c;margin-top:32px;padding-top:18px}.compass-archive>summary{font-size:12px;color:#919cac;cursor:pointer;margin-bottom:20px}
+@media(min-width:1400px) and (min-height:850px){
+ .greeting .compass-pill{width:365px;min-width:300px;padding:12px 18px}.greeting .compass-pill strong{font-size:16px}.greeting .compass-pill span,.greeting .compass-pill small,.compass-pill-links button{font-size:11px}.compass-pill .compass-pill-icon{width:60px;height:65px}
+ .compass-layout{grid-template-columns:minmax(0,1.6fr) minmax(310px,1fr);gap:28px}.compass-intro h2{font-size:34px}.compass-intro p,.compass-options>p{font-size:var(--wide-copy,14px)}.compass-local,.compass-context{font-size:var(--wide-small,12px)}
+ .compass-editor{padding:32px}.compass-action-top h2{font-size:31px}.compass-action-top p{font-size:var(--wide-copy,14px)}.compass-action-top>.compass-rose{width:142px;height:142px}
+ .compass-steps li,#compass-note,.compass-note-label,.compass-entry-note{font-size:var(--wide-copy,14px)}.compass-steps b,.compass-action-meta,.compass-prompt,.compass-save-line,.compass-save-line button,.compass-action-note,.compass-note-label small{font-size:var(--wide-small,12px)}
+ .compass-choice{padding:19px 22px}.compass-choice strong,.compass-entry strong{font-size:var(--wide-heading,19px)}.compass-choice span,.compass-choice small,.compass-entry small,.compass-entry em,.compass-entry ul,.compass-entry .text-button,.compass-archive>summary,.compass-empty p{font-size:var(--wide-small,12px)}
+ .compass-entry summary{padding:21px 25px}.compass-entry>div{padding-bottom:24px}.compass-empty strong{font-size:var(--wide-heading,19px)}
+}
+@media(min-width:2200px) and (min-height:950px){.greeting .compass-pill{width:420px}.greeting .compass-pill strong{font-size:18px}.greeting .compass-pill span,.greeting .compass-pill small,.compass-pill-links button{font-size:13px}.compass-editor{padding:40px}.compass-intro h2{font-size:40px}.compass-action-top h2{font-size:36px}.compass-action-top>.compass-rose{width:170px;height:170px}.compass-layout{gap:35px}.compass-steps li{padding:20px}.compass-choice{padding:25px}.compass-action-meta{margin:26px 0}}
+@media(max-width:1050px){.compass-layout{grid-template-columns:minmax(0,1fr)}#compass-recommendations{grid-template-columns:1fr 1fr}.compass-intro{align-items:flex-start}.compass-local{display:none}.greeting .compass-pill{max-width:42%;min-width:245px}.compass-action-top>.compass-rose{width:92px;height:92px}}

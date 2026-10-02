@@ -39,6 +39,33 @@ SUBJECTS = (
     ("english", "英语", "#75c9ff"),
 )
 SUBJECT_IDS = {s[0] for s in SUBJECTS}
+# Short, self-checked learning actions. They never award time or currency.
+ACTION_TEMPLATES = {
+    "math-practice": {"subject": "math", "title": "把一道例题，变成自己的解法", "estimatedMinutes": 15,
+        "steps": ["选一道刚学过方法的题，合上例题与答案，独立写出解题过程。", "对照答案，圈出第一处卡住或走偏的位置，不只看最终结果。", "遮住答案重做卡点，并用一句话写出下次如何识别这个方法。"],
+        "prompt": "这道题的识别线索是什么？我最先卡在哪一步？"},
+    "math-recall": {"subject": "math", "title": "给一个公式补上使用边界", "estimatedMinutes": 10,
+        "steps": ["不翻书，写出一个常用公式或定理，以及你记得的适用条件。", "打开笔记核对条件，补一个不能直接使用它的反例。", "用自己的话解释：遇到什么线索可以用它，缺少什么条件就要停下。"],
+        "prompt": "这个公式最容易漏掉的条件是什么？"},
+    "cs-practice": {"subject": "cs", "title": "让一个 408 概念跑起来", "estimatedMinutes": 15,
+        "steps": ["选一个刚学过的算法、协议或系统过程，自己画出数据流或状态变化。", "代入一个小例子，逐步走一遍，并标出关键数据如何变化。", "对照教材找出遗漏的一步，再不看资料解释为什么需要这一步。"],
+        "prompt": "哪个状态变化最容易被我跳过？它为什么必不可少？"},
+    "cs-recall": {"subject": "cs", "title": "把相近概念放在一起辨清", "estimatedMinutes": 10,
+        "steps": ["挑两个容易混淆的概念，不查资料，分别写下作用和使用场景。", "翻书核对，用同一个例子比较它们的输入、过程与结果。", "合上资料，写出一道能区分这两个概念的判断题，并解释答案。"],
+        "prompt": "区分这两个概念，最关键的一个问题是什么？"},
+    "politics-practice": {"subject": "politics", "title": "从选项里找出真正的分歧", "estimatedMinutes": 10,
+        "steps": ["选一道相关选择题，不看解析，写出选择答案的理由。", "逐项判断：它对应什么知识点，错在条件、主体还是表述范围。", "核对解析，合上答案后用一句话纠正最有迷惑性的选项。"],
+        "prompt": "哪一个限定词改变了这道题的判断？"},
+    "politics-recall": {"subject": "politics", "title": "闭卷搭出一页政治提纲", "estimatedMinutes": 10,
+        "steps": ["选一个刚学过的小节，合上资料，写下主题与三个关键词。", "按原因、内容、意义或逻辑关系，把关键词连成简短提纲。", "对照资料补齐一个遗漏，再合上书复述一次这条逻辑。"],
+        "prompt": "我漏掉的关键词是什么？它与前后内容如何相连？"},
+    "english-practice": {"subject": "english", "title": "拆开一句真正没读懂的长句", "estimatedMinutes": 15,
+        "steps": ["从正在读的文章选一个长句，先不看译文，圈出主语、谓语和连接词。", "分开主干与修饰成分，自己写出一句通顺的中文意思。", "对照译文找出理解偏差，再遮住译文重新解释原句的结构。"],
+        "prompt": "让我误解这句话的，是哪个结构或词义？"},
+    "english-recall": {"subject": "english", "title": "让几个熟词真正能被想起来", "estimatedMinutes": 10,
+        "steps": ["从今天材料中选五个词或短语，只看英文，主动写出语境中的意思。", "核对原文，把没想起来或意思偏了的词单独标出。", "遮住解释再回忆一次，并为最不熟的一项写一个短语或例句。"],
+        "prompt": "哪一个词脱离选项后我就想不起来？我给它补了什么语境？"},
+}
 ACTIVITY_TYPES = (
     ("lecture", "听课"),
     ("practice", "做题"),
@@ -78,7 +105,7 @@ SHOP_CATALOG = (
     ("avatar-alchemist", "avatar", "灵感炼金师", "炼金师衣装随主线每完成25%逐阶强化，100%呈现完整模样", 420, 0),
     ("avatar-star", "avatar", "星辉旅者", "星色旅装随主线每完成25%逐阶强化，100%呈现完整模样", 0, 12),
     ("avatar-royal", "avatar", "晨曦冠冕", "冠冕行装随主线每完成25%逐阶强化，100%呈现完整模样", 0, 18),
-    ("banner-default", "banner", "营地素纹", "旅人等级与装扮卡片原有的铭牌边框", 0, 0),
+    ("banner-default", "banner", "营地素纹", "行动罗盘与旅人装扮卡片原有的铭牌边框", 0, 0),
     ("banner-leaf", "banner", "青叶纹章", "让清新叶纹在旅人铭牌边框上舒展", 120, 0),
     ("banner-parchment", "banner", "羊皮书页", "用泛黄书页般的卡片边框衬托每一步成长", 240, 0),
     ("banner-obsidian", "banner", "曜石纹章", "用沉静深色的铭牌边框衬托旅人行装", 360, 0),
@@ -422,8 +449,8 @@ def make_advice(day, subjects, minutes, records, now=None):
     if missing and minutes >= 180:
         return {"id": "balance-light", "title": "下一站，也可以换一门科目", "text": f"你已经积累了不少专注。{ '、'.join(missing) }还未开始，换换科目也能给大脑一点新鲜感。", "tone": "balance"}
     if minutes == 0:
-        return {"id": "ready", "title": "今天的第一点经验，等你来领取", "text": "在番茄 ToDo 完成一个计时任务，经验和进度就会自动到账。从一小段专注开始。", "tone": "neutral"}
-    return {"id": "steady", "title": "稳稳推进，就是在升级", "text": "每一分钟都已记入你的经验。按自己的节奏完成下一小段，专注之后也记得休息。", "tone": "neutral"}
+        return {"id": "ready", "title": "今天的第一段旅程，等你出发", "text": "在番茄 ToDo 完成一个计时任务，学习进度就会自动记录。从一小段专注开始。", "tone": "neutral"}
+    return {"id": "steady", "title": "稳稳推进，也留心真正学会了什么", "text": "每一分钟都已记入学习进度。下一小段可以独立做题或闭卷回忆，专注之后也记得休息。", "tone": "neutral"}
 
 
 def make_activity_advice(day, subject, daily_minutes, daily_target, now, overall_advice=None):
@@ -642,6 +669,16 @@ class FocusStore:
                 batch_id TEXT PRIMARY KEY, filename TEXT NOT NULL, input_hash TEXT NOT NULL,
                 imported_at TEXT NOT NULL, prefer_history INTEGER NOT NULL, receipt TEXT NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS study_actions (
+                id TEXT PRIMARY KEY, request_id TEXT UNIQUE NOT NULL,
+                card_id TEXT NOT NULL, snapshot TEXT NOT NULL,
+                checked TEXT NOT NULL DEFAULT '[false,false,false]', note TEXT NOT NULL DEFAULT '',
+                status TEXT NOT NULL CHECK(status IN ('active','completed','parked')),
+                version INTEGER NOT NULL DEFAULT 1, started_at TEXT NOT NULL,
+                updated_at TEXT NOT NULL, completed_at TEXT
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS study_actions_one_active
+                ON study_actions(status) WHERE status='active';
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
@@ -2339,6 +2376,150 @@ class FocusStore:
                 ORDER BY l.deleted_at DESC,r.end_ms DESC,r.id DESC LIMIT 100""")]
             return {"count": count, "records": records}
 
+    def _action_recommendations(self, current):
+        """Use all completed active records today, independent of the UI date."""
+        totals = {sid: {"minutes": 0, "lecture": 0, "practice": 0} for sid in SUBJECT_IDS}
+        for row in self.db.execute("""SELECT r.name,r.minutes FROM records r
+                WHERE r.day=? AND r.end_ms<=? AND NOT EXISTS
+                (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+                (current.date().isoformat(), int(current.timestamp() * 1000))):
+            subject = classify(row["name"], self.settings["mapping"])
+            if subject not in totals:
+                continue
+            total = totals[subject]
+            total["minutes"] += row["minutes"]
+            activity = classify_activity(row["name"], self.settings["activityMapping"])
+            if activity in ("lecture", "practice"):
+                total[activity] += row["minutes"]
+        choices = []
+        for index, (subject, name, _) in enumerate(SUBJECTS):
+            total = totals[subject]
+            target = self.settings["targets"][subject]
+            heavy = total["lecture"] >= 30 and total["practice"] < total["lecture"] / 2
+            if heavy:
+                mode = "practice"
+                why = f"今天{name}听课 {total['lecture']:g} 分钟，做题 {total['practice']:g} 分钟。用一个小练习检验刚听到的内容。"
+            elif total["practice"] > 0 and total["practice"] >= total["lecture"]:
+                mode = "recall"
+                why = f"今天{name}已有 {total['practice']:g} 分钟做题记录。换成主动回忆，看看哪些方法已能独立说清。"
+            elif total["minutes"] == 0:
+                mode = "practice" if subject in ("math", "cs") else "recall"
+                why = f"今天{name}还没有完成记录。先选一个具体的小行动，给这门课一个轻巧的起点。"
+            else:
+                mode = "practice" if subject in ("math", "cs", "english") else "recall"
+                why = f"今天{name}已记录 {total['minutes']:g} 分钟。试着离开资料做一次检验，把不确定的地方找出来。"
+            card_id = subject + "-" + mode
+            gap = max(0, 1 - total["minutes"] / target)
+            choices.append((gap + (0.65 if heavy else 0), -index,
+                            {"id": card_id, **ACTION_TEMPLATES[card_id], "why": why}))
+        return [json.loads(json.dumps(item[2], ensure_ascii=False))
+                for item in sorted(choices, key=lambda item: item[:2], reverse=True)]
+
+    @staticmethod
+    def _serialize_action(row):
+        return {**json.loads(row["snapshot"]), "id": row["id"], "cardId": row["card_id"],
+                "checked": json.loads(row["checked"]), "note": row["note"],
+                "status": row["status"], "version": row["version"],
+                "startedAt": row["started_at"], "updatedAt": row["updated_at"],
+                "completedAt": row["completed_at"]}
+
+    def actions_state(self, now=None):
+        current = quest_clock(now)
+        with self.lock:
+            active = self.db.execute("SELECT * FROM study_actions WHERE status='active'").fetchone()
+            history = self.db.execute("""SELECT * FROM study_actions WHERE status!='active'
+                    ORDER BY updated_at DESC,id DESC LIMIT 20""").fetchall()
+            return {"now": current.isoformat(timespec="microseconds"), "today": current.date().isoformat(),
+                    "recommendations": self._action_recommendations(current),
+                    "active": self._serialize_action(active) if active else None,
+                    "history": [self._serialize_action(row) for row in history]}
+
+    @staticmethod
+    def _action_uuid(value):
+        if not isinstance(value, str) or len(value) != 36:
+            raise ValueError("行动标识必须为 UUID 字符串")
+        try:
+            canonical = str(uuid.UUID(value))
+        except (ValueError, AttributeError):
+            raise ValueError("行动标识必须为 UUID 字符串") from None
+        if value.lower() != canonical:
+            raise ValueError("行动标识必须为 UUID 字符串")
+        return canonical
+
+    @staticmethod
+    def _action_version(version):
+        if type(version) is not int or not 1 <= version <= 2 ** 53 - 1:
+            raise ValueError("行动版本无效，请刷新后重试")
+        return version
+
+    def start_action(self, card_id, request_id, now=None):
+        if not isinstance(card_id, str) or card_id not in ACTION_TEMPLATES:
+            raise ValueError("行动卡片不存在")
+        request_id = self._action_uuid(request_id)
+        current = quest_clock(now)
+        with self._quest_transaction():
+            existing = self.db.execute("SELECT card_id FROM study_actions WHERE request_id=?", (request_id,)).fetchone()
+            if existing:
+                if existing["card_id"] != card_id:
+                    raise ValueError("同一个请求标识不能用于不同的行动")
+                return self.actions_state(current)
+            if self.db.execute("SELECT 1 FROM study_actions WHERE status='active'").fetchone():
+                raise ValueError("先完成或暂放当前行动，再开始新的行动")
+            card = next((item for item in self._action_recommendations(current) if item["id"] == card_id), None)
+            if card is None:
+                # A recommendation may change while its card is being read.
+                # It remains a valid action, with an honest neutral rationale.
+                card = {"id": card_id, **ACTION_TEMPLATES[card_id],
+                        "why": "这是你选择的学习检验。按自己的需要完成三步，不必追求固定时长。"}
+            timestamp = current.isoformat(timespec="microseconds")
+            self.db.execute("""INSERT INTO study_actions
+                (id,request_id,card_id,snapshot,status,started_at,updated_at) VALUES (?,?,?,?,'active',?,?)""",
+                (str(uuid.uuid4()), request_id, card_id, json.dumps(card, ensure_ascii=False), timestamp, timestamp))
+            return self.actions_state(current)
+
+    def update_action(self, action_id, version, checked, note, now=None):
+        action_id, version = self._action_uuid(action_id), self._action_version(version)
+        if not isinstance(checked, list) or len(checked) != 3 or any(type(value) is not bool for value in checked):
+            raise ValueError("请提供三个步骤的完成状态，必须为 true 或 false")
+        if not isinstance(note, str) or len(note) > 1000:
+            raise ValueError("行动心得最多 1000 字")
+        current = quest_clock(now)
+        with self._quest_transaction():
+            row = self.db.execute("SELECT * FROM study_actions WHERE id=?", (action_id,)).fetchone()
+            if not row or row["status"] != "active":
+                raise ValueError("这个行动已经结束或不存在，请刷新后查看")
+            if row["version"] != version:
+                raise ValueError("行动已在另一处更新，请刷新后重试")
+            self.db.execute("""UPDATE study_actions SET checked=?,note=?,version=version+1,updated_at=? WHERE id=?""",
+                (json.dumps(checked), note, current.isoformat(timespec="microseconds"), action_id))
+            return self.actions_state(current)
+
+    def _finish_action(self, action_id, version, status, now=None):
+        action_id, version = self._action_uuid(action_id), self._action_version(version)
+        current = quest_clock(now)
+        with self._quest_transaction():
+            row = self.db.execute("SELECT * FROM study_actions WHERE id=?", (action_id,)).fetchone()
+            if not row:
+                raise ValueError("行动不存在")
+            if row["status"] == status:
+                return self.actions_state(current)
+            if row["status"] != "active":
+                raise ValueError("这个行动已经结束，请刷新后查看")
+            if row["version"] != version:
+                raise ValueError("行动已在另一处更新，请刷新后重试")
+            if status == "completed" and not all(json.loads(row["checked"])):
+                raise ValueError("请先勾选完成三个步骤，再收下这次行动")
+            timestamp = current.isoformat(timespec="microseconds")
+            self.db.execute("""UPDATE study_actions SET status=?,version=version+1,updated_at=?,completed_at=? WHERE id=?""",
+                (status, timestamp, timestamp if status == "completed" else None, action_id))
+            return self.actions_state(current)
+
+    def complete_action(self, action_id, version, now=None):
+        return self._finish_action(action_id, version, "completed", now)
+
+    def park_action(self, action_id, version, now=None):
+        return self._finish_action(action_id, version, "parked", now)
+
     def state(self, selected_day=None, now=None):
         now = now or datetime.now().astimezone()
         selected_day = selected_day or now.date().isoformat()
@@ -2406,7 +2587,8 @@ class FocusStore:
                     "sync": dict(self.sync, importedCount=len(all_records)),
                     "calendarSync": dict(self.calendar_sync, importedCount=self._active_count("calendar")), "settings": settings,
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
-                    "trash": self.trash(), "quests": self.quest_state(now.astimezone()), "revision": self.revision}
+                    "trash": self.trash(), "quests": self.quest_state(now.astimezone()),
+                    "actions": self.actions_state(now.astimezone()), "revision": self.revision}
 
     def export_csv(self):
         with self.lock:
@@ -2499,6 +2681,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query:
                         raise ValueError("委托使用电脑当前日期和时间，不接受查询参数")
                     self._send(200, store.quest_state())
+                elif url.path == "/api/actions":
+                    if url.query:
+                        raise ValueError("行动罗盘使用电脑当前日期和时间，不接受查询参数")
+                    self._send(200, store.actions_state())
                 elif url.path == "/api/export":
                     self._send(200, store.export_csv(), "text/csv; charset=utf-8", "focus-quest-records.csv")
                 elif url.path == "/api/trash":
@@ -2530,7 +2716,11 @@ def make_handler(store, static_dir=STATIC_DIR):
                 quest_actions = {"/api/quests/accept": ("subject", store.accept_quest),
                                  "/api/shop/buy": ("itemId", store.buy_item),
                                  "/api/shop/equip": ("itemId", store.equip_item)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions:
+                study_actions = {"/api/actions/start": (("cardId", "requestId"), store.start_action),
+                                 "/api/actions/update": (("id", "version", "checked", "note"), store.update_action),
+                                 "/api/actions/complete": (("id", "version"), store.complete_action),
+                                 "/api/actions/park": (("id", "version"), store.park_action)}
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -2544,7 +2734,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path == "/api/shop/exchange":
+                if path in study_actions:
+                    fields, action = study_actions[path]
+                    if url.query or set(payload) != set(fields):
+                        raise ValueError("行动参数无效；请仅提供该操作所需的标识、版本和内容")
+                    self._send(200, action(*(payload[field] for field in fields)))
+                elif path == "/api/shop/exchange":
                     if url.query or set(payload) != {"diamonds", "requestId"}:
                         raise ValueError("请仅提供兑换钻石数量和请求标识，价格与时间由服务器确定")
                     self._send(200, store.exchange_diamonds(payload["diamonds"], payload["requestId"]))

@@ -11,15 +11,8 @@ const subjectsMeta = {
 const stageNames = ['整装出发','突破外围','深入核心','决战在即','今日通关'];
 const stageTitles = ['每一分钟，都算数。','第一道迷雾，已散去。','路程过半，稳步向前。','光就在前方，继续前行。','今日远征，圆满通关。'];
 const stageMessages = ['今天的远征，从一小段专注开始。','第一座路标已点亮，脚步正在变成力量。','你的投入，正在慢慢变成看得见的积累。','已经走过四分之三，按自己的节奏完成。','今天已经做得足够好了，安心收下这份成就。'];
-const viewNames = {today:'今日远征',quests:'委托广场',review:'学习复盘',shop:'星织商店',history:'专注档案',achievements:'成长图鉴'};
+const viewNames = {today:'今日远征',quests:'委托广场',review:'学习复盘',shop:'星织商店',history:'专注档案',achievements:'行动手记'};
 const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
-const levelRanks = [
-  {min:1,max:9,name:'启程学徒',range:'Lv. 1–9'},
-  {min:10,max:49,name:'知识游侠',range:'Lv. 10–49'},
-  {min:50,max:149,name:'远征守护者',range:'Lv. 50–149'},
-  {min:150,max:Infinity,name:'长期主义者',range:'Lv. 150 及以上'}
-];
-function levelRank(level) { return levelRanks.find(rank=>level>=rank.min && level<=rank.max)||levelRanks[0]; }
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set();
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
@@ -91,7 +84,7 @@ function checkNewRecords(next, quietRewards=false) {
   const incoming=recent.filter(r=>!seenRecords.has(r.id));
   recent.forEach(r=>seenRecords.add(r.id));
   if(!incoming.length)return;
-  // Historical imports contribute XP without pretending to be a freshly completed task.
+  // Historical imports count toward study without pretending to be a freshly completed task.
   const fresh=incoming.filter(r=>r.source!=='history_xlsx' && Date.now()-new Date(r.end).getTime()<10*60*1000 && new Date(r.end).getTime()<=Date.now()+60000);
   if(!fresh.length)return;
   const gained=fresh.reduce((sum,r)=>sum+r.minutes,0);
@@ -109,7 +102,7 @@ function checkNewRecords(next, quietRewards=false) {
     celebrationQueue.push(...unlocked.filter(event=>!(cityHandlesDaily&&event.type==='daily')).map(event=>celebrationFor(event)));
     setTimeout(playNextCelebration,0);
   } else if(!quietRewards) {
-    toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · +${number(gained)} XP${state && next.totals.level>state.totals.level?` · 升至 Lv. ${next.totals.level}`:''}`);
+    toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · 这段专注已记入今日旅程`);
   }
   if(!quietRewards)globalThis.FocusExpedition?.noteArrival(fresh,next);
   if(!quietRewards && next.settings.sound){
@@ -128,10 +121,7 @@ function render() {
   $('date-button').textContent=dateText(s.date)+(s.date===s.today?' · 今天':'');
   $('date-picker').value=s.date;
   $('header-today').disabled=s.date===s.today;
-  $('level').textContent=`Lv. ${t.level}`;
-  $('level-name').textContent=levelRank(t.level).name;
-  $('level-xp').textContent=`${t.levelXp} / ${t.levelTarget} XP · 下一级`;
-  $('level-bar').style.width=(t.levelXp/t.levelTarget*100)+'%';
+  globalThis.FocusCompass?.render(s.actions);
   const phone=s.calendarSync;
   $('source-label').textContent=phone?.enabled ? (s.sync.connected&&phone.connected?'电脑 + 手机 · 已连接':phone.connected?'手机已连接 · 电脑待连接':s.sync.connected?'电脑已连接 · 手机待连接':'记录同步 · 等待连接') : (s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接');
   $('source-dot').classList.toggle('connected',s.sync.connected&&(!phone?.enabled||phone.connected));
@@ -182,7 +172,7 @@ function showOpening(context,preview=false) {
   $('opening-time').textContent=`${dateText(context.day)} · ${timeOf(context.now)}`;
   $('opening-title').textContent=copy.title;$('opening-body').textContent=copy.body;
   $('opening-closing').textContent=copy.closing;
-  $('opening-note').textContent=preview?'此刻开场预览 · 不占用每日首次，不增加记录或经验。':context.minutes>0?`今日已专注 ${duration(context.minutes)} · 每一段投入，都已记下。`:'每日开场 · 从此刻开始。';
+  $('opening-note').textContent=preview?'此刻开场预览 · 不占用每日首次，不增加记录。':context.minutes>0?`今日已专注 ${duration(context.minutes)} · 每一段投入，都已记下。`:'每日开场 · 从此刻开始。';
   $('opening-done').textContent=preview?'返回设置':copy.button;
   if(!dialog.open)dialog.showModal();
 }
@@ -214,7 +204,7 @@ function renderCalendarPending() {
 
 function updateViewTitle() {
   $('page-crumb').textContent=viewNames[currentView];
-  const campView=currentView==='quests'||currentView==='shop';
+  const campView=currentView==='quests'||currentView==='shop'||currentView==='achievements';
   $('date-button').hidden=campView;$('header-today').hidden=campView;
   if(campView)$('date-picker').classList.remove('visible');
   if(currentView==='today'){
@@ -239,8 +229,8 @@ function updateViewTitle() {
     $('page-subtitle').textContent='每一件收藏，都来自你认真走过的时间。';
     $('greeting-eyebrow').textContent='EARNED THROUGH FOCUS';
   }else{
-    $('page-title').textContent='成长，是日积月累的事。';
-    $('page-subtitle').textContent='不和别人比较，只看见自己走过的路。';
+    $('page-title').textContent='下一步，走得更具体。';
+    $('page-subtitle').textContent='试一个方法，留一句收获，下次从这里继续。';
     $('greeting-eyebrow').textContent='PROGRESS YOU CAN FEEL';
   }
 }
@@ -360,16 +350,16 @@ function renderActivities() {
 
 function renderRecords() {
   const records=state.records;
-  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':r.source==='history_xlsx'?' · 历史导入':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span><span class="record-xp">+${number(r.minutes)} XP</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
+  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':r.source==='history_xlsx'?' · 历史导入':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
   $('history-stats').innerHTML=statCard('本日专注',durationHTML(state.totals.minutes))+statCard('完成任务',`${state.dayRecordCount??records.length}<small>个</small>`)+statCard('每日主线进度',`${pct(state.totals.percent)}`);
   $('archive-note').textContent=`${dateText(state.date)} · ${state.date} · ${(state.dayRecordCount??records.length)>100?'展示最近 100 条，全部记录可导出':'全部完成记录'}`;
-  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':r.source==='history_xlsx'?'<span class="record-source">历史导入</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td><td><button class="record-remove" data-trash-record="${esc(r.id)}" aria-label="将${esc(r.name)}${number(r.minutes)}分钟移入回收站" ${recordMutationBusy?'disabled':''}>移除</button></td></tr>`).join(''):'<tr><td colspan="7"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
+  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':r.source==='history_xlsx'?'<span class="record-source">历史导入</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td><button class="record-remove" data-trash-record="${esc(r.id)}" aria-label="将${esc(r.name)}${number(r.minutes)}分钟移入回收站" ${recordMutationBusy?'disabled':''}>移除</button></td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
   $('trash-open').textContent=`回收站${state.trash?.count?' · '+number(state.trash.count,0):''}`;
 }
 
 function renderTrash() {
   const trash=state.trash||{count:0,records:[]};
-  $('trash-summary').textContent=`${number(trash.count,0)} 条记录 · 不计入时长、进度、经验及导出${trash.count>trash.records.length?' · 显示最近 '+trash.records.length+' 条':''}`;
+  $('trash-summary').textContent=`${number(trash.count,0)} 条记录 · 不计入时长、进度及导出${trash.count>trash.records.length?' · 显示最近 '+trash.records.length+' 条':''}`;
   $('trash-records').innerHTML=trash.records.length?trash.records.map(r=>`<article class="trash-row"><div><strong>${esc(r.name)} <span>${duration(r.minutes)}</span></strong><p>${esc(r.day)} · ${timeOf(r.end)} 完成 · ${r.deletionReason==='manual'?'在本机移除':'来源已删除'}</p></div><button class="secondary-button" data-restore-record="${esc(r.id)}" aria-label="恢复${esc(r.name)}${number(r.minutes)}分钟" ${recordMutationBusy?'disabled':''}>恢复</button></article>`).join(''):'<div class="empty">回收站是空的。</div>';
 }
 
@@ -381,7 +371,7 @@ async function changeRecord(id, action) {
     // Restoring a saved record is not a newly completed study session.
     (result.latestRecords||[]).forEach(r=>seenRecords.add(r.id));
     await refresh(true,true);
-    toast(action==='trash'?'记录已移到回收站':'记录已恢复',action==='trash'?'已从进度和经验中移除，可以在回收站恢复。':'已恢复到本机统计，不会重新写入番茄或日历。');
+    toast(action==='trash'?'记录已移到回收站':'记录已恢复',action==='trash'?'已从学习统计中移除，可以在回收站恢复。':'已恢复到本机统计，不会重新写入番茄或日历。');
   }catch(error){toast('记录更新未完成',error.message,true);}
   finally{recordMutationBusy=false;renderRecords();if($('trash-dialog').open)renderTrash();}
 }
@@ -390,13 +380,6 @@ function statCard(label,value) { return `<div class="stat-card"><span>${esc(labe
 function renderAchievements() {
   const a=state.allTime;
   $('achievement-stats').innerHTML=statCard('累计专注',`${hours(a.minutes)}<small>小时</small>`)+statCard('完成的专注',`${number(a.records,0)}<small>个</small>`)+statCard('留下足迹的日子',`${a.activeDays}<small>天</small>`);
-  const t=state.totals;
-  $('level-guide-current').textContent=`累计 ${number(t.xp,0)} XP · 当前 Lv. ${t.level}，本级 ${t.levelXp} / ${t.levelTarget} XP。再积累 ${t.levelTarget-t.levelXp} XP，升至 Lv. ${t.level+1}。`;
-  const rankKey=String(levelRanks.indexOf(levelRank(t.level)));
-  if($('level-ranks').dataset.current!==rankKey){
-    $('level-ranks').dataset.current=rankKey;
-    $('level-ranks').innerHTML=levelRanks.map(rank=>`<li class="${rank===levelRank(t.level)?'current':''}"><small>${rank.range}</small><strong>${rank.name}</strong>${rank===levelRank(t.level)?'<span>当前称号</span>':''}</li>`).join('');
-  }
   const symbols=['⚑','✧','✦','♜','❖','♕'];
   $('badges').innerHTML=state.badges.map((b,i)=>`<article class="badge-card ${b.earned?'':'locked'}"><div class="badge-icon">${symbols[i%symbols.length]}</div><h3>${esc(b.name)}</h3><p>${esc(b.description)}</p><span class="badge-status">${b.earned?'✦ 已点亮':'待解锁'}</span></article>`).join('');
 }
@@ -523,7 +506,7 @@ function showCelebration({title,body,reward,preview=false,stage=4,subject=null})
   $('celebration-kicker').textContent=preview?'EFFECT PREVIEW · 特效预览':subject?`${meta(subject).name} · SUBJECT QUEST COMPLETE`:stage===4?'DAILY QUEST COMPLETE':'NEW MILESTONE UNLOCKED';
   $('celebration-title').textContent=title;$('celebration-body').textContent=body;
   $('celebration-reward').textContent=reward;
-  $('celebration-note').textContent=preview?'这是特效预览，不会增加学习时长、经验或记录。':'这段努力，已经计入你的成长。';
+  $('celebration-note').textContent=preview?'这是特效预览，不会增加学习时长或记录。':'这段努力，已经计入你的成长。';
   $('celebration-done').textContent=preview?'返回预览':celebrationQueue.length?'收下成就，查看下一份':'收下这份成就';
   $('confetti').innerHTML=Array.from({length:30},(_,i)=>`<i style="left:${(i*37)%100}%;animation-delay:${-(i%13)*.29}s;animation-duration:${2.6+(i%7)*.2}s"></i>`).join('');
   if(!$('celebration-dialog').open)$('celebration-dialog').showModal();
@@ -551,11 +534,6 @@ function stepDate(amount) { if(!state)return;const d=new Date(state.date+'T12:00
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();chooseDate(localDay());switchView('today');});
 $('all-records').addEventListener('click',()=>switchView('history'));
-$('level-help').addEventListener('click',()=>{
-  switchView('achievements');
-  $('level-guide').scrollIntoView({behavior:'auto',block:'start'});
-  $('level-guide-title').focus({preventScroll:true});
-});
 $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-dialog').showModal();}});
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
@@ -613,4 +591,5 @@ globalThis.FocusMystery?.init({api,toast,refresh,playSound,renderQuests:snapshot
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
 globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
 globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
+globalThis.FocusCompass?.init({api,toast,refresh,playSound,openPage:switchView});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);

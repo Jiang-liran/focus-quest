@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="/wide-shell.css">
   <link rel="stylesheet" href="/wide-pages.css">
   <link rel="stylesheet" href="/campfire-room.css">
+  <link rel="stylesheet" href="/compass.css">
 </head>
 <body data-page="today">
   <svg class="svg-defs" aria-hidden="true"><defs>
@@ -50,7 +51,7 @@
       <button class="nav-item" data-view="review"><svg><use href="#i-grid"/></svg>学习复盘</button>
       <button class="nav-item" data-view="shop"><svg><use href="#i-star"/></svg>星织商店</button>
       <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
-      <button class="nav-item" data-view="achievements"><svg><use href="#i-trophy"/></svg>成长图鉴</button>
+      <button class="nav-item" data-view="achievements"><svg><use href="#i-compass"/></svg>行动手记</button>
     </nav>
     <div class="side-note"><div class="small-orbit">✦</div><p>每一段专注，<br>都在让未来更近一点。</p><span>不必完美，持续向前。</span></div>
     <div class="sidebar-bottom">
@@ -65,7 +66,7 @@
     <header class="topbar"><div class="breadcrumb">我的营地 <span>/</span> <b id="page-crumb">今日远征</b></div><div class="topbar-right"><button class="advice-request-button" id="advice-request"><svg aria-hidden="true"><use href="#i-compass"/></svg>给我建议</button><span class="live-clock" id="clock"></span><button class="date-button" id="date-button" title="选择日期"></button><input type="date" id="date-picker" aria-label="查看日期"><button class="today-shortcut" id="header-today" aria-label="回到今天" title="快速回到今天">回到今天</button><button class="icon-button" id="refresh" title="立即同步" aria-label="立即同步">↻</button></div></header>
     <div id="error-banner" class="error-banner" hidden></div>
     <aside id="calendar-pending" class="calendar-pending" aria-label="手机记录等待入账" aria-live="polite" hidden></aside>
-    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div class="level-emblem"><svg><use href="#i-star"/></svg></div><div><strong id="level">Lv. —</strong><span id="level-name">远征者</span><div class="mini-progress"><i id="level-bar"></i></div><small id="level-xp">正在读取经验…</small><button type="button" class="level-help" id="level-help" aria-controls="level-guide">等级说明 ↗</button></div></div></section>
+    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill compass-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div id="compass-pill-icon" class="compass-pill-icon" aria-hidden="true"></div><div class="compass-pill-copy"><span id="compass-pill-subject">行动罗盘</span><strong id="compass-pill-title">下一步，做一点具体的事。</strong><small id="compass-pill-status">正在读取今天的方向…</small><div class="compass-pill-links"><button type="button" id="compass-next" aria-label="换一个行动方向">换个方向</button><button type="button" id="compass-open" aria-controls="compass-panel">展开罗盘 ↗</button></div></div></div></section>
 
     <div id="view-today" class="view">
 
@@ -76,7 +77,7 @@
           <input id="preview-progress" type="range" min="0" max="100" step="1" value="0" aria-label="预览每日进度"/>
           <div class="preview-stages"><button data-preview-progress="0">启程</button><button data-preview-progress="25">25% · 引路</button><button data-preview-progress="50">50% · 苏醒</button><button data-preview-progress="75">75% · 共鸣</button><button data-preview-progress="100">100% · 通关</button></div>
           <div class="preview-subjects"><span>科目达标动画</span><button data-preview-subject="math">数学</button><button data-preview-subject="cs">408</button><button data-preview-subject="politics">政治</button><button data-preview-subject="english">英语</button></div>
-          <p>仅预览动画，学习记录与经验不变。关闭后回到真实进度。</p>
+          <p>仅预览动画，学习记录不变。关闭后回到真实进度。</p>
         </div>
         <div class="hero-content">
           <div class="hero-copy"><span class="stage-tag" id="stage-tag">整装出发</span><h2 id="hero-heading">每一分钟，<br>都算数。</h2><p id="hero-message">今天的远征，从一小段专注开始。</p><div class="hero-numbers"><strong id="total-time">—</strong><span>/ <b id="total-target">8</b> 小时目标</span></div><div class="total-progress-label"><span id="remaining">正在读取学习记录</span><strong id="total-percent">—%</strong></div><div class="total-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="每日总进度" aria-valuemin="0" aria-valuemax="100"><i id="total-bar"></i></div></div>
@@ -165,23 +166,22 @@
       <div class="bottom-grid"><section class="panel weekly-panel"><div class="section-heading"><h2><b id="week-chart-title">本周足迹</b> <span>MON — SUN</span></h2><span class="muted" id="weekly-total"></span></div><div class="week-navigation"><button class="week-arrow" id="prev-week" aria-label="上一周" title="上一周">‹</button><div><span id="week-chart-range"></span><button class="text-button" id="week-reset" hidden>回到本周</button></div><button class="week-arrow" id="next-week" aria-label="下一周" title="下一周">›</button></div><div class="week-chart" id="week-chart"></div><div class="chart-footer"><span><i></i>每日专注时长</span><span>走慢一点也没关系，脚印会留下。</span></div></section><section class="panel recent-panel"><div class="section-heading"><h2>最近的收获</h2><button class="text-button" id="all-records">全部记录 ↗</button></div><div id="recent-records" class="records-list"></div></section></div>
     </div>
 
-    <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><button class="secondary-button" id="trash-open">回收站</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>学习方式</th><th>完成时间</th><th>专注时长</th><th>经验</th><th>操作</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">来源中删除的记录会在同步确认后移到回收站。这里的「移除」只影响专注远征，可在回收站恢复。</p></section></div>
-    <div id="view-achievements" class="view" hidden><div class="stats-row" id="achievement-stats"></div><section class="panel growth-panel"><div><div class="eyebrow">A LITTLE, EVERY DAY</div><h2>你走过的路，<br>都成为了你的力量。</h2><p>每专注 1 分钟，积累 1 XP。每 120 XP 升一级。<br>今天的进度会重置，积累的成长不会。</p></div><div class="growth-orb"><svg><use href="#i-trophy"/></svg></div></section><section class="panel level-guide" id="level-guide" aria-labelledby="level-guide-title">
-      <div class="eyebrow">HOW YOU GROW</div><h2 id="level-guide-title" tabindex="-1">等级与经验</h2>
-      <p class="level-guide-current" id="level-guide-current">正在读取你的成长…</p>
-      <div class="level-rule-grid">
-        <div><strong>1 分钟 = 1 XP</strong><p>所有科目的有效专注都计入经验，包括历史导入。时长先合计，再按整分钟计算；不足一分钟的部分继续累计。同一次专注只计一次。</p></div>
-        <div><strong>每 120 XP 升一级</strong><p>从 1 级开始，每累计 2 小时升一级。每级所需经验固定，等级没有上限；跨天不清零，休息和未达每日目标不扣经验。</p></div>
-      </div>
-      <h3>沿途的称号</h3><ul class="level-ranks" id="level-ranks"></ul>
-      <div class="level-guide-notes"><p><strong>等级有什么用？</strong>目前展示你的长期积累，并随阶段改变称号。升级暂不发放金币或钻石，也没有商店等级门槛；金币、钻石通过接取并交付委托获得。</p><p><strong>记录删改会怎样？</strong>经验和等级跟随有效存档重新计算。移除记录后可能降级，恢复后会加回；已结算的金币、钻石不会因此回扣。</p></div>
-    </section><div class="section-heading"><h2>远征勋章 <span>YOUR COLLECTION</span></h2><span class="muted">投入与均衡，都值得被看见</span></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。不设断签惩罚，也没有超时经验倍率。</p></div>
+    <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><button class="secondary-button" id="trash-open">回收站</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>学习方式</th><th>完成时间</th><th>专注时长</th><th>操作</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">来源中删除的记录会在同步确认后移到回收站。这里的「移除」只影响专注远征，可在回收站恢复。</p></section></div>
+    <div id="view-achievements" class="view" hidden>
+      <section id="compass-panel" class="compass-panel" aria-labelledby="compass-heading">
+        <header class="compass-intro"><div><span class="eyebrow">LESS COUNTING, MORE UNDERSTANDING</span><h2 id="compass-heading" tabindex="-1">把“学过”，变成“会用”。</h2><p>选一件小事，动手试一遍。带走一个方法，也可以诚实地留下一个问题。</p></div><span class="compass-local">只属于你的练习手记</span></header>
+        <p id="compass-context" class="compass-context"></p>
+        <div class="compass-layout"><section id="compass-editor" class="compass-editor" aria-label="当前实践行动"><p>正在准备下一步行动…</p></section><aside class="compass-options"><div class="section-heading"><h2>换个方向也可以</h2></div><p>建议根据今日进度与听课、做题比例安排。选材料、定节奏，仍由你做主。</p><div id="compass-recommendations"></div></aside></div>
+      </section>
+      <section class="compass-journal" aria-labelledby="compass-journal-title"><div class="section-heading"><h2 id="compass-journal-title">带走的东西 <span>FIELD NOTES</span></h2><span class="muted">最近 20 次实践与待解问题</span></div><div id="compass-history"></div></section>
+      <details class="compass-archive"><summary>沿途足迹与远征勋章</summary><div class="stats-row" id="achievement-stats"></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。行动手记独立保存，不设断签惩罚。</p></details>
+    </div>
 
     <div id="view-quests" class="view" hidden>
       <div class="q-topline"><div><span class="eyebrow">OPEN COMMISSIONS</span><p id="quest-today-label">全天自由委托</p></div><div class="q-wallet" aria-label="委托钱包"><span><i class="coin-mark">●</i><b id="quest-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="quest-diamonds">0</b><small>钻石</small></span><button class="text-button" data-view="shop">去商店 ↗</button></div></div>
       <div id="quest-board" class="quest-board"></div>
       <section id="mystery-quest" class="mystery-quest" aria-labelledby="mystery-name" hidden></section>
-      <details class="q-rules"><summary>持续委托与奖励规则 <span>基础奖励始终相同，推荐时段另有首轮加赠</span></summary><div><p>数学、政治、408、英语都能全天接取，也可同时接取。每科只需手动接取一次，从接取后开始持续累计；交付后继续有效，跨天保留进度。听课、做题和其他有效专注均计入。</p><p><strong>普通委托基础奖励：</strong>数学、408 首次目标为 60 分钟，政治、英语为 30 分钟。首次达标后，每有效分钟奖励 2 金币，每完整一倍目标奖励 2 钻石；之后有新增金币即可再次交付。基础奖励没有时段限制、每日交付次数限制或奖励上限，18:00 后继续学习也照常累计。</p><p>基础金币和钻石的未满部分跨次保留。例如数学先学 90 分钟，基础奖励为 180 金币与 2 钻石；再学 30 分钟，再领 60 金币与 2 钻石。分次交付与一次交付的基础总奖励相同。</p><p><strong>晨光首轮：</strong>每天 00:00–12:00，数学累计 60 分钟额外获得 60 金币与 1 钻石，政治累计 30 分钟额外获得 30 金币与 1 钻石。<strong>午后首轮：</strong>每天 12:00–18:00，408 累计 60 分钟额外获得 60 金币与 1 钻石，英语累计 30 分钟额外获得 30 金币与 1 钻石。</p><p>首轮只计接取后、对应学习窗口内的有效专注，每天每科一次；从更新当天开始，今天接取后的学习一并计入；此前日期不补发新加成。加赠是基础奖励之外的一份小收获，其他时段的基础奖励始终相同。</p><p>奖励按学习发生的时段判断，不按交付时间判断。已达成的首轮会为你保留，不用赶着交付；晚些交付、次日再来，或手机记录稍后同步，都可以补领。未在窗口内达标也不影响基础奖励。</p><p>交付时按已同步的有效记录结算；稍后到达的手机记录仍能补入下一次交付。未完成、休息或跨天都不会扣钱扣经验。达成拾星的开启条件后，新增四科专注改由神秘委托结算，不再重复推进普通委托。已结算记录不会重复发奖，删改记录也不回扣已入袋的奖励。</p></div></details>
+      <details class="q-rules"><summary>持续委托与奖励规则 <span>基础奖励始终相同，推荐时段另有首轮加赠</span></summary><div><p>数学、政治、408、英语都能全天接取，也可同时接取。每科只需手动接取一次，从接取后开始持续累计；交付后继续有效，跨天保留进度。听课、做题和其他有效专注均计入。</p><p><strong>普通委托基础奖励：</strong>数学、408 首次目标为 60 分钟，政治、英语为 30 分钟。首次达标后，每有效分钟奖励 2 金币，每完整一倍目标奖励 2 钻石；之后有新增金币即可再次交付。基础奖励没有时段限制、每日交付次数限制或奖励上限，18:00 后继续学习也照常累计。</p><p>基础金币和钻石的未满部分跨次保留。例如数学先学 90 分钟，基础奖励为 180 金币与 2 钻石；再学 30 分钟，再领 60 金币与 2 钻石。分次交付与一次交付的基础总奖励相同。</p><p><strong>晨光首轮：</strong>每天 00:00–12:00，数学累计 60 分钟额外获得 60 金币与 1 钻石，政治累计 30 分钟额外获得 30 金币与 1 钻石。<strong>午后首轮：</strong>每天 12:00–18:00，408 累计 60 分钟额外获得 60 金币与 1 钻石，英语累计 30 分钟额外获得 30 金币与 1 钻石。</p><p>首轮只计接取后、对应学习窗口内的有效专注，每天每科一次；从更新当天开始，今天接取后的学习一并计入；此前日期不补发新加成。加赠是基础奖励之外的一份小收获，其他时段的基础奖励始终相同。</p><p>奖励按学习发生的时段判断，不按交付时间判断。已达成的首轮会为你保留，不用赶着交付；晚些交付、次日再来，或手机记录稍后同步，都可以补领。未在窗口内达标也不影响基础奖励。</p><p>交付时按已同步的有效记录结算；稍后到达的手机记录仍能补入下一次交付。未完成、休息或跨天都不会扣除奖励。达成拾星的开启条件后，新增四科专注改由神秘委托结算，不再重复推进普通委托。已结算记录不会重复发奖，删改记录也不回扣已入袋的奖励。</p></div></details>
       <section class="q-ledger panel"><div class="section-heading"><h2>交付手记 <span>RECENT REWARDS</span></h2><span class="muted">最近 20 次委托收获</span></div><div id="quest-history"></div></section>
     </div>
     <div id="view-shop" class="view" hidden>
@@ -206,7 +206,7 @@
 
   <dialog id="trash-dialog"><div class="dialog-heading"><div><span class="eyebrow">RESTORE YOUR RECORDS</span><h2>回收站</h2></div><button class="icon-button close-dialog" aria-label="关闭回收站">×</button></div><p class="dialog-intro" id="trash-summary"></p><div id="trash-records"></div><p class="trash-note">恢复后会在本机保留这条记录，不再随来源删除而自动移除，也不会写回番茄 ToDo 或日历。</p></dialog>
 
-  <dialog id="source-dialog"><div class="dialog-heading"><div><span class="eyebrow">CONNECTED TO YOUR FOCUS</span><h2>学习记录同步</h2></div><button class="icon-button close-dialog" aria-label="关闭连接信息">×</button></div><div id="source-details"></div><div class="source-explanation"><strong>完成一次专注，自动交一次任务。</strong><p>每 3 秒检查电脑端记录。来源删除经重复核对后同步移除，并保留在回收站。不会改写番茄 ToDo 数据。</p><p>手机完成的任务经 iCloud 日历到达 Mac 后，每 30 秒自动读取。只接收所选日历中与你的番茄任务同名的记录。</p><p>同一次专注经电脑和日历重复到达时只计一次；两边匹配后，以番茄的有效学习分钟数计算进度与经验。</p><p>手机需保持番茄 ToDo「写入系统日历」开启。iCloud 可能有延迟；启用前未写进日历的历史记录仍需另行补入。</p><p>手机删除会在最近 90 天的读取范围内同步核对；更早的存档可在「专注档案」中手动移除。连接异常时暂停删除判断。</p></div><button class="primary-button" id="sync-now">立即检查记录</button></dialog>
+  <dialog id="source-dialog"><div class="dialog-heading"><div><span class="eyebrow">CONNECTED TO YOUR FOCUS</span><h2>学习记录同步</h2></div><button class="icon-button close-dialog" aria-label="关闭连接信息">×</button></div><div id="source-details"></div><div class="source-explanation"><strong>完成一次专注，自动交一次任务。</strong><p>每 3 秒检查电脑端记录。来源删除经重复核对后同步移除，并保留在回收站。不会改写番茄 ToDo 数据。</p><p>手机完成的任务经 iCloud 日历到达 Mac 后，每 30 秒自动读取。只接收所选日历中与你的番茄任务同名的记录。</p><p>同一次专注经电脑和日历重复到达时只计一次；两边匹配后，以番茄的有效学习分钟数计算学习进度。</p><p>手机需保持番茄 ToDo「写入系统日历」开启。iCloud 可能有延迟；启用前未写进日历的历史记录仍需另行补入。</p><p>手机删除会在最近 90 天的读取范围内同步核对；更早的存档可在「专注档案」中手动移除。连接异常时暂停删除判断。</p></div><button class="primary-button" id="sync-now">立即检查记录</button></dialog>
 
   <dialog id="celebration-dialog"><button class="icon-button celebration-close" aria-label="关闭奖励">×</button><div class="confetti" id="confetti"></div><div class="celebration-art" id="celebration-art"><div class="celebration-gem">✦</div></div><div class="eyebrow" id="celebration-kicker">DAILY QUEST COMPLETE</div><h2 id="celebration-title">今日远征，圆满通关。</h2><p id="celebration-body"></p><div class="reward-pill" id="celebration-reward"></div><p class="reward-note" id="celebration-note">这段努力，已经计入你的成长。</p><button class="primary-button" id="celebration-done">收下这份成就</button></dialog>
   <dialog id="opening-dialog" aria-labelledby="opening-title"><button id="opening-close" class="icon-button" aria-label="关闭开场">×</button><div class="opening-scene" id="opening-scene" aria-hidden="true"><svg viewBox="0 0 540 220" aria-hidden="true" focusable="false">
@@ -304,5 +304,6 @@
   <script src="/citadel.js"></script>
   <script src="/campfire-room.js"></script>
   <script src="/screen-layout.js"></script>
+  <script src="/compass.js"></script>
   <script src="/app.js"></script>
 </body></html>
