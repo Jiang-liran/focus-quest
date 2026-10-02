@@ -696,6 +696,11 @@ class FocusStore:
             CREATE UNIQUE INDEX IF NOT EXISTS arcade_one_active
                 ON arcade_sessions(status) WHERE status='active';
             CREATE INDEX IF NOT EXISTS arcade_day ON arcade_sessions(day);
+            CREATE TABLE IF NOT EXISTS arcade_ticket_purchases (
+                request_id TEXT PRIMARY KEY, day TEXT NOT NULL,
+                coins INTEGER NOT NULL, created_ms INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS arcade_ticket_purchase_day ON arcade_ticket_purchases(day);
             CREATE TABLE IF NOT EXISTS arcade_moves (
                 session_id TEXT NOT NULL, version INTEGER NOT NULL,
                 move TEXT NOT NULL, PRIMARY KEY(session_id,version)
@@ -2543,19 +2548,28 @@ class FocusStore:
 
     @staticmethod
     def _serialize_arcade(row):
+        state = arcade_rules.public_state(row["game_type"], json.loads(row["game_state"]))
+        if row["game_type"] == "survivor" and row["status"] != "active":
+            # History postcards show the finished build, not a frozen battlefield.
+            # Keep the complete simulation in SQLite for durable saves.
+            for key in ("enemies", "shots", "gems", "pickups", "effects", "obstacles", "choices"):
+                state.pop(key, None)
         return {"id": row["id"], "venue": row["venue"], "type": row["game_type"],
                 # This is an opaque session label, never the private generation seed.
                 "seed": row["id"][:8], "version": row["version"],
                 "startedAt": row["started_at"], "expiresAt": row["expires_at"],
                 "endedAt": row["ended_at"], "status": row["status"],
-                "state": arcade_rules.public_state(row["game_type"], json.loads(row["game_state"])),
+                "state": state,
                 "steps": row["steps"], "maxSteps": row["max_steps"],
                 "result": json.loads(row["result"]) if row["result"] else None}
 
     def _arcade_expire(self, current):
         rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchall()
         for row in rows:
-            if row["day"] != current.date().isoformat() or current >= datetime.fromisoformat(row["expires_at"]):
+            if row["game_type"] in ("voyage", "dice"):
+                self._arcade_end(row, "abandoned", {"won": False, "score": 0, "medal": 0,
+                    "reason": "该玩法已收起。历史战绩与已获得奖励保留，可前往星海幸存者开始新冒险。"}, current)
+            elif row["day"] != current.date().isoformat() or current >= datetime.fromisoformat(row["expires_at"]):
                 self._arcade_end(row, "expired", {"won": False, "score": 0, "medal": 0,
                     "reason": "休息时间到了。本轮已收起，下次再来岛上散步。"}, current)
 
@@ -2573,22 +2587,28 @@ class FocusStore:
         used = self.db.execute("SELECT COUNT(*) FROM arcade_sessions WHERE day=?", (day,)).fetchone()[0]
         reward = self.db.execute("""SELECT COALESCE(SUM(l.coins),0),COALESCE(SUM(l.diamonds),0)
             FROM arcade_sessions s JOIN wallet_ledger l ON l.reference='arcade:'||s.id WHERE s.day=?""", (day,)).fetchone()
+        purchased = self.db.execute("SELECT COUNT(*) FROM arcade_ticket_purchases WHERE day=?", (day,)).fetchone()[0]
+        study_spent = max(0, used-purchased)
         return {"studyMinutes": round(minutes, 4), "earned": earned, "used": used,
-                "available": max(0, earned-used),
-                "nextTicketMinutes": 0 if max(earned, used) >= rules["maxTickets"] else
-                    round(max(0, (max(earned, used)+1)*rules["ticketMinutes"]-minutes), 4),
+                "purchased": purchased, "purchasePrice": rules["purchasePrice"],
+                "purchaseRemaining": max(0, rules["maxPurchasedTickets"]-purchased),
+                "available": max(0, earned+purchased-used),
+                "nextTicketMinutes": 0 if max(earned, study_spent) >= rules["maxTickets"] else
+                    round(max(0, (max(earned, study_spent)+1)*rules["ticketMinutes"]-minutes), 4),
                 "rewardToday": {"coins": reward[0], "diamonds": reward[1]}}
 
     def _arcade_snapshot(self, current):
         active = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchone()
         rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status!='active' ORDER BY ended_at DESC,rowid DESC LIMIT 14").fetchall()
         history = [self._serialize_arcade(row) for row in rows]
-        signature = tuple(self.db.execute("SELECT COUNT(*),COALESCE(SUM(version),0) FROM arcade_sessions").fetchone())
+        # Only completed runs change the collection. Real-time pulses never scan
+        # historical entity arrays; lightweight active replies bypass this path.
+        signature = tuple(self.db.execute("SELECT COUNT(*),COALESCE(SUM(version),0) FROM arcade_sessions WHERE status!='active'").fetchone())
         cached = getattr(self, "_arcade_collection_cache", None)
         collect = cached is None or cached[0] != signature
-        venue_stats, cards, relics, captains = {}, {}, {}, {}
+        venue_stats, weapons, evolutions, heroes = {}, {}, {}, {}
         for row in self.db.execute("""SELECT venue,status,result,game_type,
-                CASE WHEN ? AND game_type IN ('voyage','dice') THEN game_state ELSE '{}' END AS game_state
+                CASE WHEN ? AND game_type='survivor' AND status!='active' THEN game_state ELSE '{}' END AS game_state
                 FROM arcade_sessions""", (collect,)):
             stats = venue_stats.setdefault(row["venue"], {"plays": 0, "wins": 0, "bestScore": 0, "bestMedal": 0})
             stats["plays"] += 1
@@ -2597,26 +2617,27 @@ class FocusStore:
                 stats["wins"] += row["status"] == "won"
                 stats["bestScore"] = max(stats["bestScore"], result["score"])
                 stats["bestMedal"] = max(stats["bestMedal"], result["medal"])
-            if collect and row["game_type"] in ("voyage", "dice"):
-                # Only already acquired, public items enter the permanent book;
-                # never serialize private decks or pending reward choices here.
-                public = arcade_rules.public_state(row["game_type"], json.loads(row["game_state"]))
-                for kind, items, target in (("card", public.get("deckSummary", []), cards),
-                                            ("relic", public.get("relics", []), relics)):
-                    for item in items:
-                        key = row["game_type"] + ":" + item["id"]
-                        target.setdefault(key, {"id": key, "kind": kind, "game": row["game_type"],
-                            "name": item["name"], "description": item["description"]})
-                captain = public.get("captain")
-                captain_id = captain.get("id") if isinstance(captain, dict) else captain
-                if isinstance(captain_id, str) and captain_id:
-                    info = next((c for c in public.get("captains", []) if c["id"] == captain_id), {})
-                    record = captains.setdefault(captain_id, {"id": captain_id, "name": info.get("name", captain_id), "wins": 0})
+            if collect and row["game_type"] == "survivor" and row["status"] != "active":
+                public = arcade_rules.public_state("survivor", json.loads(row["game_state"]))
+                for item in public.get("weapons", []):
+                    identity = item["id"]
+                    existing = weapons.setdefault(identity, {"id": identity, "name": item.get("name", identity),
+                        "description": item.get("description", ""), "level": 0})
+                    existing["level"] = max(existing["level"], item.get("level", 1))
+                    if item.get("evolved"):
+                        evolutions.setdefault(identity, {"id": identity,
+                            "name": item.get("evolutionName", item.get("name", identity)),
+                            "description": item.get("description", "")})
+                hero = public.get("hero")
+                hero_id = hero.get("id") if isinstance(hero, dict) else hero
+                if isinstance(hero_id, str) and hero_id:
+                    info = hero if isinstance(hero, dict) else next((h for h in public.get("heroes", []) if h["id"] == hero_id), {})
+                    record = heroes.setdefault(hero_id, {"id": hero_id, "name": info.get("name", hero_id), "wins": 0})
                     record["wins"] += row["status"] == "won"
         if collect:
-            collection = {"cards": sorted(cards.values(), key=lambda c: c["id"]),
-                          "relics": sorted(relics.values(), key=lambda c: c["id"]),
-                          "captains": sorted(captains.values(), key=lambda c: c["id"])}
+            collection = {"weapons": sorted(weapons.values(), key=lambda item: item["id"]),
+                          "evolutions": sorted(evolutions.values(), key=lambda item: item["id"]),
+                          "heroes": sorted(heroes.values(), key=lambda item: item["id"])}
             self._arcade_collection_cache = (signature, collection)
         else:
             collection = cached[1]
@@ -2626,7 +2647,7 @@ class FocusStore:
                 "rules": dict(arcade_rules.RULES), **self._arcade_budget(current),
                 "active": self._serialize_arcade(active) if active else None,
                 "lastResult": history[0] if history else None, "history": history, "venues": venues,
-                "collection": collection}
+                "collection": collection, "wallet": self._wallet()}
 
     def arcade_state(self, now=None):
         current = quest_clock(now)
@@ -2634,14 +2655,37 @@ class FocusStore:
             self._arcade_expire(current)
             return self._arcade_snapshot(current)
 
+    @staticmethod
+    def _survivor_reward(result, won):
+        if not won:
+            return [], {"coins": 0, "diamonds": 0}
+        # The result is produced only by the server simulation, never by a
+        # client score payload. Present each earned component in the receipt.
+        kills, level = max(0, result.get("kills", 0)), max(1, result.get("level", 1))
+        breakdown = [{"label": "守夜成功", "coins": 20, "diamonds": 1},
+                     {"label": "击杀星潮", "coins": min(20, kills//40), "diamonds": 0},
+                     {"label": "成长奖励", "coins": min(10, (level-1)//2), "diamonds": 0}]
+        if result.get("bossKilled"):
+            breakdown.append({"label": "击败黯星领主", "coins": 10, "diamonds": 1})
+        if level >= 20:
+            breakdown.append({"label": "达到 20 级", "coins": 0, "diamonds": 1})
+        return breakdown, {"coins": sum(item["coins"] for item in breakdown),
+                           "diamonds": sum(item["diamonds"] for item in breakdown)}
+
     def _arcade_end(self, row, status, result, current):
         coins, diamonds = 0, 0
+        if row["game_type"] == "survivor":
+            breakdown, gross = self._survivor_reward(result, status == "won")
+            result = dict(result, rewardBreakdown=breakdown, grossReward=gross)
         if status in ("won", "lost"):
             budget, rules = self._arcade_budget(current), arcade_rules.RULES
-            coins = min(rules["winCoins"] if status == "won" else rules["lossCoins"],
-                        max(0, rules["dailyCoins"]-budget["rewardToday"]["coins"]))
-            diamonds = min(rules["winDiamonds"] if status == "won" else 0,
-                           max(0, rules["dailyDiamonds"]-budget["rewardToday"]["diamonds"]))
+            if row["game_type"] == "survivor":
+                expected_coins, expected_diamonds = gross["coins"], gross["diamonds"]
+            else:
+                expected_coins = rules["winCoins"] if status == "won" else rules["lossCoins"]
+                expected_diamonds = rules["winDiamonds"] if status == "won" else 0
+            coins = min(expected_coins, max(0, rules["dailyCoins"]-budget["rewardToday"]["coins"]))
+            diamonds = min(expected_diamonds, max(0, rules["dailyDiamonds"]-budget["rewardToday"]["diamonds"]))
             self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                 ("arcade:"+row["id"], coins, diamonds, int(current.timestamp()*1000)))
         result = dict(result, coins=coins, diamonds=diamonds)
@@ -2664,11 +2708,15 @@ class FocusStore:
                 raise ValueError("还有一局正在进行，先继续或结束它吧")
             budget = self._arcade_budget(current)
             if budget["available"] <= 0:
-                if budget["used"] >= arcade_rules.RULES["maxTickets"]:
-                    raise ValueError(f"今天的 {arcade_rules.RULES['maxTickets']} 次游玩已经用完，明天再来岛上散步吧")
+                if budget["used"] >= arcade_rules.RULES["maxTickets"] + arcade_rules.RULES["maxPurchasedTickets"]:
+                    raise ValueError("今天的游玩次数已经全部用完，明天再来岛上散步吧")
+                if budget["earned"] >= arcade_rules.RULES["maxTickets"]:
+                    raise ValueError("今天的学习游玩次数已用完，可用金币购买额外次数，或明天再来")
                 raise ValueError("暂时没有可用游玩次数，完成下一段学习后再来看看")
             seed = uuid.uuid4().hex
             state, max_steps = arcade_rules.create(venue, seed)
+            if arcade_rules.CATALOG[venue]["type"] == "survivor":
+                state["_lastTick"] = current.timestamp()
             midnight = (current+timedelta(days=1)).replace(hour=0, minute=0, second=0, microsecond=0)
             expires = min(current+timedelta(seconds=arcade_rules.RULES["roundSeconds"]), midnight)
             self.db.execute("""INSERT INTO arcade_sessions
@@ -2679,33 +2727,83 @@ class FocusStore:
                  json.dumps(state, ensure_ascii=False), max_steps))
             return self._arcade_snapshot(current)
 
-    def move_arcade(self, session_id, version, move, now=None):
+    def buy_arcade_ticket(self, request_id, now=None):
+        request_id = self._action_uuid(request_id)
+        current = quest_clock(now)
+        with self._quest_transaction():
+            self._arcade_expire(current)
+            previous = self.db.execute("SELECT 1 FROM arcade_ticket_purchases WHERE request_id=?", (request_id,)).fetchone()
+            if previous:
+                return self._arcade_snapshot(current)
+            budget = self._arcade_budget(current)
+            if budget["purchaseRemaining"] <= 0:
+                raise ValueError("今天已购买 3 张额外游玩券，明天再来吧")
+            price = arcade_rules.RULES["purchasePrice"]
+            if self._wallet()["coins"] < price:
+                raise ValueError(f"金币不足，需要 {price} 金币购买一张游玩券")
+            self.db.execute("INSERT INTO arcade_ticket_purchases VALUES (?,?,?,?)",
+                (request_id, current.date().isoformat(), price, int(current.timestamp()*1000)))
+            self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                ("arcade-ticket:"+request_id, -price, 0, int(current.timestamp()*1000)))
+            return self._arcade_snapshot(current)
+
+    def _arcade_reply(self, current, session_id=None, compact=False):
+        if compact:
+            row = self.db.execute("SELECT * FROM arcade_sessions WHERE id=? AND status='active'", (session_id,)).fetchone()
+            if row:
+                return {"compact": True, "today": current.date().isoformat(),
+                        "now": current.isoformat(timespec="microseconds"), "active": self._serialize_arcade(row)}
+        return self._arcade_snapshot(current)
+
+    def pulse_arcade(self, session_id, version, move, now=None):
+        return self.move_arcade(session_id, version, move, now, compact=True)
+
+    def move_arcade(self, session_id, version, move, now=None, compact=False):
         session_id, version = self._action_uuid(session_id), self._action_version(version)
         if not isinstance(move, dict):
             raise ValueError("请提供有效的游戏操作")
-        encoded = json.dumps(move, sort_keys=True, ensure_ascii=False, separators=(",", ":"))
+        encoded = json.dumps(move, sort_keys=True, ensure_ascii=False, separators=(",", ":"), allow_nan=False)
         current = quest_clock(now)
         with self._quest_transaction():
             self._arcade_expire(current)
             row = self.db.execute("SELECT * FROM arcade_sessions WHERE id=?", (session_id,)).fetchone()
             if not row:
                 raise ValueError("这局游戏不存在")
+            if compact and row["game_type"] != "survivor":
+                raise ValueError("实时操作仅用于星海幸存者")
             previous = self.db.execute("SELECT move FROM arcade_moves WHERE session_id=? AND version=?", (session_id, version)).fetchone()
             if previous:
                 if previous["move"] != encoded:
                     raise ValueError("这一操作已处理，请刷新后继续")
-                return self._arcade_snapshot(current)
+                return self._arcade_reply(current, session_id, compact)
             if row["status"] != "active":
-                return self._arcade_snapshot(current)
+                return self._arcade_reply(current, session_id, compact)
             if row["version"] != version:
                 raise ValueError("游戏已在另一处更新，请刷新后继续")
-            state, steps, result = arcade_rules.move(row["game_type"], json.loads(row["game_state"]), row["steps"], row["max_steps"], move)
+            original = json.loads(row["game_state"])
+            action = move
+            if row["game_type"] == "survivor":
+                # Client inputs describe intent only. Simulation time always
+                # comes from the server clock, capped after pauses/disconnects.
+                if any(not isinstance(key, str) or key.startswith("_") or key in ("elapsed", "dt", "time", "score", "coins", "diamonds") for key in move):
+                    raise ValueError("游戏时间和奖励由服务器决定")
+                stamp = current.timestamp()
+                previous_stamp = original.get("_lastTick", stamp)
+                elapsed = min(.5, max(0, stamp-previous_stamp))
+                action = dict(move)
+                if move.get("kind") == "tick":
+                    action["elapsed"] = elapsed
+            state, steps, result = arcade_rules.move(row["game_type"], original, row["steps"], row["max_steps"], action)
+            if row["game_type"] == "survivor":
+                # Never move this baseline backward, even if the system clock
+                # was adjusted. Repeated requests cannot simulate extra time.
+                state["_lastTick"] = max(current.timestamp(), original.get("_lastTick", current.timestamp()))
             self.db.execute("INSERT INTO arcade_moves VALUES (?,?,?)", (session_id, version, encoded))
             self.db.execute("UPDATE arcade_sessions SET game_state=?,steps=?,version=version+1 WHERE id=?",
-                (json.dumps(state, ensure_ascii=False), steps, session_id))
+                (json.dumps(state, ensure_ascii=False, allow_nan=False), steps, session_id))
             if result is not None:
                 self._arcade_end(row, "won" if result["won"] else "lost", result, current)
-            return self._arcade_snapshot(current)
+            return self._arcade_reply(current, session_id, compact)
 
     def finish_arcade(self, session_id, version, now=None):
         session_id, version = self._action_uuid(session_id), self._action_version(version)
@@ -2929,6 +3027,8 @@ def make_handler(store, static_dir=STATIC_DIR):
                                  "/api/actions/park": (("id", "version"), store.park_action)}
                 arcade_actions = {"/api/arcade/start": (("venue", "requestId"), store.start_arcade),
                                   "/api/arcade/move": (("id", "version", "move"), store.move_arcade),
+                                  "/api/arcade/pulse": (("id", "version", "move"), store.pulse_arcade),
+                                  "/api/arcade/tickets/buy": (("requestId",), store.buy_arcade_ticket),
                                   "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
                 if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions and path not in arcade_actions:
                     self._send(404, {"error": "接口不存在"})

@@ -15,3 +15,10 @@
 @media(min-width:2200px) and (min-height:1050px){.arcade-library-art{width:150px;height:105px}.arcade-library-art>.arcade-scene{width:166px;height:130px}.arcade-library-card strong{font-size:23px}.arcade-library-card small{font-size:12px}.arcade-library-card span{font-size:15px}.arcade-collection>summary{font-size:20px}.arcade-collection>summary small,.arcade-collection>summary b,.arcade-collection-body>p{font-size:15px}.arcade-collection-grid strong{font-size:19px}.arcade-collection-grid p{font-size:15px}}
 @media(max-width:900px){.arcade-library-card{grid-column:span 3}.arcade-library-art{width:62px}.arcade-library-card span{display:none}.arcade-library-card strong{font-size:13px}.arcade-collection-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.arcade-collection>summary{align-items:start;flex-direction:column;gap:7px}.arcade-collection>summary small{display:block;margin:6px 0 0}}
 @media(prefers-reduced-motion:reduce){.arcade-library-card{transition:none;transform:none!important}}.reduced-motion .arcade-library-card{transition:none;transform:none!important}
+/* The action game leads the library; the three quiet games share a second row. */
+.arcade-library-card.flagship{grid-column:1 / -1}
+.arcade-buy-ticket{display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap;border:1px solid #d8bd8766;border-radius:8px;background:#bd996517;color:#ebd29e;padding:7px 12px;cursor:pointer;margin-left:10px}
+.arcade-buy-ticket small{font-size:.8em;color:#b8a788}.arcade-buy-ticket:hover:not(:disabled){background:#d3b27825;border-color:#ead1a0}.arcade-buy-ticket:disabled{opacity:.48}
+.arcade-quota>span{display:flex;align-items:center;justify-content:flex-end;flex-wrap:wrap;gap:8px}
+.arcade-reward-details{display:flex;flex-wrap:wrap;gap:7px 14px;margin-top:8px;color:#a9bbbf;font-size:11px}.arcade-reward-details span{white-space:nowrap}
+@media(min-width:1500px){.arcade-reward-details{font-size:14px}}

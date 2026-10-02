@@ -230,7 +230,7 @@ function updateViewTitle() {
     $('greeting-eyebrow').textContent='EARNED THROUGH FOCUS';
   }else{
     $('page-title').textContent='去远方，玩一小会儿。';
-    $('page-subtitle').textContent='驾船远征、掷骰对决，或在小岛间轻松玩一局。';
+    $('page-subtitle').textContent='穿过怪潮，让武器觉醒；也可以在小岛间轻松玩一局。';
     $('greeting-eyebrow').textContent='THE STARLIGHT ARCADE';
   }
 }
