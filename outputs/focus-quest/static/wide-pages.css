@@ -114,6 +114,9 @@
   #view-shop .shop-single-price i {font-size:var(--wide-copy)}
   #view-shop .shop-single-price small {font-size:var(--wide-small)}
   #view-shop .shop-free {font-size:var(--wide-label)}
+  #view-shop .shop-possession {font-size:var(--wide-copy);padding:.25em .65em;gap:.45em}
+  #view-shop .shop-possession i {font-size:calc(var(--wide-copy) + 2px)}
+  #view-shop .shop-possession small {font-size:var(--wide-small)}
   #view-shop .shop-item-actions {flex-wrap:wrap;gap:10px;line-height:1.4}
   #view-shop .shop-item-actions .secondary-button {min-width:0}
   #view-shop .q-shop-note,#view-shop .shop-empty {font-size:var(--wide-label);line-height:1.7}

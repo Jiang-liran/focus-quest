@@ -165,6 +165,7 @@ SHOP_PRICING_MIGRATION = "shopPricing:v18"
 SHOP_NPC_REMOVAL_MIGRATION = "shopNpcRemoval:v1"
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
 MYSTERY_START_META = "questMystery:featureStartMs"
+MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
 RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
 # These are historical upgrade prices, not purchasable catalog entries. Old
 # archives still need the v1.8 difference credited before the final net refund.
@@ -601,7 +602,8 @@ class FocusStore:
             CREATE INDEX IF NOT EXISTS mystery_allocation_time ON mystery_allocations(end_ms,start_ms);
             CREATE TABLE IF NOT EXISTS mystery_tracks (
                 subject TEXT PRIMARY KEY, settled_minutes REAL NOT NULL DEFAULT 0,
-                paid_coins INTEGER NOT NULL DEFAULT 0, paid_diamonds INTEGER NOT NULL DEFAULT 0
+                paid_coins INTEGER NOT NULL DEFAULT 0, paid_diamonds INTEGER NOT NULL DEFAULT 0,
+                diamond_offset INTEGER NOT NULL DEFAULT 0
             );
             CREATE TABLE IF NOT EXISTS mystery_gifts (
                 day TEXT NOT NULL, gift_index INTEGER NOT NULL, request_id TEXT NOT NULL,
@@ -670,6 +672,7 @@ class FocusStore:
                 with self.db:
                     self._set_meta("settings", json.dumps(self.settings, ensure_ascii=False, allow_nan=False))
         self._initialize_mystery()
+        self._migrate_mystery_diamond_cadence()
         self.revision = int(self._meta("revision") or 0)
         # Repair duplicates saved by older versions even when either source is
         # currently unavailable. Original rows remain in the merge journal.
@@ -821,6 +824,19 @@ class FocusStore:
                 started = int(quest_clock(now).timestamp() * 1000)
                 self._set_meta(MYSTERY_START_META, started)
                 self._save_mystery_epoch(self.settings, started)
+
+    def _migrate_mystery_diamond_cadence(self):
+        with self._quest_transaction():
+            columns = {row[1] for row in self.db.execute("PRAGMA table_info(mystery_tracks)")}
+            if "diamond_offset" not in columns:
+                self.db.execute("ALTER TABLE mystery_tracks ADD COLUMN diamond_offset INTEGER NOT NULL DEFAULT 0")
+            if self._meta(MYSTERY_DIAMOND_CADENCE_META) is not None:
+                return
+            # Old politics/English awards spent 30 minutes for 4 diamonds.
+            # Preserve that payout without making future study repay it, while
+            # retaining all previously unexchanged minutes at the new cadence.
+            self.db.execute("UPDATE mystery_tracks SET diamond_offset=-paid_diamonds/2 WHERE subject IN ('politics','english')")
+            self._set_meta(MYSTERY_DIAMOND_CADENCE_META, "1")
 
     @staticmethod
     def _unused_slices(slices, used):
@@ -1034,9 +1050,10 @@ class FocusStore:
             settled = track["settled_minutes"] if track else 0
             available = sum(item["minutes"] for item in pending if item["subject"] == sid)
             total = round(settled + available, 8)
-            block = self._quest_definition(sid)["target"]
+            block = 15
             coins = max(0, math.floor(total * 4 + 1e-8) - (track["paid_coins"] if track else 0))
-            diamonds = max(0, math.floor(total / block + 1e-10) * 4 - (track["paid_diamonds"] if track else 0))
+            diamonds = max(0, math.floor(total / block + 1e-10)
+                           - (track["paid_diamonds"] + track["diamond_offset"] if track else 0))
             base["coins"] += coins
             base["diamonds"] += diamonds
             minutes = sum(item["minutes"] for item in today_records if classify(item["name"], goals["mapping"]) == sid)
@@ -1093,7 +1110,7 @@ class FocusStore:
                 **summary["reward"], "baseReward": summary["baseReward"], "giftReward": summary["giftReward"],
                 "gifts": summary["pendingGifts"], "alreadyClaimed": False,
                 "subjects": [{"id": row["id"], "name": row["name"], "minutes": row["pendingMinutes"], "reward": row["reward"]}
-                             for row in summary["subjects"] if row["pendingMinutes"] > 0]}
+                             for row in summary["subjects"] if row["pendingMinutes"] > 0 or any(row["reward"].values())]}
             self.db.execute("INSERT INTO mystery_deliveries VALUES (?,?,?)",
                 (request_id, submitted_ms, json.dumps(receipt, ensure_ascii=False, allow_nan=False)))
             self.db.executemany("INSERT INTO mystery_allocations VALUES (?,?,?,?,?,?,?)",
@@ -1103,9 +1120,10 @@ class FocusStore:
                 # Keep full precision for carry, independent of UI rounding or
                 # number of submissions. Fractional coins carry forward too.
                 minutes = sum(item["minutes"] for item in plan["pending"] if item["subject"] == row["id"])
-                if minutes <= 0:
+                if minutes <= 0 and not any(row["reward"].values()):
                     continue
-                self.db.execute("""INSERT INTO mystery_tracks VALUES (?,?,?,?) ON CONFLICT(subject) DO UPDATE SET
+                self.db.execute("""INSERT INTO mystery_tracks (subject,settled_minutes,paid_coins,paid_diamonds)
+                    VALUES (?,?,?,?) ON CONFLICT(subject) DO UPDATE SET
                     settled_minutes=settled_minutes+excluded.settled_minutes,
                     paid_coins=paid_coins+excluded.paid_coins,paid_diamonds=paid_diamonds+excluded.paid_diamonds""",
                     (row["id"], minutes, row["reward"]["coins"], row["reward"]["diamonds"]))

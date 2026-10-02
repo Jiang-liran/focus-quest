@@ -19,7 +19,8 @@
   const shortDay=value=>new Date(value+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
   const money=(coins,diamonds)=>`<span class="q-money"><span class="coin-mark">●</span> ${n(coins)} <small>金币</small><span class="diamond-mark">◆</span> ${n(diamonds)} <small>钻石</small></span>`;
   const currency=item=>item.currency||(item.diamonds?'diamonds':item.coins?'coins':'free');
-  const price=item=>currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
+  const possession=item=>item.equipped?'已装备':currency(item)==='free'?'初始收藏':'已购买';
+  const price=item=>item.owned&&(item.equipped||currency(item)!=='free')?`<span class="shop-possession ${item.equipped?'equipped':'purchased'}"><i aria-hidden="true">${item.equipped?'✦':'✓'}</i><b>${possession(item)}</b><small>${currency(item)==='free'?'初始收藏':'永久拥有'}</small></span>`:currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
   const avatar=(role,outfit)=>window.QuestArt?.avatar(role,outfit)||'';
   const mentorPeriod=q=>q.recommended?.period||q.period;
   const roundName=period=>period==='afternoon'?'午后首轮':'晨光首轮';
@@ -82,8 +83,8 @@
   }
   function itemMarkup(item,wallet,disabled=false){
     const affordable=wallet.coins>=item.coins&&wallet.diamonds>=item.diamonds;
-    const label=item.equipped?'使用中':item.owned?'装备':affordable?'购买':'余额不足';
-    return `<article class="shop-item ${item.equipped?'equipped':''}" data-currency="${esc(currency(item))}"><div class="shop-item-visual">${swatch(item)}<span class="shop-item-type">${esc(names[item.slot])}</span>${item.owned?`<span class="shop-owned">${item.equipped?'✦ 使用中':'已收藏'}</span>`:''}</div><div class="shop-item-info"><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="shop-price">${price(item)}</div><div class="shop-item-actions"><button class="text-button" data-shop-action="preview" data-item="${esc(item.id)}">${item.slot==='avatar'?'试穿':'预览'}</button><button class="secondary-button" data-shop-action="${item.owned?'equip':'buy'}" data-item="${esc(item.id)}" ${disabled||item.equipped||!item.owned&&!affordable?'disabled':''}>${label}</button></div></div></article>`;
+    const label=item.equipped?'已装备':item.owned?'装备':affordable?'购买':'余额不足';
+    return `<article class="shop-item ${item.owned?'owned ':''}${item.equipped?'equipped':''}" data-currency="${esc(currency(item))}"><div class="shop-item-visual">${swatch(item)}<span class="shop-item-type">${esc(names[item.slot])}</span>${item.owned?`<span class="shop-owned">${item.equipped?'✦ ':''}${possession(item)}</span>`:''}</div><div class="shop-item-info"><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="shop-price">${price(item)}</div><div class="shop-item-actions"><button class="text-button" data-shop-action="preview" data-item="${esc(item.id)}">${item.slot==='avatar'?'试穿':'预览'}</button><button class="secondary-button" data-shop-action="${item.owned?'equip':'buy'}" data-item="${esc(item.id)}" ${disabled||item.equipped||!item.owned&&!affordable?'disabled':''}>${label}</button></div></div></article>`;
   }
   function render(next){
     if(!next||!bridge)return;
