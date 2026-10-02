@@ -11,7 +11,7 @@ const subjectsMeta = {
 const stageNames = ['整装出发','突破外围','深入核心','决战在即','今日通关'];
 const stageTitles = ['每一分钟，都算数。','第一道迷雾，已散去。','路程过半，稳步向前。','光就在前方，继续前行。','今日远征，圆满通关。'];
 const stageMessages = ['今天的远征，从一小段专注开始。','第一座路标已点亮，脚步正在变成力量。','你的投入，正在慢慢变成看得见的积累。','已经走过四分之三，按自己的节奏完成。','今天已经做得足够好了，安心收下这份成就。'];
-const viewNames = {today:'今日远征',quests:'委托广场',shop:'星织商店',history:'专注档案',achievements:'成长图鉴'};
+const viewNames = {today:'今日远征',quests:'委托广场',review:'学习复盘',shop:'星织商店',history:'专注档案',achievements:'成长图鉴'};
 const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
 const levelRanks = [
   {min:1,max:9,name:'启程学徒',range:'Lv. 1–9'},
@@ -206,6 +206,10 @@ function updateViewTitle() {
     $('page-title').textContent=history?'回看走过的每一步。':'今天，也向前一点。';
     $('page-subtitle').textContent=history?`${dateText(state.date)}的专注，都有迹可循。`:'把每一段专注，变成看得见的成长。';
     $('greeting-eyebrow').textContent=history?'EVERY STEP COUNTS':'YOUR NEXT CHAPTER';
+  }else if(currentView==='review'){
+    $('page-title').textContent='看清节奏，再从容出发。';
+    $('page-subtitle').textContent=state?`${dateText(state.date)} · 在这里查看周目标、科目分配与听课做题情况。`:'在这里查看周目标、科目分配与听课做题情况。';
+    $('greeting-eyebrow').textContent='REFLECT & REBALANCE';
   }else if(currentView==='history'){
     $('page-title').textContent='每一份努力，都有记录。';
     $('page-subtitle').textContent='那些安静专注的时刻，已经成为了你的积累。';
@@ -384,6 +388,7 @@ function renderAchievements() {
 
 function switchView(view) {
   if(!viewNames[view])return;
+  globalThis.FocusQuickSkins?.close(false);
   if(view!=='today'){stopScenePreview();globalThis.FocusExpedition?.leave();}
   currentView=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);

@@ -1,0 +1,18 @@
+/* Keep the home page for the expedition and the campfire; details live in review. */
+.home-shortcuts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:18px 0 24px}
+.home-shortcuts>button{display:flex;align-items:center;gap:12px;width:100%;min-width:0;margin:0;padding:14px 17px;text-align:left;border:1px solid #73628035;border-radius:10px;background:linear-gradient(110deg,#30283c44,#1a223b22);color:#d1c1e2;transition:background .2s,border-color .2s}
+.home-shortcuts>button:hover{background:#aa8fc915;border-color:#a58cbd60}
+.home-shortcuts>button:focus-visible{outline:2px solid #cbb1ec;outline-offset:3px}
+.home-shortcuts>button>span:nth-child(2){min-width:0;flex:1}
+.home-shortcuts strong{display:block;font-size:11px;font-weight:500}
+.home-shortcuts small{display:block;margin-top:5px;font-size:9px;line-height:1.7;color:#91879f;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.home-shortcuts .invitation-emblem{flex-shrink:0;width:29px;font-size:19px}
+.home-shortcuts .invitation-emblem svg{display:block;width:19px;height:19px}
+.home-shortcuts .invitation-link{margin-left:auto;flex-shrink:0;font-size:9px}
+#view-review>.weekly-goal{margin-top:0}
+#view-review>.subjects-section{margin-bottom:22px}
+#view-review>.activity-panel{margin-bottom:22px}
+#view-review .bottom-grid{margin-bottom:10px}
+#view-review .bottom-grid>.panel{min-width:0}
+@media(max-width:1000px){.home-shortcuts .invitation-link{font-size:0}.home-shortcuts .invitation-link:after{content:'↗';font-size:14px}.home-shortcuts>button{padding:13px;gap:9px}}
+@media(max-width:699px){.home-shortcuts{grid-template-columns:1fr;gap:8px;margin:13px 0 18px}.home-shortcuts>button{padding:11px 12px}.home-shortcuts strong{font-size:10px}.home-shortcuts small{font-size:8px}.home-shortcuts .invitation-emblem{width:25px;font-size:17px}.home-shortcuts .invitation-link{font-size:8px}.home-shortcuts .invitation-link:after{content:none}}

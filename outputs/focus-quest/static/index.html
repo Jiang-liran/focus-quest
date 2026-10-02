@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="/campfire.css">
   <link rel="stylesheet" href="/campfire-shop.css">
   <link rel="stylesheet" href="/quick-skins.css">
+  <link rel="stylesheet" href="/review.css">
 <link rel="stylesheet" href="/expedition-art.css"/><link rel="stylesheet" href="/expedition.css"/>
 </head>
 <body>
@@ -38,6 +39,7 @@
     <nav aria-label="主要导航">
       <button class="nav-item active" data-view="today"><svg><use href="#i-compass"/></svg>今日远征<span class="nav-dot"></span></button>
       <button class="nav-item" data-view="quests"><svg><use href="#i-flag"/></svg>委托广场</button>
+      <button class="nav-item" data-view="review"><svg><use href="#i-grid"/></svg>学习复盘</button>
       <button class="nav-item" data-view="shop"><svg><use href="#i-star"/></svg>星织商店</button>
       <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
       <button class="nav-item" data-view="achievements"><svg><use href="#i-trophy"/></svg>成长图鉴</button>
@@ -123,14 +125,11 @@
         <div id="expedition-discoveries" class="expedition-discoveries" aria-label="沿途见闻集" hidden></div>
       </section>
 
-      <button class="quest-invitation" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>来自营地的委托</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
+      <nav class="home-shortcuts" aria-label="营地快捷入口">
+        <button type="button" class="review-shortcut" data-view="review" aria-label="打开学习复盘"><span class="invitation-emblem"><svg aria-hidden="true"><use href="#i-grid"/></svg></span><span><strong>学习复盘</strong><small>周目标、四科详情与听课做题分析</small></span><span class="invitation-link">查看复盘 ↗</span></button>
+      <button class="quest-invitation" aria-label="打开委托广场" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>委托广场</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
+      </nav>
 
-      <section class="weekly-goal" aria-labelledby="weekly-goal-title">
-        <div class="weekly-goal-heading"><span class="weekly-goal-icon"><svg><use href="#i-flag"/></svg></span><div><h2 id="weekly-goal-title">本周远征</h2><p id="weekly-range">周一至周日</p></div><button class="text-button" id="weekly-target-edit">调整周目标 ↗</button></div>
-        <div class="weekly-goal-progress"><div class="weekly-numbers"><span><strong id="weekly-minutes">—</strong><small> / <b id="weekly-target">50</b> 小时</small></span><strong id="weekly-percent">0%</strong></div><div class="weekly-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" id="weekly-progress" role="progressbar" aria-label="周目标进度" aria-valuemin="0" aria-valuemax="100"><i id="weekly-bar"></i></div><p id="weekly-remaining">七天，不必每天都一样。累计向前就很好。</p></div>
-      </section>
-
-      <section class="subjects-section"><div class="section-heading"><h2>四科战线 <span>SUBJECT QUESTS</span></h2><button class="text-button" id="targets-edit">调整目标 <span>↗</span></button></div><div class="subject-grid" id="subjects"></div></section>
       <section class="campfire-card" id="advice-card" aria-labelledby="campfire-heading">
         <header class="campfire-heading"><h2 id="campfire-heading">篝火夜话 <span>BY THE CAMPFIRE</span></h2><div class="campfire-header-actions"><p>坐一会儿，听伙伴说说话。</p><button type="button" class="text-button" data-skin-open="camp fire tent campgear campglow chatframe">快速换装</button><button type="button" class="text-button" id="campfire-shop-open">布置营地 ↗</button></div></header>
         <div class="campfire-body">
@@ -144,6 +143,16 @@
         </div>
         <div class="campfire-characters" id="campfire-characters" role="group" aria-label="选择篝火伙伴"></div>
       </section>
+
+    </div>
+
+    <div id="view-review" class="view" hidden>
+      <section class="weekly-goal" aria-labelledby="weekly-goal-title">
+        <div class="weekly-goal-heading"><span class="weekly-goal-icon"><svg><use href="#i-flag"/></svg></span><div><h2 id="weekly-goal-title">本周远征</h2><p id="weekly-range">周一至周日</p></div><button class="text-button" id="weekly-target-edit">调整周目标 ↗</button></div>
+        <div class="weekly-goal-progress"><div class="weekly-numbers"><span><strong id="weekly-minutes">—</strong><small> / <b id="weekly-target">50</b> 小时</small></span><strong id="weekly-percent">0%</strong></div><div class="weekly-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" id="weekly-progress" role="progressbar" aria-label="周目标进度" aria-valuemin="0" aria-valuemax="100"><i id="weekly-bar"></i></div><p id="weekly-remaining">七天，不必每天都一样。累计向前就很好。</p></div>
+      </section>
+
+      <section class="subjects-section"><div class="section-heading"><h2>四科战线 <span>SUBJECT QUESTS</span></h2><button class="text-button" id="targets-edit">调整目标 <span>↗</span></button></div><div class="subject-grid" id="subjects"></div></section>
       <section class="panel activity-panel" aria-labelledby="activity-heading"><div class="section-heading"><h2 id="activity-heading">听课与做题 <span>LEARN & PRACTICE</span></h2><button class="text-button" id="activity-settings">调整学习方式 ↗</button></div><div class="activity-summary" id="activity-summary"></div><div class="activity-table-heading" aria-hidden="true"><span>科目</span><span>听课时长</span><span>做题时长</span><span>节奏观察</span></div><div id="activity-rows"></div><div class="activity-overview" id="activity-overview"></div><p class="activity-rule">按所选日期统计 · 单科听课满 60 分钟、做题不足听课一半时给出提醒，仅供安排节奏参考。</p></section>
       <div class="bottom-grid"><section class="panel weekly-panel"><div class="section-heading"><h2><b id="week-chart-title">本周足迹</b> <span>MON — SUN</span></h2><span class="muted" id="weekly-total"></span></div><div class="week-navigation"><button class="week-arrow" id="prev-week" aria-label="上一周" title="上一周">‹</button><div><span id="week-chart-range"></span><button class="text-button" id="week-reset" hidden>回到本周</button></div><button class="week-arrow" id="next-week" aria-label="下一周" title="下一周">›</button></div><div class="week-chart" id="week-chart"></div><div class="chart-footer"><span><i></i>每日专注时长</span><span>走慢一点也没关系，脚印会留下。</span></div></section><section class="panel recent-panel"><div class="section-heading"><h2>最近的收获</h2><button class="text-button" id="all-records">全部记录 ↗</button></div><div id="recent-records" class="records-list"></div></section></div>
     </div>
