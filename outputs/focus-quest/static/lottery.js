@@ -28,7 +28,9 @@
   function money(value){return [number(value?.coins)?`${count(value.coins)} 金币`:'',number(value?.diamonds)?`${count(value.diamonds)} 钻石`:''].filter(Boolean).join(' · ')||'0 金币';}
   function cost(value){return number(value?.diamonds)?`${count(value.diamonds)} 钻石`:`${count(value?.coins)} 金币`;}
   function priceEnough(item){return count(data?.wallet?.coins)>=count(item?.price?.coins)&&count(data?.wallet?.diamonds)>=count(item?.price?.diamonds);}
-  function canBuy(){const item=model();return Boolean(item&&!busy&&!retry&&item.canBuy===true&&number(item.purchasesRemaining)>0&&priceEnough(item));}
+  function purchaseLimit(item=model()){return Number.isSafeInteger(item?.purchaseLimit)&&item.purchaseLimit>=0?item.purchaseLimit:10;}
+  function purchasesRemaining(item=model()){return Number.isSafeInteger(item?.purchasesRemaining)&&item.purchasesRemaining>=0?item.purchasesRemaining:Math.max(0,purchaseLimit(item)-count(item?.purchasesToday));}
+  function canBuy(){const item=model();return Boolean(item&&!busy&&!retry&&item.canBuy===true&&count(item.purchasesToday)<purchaseLimit(item)&&purchasesRemaining(item)>0&&priceEnough(item));}
   function exchangeCost(item=model()){const value=item?.exchange?.cost;return Number.isInteger(value)&&value>0?value:0;}
   function canExchange(){return Boolean(exchangeCost()&&!busy&&!retry&&model()?.exchange?.canExchange===true&&Number.isInteger(data?.playTickets?.available)&&data.playTickets.available>=exchangeCost());}
   function canDraw(){return Boolean(model()?.canDraw===true&&number(data?.tickets?.[machine])>0&&!busy&&!retry);}
@@ -105,16 +107,17 @@
       ['完整委托','普通委托每交付完整 1 轮：1 张。数学、408 每轮 60 分钟，政治、英语每轮 30 分钟。'],
       ['学科礼盒','每科当日目标完成，打开该科岛屿礼盒：1 张。'],
       ['单科首轮','领取每科当日首轮加赠：1 张。四科各领一次，每天最多 4 张；与完整委托赠券分别计算。'],
+      ['融会贯通','领取知行研习所「融会贯通」额外奖赏：1 张金币抽奖券 ＋ 1 张钻石抽奖券，一起收好。'],
       ['拾星星礼','「拾星」第 1、2 份星礼各 1 张，第 3—6 份各 2 张。每天最多 6 份星礼；打开混合礼盒时，两种券会一起收好。']
     ]:[
       ['完整委托','四科普通委托合计每交付完整 3 轮：1 张。可连续学习同一科，也可自由搭配科目。'],
       ['主岛礼盒','总目标与四科目标都完成，打开主岛礼盒：1 张。'],
-      ['融会贯通','知行研习所「融会贯通」额外奖赏：1 张。'],
+      ['融会贯通','领取知行研习所「融会贯通」额外奖赏：1 张金币抽奖券 ＋ 1 张钻石抽奖券，一起收好。'],
       ['拾星星礼','「拾星」第 2、3 份星礼各 1 张，第 4—6 份各 2 张。达标后每额外学习 30 分钟备好一份，每日最多 6 份；同盒的金币券会一起收好。'],
       ['上午首轮','同一学习日的数学、政治首轮加赠都领取：1 张。'],
       ['下午首轮','同一学习日的 408、英语首轮加赠都领取：1 张。上午、下午各一次，每天最多 2 张。']
     ];
-    return `<p class="lottery-dialog-intro">专注带来的小票，可以留到想拆礼物的时候。以下奖励领取时会一起收好${labels[machine].ticket}。</p><section class="lottery-rule-section"><div class="lottery-rule-section-heading"><h3>随学习获得</h3><span>每次领取，都有迹可循</span></div><ol class="lottery-source-cards">${sources.map(([title,text],index)=>`<li><span class="lottery-source-index">${String(index+1).padStart(2,'0')}</span><div><h4>${esc(title)}</h4><p>${esc(text)}</p></div></li>`).join('')}</ol></section>${exchangeCost(item)?`<section class="lottery-rule-guarantee lottery-rule-exchange"><span>把游玩券留给幸运</span><h3>${exchangeCost(item)} 张游玩券，换 1 张${labels[machine].ticket}</h3><p>累计游玩券 ${count(data?.playTickets?.available)} 张。游玩券与抽奖券都会跨日永久保留。</p><p>兑换不限次数，不占用每日购券额度，也不会自动开奖。剩余游玩券仍可用于游戏；游玩次数与游戏奖励仍按日限制。</p></section>`:''}<section class="lottery-rule-guarantee"><span>也可以给幸运留一张小票</span><h3>${cost(item.price)} 换 1 张</h3><p>${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。</p><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次。回到机器旁即可购买，购券不会自动开奖。</p></section><section class="lottery-rule-section lottery-ticket-notes"><h3>收好以后，慢慢拆</h3><p>抽奖券永久保留，两种券各用各的。首轮赠券按学习发生日归属；同一天、同一科和同一时段组合都只结算一次，晚些领取也不会重复发券。</p><p>普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。更新前已经入袋的券会保留，历史首轮与补领以实际交付提示为准。</p></section>`;
+    return `<p class="lottery-dialog-intro">专注带来的小票，可以留到想拆礼物的时候。以下奖励领取时会一起收好${labels[machine].ticket}。</p><section class="lottery-rule-section"><div class="lottery-rule-section-heading"><h3>随学习获得</h3><span>每次领取，都有迹可循</span></div><ol class="lottery-source-cards">${sources.map(([title,text],index)=>`<li><span class="lottery-source-index">${String(index+1).padStart(2,'0')}</span><div><h4>${esc(title)}</h4><p>${esc(text)}</p></div></li>`).join('')}</ol></section>${exchangeCost(item)?`<section class="lottery-rule-guarantee lottery-rule-exchange"><span>把游玩券留给幸运</span><h3>${exchangeCost(item)} 张游玩券，换 1 张${labels[machine].ticket}</h3><p>累计游玩券 ${count(data?.playTickets?.available)} 张。游玩券与抽奖券都会跨日永久保留。</p><p>兑换不限次数，不占用每日购券额度，也不会自动开奖。剩余游玩券仍可用于游戏；游玩次数与游戏奖励仍按日限制。</p></section>`:''}<section class="lottery-rule-guarantee"><span>也可以给幸运留一张小票</span><h3>${cost(item.price)} 换 1 张</h3><p>${cost(item.price)}购买 1 张，每天最多购买 ${purchaseLimit(item)} 张。</p><p>今日已买 ${count(item.purchasesToday)} / ${purchaseLimit(item)} 张 · 剩余 ${purchasesRemaining(item)} 次。回到机器旁即可购买，购券不会自动开奖。</p></section><section class="lottery-rule-section lottery-ticket-notes"><h3>收好以后，慢慢拆</h3><p>抽奖券永久保留，两种券各用各的。首轮赠券按学习发生日归属；同一天、同一科和同一时段组合都只结算一次，晚些领取也不会重复发券。</p><p>普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。更新前已经入袋的券会保留，历史首轮与补领以实际交付提示为准。</p></section>`;
   }
   function closeRules(refresh=true){
     const dialog=rulesDialog,focus=rulesFocus;rulesDialog=null;rulesFocus='';
@@ -176,7 +179,7 @@
         <div class="lottery-draw"><button type="button" class="lottery-draw-button" data-lottery-action="draw" data-lottery-focus="draw" aria-disabled="${!canDraw()}"${busy?.action==='draw'?' aria-busy="true"':''}>${busy?.action==='draw'?'正在打开…':number(data.tickets[machine])>0?'投入 1 张券 · 打开惊喜':'还没有抽奖券'}</button><small>每次消耗 1 张${labels[machine].ticket}；进入这里不会消耗。</small></div>
         <div class="lottery-status" role="status" ${error||loadError||retry?'':'hidden'}>${esc(error||loadError||'上次操作需要确认，请先收好它的结果。')}${retry&&!busy?`<button type="button" data-lottery-action="retry" data-lottery-focus="retry">确认上次${retry.action==='draw'?'抽奖':retry.action==='star-gift'?'开礼盒':retry.action==='exchange'?'兑换':'购券'}</button>`:''}</div>
       </div><aside class="lottery-aside">
-        <section class="lottery-purchase" aria-labelledby="lottery-purchase-title"><div><span class="lottery-eyebrow">给幸运留一张小票</span><h3 id="lottery-purchase-title">${cost(item.price)} 换 1 张</h3><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次</p></div><button type="button" data-lottery-action="buy" data-lottery-focus="buy" aria-disabled="${!canBuy()}"${busy?.action==='buy'?' aria-busy="true"':''}>${busy?.action==='buy'?'正在收好…':!number(item.purchasesRemaining)?'今日已买满':!priceEnough(item)?`${labels[machine].currency}暂时不足`:`${cost(item.price)} · 购买 1 张`}</button><small>行囊：${count(data.wallet?.coins)} 金币 · ${count(data.wallet?.diamonds)} 钻石<br>购券不是开奖，买好后再按自己的心情拆开。${roundSummary()?`<br>${roundSummary()}`:''}</small></section>
+        <section class="lottery-purchase" aria-labelledby="lottery-purchase-title"><div><span class="lottery-eyebrow">给幸运留一张小票</span><h3 id="lottery-purchase-title">${cost(item.price)} 换 1 张</h3><p>今日已买 ${count(item.purchasesToday)} / ${purchaseLimit(item)} 张 · 剩余 ${purchasesRemaining(item)} 次</p></div><button type="button" data-lottery-action="buy" data-lottery-focus="buy" aria-disabled="${!canBuy()}"${busy?.action==='buy'?' aria-busy="true"':''}>${busy?.action==='buy'?'正在收好…':!purchasesRemaining(item)?'今日已买满':!priceEnough(item)?`${labels[machine].currency}暂时不足`:`${cost(item.price)} · 购买 1 张`}</button><small>行囊：${count(data.wallet?.coins)} 金币 · ${count(data.wallet?.diamonds)} 钻石<br>购券不是开奖，买好后再按自己的心情拆开。${roundSummary()?`<br>${roundSummary()}`:''}</small></section>
         ${exchangeHTML(item)}${starGiftsHTML()}${ruleLink('odds')}${ruleLink('sources')}${historyHTML()}<p class="lottery-rest-note">惊喜是额外的小礼，学习的收获已经属于你。</p>
       </aside></div>${collectionHTML(item)}
     </section>`;

@@ -1671,11 +1671,19 @@ class FocusStore:
             bonus_claim = self.db.execute("SELECT * FROM method_completion_claims WHERE day=?", (day,)).fetchone()
             completed = sum(reward["eligible"] for subject in subjects for reward in subject["rewards"])
             bonus_eligible = completed == len(SUBJECTS)*len(METHOD_REWARD_TIERS)
+            bonus_tickets = {"coinTickets": 0, "diamondTickets": 0}
+            if bonus_claim is not None:
+                for row in self.db.execute("SELECT machine,amount FROM lottery_ticket_ledger WHERE reference IN (?,?)",
+                        (f"method:{day}:completion", f"method:{day}:completion:coin")):
+                    bonus_tickets["coinTickets" if row["machine"] == "coin" else "diamondTickets"] += row["amount"]
+            elif now_ms >= int(self._meta(LOTTERY_START_META)):
+                bonus_tickets = {"coinTickets": 1, "diamondTickets": 1}
             bonus = {"name": METHOD_COMPLETION_BONUS["name"], "eligible": bonus_eligible,
                      "available": day == today and bonus_eligible and bonus_claim is None,
                      "claimed": bonus_claim is not None,
                      "claimedAt": iso_ms(bonus_claim["claimed_ms"]) if bonus_claim is not None else None,
                      "completedCount": completed, "requiredCount": 8,
+                     "lotteryTickets": bonus_tickets,
                      "reward": {key: METHOD_COMPLETION_BONUS[key] for key in ("coins", "diamonds")}}
             return {"day": day, "today": today, "isToday": day == today, "subjects": subjects,
                     "completionBonus": bonus,
@@ -1735,13 +1743,17 @@ class FocusStore:
                                 (day, reward["coins"], reward["diamonds"], created_ms))
                 self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                                 (f"method-completion:{day}", reward["coins"], reward["diamonds"], created_ms))
-                grant = self._grant_lottery_ticket(f"method:{day}:completion", "diamond", "method-completion", "融会贯通奖赏", current)
-                if grant:
-                    ticket_grants.append(grant)
+                for reference, machine in ((f"method:{day}:completion", "diamond"),
+                                           (f"method:{day}:completion:coin", "coin")):
+                    grant = self._grant_lottery_ticket(reference, machine, "method-completion", "融会贯通奖赏", current)
+                    if grant:
+                        ticket_grants.append(grant)
                 self._bump_revision()
             return {"day": day, "subject": "all", "tier": "completion", "reward": reward,
                     "wallet": self._wallet(), "methodRewards": self.method_rewards_state(day, current),
                     "alreadyClaimed": bool(existing), "now": current.isoformat(),
+                    "lotteryTickets": {"coinTickets": sum(g["count"] for g in ticket_grants if g["machine"] == "coin"),
+                                       "diamondTickets": sum(g["count"] for g in ticket_grants if g["machine"] == "diamond")},
                     "lottery": self.lottery_state(current), "ticketGrants": ticket_grants}
 
     def _goal_mystery_epochs(self, current):

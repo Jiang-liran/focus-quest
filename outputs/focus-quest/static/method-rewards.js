@@ -6,7 +6,7 @@
   const tiers={practice:{name:'落笔试锋',coins:20,diamonds:0},mastery:{name:'学以致用',coins:40,diamonds:1}};
   let bridge={},initialized=false,latest=null,markup='',busy=null,dialogue=0,portrait=null;
   // Receipts outlive any in-flight poll, but the database remains the source of truth.
-  const received=new Set();
+  const received=new Set(),receivedBonusTickets=new Map();
   const claimKey=(day,subject,tier)=>`${day}:${subject}:${tier}`;
   function remember(key){received.add(key);if(received.size>256)received.delete(received.values().next().value);}
   const number=value=>Number.isFinite(Number(value))?Math.max(0,Number(value)):0;
@@ -18,6 +18,33 @@
   const available=(subject,tier)=>Boolean(current()&&!claimed(subject,tier)&&rewardFor(subject,tier)?.eligible===true&&rewardFor(subject,tier)?.available===true);
   const bonusClaimed=()=>Boolean(model()?.completionBonus?.claimed||received.has(claimKey(model()?.day,'all','completion')));
   const bonusAvailable=()=>Boolean(current()&&!bonusClaimed()&&model()?.completionBonus?.eligible===true&&model().completionBonus.available===true);
+  function lotteryTickets(value){
+    if(!value||!['coinTickets','diamondTickets'].every(key=>Number.isSafeInteger(value[key])&&value[key]>=0))return null;
+    return {coinTickets:value.coinTickets,diamondTickets:value.diamondTickets};
+  }
+  function rememberBonusTickets(day,bonus){
+    if(bonus?.claimed!==true||receivedBonusTickets.has(day))return;
+    receivedBonusTickets.set(day,lotteryTickets(bonus.lotteryTickets));
+    if(receivedBonusTickets.size>256)receivedBonusTickets.delete(receivedBonusTickets.keys().next().value);
+  }
+  function bonusTickets(){return bonusClaimed()&&receivedBonusTickets.has(model()?.day)?receivedBonusTickets.get(model().day):lotteryTickets(model()?.completionBonus?.lotteryTickets);}
+  function ticketSummary(tickets){return tickets?[[tickets.coinTickets,'金币抽奖券'],[tickets.diamondTickets,'钻石抽奖券']].filter(([amount])=>amount>0).map(([amount,name])=>`${amount} 张${name}`).join(' ＋ '):'';}
+  function bonusTicketHTML(){
+    const tickets=bonusTickets();if(!ticketSummary(tickets))return '';
+    return `<div class="method-completion-tickets" role="group" aria-label="${bonusClaimed()?'已收好的':'额外赠送的'}抽奖券">${[['coin',tickets.coinTickets,'金币抽奖券'],['diamond',tickets.diamondTickets,'钻石抽奖券']].filter(([,amount])=>amount>0).map(([kind,amount,name])=>`<span class="method-completion-ticket ${kind}"><i aria-hidden="true">${kind==='coin'?'◉':'◇'}</i>${amount} 张${name}</span>`).join('')}</div>`;
+  }
+  function validBonusTickets(result,expected){
+    if(result.alreadyClaimed||!expected||!ticketSummary(expected))return true;
+    const actual=lotteryTickets(result.methodRewards?.completionBonus?.lotteryTickets),delta=lotteryTickets(result.lotteryTickets);
+    if(!actual||actual.coinTickets!==expected.coinTickets||actual.diamondTickets!==expected.diamondTickets||!delta||delta.coinTickets!==expected.coinTickets||delta.diamondTickets!==expected.diamondTickets)return false;
+    const granted={coinTickets:0,diamondTickets:0};
+    for(const grant of Array.isArray(result.ticketGrants)?result.ticketGrants:[]){
+      if(!['coin','diamond'].includes(grant?.machine)||!Number.isSafeInteger(grant?.count)||grant.count<1)return false;
+      granted[grant.machine==='coin'?'coinTickets':'diamondTickets']+=grant.count;
+    }
+    return granted.coinTickets===expected.coinTickets&&granted.diamondTickets===expected.diamondTickets;
+  }
+
   function visible(){
     const host=$('method-rewards');if(!host||document.hidden||bridge.isVisible?.()===false)return false;
     for(let node=host;node;node=node.parentElement)if(node.hidden||node.inert)return false;
@@ -92,14 +119,14 @@
     const owned=bonusClaimed(),ready=bonusAvailable(),working=busy?.day===model().day&&busy.subject==='all'&&busy.tier==='completion';
     const count=Math.min(8,Math.floor(number(bonus.completedCount))),status=owned?'已领取':ready?'领取额外奖赏':current()?'继续研习':bonus.eligible?'已完成 · 历史只读':'留待下一程';
     const note=owned?'四科的听与练，都已经留下了收获。这份额外奖赏已收进行囊。':ready?'四科两档研习全部完成，砚青为你备好了一份额外奖赏。':current()?'四科各完成两档研习，即可领取；不必先领取单科奖励。':'回看这一天的研习足迹。额外奖赏仅限完成当天领取。';
-    return `<section class="method-completion${ready?' is-ready':''}${owned?' is-claimed':''}" aria-labelledby="method-completion-title"><div class="method-completion-art" aria-hidden="true">${completionGiftArt(ready)}</div><div class="method-completion-copy"><span class="method-completion-eyebrow">四科研习 · 每日额外奖赏</span><h3 id="method-completion-title">融会贯通</h3><p>${note}</p><div class="method-completion-subjects" aria-label="四科两档任务完成情况">${rows().map(subject=>{const done=Object.keys(tiers).filter(tier=>rewardFor(subject,tier)?.eligible===true).length;return `<span class="${done===2?'is-complete':''}">${esc(subjects[subject.id].name)} <b>${done===2?'✓':`${done} / 2`}</b></span>`;}).join('')}</div><div class="method-completion-meter" role="progressbar" aria-label="四科研习任务完成进度" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${count}"><i style="width:${count/8*100}%"></i></div></div><div class="method-completion-reward"><strong>${Math.floor(number(bonus.reward?.coins))} 金币 <span>· ${Math.floor(number(bonus.reward?.diamonds))} 钻石</span></strong><small>每天一次 · ${count} / 8 档已完成</small><button type="button" data-method-bonus="true" data-method-focus="all:completion" aria-disabled="${Boolean(busy)||!ready}"${working?' aria-busy="true"':''} aria-label="融会贯通 · ${status}">${status}</button></div></section>`;
+    return `<section class="method-completion${ready?' is-ready':''}${owned?' is-claimed':''}" aria-labelledby="method-completion-title"><div class="method-completion-art" aria-hidden="true">${completionGiftArt(ready)}</div><div class="method-completion-copy"><span class="method-completion-eyebrow">四科研习 · 每日额外奖赏</span><h3 id="method-completion-title">融会贯通</h3><p>${note}</p><div class="method-completion-subjects" aria-label="四科两档任务完成情况">${rows().map(subject=>{const done=Object.keys(tiers).filter(tier=>rewardFor(subject,tier)?.eligible===true).length;return `<span class="${done===2?'is-complete':''}">${esc(subjects[subject.id].name)} <b>${done===2?'✓':`${done} / 2`}</b></span>`;}).join('')}</div><div class="method-completion-meter" role="progressbar" aria-label="四科研习任务完成进度" aria-valuemin="0" aria-valuemax="8" aria-valuenow="${count}"><i style="width:${count/8*100}%"></i></div></div><div class="method-completion-reward"><strong>${Math.floor(number(bonus.reward?.coins))} 金币 <span>· ${Math.floor(number(bonus.reward?.diamonds))} 钻石</span></strong>${bonusTicketHTML()}<small>每天一次 · ${count} / 8 档已完成</small><button type="button" data-method-bonus="true" data-method-focus="all:completion" aria-disabled="${Boolean(busy)||!ready}"${working?' aria-busy="true"':''} aria-label="融会贯通 · ${status}">${status}</button></div></section>`;
   }
   function paint(){
     const host=$('method-rewards');if(!host)return;
     if(!model()){host.hidden=true;return;}host.hidden=false;
     if(portrait===null&&root.FocusMethodArt?.avatar)portrait=root.FocusMethodArt.avatar();
     const count=rows().reduce((sum,s)=>sum+['practice','mastery'].filter(t=>available(s,t)).length,0)+Number(bonusAvailable());
-    const html=`<section class="method-workshop" aria-labelledby="method-rewards-title"><div class="method-mentor"><div class="method-portrait" aria-hidden="true">${portrait||'<span>砚</span>'}</div><div class="method-intro"><div class="method-eyebrow">LEARN IT · TRY IT <span>${current()?'今日研习':`${esc(model().day)} · 研习回看`}</span></div><div class="method-title-row"><h2 id="method-rewards-title">知行研习所</h2><span class="method-status">${current()?(count?`${count} 份奖励可领取`:'小步落笔，自有收获'):'历史记录 · 只读'}</span></div><p class="method-mentor-name">研习导师 · 砚青</p><p class="method-dialogue">${esc(advice())}</p><div class="method-intro-actions"><button type="button" data-method-action="advice" data-method-focus="advice">再听一句 ↻</button><button type="button" data-method-action="settings" data-method-focus="settings">核对学习方式 ↗</button></div></div></div>${summaryHTML()}<div class="method-rules"><span><b>20 分钟做题</b> · 每科 20 金币</span><span><b>听课 20 ＋ 做题 30，或纯做题 60 分钟</b> · 每科再得 40 金币、1 钻石</span><small>四科各两份，每天各领一次；不用接取，也不扣减其他委托进度。纯做题满 60 分钟可领齐两份。单科奖励合计最多 240 金币、4 钻石；四科全部完成后，另有 200 金币、4 钻石。</small></div><div class="method-subjects">${rows().map(card).join('')}</div>${bonusHTML()}${extraActivityHTML()}<p class="method-mapping-note">按原有的「学习方式」分类统计，只认可标为做题的真实练习；背诵、阅读与整理请保留真实分类。今天的奖励请在今天领取。节奏观察按所选日期统计：单科听课满60分钟、做题不足听课一半时给出提醒，仅供安排参考。</p></section>`;
+    const html=`<section class="method-workshop" aria-labelledby="method-rewards-title"><div class="method-mentor"><div class="method-portrait" aria-hidden="true">${portrait||'<span>砚</span>'}</div><div class="method-intro"><div class="method-eyebrow">LEARN IT · TRY IT <span>${current()?'今日研习':`${esc(model().day)} · 研习回看`}</span></div><div class="method-title-row"><h2 id="method-rewards-title">知行研习所</h2><span class="method-status">${current()?(count?`${count} 份奖励可领取`:'小步落笔，自有收获'):'历史记录 · 只读'}</span></div><p class="method-mentor-name">研习导师 · 砚青</p><p class="method-dialogue">${esc(advice())}</p><div class="method-intro-actions"><button type="button" data-method-action="advice" data-method-focus="advice">再听一句 ↻</button><button type="button" data-method-action="settings" data-method-focus="settings">核对学习方式 ↗</button></div></div></div>${summaryHTML()}<div class="method-rules"><span><b>20 分钟做题</b> · 每科 20 金币</span><span><b>听课 20 ＋ 做题 30，或纯做题 60 分钟</b> · 每科再得 40 金币、1 钻石</span><small>四科各两份，每天各领一次；不用接取，也不扣减其他委托进度。纯做题满 60 分钟可领齐两份。单科奖励合计最多 240 金币、4 钻石；四科全部完成后，另有 200 金币、4 钻石${ticketSummary(bonusTickets())?`，以及 ${ticketSummary(bonusTickets())}`:''}。</small></div><div class="method-subjects">${rows().map(card).join('')}</div>${bonusHTML()}${extraActivityHTML()}<p class="method-mapping-note">按原有的「学习方式」分类统计，只认可标为做题的真实练习；背诵、阅读与整理请保留真实分类。今天的奖励请在今天领取。节奏观察按所选日期统计：单科听课满60分钟、做题不足听课一半时给出提醒，仅供安排参考。</p></section>`;
     if(html===markup)return;
     const focus=host.contains(document.activeElement)?document.activeElement?.closest?.('[data-method-focus]')?.dataset.methodFocus:null;
     host.innerHTML=html;markup=html;
@@ -108,18 +135,19 @@
   function render(snapshot){
     latest=snapshot;
     if(model())for(const subject of rows())for(const tier of Object.keys(tiers))if(rewardFor(subject,tier)?.claimed)remember(claimKey(model().day,subject.id,tier));
-    if(model()?.completionBonus?.claimed)remember(claimKey(model().day,'all','completion'));
+    if(model()?.completionBonus?.claimed){remember(claimKey(model().day,'all','completion'));rememberBonusTickets(model().day,model().completionBonus);}
     paint();
   }
   async function claim(subjectId,tier){
     const isBonus=subjectId==='all'&&tier==='completion';
     if(busy||!visible()||(!isBonus&&(!subjects[subjectId]||!tiers[tier])))return;
     const subject=rows().find(s=>s.id===subjectId);if(isBonus?!bonusAvailable():!subject||!available(subject,tier))return;
-    const day=model().day;busy={day,subject:subjectId,tier};bridge.unlock?.();paint();
+    const day=model().day,expectedTickets=isBonus?bonusTickets():null;busy={day,subject:subjectId,tier};bridge.unlock?.();paint();
     try{
       const result=await bridge.api(isBonus?'/api/method-rewards/completion':'/api/method-rewards/claim',isBonus?{day}:{day,subject:subjectId,tier});
-      if(result?.day!==day||result.subject!==subjectId||result.tier!==tier||result.methodRewards?.day!==day||!result.wallet||!result.reward||(isBonus&&result.methodRewards.completionBonus?.claimed!==true))throw new Error('奖励回执暂未完整返回，请稍后再点一次确认。');
+      if(result?.day!==day||result.subject!==subjectId||result.tier!==tier||result.methodRewards?.day!==day||!result.wallet||!result.reward||(isBonus&&(result.methodRewards.completionBonus?.claimed!==true||!validBonusTickets(result,expectedTickets))))throw new Error('奖励回执暂未完整返回，请稍后再点一次确认。');
       remember(claimKey(day,subjectId,tier));
+      if(isBonus)rememberBonusTickets(day,result.methodRewards.completionBonus);
       if(latest?.date===day&&model()?.day===day)latest={...latest,methodRewards:result.methodRewards};
       bridge.acceptReceipt?.(result);
       if(!result.alreadyClaimed){

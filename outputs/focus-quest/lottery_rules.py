@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import secrets
 
-PURCHASE_LIMIT = 5
+PURCHASE_LIMIT = 10
 PRICES = {"coin": {"coins": 80, "diamonds": 0},
           "diamond": {"coins": 0, "diamonds": 4}}
 # Ordinary items occupy 19%, lottery-only items 1%, and currency 80%.
