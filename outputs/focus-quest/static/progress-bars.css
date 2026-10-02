@@ -14,17 +14,17 @@
 :root .pb-enhanced[data-pb-skin=bar-mint],:root .pb-enhanced[data-pb-skin=bar-fox]{background:#22392f!important;box-shadow:inset 0 0 0 1px #83b68018}
 :root .pb-enhanced[data-pb-skin=bar-tide],:root .pb-enhanced[data-pb-skin=bar-koi]{background:#173640!important;box-shadow:inset 0 0 0 1px #75c8cc17}
 :root .pb-enhanced[data-pb-skin=bar-prism]{background:#090f22!important;box-shadow:inset 0 1px 2px #020511,inset 0 -1px 1px #bbcaff24,0 0 0 1px #9bb7ec24}
-:root .total-progress.pb-enhanced[data-pb-skin=bar-prism]{height:18px;border-radius:12px}
 :root .pb-enhanced[data-pb-skin=bar-prism] .pb-ribbon,:root .pb-enhanced[data-pb-skin=bar-prism] .pb-ribbon-svg{overflow:visible}
-:root .pb-enhanced[data-pb-skin=bar-prism][data-pb-empty=false]>i{box-shadow:0 0 4px #d4f3ff48,0 3px 12px #869aff22!important}
+:root .pb-enhanced[data-pb-skin=bar-prism][data-pb-empty=false]>i{box-shadow:0 0 4px #d4f3ff48!important}
+/* Skins inherit the host track geometry, so live previews cannot move nearby content.
+   Keep the actual track's halo inside its existing gap; shop illustrations have more room. */
+:root .pb-enhanced[data-pb-skin=bar-prism] .pb-art{clip-path:inset(-3px 0)}
+:root .pb-enhanced[data-pb-skin=bar-prism] .pb-prism-aura{transform-origin:300px 12px;transform:scaleY(.65)}
 .pb-prism-aura{opacity:.88}
 .pb-prism-beam-a{animation:pb-prism-forward 7.5s linear infinite}
 .pb-prism-beam-b{animation:pb-prism-backward 11s linear infinite}
 .pb-prism-filament{animation:pb-rgb-travel 13s linear infinite}
 :root .pb-enhanced[data-pb-compact=true] .pb-prism-aura{opacity:.32}
-@media(max-height:850px){:root .total-progress.pb-enhanced[data-pb-skin=bar-prism]{height:14px}}
-@media(min-width:880px){.expedition-hero .hero-copy:has(.total-progress[data-pb-skin=bar-prism]){grid-template-rows:auto auto auto 36px auto}}
-@media(min-width:880px) and (max-height:850px){.expedition-hero .hero-copy:has(.total-progress[data-pb-skin=bar-prism]){grid-template-rows:auto auto auto 28px auto}}
 :root .pb-enhanced[data-pb-skin=bar-whale],:root .pb-enhanced[data-pb-skin=bar-aurora]{background:#202b48!important;box-shadow:inset 0 0 0 1px #b28bef1c}
 :root .pb-enhanced[data-pb-skin=bar-comet]{background:#352c40!important}
 :root .pb-enhanced[data-pb-skin=bar-dragon]{background:#243e46!important}
