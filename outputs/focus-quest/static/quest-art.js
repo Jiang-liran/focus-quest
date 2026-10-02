@@ -6,7 +6,6 @@
   'use strict';
 
   const roles = new Set(['morning', 'afternoon', 'shop', 'player', 'guide']);
-  const npcOutfits = new Set(['npc-default', 'npc-scholar', 'npc-tea', 'npc-copper', 'npc-astral', 'npc-phoenix']);
   const playerOutfits = new Set(['avatar-default', 'avatar-ranger', 'avatar-voyager', 'avatar-alchemist', 'avatar-star', 'avatar-royal']);
   const palettes = {
     morning: {coat: '#67978b', shade: '#426f69', hat: '#8fb7a1', hatShade: '#5f8979', trim: '#edd3a1', hair: '#746458'},
@@ -14,11 +13,6 @@
     shop: {coat: '#c08c92', shade: '#9b6977', hat: '#d5a1a9', hatShade: '#ad7b8c', trim: '#f0c69d', hair: '#785960'},
     guide: {coat: '#8f9eaf', shade: '#687c95', hat: '#b99bd8', hatShade: '#896bb0', trim: '#e5cff5', hair: '#77657d'},
     player: {coat: '#b69cdd', shade: '#8067b2', hat: '#cdb6eb', hatShade: '#977ec3', trim: '#e8d8f5', hair: '#77718b'},
-    'npc-scholar': {coat: '#729c95', shade: '#487b7c', hat: '#8bb4a0', hatShade: '#567f78', trim: '#f2dda4'},
-    'npc-tea': {coat: '#acaa83', shade: '#747e62', hat: '#d1c8a0', hatShade: '#989c74', trim: '#f0e0bf'},
-    'npc-copper': {coat: '#b48a70', shade: '#805f57', hat: '#ceac86', hatShade: '#9b775f', trim: '#f1d5a3'},
-    'npc-astral': {coat: '#7a79b9', shade: '#505483', hat: '#979ad2', hatShade: '#68669e', trim: '#e5d6ff'},
-    'npc-phoenix': {coat: '#bf7e80', shade: '#874f67', hat: '#d9a191', hatShade: '#a46679', trim: '#f5d59d'},
     'avatar-ranger': {coat: '#6e9c8b', shade: '#416e67', hat: '#adbf91', hatShade: '#668773', trim: '#e4c58e'},
     'avatar-voyager': {coat: '#709caf', shade: '#486d86', hat: '#a7c7d2', hatShade: '#6d94ad', trim: '#f0d9a6'},
     'avatar-alchemist': {coat: '#a08db2', shade: '#68647f', hat: '#c5acd1', hatShade: '#8d789f', trim: '#c0debd'},
@@ -36,16 +30,13 @@
   }
 
   function robe(palette, outfit) {
-    const astral = outfit === 'npc-astral' || outfit === 'avatar-star';
+    const astral = outfit === 'avatar-star';
     return `<ellipse cx="32" cy="68" rx="24" ry="3" fill="#101828" opacity=".3"/>
       <path d="M24 43h16c7 5 10 14 12 25H12c2-11 5-20 12-25Z" fill="${palette.coat}"/>
       <path d="M32 44h8c7 5 10 14 12 25H32Z" fill="${palette.shade}"/>
       <path d="m23 46 9 8 9-8-3-3H26Z" fill="${palette.trim}"/>
       <circle cx="32" cy="54" r="2" fill="${palette.trim}"/>
       ${astral ? star(24, 60, 2, palette.trim) + star(40, 64, 1.8, palette.trim) : ''}
-      ${outfit === 'npc-tea' ? `<path d="M22 65q1-8 7-10m-4 5q-7 0-5-5 5-1 5 5m1-2q0-6 5-5 2 4-5 5" fill="none" stroke="${palette.trim}" stroke-width="1.1"/>` : ''}
-      ${outfit === 'npc-copper' ? `<circle cx="22" cy="60" r="3.2" fill="none" stroke="${palette.trim}" stroke-width="1.3"/><path d="M22 55v2m0 6v2m-5-5h2m6 0h2" stroke="${palette.trim}" stroke-width="1.2"/>` : ''}
-      ${outfit === 'npc-phoenix' ? `<path d="M25 64q-8-7-7-13 8 3 7 13m0 0q-2-9 4-14 2 9-4 14" fill="${palette.trim}" opacity=".8"/>` : ''}
       ${outfit === 'avatar-royal' ? `<path d="m17 53 3 13m27-13-3 13M20 66h24" fill="none" stroke="${palette.trim}" stroke-width="1.6"/>` : ''}`;
   }
 
@@ -126,10 +117,10 @@
 
   function avatar(role, outfit = 'default') {
     role = roles.has(role) ? role : 'guide';
-    const allowed = role === 'player' ? playerOutfits : npcOutfits;
-    outfit = allowed.has(outfit) ? outfit : role === 'player' ? 'avatar-default' : 'npc-default';
+    // NPCs keep their individual character designs, including for old saves.
+    outfit = role === 'player' ? (playerOutfits.has(outfit) ? outfit : 'avatar-default') : 'npc-default';
     const palette = {...palettes[role], ...(palettes[outfit] || {})};
-    return `<svg class="quest-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-role="${role}" data-outfit="${outfit}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${robe(palette, outfit)}${face(palette)}${hat(role, palette, outfit)}${prop(role, palette, outfit)}</svg>`;
+    return `<svg class="quest-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-role="${role}" data-outfit="${outfit}"${role === 'player' ? ' data-skin-slots="avatar"' : ''} xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${robe(palette, outfit)}${face(palette)}${hat(role, palette, outfit)}${prop(role, palette, outfit)}</svg>`;
   }
 
   return {avatar};

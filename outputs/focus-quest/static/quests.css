@@ -33,3 +33,16 @@
 .q-schedule{align-items:center;flex-wrap:wrap;line-height:1.8}
 .continuous .q-task-note{min-height:52px}
 @media(max-width:699px){.q-progress-caption{font-size:8px}.q-study-account{font-size:8px}.continuous .q-task-note{min-height:66px}}
+
+/* A small daily gift sits beside the continuous commission, without a deadline to claim. */
+.q-first-round{margin:13px 0 2px;padding:12px 11px;border:1px solid #b3925d2f;border-radius:9px;background:linear-gradient(130deg,#9c7e4210,#b3956310);color:#b8aa96}
+.q-first-round-heading,.q-first-round-window,.q-first-round-amount{display:flex;align-items:center;justify-content:space-between;gap:8px;line-height:1.7}
+.q-first-round-heading strong{font-size:11px;font-weight:500;color:#d6bb8f;letter-spacing:.4px}.q-first-round-heading>span{font-size:8px;color:#b7a58a}
+.q-first-round-window{margin-top:5px;font-size:8px;color:#8d857c}.q-first-round-window>span:last-child{color:#8b7d69}
+.q-first-round-progress{height:3px;border-radius:3px;background:#b99b691c;overflow:hidden;margin:11px 0 8px}.q-first-round-progress>i{height:100%;display:block;background:linear-gradient(90deg,#9b8058,#d7b77e);border-radius:inherit}
+.q-first-round-amount{font-size:9px;font-variant-numeric:tabular-nums;flex-wrap:wrap}.q-first-round-amount>span:first-child{color:#c3ad8b}.q-first-round-amount>span:last-child{font-size:8px;color:#a79882}.q-first-round-amount b{font-weight:500;color:#dcc59e}
+.q-first-round>p{font-size:8px;line-height:1.9;color:#948a7d;margin-top:8px}.q-first-round>p.q-first-round-pending{padding-top:8px;border-top:1px solid #b7986030;color:#d0b988}
+.q-first-round.ready{border-color:#bca07157;background:#ab905718}.q-first-round.ready .q-first-round-heading>span{color:#e0c28b}.q-first-round.claimed{border-color:#7d9c8538;background:#6d8e7010}.q-first-round.claimed .q-first-round-heading>span{color:#a3bea8}.q-first-round.claimed .q-first-round-progress>i{background:#93b197}
+.q-first-round.ended,.q-first-round.upcoming{background:#988e7610}.q-reward-breakdown{display:grid;gap:5px;margin-top:11px;padding-top:10px;border-top:1px solid #a5987530;font-size:9px;color:#988d7c;line-height:1.8}.q-reward-breakdown>span{display:flex;gap:13px;justify-content:space-between}.q-reward-breakdown b{font-weight:400;color:#c7b997}
+.q-history-reward{text-align:right;margin-left:auto}.q-history-reward .q-reward-breakdown{font-size:8px;margin-top:7px;padding-top:6px}.q-history-row .q-history-bonus-days{font-size:8px;color:#93856c;max-width:270px;line-height:1.8;overflow-wrap:anywhere}.q-rules strong{font-weight:500;color:#cbbba4}
+@media(max-width:699px){.q-first-round{padding:10px 9px}.q-first-round-heading{align-items:flex-start;flex-wrap:wrap;gap:2px}.q-first-round-heading strong{font-size:10px}.q-first-round-window,.q-first-round>p{font-size:8px}.q-first-round-amount{font-size:8px;gap:2px}.q-history-reward{min-width:135px}.q-history-row .q-history-bonus-days{max-width:180px}}

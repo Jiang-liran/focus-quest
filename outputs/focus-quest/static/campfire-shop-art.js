@@ -35,7 +35,7 @@
   }
 
   function landscape(variant) {
-    if (variant === 'pine') return `<g class="campfire-landscape" data-variant="pine">${sky(variant)}
+    if (variant === 'pine') return `<g class="campfire-landscape" data-skin-slots="camp" data-variant="pine">${sky(variant)}
       <path d="M0 151q109-69 205-34 103-48 206-7 98-41 249 23v107H0Z" fill="#263b42"/>
       ${[[27,159,1.8],[95,158,1.3],[169,158,1.25],[225,145,.9],[465,149,1.4],[536,164,1.8],[619,159,1.4]].map(([x,y,s])=>pine(x,y,s,'#304c4a')).join('')}
       ${pine(16,198,2.25,'#20353d')}${pine(598,185,1.9,'#203b40')}${pine(651,203,2.5,'#20333a')}
@@ -43,7 +43,7 @@
       <path d="M126 239q56-34 148-28t180 29Z" fill="#756c58" opacity=".18"/>
       <path d="M53 218q8-19 18-20m-12 13-9-8m14 3 9-2M550 211q-8-19-18-20m12 13 9-8m-14 3-9-2" fill="none" stroke="#668575" stroke-width="2" stroke-linecap="round"/>
       <g fill="#a7ad82"><ellipse cx="91" cy="216" rx="3" ry="1.4"/><ellipse cx="466" cy="209" rx="2.5" ry="1.1"/></g></g>`;
-    if (variant === 'lake') return `<g class="campfire-landscape" data-variant="lake">${sky(variant)}
+    if (variant === 'lake') return `<g class="campfire-landscape" data-skin-slots="camp" data-variant="lake">${sky(variant)}
       <path d="m0 119 72-49 67 44 65-42 80 64 96-40 58 23 85-39 64 38 73-28v62H0Z" fill="#303f57"/>
       <path d="M0 145q152-21 316-7t344-4v77H0Z" fill="#3b6071"/>
       <path d="M489 146h77m-66 7h51m-48 7h62m-61 6h45m-42 7h44" stroke="#b9bfac" stroke-width="2" stroke-linecap="round" opacity=".45"/>
@@ -54,7 +54,7 @@
       <path d="M591 208v-29m-7 30v-24m14 27v-27" stroke="#849685" stroke-width="1.6"/>
       <path d="M591 180q-7-9-10-7m17 12q7-8 10-7" stroke="#a1a991" stroke-width="2" stroke-linecap="round"/>
       <path d="m459 191 17-4 15 5-15 4Z" fill="#7e9190" opacity=".6"/></g>`;
-    if (variant === 'snow') return `<g class="campfire-landscape" data-variant="snow">${sky(variant)}
+    if (variant === 'snow') return `<g class="campfire-landscape" data-skin-slots="camp" data-variant="snow">${sky(variant)}
       <path d="m0 144 70-55 47 23 75-61 70 72 48-23 58 43 95-73 65 62 68-32 64 47v82H0Z" fill="#526079"/>
       <path d="m148 87 44-36 42 43-29-11-13-10-17 13-10-4Zm279 11 36-28 35 33-24-12-11-6-14 13-12-5Z" fill="#a8b4c3"/>
       ${pine(39,181,1.5,'#4d686e')}${pine(586,184,1.5,'#4d686e')}${pine(626,198,1.8,'#3a555f')}
@@ -63,7 +63,7 @@
       <path d="M0 218q101-18 220-9 119-16 218 1 102-8 222 14v16H0Z" fill="#a4b3ba" opacity=".75"/>
       <ellipse cx="331" cy="200" rx="92" ry="30" fill="#756f74" opacity=".35"/>
       <g fill="#718591" opacity=".65"><ellipse cx="289" cy="235" rx="4" ry="2" transform="rotate(-25 289 235)"/><ellipse cx="301" cy="228" rx="4" ry="2" transform="rotate(-25 301 228)"/><ellipse cx="309" cy="218" rx="3.5" ry="2" transform="rotate(-25 309 218)"/></g></g>`;
-    return `<g class="campfire-landscape" data-variant="aurora">${sky('aurora')}
+    return `<g class="campfire-landscape" data-skin-slots="camp" data-variant="aurora">${sky('aurora')}
       <path d="m0 149 71-49 64 27 76-45 67 53 69-29 66 29 97-57 69 57 81-31v110H0Z" fill="#303952"/>
       <path d="M0 178q116-38 223-5 111-44 203-5 127-41 234 11v61H0Z" fill="#344d56"/>
       ${pine(49,178,1.3,'#243c49')}${pine(595,184,1.8,'#293d4b')}
@@ -74,7 +74,7 @@
   function tent(variant) {
     const shadow = '<ellipse cx="166" cy="194" rx="75" ry="8" fill="#1c2735" opacity=".4"/>';
     const ropes = '<path d="m111 163-19 31m126-29 25 29" stroke="#b9b3a1" stroke-width="1.2"/><path d="m91 190 2 7m150-7 2 7" stroke="#bfa58c" stroke-width="2" stroke-linecap="round"/>';
-    if (variant === 'patchwork') return `<g class="campfire-tent" data-variant="patchwork">${shadow}${ropes}
+    if (variant === 'patchwork') return `<g class="campfire-tent" data-skin-slots="tent" data-variant="patchwork">${shadow}${ropes}
       <path d="m107 190 55-83 67 82-39 7Z" fill="#ab94a0"/>
       <path d="m107 190 55-83 28 89Z" fill="#d0b19e"/>
       <path d="m162 107 30 37-19 4Z" fill="#b5b99c"/><path d="m173 148 19-4 37 45-39 7Z" fill="#8d9faa"/>
@@ -83,7 +83,7 @@
       <path d="m134 149 41 0m-13-42 28 89m-17-48 19-4m-80 43 50-75 63 75" stroke="#ead6bd" stroke-width="1.3" stroke-dasharray="3 3"/>
       <path d="M163 107v-6" stroke="#bd9e87" stroke-width="2"/>
       <path d="m164 102 15 5-15 5Z" fill="#b9c2a5"/></g>`;
-    if (variant === 'ranger') return `<g class="campfire-tent" data-variant="ranger">${shadow}${ropes}
+    if (variant === 'ranger') return `<g class="campfire-tent" data-skin-slots="tent" data-variant="ranger">${shadow}${ropes}
       <path d="m100 188 48-62 66 9 17 54Z" fill="#65877b"/>
       <path d="m148 126 66 9 17 54-47 5Z" fill="#456d66"/>
       <path d="m111 190 37-64 36 68Z" fill="#91a893"/>
@@ -95,7 +95,7 @@
       <rect x="115" y="183" width="13" height="7" rx="2" fill="#796f5a"/>
       <path d="M117 173v-4q5-4 9 0v4" stroke="#c3b48b" stroke-width="2"/>
       <path d="m207 183 15-10m-9 16 9-16" stroke="#b6b58b" stroke-width="2" stroke-linecap="round"/></g>`;
-    if (variant === 'canopy') return `<g class="campfire-tent" data-variant="canopy">${shadow}
+    if (variant === 'canopy') return `<g class="campfire-tent" data-skin-slots="tent" data-variant="canopy">${shadow}
       <path d="M108 132v62m112-62v62" stroke="#b9a288" stroke-width="3" stroke-linecap="round"/>
       <path d="m95 138 68-34 72 34-13 13q-30-12-57-6-31-7-57 6Z" fill="#bba9a4"/>
       <path d="m163 104 72 34-13 13q-30-12-57-6Z" fill="#8e8da1"/>
@@ -105,7 +105,7 @@
       <path d="m120 185 81-1 15 12h-107Z" fill="#857b84"/>
       <rect x="121" y="177" width="29" height="12" rx="5" fill="#aeaaa0"/><rect x="167" y="178" width="31" height="12" rx="5" fill="#b69b96"/>
       <path d="m108 139-23 57m135-57 23 57" stroke="#b7b6a1" stroke-width="1"/></g>`;
-    return `<g class="campfire-tent" data-variant="observatory">${shadow}
+    return `<g class="campfire-tent" data-skin-slots="tent" data-variant="observatory">${shadow}
       <path d="M106 190c0-43 23-72 59-72s62 29 62 72Z" fill="#7d88a8"/>
       <path d="M166 118c35 0 61 29 61 72h-62Z" fill="#525f82"/>
       <path d="M106 190c0-43 23-72 59-72s62 29 62 72M165 118q-23 27-27 72m27-72q24 25 30 72m-83-28h109" stroke="#afb5c4" stroke-width="1.4"/>
@@ -130,7 +130,7 @@
     const light = variant === 'blue' ? '#9acfd6' : variant === 'star' ? '#c0b0e0' : '#e9bb88';
     const glow = `<ellipse cx="331" cy="199" rx="42" ry="10" fill="${light}" opacity=".14"/>`;
     const embers = `<g class="campfire-embers" fill="${light}">${[[316,151,1.3],[341,132,1.1],[331,112,.8]].map(([x,y,r],i)=>`<circle class="campfire-ember" cx="${x}" cy="${y}" r="${r}" style="--ember-delay:-${i*.8}s"/>`).join('')}</g>`;
-    if (variant === 'copper') return `<g class="campfire-fireplace" data-variant="copper">${glow}
+    if (variant === 'copper') return `<g class="campfire-fireplace" data-skin-slots="fire" data-variant="copper">${glow}
       <path d="m312 198-5 10m43-10 5 10" stroke="#846a63" stroke-width="3" stroke-linecap="round"/>
       <path d="M304 186h54q-3 18-27 18t-27-18Z" fill="#a9826c"/>
       <path d="M331 187h27q-3 18-27 18Z" fill="#80675f"/>
@@ -138,7 +138,7 @@
       ${flames('default','translate(49 25) scale(.85)')}
       <path d="M307 187q24 11 48 0" stroke="#d1ad87" stroke-width="2.1"/>
       <path d="m316 194 4 3m11-2v4m11-5-4 3" stroke="#d4b391" stroke-width="1.4" stroke-linecap="round"/>${embers}</g>`;
-    if (variant === 'lantern') return `<g class="campfire-fireplace" data-variant="lantern">${glow}
+    if (variant === 'lantern') return `<g class="campfire-fireplace" data-skin-slots="fire" data-variant="lantern">${glow}
       <path d="M321 142v-12q10-12 20 0v12" fill="none" stroke="#b7a48b" stroke-width="2.5"/>
       <path d="m303 151 28-19 28 19-8 7h-40Z" fill="#8d8583"/><path d="m331 132 28 19-8 7h-20Z" fill="#696a73"/>
       <rect x="310" y="155" width="42" height="40" rx="3" fill="#bda58a"/><rect x="315" y="158" width="32" height="33" rx="1.7" fill="#775f5e"/>
@@ -147,13 +147,13 @@
       <path d="M331 156v36m-19-19h39" stroke="#ab947e" stroke-width="2.1"/>
       <path d="M305 194h52v8h-52Z" fill="#8a7b70"/><path d="M309 202v6m44-6v6" stroke="#716666" stroke-width="3"/>
       <path d="M311 149h40" stroke="#d0b79a" stroke-width="1.5"/></g>`;
-    if (variant === 'blue') return `<g class="campfire-fireplace" data-variant="blue">${glow}
+    if (variant === 'blue') return `<g class="campfire-fireplace" data-skin-slots="fire" data-variant="blue">${glow}
       <ellipse cx="331" cy="199" rx="32" ry="9" fill="#4f6978" stroke="#91b4bc" stroke-width="1.7"/>
       <path d="m302 196 5-14 9 10m32 0 10-10 3 15" fill="#6f8c9e" stroke="#a6c0ca" stroke-width="1.2"/>
       ${flames('blue')}
       <path d="M308 199q23 11 46 0" stroke="#a5d5d7" stroke-width="1.2" opacity=".8"/>
       <path d="M306 205q25 9 50 0" stroke="#74acb7" stroke-width="1.2" opacity=".6"/>${embers}</g>`;
-    return `<g class="campfire-fireplace" data-variant="star">${glow}
+    return `<g class="campfire-fireplace" data-skin-slots="fire" data-variant="star">${glow}
       <ellipse cx="331" cy="198" rx="34" ry="10" fill="#6d6684" stroke="#b3a4c1" stroke-width="1.4"/>
       <ellipse cx="331" cy="198" rx="26" ry="6.6" stroke="#d9c89f" stroke-width="1.2"/>
       <path d="m305 187 5 12m47-12-5 12m-21-24v22" stroke="#b6a5b3" stroke-width="1.6"/>
@@ -166,7 +166,7 @@
 
   function gear(variant) {
     const base = '<ellipse cx="436" cy="213" rx="57" ry="8" fill="#1d2935" opacity=".3"/>';
-    if (variant === 'tea') return `<g class="campfire-equipment" data-variant="tea">${base}
+    if (variant === 'tea') return `<g class="campfire-equipment" data-skin-slots="campgear" data-variant="tea">${base}
       <path d="M395 193h73l-4 5h-65Z" fill="#a39079"/><path d="M402 198v13m59-13v13" stroke="#7e7065" stroke-width="4"/>
       <path d="M397 189h69v6h-69Z" fill="#b7a48a"/>
       <path d="M424 181q0-8 8-8t8 8v5q-8 4-16 0Z" fill="#9baaa0"/><path d="m438 180 9-5-2 9-6 1" fill="#9baaa0"/>
@@ -175,7 +175,7 @@
       <path d="M403 183h9v5q-4 4-9 0Zm42 2h9v4q-4 3-9 0Z" fill="#d5c4a4"/>
       <path d="M405 178q-2-3 0-5m26-4q-2-3 0-5" fill="none" stroke="#d3c6b1" stroke-width="1.1" opacity=".7"/>
       <path d="M406 213h-14m73 0h14" stroke="#8b796a" stroke-width="5" stroke-linecap="round"/></g>`;
-    if (variant === 'books') return `<g class="campfire-equipment" data-variant="books">${base}
+    if (variant === 'books') return `<g class="campfire-equipment" data-skin-slots="campgear" data-variant="books">${base}
       <path d="M399 200h56v10h-56Z" fill="#a08772"/><path d="M402 196h51v8h-51Z" fill="#b9a18a"/>
       <rect x="402" y="181" width="41" height="8" rx="1.3" fill="#77918c"/><path d="M408 183h32v4h-32Z" fill="#d6c9ad"/>
       <rect x="407" y="189" width="44" height="8" rx="1.3" fill="#aa929e"/><path d="M412 191h36v4h-36Z" fill="#e0d0b4"/>
@@ -183,7 +183,7 @@
       <path d="m436 170-5 15m-14-13 13 3m-13 2 11 2m11-3 10 3" stroke="#a18e79" stroke-width="1"/>
       <path d="M464 183v22m-6-14h12m-6-8-7 9m7-9 7 9" stroke="#a4a293" stroke-width="1.7"/>
       <path d="m459 174 5-3 6 3v9h-11Z" fill="#b5a991"/><path d="M461 175h7v6h-7Z" fill="#dec194"/></g>`;
-    if (variant === 'picnic') return `<g class="campfire-equipment" data-variant="picnic">${base}
+    if (variant === 'picnic') return `<g class="campfire-equipment" data-skin-slots="campgear" data-variant="picnic">${base}
       <path d="m397 189 57-6 37 29-68 8-41-23Z" fill="#b69a94"/>
       <path d="m410 188 39 29m-24-31 38 28m-24-30 39 28m-84-16 68-8m-58 16 68-8m-58 16 68-8" stroke="#d3bcb1" stroke-width="3" opacity=".7"/>
       <path d="m409 177 28-2 4 18-30 3Z" fill="#b29772"/><path d="m417 175-1-5q10-12 16 2l1 3" fill="none" stroke="#ceb18a" stroke-width="2.2"/>
@@ -192,7 +192,7 @@
       <path d="m449 199 7-7 7 7Z" fill="#d4b080"/>
       <circle cx="438" cy="204" r="4" fill="#ad7f7e"/><path d="m438 200 2-3" stroke="#909f7a" stroke-width="1.5"/>
       <path d="M472 198h8v6q-4 3-8 0Z" fill="#c7b9a7"/></g>`;
-    return `<g class="campfire-equipment" data-variant="music">${base}
+    return `<g class="campfire-equipment" data-skin-slots="campgear" data-variant="music">${base}
       <path d="M399 205h58v8h-58Z" fill="#9b8877"/><path d="M403 202h50v6h-50Z" fill="#baa289"/>
       <g transform="rotate(20 423 183)"><path d="M419 174q-11-8-15 3-3 7 4 11-12 12 0 20 13 7 19-7 6-12-3-14 4-6-5-13Z" fill="#bfa382" stroke="#806c60" stroke-width="1.3"/>
       <path d="M418 148h6v42h-6Z" fill="#8a7163"/><rect x="416" y="140" width="10" height="13" rx="2" fill="#b5a08a"/>
@@ -207,7 +207,7 @@
   function ambience(effect) {
     if (effect === 'default') return '';
     const positions = [[62,116],[105,87],[242,118],[284,64],[395,96],[470,75],[527,130],[589,107],[73,179],[457,151],[383,128],[568,179]];
-    return `<g class="campfire-atmosphere" data-variant="${effect}" pointer-events="none">${positions.map(([x,y],i) => {
+    return `<g class="campfire-atmosphere" data-skin-slots="campglow" data-variant="${effect}" pointer-events="none">${positions.map(([x,y],i) => {
       const attr = `class="campfire-ambient" data-effect="${effect}" style="--particle-delay:-${(i*.7).toFixed(1)}s" opacity="${i%3===0?'.65':'.4'}"`;
       if (effect === 'fireflies') return `<g ${attr}><circle cx="${x}" cy="${y}" r="4" fill="#d6dba2" opacity=".1"/><circle cx="${x}" cy="${y}" r="${i%2?1:1.5}" fill="#d8dca8"/></g>`;
       if (effect === 'petals') return `<path ${attr} d="m${x} ${y}q-7-6-7 0 0 4 7 0Z" fill="${i%2?'#c7a7b0':'#deb7b8'}" transform="rotate(${i*27} ${x-3} ${y})"/>`;
@@ -226,8 +226,8 @@
     const chosen = normalize(equipped);
     let svg = campfireArt.scene();
     const variant = slot => chosen[slot].slice(slot.length+1);
-    if (variant('camp') !== 'default') svg = replaceSpan(svg, '<rect width="660"', '<g class="campfire-tent">', landscape(variant('camp')));
-    if (variant('tent') !== 'default') svg = svg.replace(/<g class="campfire-tent">[\s\S]*?<\/g>/, tent(variant('tent')));
+    if (variant('camp') !== 'default') svg = replaceSpan(svg, '<rect width="660"', '<g class="campfire-tent"', landscape(variant('camp')));
+    if (variant('tent') !== 'default') svg = svg.replace(/<g class="campfire-tent"[^>]*>[\s\S]*?<\/g>/, tent(variant('tent')));
     if (variant('fire') !== 'default') svg = replaceSpan(svg, '<g class="campfire-stones"', '<g stroke="#65796e"', fire(variant('fire')));
     if (variant('campgear') !== 'default') {
       // Keep the left seat; replace the right stump with the chosen furnishing.
@@ -240,11 +240,11 @@
 
   function chatSample(variant) {
     const text = '<text x="330" y="216" text-anchor="middle" font-family="system-ui, sans-serif" font-size="12" fill="#f0e3d0">坐一会儿吧，今晚的星光很温柔。</text>';
-    if (variant === 'linen') return `<g class="campfire-chat-preview" data-frame="linen"><rect x="147" y="191" width="366" height="39" rx="8" fill="#555a60" stroke="#baa88e" stroke-width="1.3"/><rect x="153" y="197" width="354" height="27" rx="5" fill="none" stroke="#b7a68e" stroke-dasharray="3 3" stroke-width=".8"/><path d="M159 192v37m342-37v37" stroke="#d0b994" stroke-width=".8" opacity=".3"/>${text}</g>`;
-    if (variant === 'wood') return `<g class="campfire-chat-preview" data-frame="wood"><rect x="144" y="189" width="372" height="43" rx="6" fill="#806c60" stroke="#b39b7c" stroke-width="1.5"/><rect x="153" y="196" width="354" height="28" rx="3" fill="#514947"/><path d="M164 192h145m35 0h148m-323 36h131m50 0h132" stroke="#c3a583" stroke-width=".8" opacity=".6"/><g fill="#c2aa89"><circle cx="149" cy="196" r="1.2"/><circle cx="511" cy="196" r="1.2"/><circle cx="149" cy="225" r="1.2"/><circle cx="511" cy="225" r="1.2"/></g>${text}</g>`;
-    if (variant === 'parchment') return `<g class="campfire-chat-preview" data-frame="parchment"><path d="M151 191q-10-6-12 6v25q4 12 14 5h354q10 7 14-5v-25q-2-12-12-6Z" fill="#d5c1a2" stroke="#af9679" stroke-width="1.3"/><path d="M153 194v31m354-31v31" stroke="#b49b80" stroke-width="1"/><path d="M171 199h29m261 0h29m-319 23h29m261 0h29" stroke="#b09b81" stroke-width="1"/>${text.replace('#f0e3d0','#655549')}</g>`;
-    if (variant === 'constellation') return `<g class="campfire-chat-preview" data-frame="constellation"><rect x="145" y="190" width="370" height="41" rx="12" fill="#3b3c5b" stroke="#a6a1c7" stroke-width="1.3"/><path d="m158 205 9-9 15 3m296 22 17-3 8-11" fill="none" stroke="#b6a8cf" stroke-width=".8"/>${star(158,205,2.7,'#e5d8af')}${star(182,199,1.8,'#d0c6e4')}${star(503,207,2.8,'#e5d8af')}${star(478,221,1.8,'#d0c6e4')}${text}</g>`;
-    return `<g class="campfire-chat-preview" data-frame="default"><rect x="148" y="191" width="364" height="39" rx="10" fill="#33394b" stroke="#737589" stroke-width="1"/>${text}</g>`;
+    if (variant === 'linen') return `<g class="campfire-chat-preview" data-skin-slots="chatframe" data-frame="linen"><rect x="147" y="191" width="366" height="39" rx="8" fill="#555a60" stroke="#baa88e" stroke-width="1.3"/><rect x="153" y="197" width="354" height="27" rx="5" fill="none" stroke="#b7a68e" stroke-dasharray="3 3" stroke-width=".8"/><path d="M159 192v37m342-37v37" stroke="#d0b994" stroke-width=".8" opacity=".3"/>${text}</g>`;
+    if (variant === 'wood') return `<g class="campfire-chat-preview" data-skin-slots="chatframe" data-frame="wood"><rect x="144" y="189" width="372" height="43" rx="6" fill="#806c60" stroke="#b39b7c" stroke-width="1.5"/><rect x="153" y="196" width="354" height="28" rx="3" fill="#514947"/><path d="M164 192h145m35 0h148m-323 36h131m50 0h132" stroke="#c3a583" stroke-width=".8" opacity=".6"/><g fill="#c2aa89"><circle cx="149" cy="196" r="1.2"/><circle cx="511" cy="196" r="1.2"/><circle cx="149" cy="225" r="1.2"/><circle cx="511" cy="225" r="1.2"/></g>${text}</g>`;
+    if (variant === 'parchment') return `<g class="campfire-chat-preview" data-skin-slots="chatframe" data-frame="parchment"><path d="M151 191q-10-6-12 6v25q4 12 14 5h354q10 7 14-5v-25q-2-12-12-6Z" fill="#d5c1a2" stroke="#af9679" stroke-width="1.3"/><path d="M153 194v31m354-31v31" stroke="#b49b80" stroke-width="1"/><path d="M171 199h29m261 0h29m-319 23h29m261 0h29" stroke="#b09b81" stroke-width="1"/>${text.replace('#f0e3d0','#655549')}</g>`;
+    if (variant === 'constellation') return `<g class="campfire-chat-preview" data-skin-slots="chatframe" data-frame="constellation"><rect x="145" y="190" width="370" height="41" rx="12" fill="#3b3c5b" stroke="#a6a1c7" stroke-width="1.3"/><path d="m158 205 9-9 15 3m296 22 17-3 8-11" fill="none" stroke="#b6a8cf" stroke-width=".8"/>${star(158,205,2.7,'#e5d8af')}${star(182,199,1.8,'#d0c6e4')}${star(503,207,2.8,'#e5d8af')}${star(478,221,1.8,'#d0c6e4')}${text}</g>`;
+    return `<g class="campfire-chat-preview" data-skin-slots="chatframe" data-frame="default"><rect x="148" y="191" width="364" height="39" rx="10" fill="#33394b" stroke="#737589" stroke-width="1"/>${text}</g>`;
   }
 
   function preview(itemId, equipped) {

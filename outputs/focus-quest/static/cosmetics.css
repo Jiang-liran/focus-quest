@@ -4,7 +4,7 @@
 .q-progress>i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#8f7abe,#c2a5ef);transition:width .8s ease}
 :root[data-bar="bar-aurora"]{--equipped-bar:linear-gradient(90deg,#77c5aa,#8bd6d6 43%,#b99cde 76%,#e0c0eb);--equipped-bar-glow:#88d5c34a}
 :root[data-bar="bar-comet"]{--equipped-bar:linear-gradient(90deg,#987fce,#ce91b6 45%,#edbe94 80%,#fff0c0);--equipped-bar-glow:#e6b79455}
-:root:is([data-bar="bar-aurora"],[data-bar="bar-comet"]) :is(.total-progress,.subject-card .subject-progress,.weekly-progress,.q-progress)>i{background:var(--equipped-bar);background-size:180% 100%;box-shadow:0 0 12px var(--equipped-bar-glow);animation:cosmetic-bar-flow 7s ease-in-out infinite}
+:root:is([data-bar="bar-aurora"],[data-bar="bar-comet"]) :is(.total-progress,.subject-card .subject-progress,.weekly-progress,.q-progress,.q-first-round-progress)>i{background:var(--equipped-bar);background-size:180% 100%;box-shadow:0 0 12px var(--equipped-bar-glow);animation:cosmetic-bar-flow 7s ease-in-out infinite}
 @keyframes cosmetic-bar-flow{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
 
 /* Restrict decorative particles to the scene; never intercept a click. */
@@ -31,21 +31,6 @@
 @keyframes cosmetic-firefly{0%,100%{opacity:0;transform:translate(0,7px) scale(.6)}25%{opacity:.75}50%{opacity:.45;transform:translate(9px,-15px) scale(1)}75%{opacity:.85}90%{opacity:0;transform:translate(-5px,-32px) scale(.65)}}
 @keyframes cosmetic-meteor{0%,78%{opacity:0;transform:translate(46px,-38px) rotate(-38deg)}80%{opacity:.7}89%{opacity:.65}94%,100%{opacity:0;transform:translate(-104px,81px) rotate(-38deg)}}
 
-/* Existing camp guide: recolor only known fabric fills, never skin or eyes. */
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [fill="#869baa"]{fill:#729c95}
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [fill="#73889c"]{fill:#487b7c}
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [fill="#b8a3ce"]{fill:#f2dda4}
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [fill="#bb9eda"]{fill:#8bb4a0}
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [fill="#9175b2"]{fill:#567f78}
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [fill="#8269a6"]{fill:#487b7c}
-:root[data-npc="npc-scholar"] #advice-card .npc-avatar [stroke="#d6b9ef"]{stroke:#f2dda4}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [fill="#869baa"]{fill:#7a79b9}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [fill="#73889c"]{fill:#505483}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [fill="#b8a3ce"]{fill:#e5d6ff}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [fill="#bb9eda"]{fill:#979ad2}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [fill="#9175b2"]{fill:#68669e}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [fill="#8269a6"]{fill:#505483}
-:root[data-npc="npc-astral"] #advice-card .npc-avatar [stroke="#d6b9ef"]{stroke:#e5d6ff}
 
 /* The SVG face and staff retain their original colors when clothing changes. */
 :root[data-avatar="avatar-ranger"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:#6e9c8b}
@@ -57,7 +42,7 @@
 :root[data-avatar="avatar-star"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:#b5c8ec}
 :root[data-avatar="avatar-star"] #scene-traveler .traveler-hat-shade{fill:#7d92bd}
 
-/* Preview works on an empty swatch; NPC/player SVG content is preferred. */
+/* Preview works on an empty swatch; Player SVG content is preferred. */
 .cosmetic-swatch{position:relative;display:grid;place-items:center;min-height:80px;overflow:hidden;border-radius:11px;border:1px solid #b9a0d524;background:radial-gradient(ellipse at 50% 60%,#82729819,transparent 75%),#161b29;isolation:isolate}
 .cosmetic-swatch>.quest-avatar-art{width:56px;height:63px;position:relative;z-index:1}
 .cosmetic-swatch[data-item^="bar-"]::before{content:'';position:absolute;left:16%;right:16%;top:calc(50% - 4px);height:8px;border-radius:6px;background:#2b2d42}
@@ -69,18 +54,16 @@
 .cosmetic-swatch[data-item="fx-fireflies"]::after{content:'';width:90px;height:50px;border-radius:50%;background:radial-gradient(ellipse,#a6c9a011,transparent 70%)}
 .cosmetic-swatch[data-item="fx-meteor"]::before,.cosmetic-swatch[data-item="fx-meteor"]::after{content:'';position:absolute;width:57px;height:2px;background:linear-gradient(90deg,#f0e5ff,#a7b5e7 25%,transparent);transform:rotate(-35deg);filter:drop-shadow(0 0 4px #c8bce8)}
 .cosmetic-swatch[data-item="fx-meteor"]::before{left:23%;top:56%}.cosmetic-swatch[data-item="fx-meteor"]::after{left:53%;top:36%;width:31px;opacity:.6}
-.cosmetic-swatch:is([data-item^="npc-"],[data-item^="avatar-"])::before{content:'';height:44px;width:39px;clip-path:polygon(35% 0,65% 0,89% 28%,73% 41%,100% 100%,0 100%,27% 41%,11% 28%);background:linear-gradient(90deg,#b99bd8 50%,#896bb0 50%)}
-.cosmetic-swatch[data-item="npc-scholar"]::before{background:linear-gradient(90deg,#8bb4a0 50%,#567f78 50%)}
-.cosmetic-swatch[data-item="npc-astral"]::before{background:linear-gradient(90deg,#979ad2 50%,#68669e 50%)}
+.cosmetic-swatch[data-item^="avatar-"]::before{content:'';height:44px;width:39px;clip-path:polygon(35% 0,65% 0,89% 28%,73% 41%,100% 100%,0 100%,27% 41%,11% 28%);background:linear-gradient(90deg,#b99bd8 50%,#896bb0 50%)}
 .cosmetic-swatch[data-item="avatar-default"]::before{background:linear-gradient(90deg,#cdb6eb 50%,#977ec3 50%)}
 .cosmetic-swatch[data-item="avatar-ranger"]::before{background:linear-gradient(90deg,#adbf91 50%,#668773 50%)}
 .cosmetic-swatch[data-item="avatar-star"]::before{background:linear-gradient(90deg,#b5c8ec 50%,#7d92bd 50%)}
-.cosmetic-swatch:is([data-item^="npc-"],[data-item^="avatar-"]):has(>.quest-avatar-art)::before{display:none}
+.cosmetic-swatch[data-item^="avatar-"]:has(>.quest-avatar-art)::before{display:none}
 @keyframes cosmetic-swatch-glow{0%,100%{opacity:.45}50%{opacity:1}}
 
 .no-motion .equipped-particles{display:none!important}
-.no-motion .cosmetic-swatch::before,.no-motion .cosmetic-swatch::after,.no-motion :is(.total-progress,.subject-progress,.weekly-progress,.q-progress)>i{animation:none!important;transition:none!important}
-@media(prefers-reduced-motion:reduce){.equipped-particles{display:none!important}.cosmetic-swatch::before,.cosmetic-swatch::after,:is(.total-progress,.subject-progress,.weekly-progress,.q-progress)>i{animation:none!important;transition:none!important}}
+.no-motion .cosmetic-swatch::before,.no-motion .cosmetic-swatch::after,.no-motion :is(.total-progress,.subject-progress,.weekly-progress,.q-progress,.q-first-round-progress)>i{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.equipped-particles{display:none!important}.cosmetic-swatch::before,.cosmetic-swatch::after,:is(.total-progress,.subject-progress,.weekly-progress,.q-progress,.q-first-round-progress)>i{animation:none!important;transition:none!important}}
 .cosmetic-swatch[data-item="bar-aurora"]::after,.cosmetic-swatch[data-item="bar-comet"]::after{background-size:180% 100%;animation:cosmetic-bar-flow 7s ease-in-out infinite}
 .cosmetic-swatch[data-item="fx-meteor"]::before{animation:cosmetic-preview-meteor 3.7s ease-in-out infinite}.cosmetic-swatch[data-item="fx-meteor"]::after{animation:cosmetic-preview-meteor 4.9s ease-in-out -2s infinite}
 @keyframes cosmetic-preview-meteor{0%,12%{opacity:0;transform:translate(28px,-19px) rotate(-35deg)}27%,54%{opacity:.9}76%,100%{opacity:0;transform:translate(-29px,21px) rotate(-35deg)}}
@@ -91,8 +74,8 @@
 :root[data-bar="bar-mint"]{--equipped-bar:linear-gradient(90deg,#568f80,#8fcbb0,#d7edd2);--equipped-bar-glow:#94cfb444}
 :root[data-bar="bar-tide"]{--equipped-bar:linear-gradient(90deg,#426e9e,#68aaba 48%,#b5dde0 78%,#e6efe0);--equipped-bar-glow:#8fc9df44}
 :root[data-bar="bar-prism"]{--equipped-bar:linear-gradient(90deg,#ba90c9,#d5a7b5 22%,#e5cc9f 44%,#a7cfbd 66%,#a7b7df 88%,#d7bcf0);--equipped-bar-glow:#cfb6ec55}
-:root:is([data-bar="bar-mint"],[data-bar="bar-tide"],[data-bar="bar-prism"]) :is(.total-progress,.subject-card .subject-progress,.weekly-progress,.q-progress)>i{background:var(--equipped-bar);background-size:180% 100%;box-shadow:0 0 12px var(--equipped-bar-glow);animation:cosmetic-bar-flow 8s ease-in-out infinite}
-:root[data-bar="bar-mint"] :is(.total-progress,.subject-card .subject-progress,.weekly-progress,.q-progress)>i{background-size:100% 100%;animation:none}
+:root:is([data-bar="bar-mint"],[data-bar="bar-tide"],[data-bar="bar-prism"]) :is(.total-progress,.subject-card .subject-progress,.weekly-progress,.q-progress,.q-first-round-progress)>i{background:var(--equipped-bar);background-size:180% 100%;box-shadow:0 0 12px var(--equipped-bar-glow);animation:cosmetic-bar-flow 8s ease-in-out infinite}
+:root[data-bar="bar-mint"] :is(.total-progress,.subject-card .subject-progress,.weekly-progress,.q-progress,.q-first-round-progress)>i{background-size:100% 100%;animation:none}
 :root:is([data-fx="fx-petals"],[data-fx="fx-snow"],[data-fx="fx-nebula"]) .quest-scene>.equipped-particles{display:block}
 :root[data-fx="fx-petals"] .equipped-particles>i{width:7px;height:4.5px;background:#d9afc4;border-radius:80% 10% 80% 15%;opacity:0;animation:cosmetic-petals calc(var(--mote-duration) + 4s) ease-in-out var(--mote-delay) infinite}
 :root[data-fx="fx-petals"] .equipped-particles>i:nth-child(3n){background:#f2d4d9;width:5px;height:4px}
@@ -107,18 +90,6 @@
 @keyframes cosmetic-nebula-star{0%,100%{opacity:.25;transform:scale(.7)}50%{opacity:.85;transform:scale(1.2)}}
 @keyframes cosmetic-nebula-drift{from{transform:translate(-12px,-6px) rotate(-15deg);opacity:.12}to{transform:translate(14px,7px) rotate(10deg);opacity:.24}}
 
-:root[data-npc="npc-scholar"]{--npc-coat:#729c95;--npc-shade:#487b7c;--npc-hat:#8bb4a0;--npc-hat-shade:#567f78;--npc-trim:#f2dda4}
-:root[data-npc="npc-tea"]{--npc-coat:#acaa83;--npc-shade:#747e62;--npc-hat:#d1c8a0;--npc-hat-shade:#989c74;--npc-trim:#f0e0bf}
-:root[data-npc="npc-copper"]{--npc-coat:#b48a70;--npc-shade:#805f57;--npc-hat:#ceac86;--npc-hat-shade:#9b775f;--npc-trim:#f1d5a3}
-:root[data-npc="npc-astral"]{--npc-coat:#7a79b9;--npc-shade:#505483;--npc-hat:#979ad2;--npc-hat-shade:#68669e;--npc-trim:#e5d6ff}
-:root[data-npc="npc-phoenix"]{--npc-coat:#bf7e80;--npc-shade:#874f67;--npc-hat:#d9a191;--npc-hat-shade:#a46679;--npc-trim:#f5d59d}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [fill="#869baa"]{fill:var(--npc-coat)}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [fill="#73889c"]{fill:var(--npc-shade)}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [fill="#b8a3ce"]{fill:var(--npc-trim)}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [fill="#bb9eda"]{fill:var(--npc-hat)}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [fill="#9175b2"]{fill:var(--npc-hat-shade)}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [fill="#8269a6"]{fill:var(--npc-shade)}
-:root:is([data-npc="npc-scholar"],[data-npc="npc-tea"],[data-npc="npc-copper"],[data-npc="npc-astral"],[data-npc="npc-phoenix"]) #advice-card .npc-avatar [stroke="#d6b9ef"]{stroke:var(--npc-trim)}
 
 :root[data-avatar="avatar-ranger"]{--avatar-coat:#6e9c8b;--avatar-shade:#416e67;--avatar-hat:#adbf91;--avatar-hat-shade:#668773}
 :root[data-avatar="avatar-voyager"]{--avatar-coat:#709caf;--avatar-shade:#486d86;--avatar-hat:#a7c7d2;--avatar-hat-shade:#6d94ad}

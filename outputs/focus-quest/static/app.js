@@ -281,7 +281,7 @@ function stopScenePreview() {
 
 function renderSubjects() {
   const key=JSON.stringify(state.subjects);if(subjectRenderKey===key)return;subjectRenderKey=key;
-  $('subjects').innerHTML=state.subjects.map(s=>{const m=meta(s.id),over=s.minutes>=s.target;return `<article class="subject-card ${over?'over':''}" style="--subject-color:${m.color};--subject-energy:${Math.min(1,s.minutes/s.target)}"><div class="subject-head"><span class="subject-icon">${icon(m.icon)}</span><h3>${esc(s.name)}</h3><span class="subject-badge">${over?'✦ 已达成':s.minutes>0?'推进中':'等待启程'}</span></div><div class="subject-sigil">${FocusSubjectArt.markup(s.id)}</div><div class="subject-numbers"><strong>${durationHTML(s.minutes)}</strong><span>/ ${hours(s.target)} 小时</span></div><div class="subject-progress" role="progressbar" aria-label="${esc(s.name)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,s.percent)}" aria-valuetext="${pct(s.percent)}"><i style="width:${Math.min(100,s.percent)}%"></i></div><div class="subject-bottom"><span>${s.minutes>s.target?'超额 '+duration(s.minutes-s.target):s.minutes===s.target?'目标达成，收获满满':s.minutes>0?'还差 '+duration(s.target-s.minutes):m.subtitle}</span><strong>${pct(s.percent)}</strong></div></article>`;}).join('');
+  $('subjects').innerHTML=state.subjects.map(s=>{const m=meta(s.id),over=s.minutes>=s.target;return `<article class="subject-card ${over?'over':''}" style="--subject-color:${m.color};--subject-energy:${Math.min(1,s.minutes/s.target)}"><div class="subject-head"><span class="subject-icon">${icon(m.icon)}</span><h3>${esc(s.name)}</h3><span class="subject-badge">${over?'✦ 已达成':s.minutes>0?'推进中':'等待启程'}</span></div><div class="subject-sigil">${FocusSubjectArt.markup(s.id)}</div><div class="subject-numbers"><strong>${durationHTML(s.minutes)}</strong><span>/ ${hours(s.target)} 小时</span></div><div class="subject-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${esc(s.name)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,s.percent)}" aria-valuetext="${pct(s.percent)}"><i style="width:${Math.min(100,s.percent)}%"></i></div><div class="subject-bottom"><span>${s.minutes>s.target?'超额 '+duration(s.minutes-s.target):s.minutes===s.target?'目标达成，收获满满':s.minutes>0?'还差 '+duration(s.target-s.minutes):m.subtitle}</span><strong>${pct(s.percent)}</strong></div></article>`;}).join('');
 }
 
 function renderAdvice() { FocusCampfire.render(state); }
@@ -565,5 +565,6 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteOpeni
 window.addEventListener('focus',noteOpeningArrival);
 window.addEventListener('focusquest:activate',noteOpeningArrival);
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
+globalThis.FocusQuickSkins?.init({api,toast,refresh});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);

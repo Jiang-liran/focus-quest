@@ -5,30 +5,19 @@
   'use strict';
 
   const characters = new Set(['guide', 'hearth', 'wanderer', 'stargazer']);
-  const outfits = new Set(['npc-default', 'npc-scholar', 'npc-tea', 'npc-copper', 'npc-astral', 'npc-phoenix']);
   const colors = {
     guide: {coat: '#8f9eaf', shade: '#687c95', hat: '#b99bd8', hatShade: '#896bb0', trim: '#e5cff5', hair: '#77657d'},
     hearth: {coat: '#ac8978', shade: '#7e625e', hat: '#bd9a86', hatShade: '#917162', trim: '#ebc494', hair: '#80645e'},
     wanderer: {coat: '#769b96', shade: '#507975', hat: '#b4b48f', hatShade: '#858d74', trim: '#e4d0a4', hair: '#726963'},
     stargazer: {coat: '#8d91be', shade: '#60658e', hat: '#b0add5', hatShade: '#827fab', trim: '#eadbb1', hair: '#68647e'},
-    'npc-scholar': {coat: '#729c95', shade: '#487b7c', hat: '#8bb4a0', hatShade: '#567f78', trim: '#f2dda4'},
-    'npc-tea': {coat: '#acaa83', shade: '#747e62', hat: '#d1c8a0', hatShade: '#989c74', trim: '#f0e0bf'},
-    'npc-copper': {coat: '#b48a70', shade: '#805f57', hat: '#ceac86', hatShade: '#9b775f', trim: '#f1d5a3'},
-    'npc-astral': {coat: '#7a79b9', shade: '#505483', hat: '#979ad2', hatShade: '#68669e', trim: '#e5d6ff'},
-    'npc-phoenix': {coat: '#bf7e80', shade: '#874f67', hat: '#d9a191', hatShade: '#a46679', trim: '#f5d59d'},
   };
   const star = (x, y, r, color, extra = '') => `<path ${extra} d="M${x} ${y-r}l${r*.3} ${r*.7} ${r*.7} ${r*.3}-${r*.7} ${r*.3}-${r*.3} ${r*.7}-${r*.3}-${r*.7}-${r*.7}-${r*.3} ${r*.7}-${r*.3}Z" fill="${color}"/>`;
 
-  function body(p, outfit) {
+  function body(p) {
     return `<ellipse cx="32" cy="68" rx="24" ry="3" fill="#101828" opacity=".3"/>
       <path d="M24 43h16c7 5 10 14 12 25H12c2-11 5-20 12-25Z" fill="${p.coat}"/>
       <path d="M32 44h8c7 5 10 14 12 25H32Z" fill="${p.shade}"/>
-      <path d="m23 46 9 8 9-8-3-3H26Z" fill="${p.trim}"/>
-      ${outfit === 'npc-astral' ? star(20, 62, 2, p.trim) + star(43, 65, 1.5, p.trim) : ''}
-      ${outfit === 'npc-scholar' ? `<path d="M18 57v8m-2-2h4" fill="none" stroke="${p.trim}" stroke-width="1.4" stroke-linecap="round"/>` : ''}
-      ${outfit === 'npc-tea' ? `<path d="M43 64q-1-6-6-9m4 5q6 1 6-4-5-2-6 4" fill="none" stroke="${p.trim}" stroke-width="1.2"/>` : ''}
-      ${outfit === 'npc-copper' ? `<circle cx="19" cy="61" r="2.8" fill="none" stroke="${p.trim}" stroke-width="1.2"/><path d="M19 57v2m0 4v2m-4-4h2m4 0h2" stroke="${p.trim}" stroke-width="1"/>` : ''}
-      ${outfit === 'npc-phoenix' ? `<path d="M18 64q-4-6-2-11 6 3 2 11m0 0q0-7 5-9 0 6-5 9" fill="${p.trim}" opacity=".85"/>` : ''}`;
+      <path d="m23 46 9 8 9-8-3-3H26Z" fill="${p.trim}"/>`;
   }
 
   function face(p, character) {
@@ -98,14 +87,14 @@
 
   function avatar(characterId, outfit = 'npc-default') {
     const character = characters.has(characterId) ? characterId : 'guide';
-    outfit = outfits.has(outfit) ? outfit : 'npc-default';
+    outfit = 'npc-default'; // Old NPC clothing selections no longer change characters.
     if (character === 'guide' && questArt && typeof questArt.avatar === 'function') {
       return questArt.avatar('guide', outfit)
         .replace('class="quest-avatar-art"', 'class="quest-avatar-art campfire-avatar-art"')
         .replace('data-role="guide"', 'data-role="guide" data-character="guide"');
     }
-    const palette = {...colors[character], ...(colors[outfit] || {})};
-    return `<svg class="quest-avatar-art campfire-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-character="${character}" data-outfit="${outfit}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${body(palette, outfit)}${face(palette, character)}${headwear(palette, character)}${belongings(palette, character)}</svg>`;
+    const palette = colors[character];
+    return `<svg class="quest-avatar-art campfire-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-character="${character}" data-outfit="${outfit}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${body(palette)}${face(palette, character)}${headwear(palette, character)}${belongings(palette, character)}</svg>`;
   }
 
   function pine(x, y, scale, color) {
@@ -114,7 +103,7 @@
 
   function scene() {
     const stars = [[45,31,1.4],[88,61,2],[130,24,1],[190,49,2.4],[245,30,1.4],[288,70,1],[341,28,2.2],[390,51,1.3],[440,24,1.8],[482,78,1.1],[577,28,1.1],[613,68,2.2],[563,101,1.1]];
-    return `<svg class="campfire-scene-art" viewBox="0 0 660 240" width="660" height="240" role="img" aria-label="月光下的营地，帐篷与木桩围着一簇温暖的篝火" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">
+    return `<svg class="campfire-scene-art" viewBox="0 0 660 240" data-skin-slots="camp fire tent campgear campglow" width="660" height="240" role="img" aria-label="月光下的营地，帐篷与木桩围着一簇温暖的篝火" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">
       <title>星岛篝火夜话</title>
       <rect width="660" height="240" rx="22" fill="#191d32"/>
       <path d="M0 110Q150 71 330 101T660 83v135H0Z" fill="#20253c"/>
@@ -132,7 +121,7 @@
       <path d="M0 194q89-27 155-12 134-27 242-7 127-7 263 18v25a22 22 0 0 1-22 22H22a22 22 0 0 1-22-22Z" fill="#35424b"/>
       <path d="M0 218q138-34 285-14 182 16 375-1v15a22 22 0 0 1-22 22H22a22 22 0 0 1-22-22Z" fill="#303b46"/>
       <path d="M276 239q19-25 53-25t61 25" fill="#4d494c" opacity=".5"/>
-      <g class="campfire-tent"><ellipse cx="166" cy="194" rx="75" ry="8" fill="#1c2735" opacity=".4"/>
+      <g class="campfire-tent" data-skin-slots="tent"><ellipse cx="166" cy="194" rx="75" ry="8" fill="#1c2735" opacity=".4"/>
       <path d="m114 188 47-79 67 75-40 11Z" fill="#9b99b4"/>
       <path d="m161 109 67 75-40 11Z" fill="#737c9a"/>
       <path d="m114 188 47-79 27 86Z" fill="#bbb0bb"/>
@@ -142,15 +131,15 @@
       <path d="m161 111-67 82m113-32 40 33" stroke="#abb1a8" stroke-width="1" opacity=".6"/>
       <path d="m92 188 2 8m151-5 2 7" stroke="#b8a08d" stroke-width="2" stroke-linecap="round"/>
       <path d="M161 104v10" stroke="#b8a08d" stroke-width="2.2" stroke-linecap="round"/></g>
-      <g class="campfire-lantern"><path d="M220 186v-22q0-5 5-5t5 5v22" stroke="#b9a387" stroke-width="1.5"/>
+      <g class="campfire-lantern" data-skin-slots="fire"><path d="M220 186v-22q0-5 5-5t5 5v22" stroke="#b9a387" stroke-width="1.5"/>
       <circle cx="225" cy="181" r="14" fill="#e4b477" opacity=".055"/>
       <path d="m218 176 7-5 7 5v15h-14Z" fill="#a9927f"/>
       <rect x="220" y="178" width="10" height="10" rx="1.5" fill="#e8c08b"/>
       <path d="M225 178v10m-7 2h14" stroke="#9a8071" stroke-width="1.1"/></g>
-      <ellipse class="campfire-glow" cx="331" cy="197" rx="92" ry="28" fill="#e7a171" opacity=".045"/>
-      <ellipse class="campfire-glow" cx="331" cy="198" rx="67" ry="20" fill="#e7a171" opacity=".065"/>
+      <ellipse class="campfire-glow" data-skin-slots="fire" cx="331" cy="197" rx="92" ry="28" fill="#e7a171" opacity=".045"/>
+      <ellipse class="campfire-glow" data-skin-slots="fire" cx="331" cy="198" rx="67" ry="20" fill="#e7a171" opacity=".065"/>
       <ellipse cx="331" cy="199" rx="45" ry="11" fill="#e7a171" opacity=".09"/>
-      <g class="campfire-stumps"><ellipse cx="257" cy="211" rx="23" ry="5" fill="#1f2b36" opacity=".4"/>
+      <g class="campfire-stumps" data-skin-slots="campgear"><ellipse cx="257" cy="211" rx="23" ry="5" fill="#1f2b36" opacity=".4"/>
       <path d="M239 188h33v20q-15 9-33 0Z" fill="#786c65"/>
       <path d="M258 188h14v20q-7 4-14 4Z" fill="#5d5960"/>
       <ellipse cx="255.5" cy="188" rx="16.5" ry="5.3" fill="#a5927e"/>
@@ -162,13 +151,13 @@
       <ellipse cx="411" cy="188" rx="21" ry="6" fill="#a48e78"/>
       <ellipse cx="411" cy="188" rx="12" ry="3.5" stroke="#7d6e65" stroke-width="1"/>
       <path d="m398 196 1 9m9-10v10m14-8-1 8" stroke="#ac9075" stroke-width="1.2" opacity=".6"/></g>
-      <g class="campfire-stones" fill="#8c8781"><ellipse cx="307" cy="197" rx="7" ry="4.5"/><ellipse cx="318" cy="202" rx="7" ry="4"/><ellipse cx="332" cy="203" rx="7.5" ry="4.2"/><ellipse cx="347" cy="200" rx="7" ry="4.3"/><ellipse cx="355" cy="194" rx="5.7" ry="4.2"/></g>
-      <path d="m314 185 32 13m-34 0 33-14" stroke="#635651" stroke-width="7" stroke-linecap="round"/>
-      <path d="m314 185 30 12m-30 0 29-12" stroke="#9b7860" stroke-width="1.4" stroke-linecap="round"/>
-      <g class="campfire-flame"><path d="M329 137c3 16 17 19 16 33 7-3 6-9 5-13 13 18 9 39-17 40-25 1-32-14-25-28 1 7 5 9 7 10-3-15 8-23 14-42Z" fill="#c98070"/>
+      <g class="campfire-stones" data-skin-slots="fire" fill="#8c8781"><ellipse cx="307" cy="197" rx="7" ry="4.5"/><ellipse cx="318" cy="202" rx="7" ry="4"/><ellipse cx="332" cy="203" rx="7.5" ry="4.2"/><ellipse cx="347" cy="200" rx="7" ry="4.3"/><ellipse cx="355" cy="194" rx="5.7" ry="4.2"/></g>
+      <path data-skin-slots="fire" d="m314 185 32 13m-34 0 33-14" stroke="#635651" stroke-width="7" stroke-linecap="round"/>
+      <path data-skin-slots="fire" d="m314 185 30 12m-30 0 29-12" stroke="#9b7860" stroke-width="1.4" stroke-linecap="round"/>
+      <g class="campfire-flame" data-skin-slots="fire"><path d="M329 137c3 16 17 19 16 33 7-3 6-9 5-13 13 18 9 39-17 40-25 1-32-14-25-28 1 7 5 9 7 10-3-15 8-23 14-42Z" fill="#c98070"/>
       <path d="M330 151c1 13 12 18 11 28 3-1 5-3 6-6 7 14 0 23-14 24-15 1-23-9-17-19 1 4 4 5 6 5-2-13 5-20 8-32Z" fill="#e6ad79"/>
       <path d="M331 172c0 8 8 10 8 17 2-1 3-3 3-4 4 9-4 13-10 13-8 0-12-5-8-11 0 4 3 4 4 5-3-9 2-13 3-20Z" fill="#f4d5a0"/></g>
-      <g class="campfire-embers" fill="#e9ba85"><circle class="campfire-ember" cx="319" cy="153" r="1.7" style="--ember-delay:0s"/><circle class="campfire-ember" cx="341" cy="132" r="1.4" style="--ember-delay:-1.1s"/><circle class="campfire-ember" cx="323" cy="119" r="1" style="--ember-delay:-2.3s"/><circle class="campfire-ember" cx="347" cy="159" r="1.2" style="--ember-delay:-.7s"/><circle class="campfire-ember" cx="333" cy="104" r=".9" style="--ember-delay:-1.7s"/></g>
+      <g class="campfire-embers" data-skin-slots="fire" fill="#e9ba85"><circle class="campfire-ember" cx="319" cy="153" r="1.7" style="--ember-delay:0s"/><circle class="campfire-ember" cx="341" cy="132" r="1.4" style="--ember-delay:-1.1s"/><circle class="campfire-ember" cx="323" cy="119" r="1" style="--ember-delay:-2.3s"/><circle class="campfire-ember" cx="347" cy="159" r="1.2" style="--ember-delay:-.7s"/><circle class="campfire-ember" cx="333" cy="104" r=".9" style="--ember-delay:-1.7s"/></g>
       <g stroke="#65796e" stroke-width="1.5" stroke-linecap="round"><path d="m70 207-3-6m3 6 4-8m-4 8v-9m458 2-2-5m2 5 4-7m-4 7v-9m69 34-2-6m2 6 4-8m-4 8v-9"/></g>
       <g fill="#788c81" opacity=".6"><ellipse cx="197" cy="216" rx="3" ry="1.3"/><ellipse cx="473" cy="214" rx="4" ry="1.2"/><ellipse cx="109" cy="215" rx="2.5" ry="1"/><ellipse cx="556" cy="199" rx="3.4" ry="1.3"/></g>
     </svg>`;

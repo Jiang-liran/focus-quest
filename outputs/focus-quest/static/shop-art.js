@@ -8,7 +8,6 @@
   const inventory = {
     bar: ['default', 'mint', 'aurora', 'comet', 'tide', 'prism'],
     fx: ['default', 'fireflies', 'petals', 'snow', 'meteor', 'nebula'],
-    npc: ['default', 'scholar', 'tea', 'copper', 'astral', 'phoenix'],
     avatar: ['default', 'ranger', 'voyager', 'alchemist', 'star', 'royal'],
     banner: ['default', 'leaf', 'parchment', 'obsidian', 'celestial', 'sovereign'],
     theme: ['default', 'forest', 'ocean', 'sakura', 'aurora'],
@@ -97,10 +96,10 @@
     const item=items.get(itemId);if(!item)return '';
     const {slot,variant}=item;
     let content;
-    if(slot==='npc'||slot==='avatar'){
+    if(slot==='avatar'){
       const art=nodeArt||root.QuestArt;
       if(!art)return '';
-      const character=art.avatar(slot==='npc'?'guide':'player',itemId).replace(/^<svg[^>]*>|<\/svg>$/g,'');
+      const character=art.avatar('player',itemId).replace(/^<svg[^>]*>|<\/svg>$/g,'');
       content=`<ellipse cx="80" cy="92" rx="34" ry="7" fill="#82709910"/><g transform="translate(48 16)">${character}</g>`;
     }else if(slot==='bar')content=barPreview(variant);
     else if(slot==='fx')content=fxPreview(variant);
@@ -131,7 +130,10 @@
     return element;
   }
   function put(element,id,markup,transform){
-    if(!element||cache.get(element)===id)return;
+    if(!element)return;
+    const slot=items.get(id)?.slot;
+    if(slot&&element.getAttribute('data-skin-slots')!==slot)element.setAttribute('data-skin-slots',slot);
+    if(cache.get(element)===id)return;
     if(transform)element.setAttribute('transform',transform);
     element.setAttribute('data-item',id);
     element.innerHTML=markup;
@@ -170,6 +172,7 @@
     }
     const doc=root.document;
     if(!doc||!doc.documentElement)return valid;
+    if('npc' in doc.documentElement.dataset)delete doc.documentElement.dataset.npc;
     for(const [slot,id] of Object.entries(valid))if(doc.documentElement.dataset[slot]!==id)doc.documentElement.dataset[slot]=id;
     dressTravelers(doc,valid.avatar);
     // The keyed mounts survive ordinary state polls and preserve their animation phase.

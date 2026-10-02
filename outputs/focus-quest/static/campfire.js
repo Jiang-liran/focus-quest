@@ -3,7 +3,7 @@
   const topics={relax:'歇一会儿',story:'听段见闻',advice:'聊聊学习'};
   const storageKey='focus-quest-campfire-v1';
   let data=null,ready=false,character='hearth',topic='relax',line=null,recent=[],outfit=null;
-  let equipment={},equipmentStamp=-Infinity,sceneKey=null;
+  let equipment={},equipmentStamp=-Infinity,sceneKey=null,equipmentPreview=null;
   const $=id=>document.getElementById(id);
   const dialogue=()=>root.FocusCampfireDialogue;
   const art=()=>root.FocusCampfireArt;
@@ -39,7 +39,7 @@
   }
   function draw(){
     const c=dialogue().characters.find(c=>c.id===character);
-    const nextOutfit=equipment.npc||'npc-default';
+    const nextOutfit='npc-default';
     if(outfit!==nextOutfit){
       outfit=nextOutfit;
       document.querySelectorAll('.campfire-character').forEach(button=>button.querySelector('.campfire-mini').innerHTML=art().avatar(button.dataset.character,outfit));
@@ -65,9 +65,12 @@
     if(!Number.isFinite(stamp)&&Number.isFinite(equipmentStamp))return;
     if(Number.isFinite(stamp))equipmentStamp=stamp;
     equipment={...nextEquipment};
+    paintEquipment();
+  }
+  function paintEquipment(){
     if(!ready)return;
     const decor=root.FocusCampfireShopArt;
-    const normalized=decor?.normalize(equipment)||{};
+    const normalized=decor?.normalize({...equipment,...equipmentPreview})||{};
     const nextKey=JSON.stringify(normalized);
     if(sceneKey!==nextKey){
       $('campfire-scene').innerHTML=decor?decor.scene(normalized):art().scene();
@@ -75,6 +78,9 @@
     }
     $('advice-card').dataset.chatframe=normalized.chatframe||'chatframe-default';
     draw();
+  }
+  function previewEquipment(overrides){
+    equipmentPreview=overrides?{...overrides}:null;paintEquipment();
   }
   function render(nextState){
     data=nextState;init();
@@ -107,5 +113,5 @@
     line=dialogue().pickLine(contextual.length?contextual:lines,recent);
     remember();draw();animate();
   }
-  root.FocusCampfire={render,next,suggest,applyEquipment};
+  root.FocusCampfire={render,next,suggest,applyEquipment,previewEquipment};
 })(typeof globalThis!=='undefined'?globalThis:this);

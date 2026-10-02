@@ -72,12 +72,6 @@ SHOP_CATALOG = (
     ("fx-snow", "fx", "静雪漫舞", "在安静飘雪中收下今天的积累", 420, 0),
     ("fx-meteor", "fx", "流星庆典", "让星岛上空不时划过流星", 0, 12),
     ("fx-nebula", "fx", "星云呼吸", "让遥远星云在营地缓缓流转", 0, 18),
-    ("npc-default", "npc", "营地向导", "陪你开启每日委托", 0, 0),
-    ("npc-scholar", "npc", "博学旅人", "让书卷中的同伴加入营地", 180, 0),
-    ("npc-tea", "npc", "茶香隐士", "带着温茶与耐心守候你的归来", 300, 0),
-    ("npc-copper", "npc", "铜铃匠人", "以温润铜色的衣装迎接每次委托完成", 420, 0),
-    ("npc-astral", "npc", "星界使者", "来自星空的委托同伴", 0, 12),
-    ("npc-phoenix", "npc", "赤羽信使", "为持续前行的你送来一束暖光", 0, 18),
     ("avatar-default", "avatar", "初旅行装", "第一次出征时的模样", 0, 0),
     ("avatar-ranger", "avatar", "知识游侠", "为持续前行换上新行装", 180, 0),
     ("avatar-voyager", "avatar", "远航行者", "背起行囊，向新的知识海域出发", 300, 0),
@@ -141,7 +135,7 @@ SHOP_CATALOG = (
 )
 SHOP_ITEMS = {item[0]: dict(zip(("id", "slot", "name", "description", "coins", "diamonds"), item))
               for item in SHOP_CATALOG}
-SHOP_CATEGORIES = {"bar": "进度条", "fx": "星岛特效", "npc": "NPC 时装", "avatar": "我的时装",
+SHOP_CATEGORIES = {"bar": "进度条", "fx": "星岛特效", "avatar": "我的时装",
                    "banner": "旅人铭牌", "theme": "星岛环境", "companion": "随行伙伴",
                    "relic": "星岛圣物", "portal": "远征之门", "camp": "营地风景",
                    "fire": "篝火样式", "tent": "营地帐篷", "campgear": "火边陈设",
@@ -151,6 +145,13 @@ LEGACY_SHOP_ITEM_IDS = ("bar-aurora", "bar-comet", "fx-fireflies", "fx-meteor", 
 EXCHANGE_COINS_PER_DIAMOND = 75
 EXCHANGE_MAX_DIAMONDS = 1000
 SHOP_PRICING_MIGRATION = "shopPricing:v18"
+SHOP_NPC_REMOVAL_MIGRATION = "shopNpcRemoval:v1"
+TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
+RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
+# These are historical upgrade prices, not purchasable catalog entries. Old
+# archives still need the v1.8 difference credited before the final net refund.
+RETIRED_NPC_V18_PRICES = {"npc-scholar": {"coins": 180, "diamonds": 0},
+                         "npc-astral": {"coins": 0, "diamonds": 12}}
 HISTORY_SOURCE = "history_xlsx"
 HISTORY_FIELDS = ("name", "minutes", "start_ms", "end_ms", "day")
 
@@ -558,6 +559,15 @@ class FocusStore:
                 allocations TEXT NOT NULL
             );
             CREATE INDEX IF NOT EXISTS quest_delivery_subject ON quest_deliveries(subject,submitted_ms);
+            CREATE TABLE IF NOT EXISTS quest_bonus_receipts (
+                day TEXT NOT NULL, subject TEXT NOT NULL, request_id TEXT NOT NULL,
+                minutes REAL NOT NULL, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
+                submitted_ms INTEGER NOT NULL, allocations TEXT NOT NULL,
+                PRIMARY KEY(day,subject)
+            );
+            CREATE INDEX IF NOT EXISTS quest_bonus_request ON quest_bonus_receipts(request_id);
+            CREATE INDEX IF NOT EXISTS quest_bonus_subject ON quest_bonus_receipts(subject,day);
+            CREATE INDEX IF NOT EXISTS quest_allocation_end ON quest_allocations(end_ms,start_ms);
             CREATE TABLE IF NOT EXISTS wallet_ledger (
                 reference TEXT PRIMARY KEY, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
                 created_ms INTEGER NOT NULL
@@ -608,7 +618,9 @@ class FocusStore:
             self.db.execute("""INSERT OR IGNORE INTO source_presence(source,source_key)
                                SELECT source,source_key FROM record_aliases""")
         self._migrate_shop_v18()
+        self._migrate_remove_npc_outfits()
         self._migrate_continuous_quests()
+        self._initialize_timed_bonus()
         self.settings = json.loads(json.dumps(DEFAULT_SETTINGS))
         stored = self._meta("settings")
         if stored:
@@ -665,17 +677,47 @@ class FocusStore:
                 return
             current = quest_clock()
             for item_id in LEGACY_SHOP_ITEM_IDS:
-                row = self.db.execute("""SELECT l.coins,l.diamonds FROM shop_purchases p
-                    JOIN wallet_ledger l ON l.reference='purchase:'||p.item_id WHERE p.item_id=?""", (item_id,)).fetchone()
+                row = self.db.execute("""SELECT SUM(l.coins) AS coins,SUM(l.diamonds) AS diamonds FROM shop_purchases p
+                    JOIN wallet_ledger l ON l.reference IN ('purchase:'||p.item_id,'buy:'||p.item_id)
+                    WHERE p.item_id=? GROUP BY p.item_id""", (item_id,)).fetchone()
                 if row is None:
                     continue
-                item = SHOP_ITEMS[item_id]
+                item = SHOP_ITEMS.get(item_id) or RETIRED_NPC_V18_PRICES[item_id]
                 coins = max(max(-row["coins"], 0) - item["coins"], 0)
                 diamonds = max(max(-row["diamonds"], 0) - item["diamonds"], 0)
                 if coins or diamonds:
                     self.db.execute("INSERT OR IGNORE INTO wallet_ledger VALUES (?,?,?,?)",
                                     (f"pricing:v18:{item_id}", coins, diamonds, int(current.timestamp() * 1000)))
             self._set_meta(SHOP_PRICING_MIGRATION, current.isoformat())
+
+    def _migrate_remove_npc_outfits(self):
+        """Retire NPC clothing and refund its remaining actual purchase cost.
+
+        Both the v1.8 refund and this retirement receipt remain in the ledger.
+        Ownership rows stay for auditing, but no retired item is usable again.
+        """
+        with self._quest_transaction():
+            if self._meta(SHOP_NPC_REMOVAL_MIGRATION) is not None:
+                self.db.execute("DELETE FROM shop_equipment WHERE slot='npc'")
+                return
+            current = quest_clock()
+            for item_id in RETIRED_NPC_ITEM_IDS:
+                if not self.db.execute("SELECT 1 FROM shop_purchases WHERE item_id=?", (item_id,)).fetchone():
+                    continue
+                # Current archives use purchase:; accept the older buy: spelling
+                # too. Price tags are deliberately not used to invent refunds.
+                spending = self.db.execute("""SELECT COALESCE(SUM(MIN(coins,0)),0),
+                    COALESCE(SUM(MIN(diamonds,0)),0) FROM wallet_ledger
+                    WHERE reference IN (?,?)""", (f"purchase:{item_id}", f"buy:{item_id}")).fetchone()
+                returned = self.db.execute("SELECT coins,diamonds FROM wallet_ledger WHERE reference=?",
+                                           (f"pricing:v18:{item_id}",)).fetchone()
+                coins = max(0, -spending[0] - (max(0, returned[0]) if returned else 0))
+                diamonds = max(0, -spending[1] - (max(0, returned[1]) if returned else 0))
+                if coins or diamonds:
+                    self.db.execute("INSERT OR IGNORE INTO wallet_ledger VALUES (?,?,?,?)",
+                        (f"retired:npc-outfit:{item_id}", coins, diamonds, int(current.timestamp() * 1000)))
+            self.db.execute("DELETE FROM shop_equipment WHERE slot='npc'")
+            self._set_meta(SHOP_NPC_REMOVAL_MIGRATION, current.isoformat())
 
     def _migrate_continuous_quests(self, now=None):
         """Keep old rewards immutable and carry only previously eligible study.
@@ -714,6 +756,15 @@ class FocusStore:
                     if upper > lower:
                         self.db.execute("INSERT OR IGNORE INTO quest_legacy_windows VALUES (?,?,?)", (subject, lower, upper))
             self._set_meta("continuous_quests_v1", current.isoformat())
+
+    def _initialize_timed_bonus(self, now=None):
+        with self._quest_transaction():
+            if self._meta(TIMED_BONUS_START_META) is None:
+                current = quest_clock(now)
+                # Preserve today's accepted study at upgrade, but do not grant
+                # bonuses retroactively for earlier days in the saved archive.
+                midnight = datetime.combine(current.date(), datetime.min.time()).astimezone()
+                self._set_meta(TIMED_BONUS_START_META, int(midnight.timestamp() * 1000))
 
     def _exchange_state(self, wallet):
         history = [{"diamonds": row["diamonds"], "coins": row["coins"], "createdAt": iso_ms(row["created_ms"])}
@@ -792,6 +843,143 @@ class FocusStore:
         return [item for start, end in merged
                 for item in self._quest_contributions(subject, start, end, now_ms)]
 
+    @staticmethod
+    def _bonus_window(definition, day):
+        # Convert each local wall-clock boundary separately, including on DST
+        # transition days. No date or clock is accepted from the HTTP client.
+        midnight = datetime.combine(parse_day(day), datetime.min.time())
+        opens = (midnight + timedelta(hours=definition["openHour"])).astimezone()
+        deadline = (midnight + timedelta(hours=definition["deadlineHour"])).astimezone()
+        return opens, deadline
+
+    def _bonus_evidence(self, subject, lower_ms, now_ms, pending):
+        """Combine immutable settled ownership with currently unallocated study.
+
+        Base rewards and bonus rewards have separate ledgers. A half-round that
+        was delivered earlier must still qualify toward this day's first round.
+        If old source identities were merged, the earliest settled allocation
+        owns overlapping time; remapping cannot award a second subject's bonus.
+        """
+        if now_ms <= lower_ms:
+            return []
+        merges = {row[0]: row[1] for row in self.db.execute("SELECT removed_id,canonical_id FROM record_merges")}
+        def canonical(record_id):
+            seen = set()
+            while record_id in merges and record_id not in seen:
+                seen.add(record_id)
+                record_id = merges[record_id]
+            return record_id
+        def subtract(slices, used):
+            for used_start, used_end in used:
+                remainder = []
+                for start, end in slices:
+                    if used_end <= start or used_start >= end:
+                        remainder.append((start, end))
+                    else:
+                        if start < used_start:
+                            remainder.append((start, used_start))
+                        if used_end < end:
+                            remainder.append((used_end, end))
+                slices = remainder
+            return slices
+        occupied, evidence = {}, []
+        for row in self.db.execute("""SELECT record_id,subject,start_ms,end_ms,minutes FROM quest_allocations
+            WHERE end_ms>? AND start_ms<? ORDER BY rowid""", (lower_ms, now_ms)):
+            span = row["end_ms"] - row["start_ms"]
+            if span <= 0:
+                continue
+            record_id = canonical(row["record_id"])
+            start, end = max(row["start_ms"], lower_ms), min(row["end_ms"], now_ms)
+            used = occupied.setdefault(record_id, [])
+            slices = subtract([(start, end)], used)
+            used.extend(slices)
+            if row["subject"] == subject:
+                density = min(max(0, row["minutes"]), span / 60000) / span
+                evidence.extend({"record_id": record_id, "start_ms": begin, "end_ms": finish,
+                                 "minutes": density * (finish - begin), "source": "settled"}
+                                for begin, finish in slices if finish > begin)
+        for item in pending:
+            start, end = max(item["start_ms"], lower_ms), min(item["end_ms"], now_ms)
+            span = item["end_ms"] - item["start_ms"]
+            if end <= start or span <= 0:
+                continue
+            record_id = canonical(item["record_id"])
+            # Pending base contributions already exclude the global allocations;
+            # applying the ownership mask again keeps this helper self-contained.
+            slices = subtract([(start, end)], occupied.get(record_id, []))
+            density = min(max(0, item["minutes"]), span / 60000) / span
+            evidence.extend({"record_id": record_id, "start_ms": begin, "end_ms": finish,
+                             "minutes": density * (finish - begin), "source": "pending"}
+                            for begin, finish in slices if finish > begin)
+        return evidence
+
+    def _quest_bonus(self, definition, track, contributions, current):
+        subject, today = definition["subject"], current.date().isoformat()
+        feature_ms = int(self._meta(TIMED_BONUS_START_META))
+        now_ms = int(current.timestamp() * 1000)
+        lower_ms = max(feature_ms, track["accepted_ms"]) if track else feature_ms
+        evidence = self._bonus_evidence(subject, lower_ms, now_ms, contributions) if track else []
+        grouped = {}
+        # Only dates touched by new eligible evidence are visited, rather than
+        # querying every day since installation or scanning the year archive.
+        for item in evidence:
+            day = datetime.fromtimestamp(item["start_ms"] / 1000).astimezone().date()
+            last = datetime.fromtimestamp((item["end_ms"] - 1) / 1000).astimezone().date()
+            while day <= last:
+                day_key = day.isoformat()
+                opens, deadline = self._bonus_window(definition, day_key)
+                start = max(item["start_ms"], lower_ms, int(opens.timestamp() * 1000))
+                end = min(item["end_ms"], now_ms, int(deadline.timestamp() * 1000))
+                if end > start:
+                    minutes = item["minutes"] * (end - start) / (item["end_ms"] - item["start_ms"])
+                    grouped.setdefault(day_key, []).append(dict(item, start_ms=start, end_ms=end, minutes=minutes))
+                day += timedelta(days=1)
+        claimed = {row["day"]: row for row in self.db.execute("SELECT * FROM quest_bonus_receipts WHERE subject=?", (subject,))}
+        eligible = []
+        for day_key, slices in sorted(grouped.items()):
+            minutes = round(sum(item["minutes"] for item in slices), 8)
+            if day_key in claimed or minutes + 1e-8 < definition["target"]:
+                continue
+            opens, deadline = self._bonus_window(definition, day_key)
+            eligible.append({"day": day_key, "subject": subject, "minutes": minutes, "target": definition["target"],
+                             "coins": definition["target"], "diamonds": 1,
+                             "opensAt": opens.isoformat(), "deadline": deadline.isoformat(), "allocations": slices})
+        opens, deadline = self._bonus_window(definition, today)
+        receipt = claimed.get(today)
+        minutes = receipt["minutes"] if receipt else round(sum(item["minutes"] for item in grouped.get(today, [])), 8)
+        if receipt:
+            status = "claimed"
+        elif not track:
+            status = "unaccepted"
+        elif minutes + 1e-8 >= definition["target"]:
+            status = "ready"
+        elif current < opens:
+            status = "upcoming"
+        elif current >= deadline:
+            status = "ended"
+        else:
+            status = "active"
+        pending = [{key: value for key, value in item.items() if key != "allocations"} for item in eligible]
+        result = {"enabled": True, "featureStartMs": feature_ms, "day": today, "period": definition["period"],
+                  "windowLabel": "00:00–12:00" if definition["period"] == "morning" else "12:00–18:00",
+                  "opensAt": opens.isoformat(), "deadline": deadline.isoformat(),
+                  "eligibleFrom": iso_ms(max(lower_ms, int(opens.timestamp() * 1000))),
+                  "target": definition["target"], "minutes": round(minutes, 4), "percent": percent(minutes, definition["target"]),
+                  "status": status, "claimedAt": iso_ms(receipt["submitted_ms"]) if receipt else None,
+                  "reward": {"coins": definition["target"], "diamonds": 1}, "pending": pending,
+                  "pendingCount": len(pending), "pendingCoins": sum(item["coins"] for item in pending),
+                  "pendingDiamonds": sum(item["diamonds"] for item in pending)}
+        return result, eligible
+
+    def _bonus_breakdown(self, request_id, coins, diamonds):
+        bonuses = [{"day": row["day"], "subject": row["subject"], "minutes": round(row["minutes"], 4),
+                    "target": self._quest_definition(row["subject"])["target"],
+                    "coins": row["coins"], "diamonds": row["diamonds"]}
+                   for row in self.db.execute("SELECT * FROM quest_bonus_receipts WHERE request_id=? ORDER BY day,subject", (request_id,))] if request_id else []
+        bonus_reward = {"coins": sum(item["coins"] for item in bonuses), "diamonds": sum(item["diamonds"] for item in bonuses)}
+        return {"baseReward": {"coins": coins - bonus_reward["coins"], "diamonds": diamonds - bonus_reward["diamonds"]},
+                "bonusReward": bonus_reward, "bonuses": bonuses}
+
     def _quest_row(self, definition, current):
         subject = definition["subject"]
         track = self.db.execute("SELECT * FROM quest_tracks WHERE subject=?", (subject,)).fetchone()
@@ -806,15 +994,20 @@ class FocusStore:
         reward = {"coins": max(0, math.floor(total * 2 + 1e-8) - coin_offset - paid_coins),
                   "diamonds": max(0, math.floor(total / definition["target"] + 1e-10) * 2 - diamond_offset - paid_diamonds)}
         first_completed = bool(track and track["first_completed"])
-        ready = bool(track and minutes > 0 and reward["coins"] >= 1
-                     and (first_completed or total + 1e-8 >= definition["target"]))
+        base_ready = bool(track and minutes > 0 and reward["coins"] >= 1
+                          and (first_completed or total + 1e-8 >= definition["target"]))
+        bonus, _ = self._quest_bonus(definition, track, contributions, current)
+        bonus_reward = {"coins": bonus["pendingCoins"], "diamonds": bonus["pendingDiamonds"]}
+        base_reward = reward if base_ready or not bonus["pendingCount"] else {"coins": 0, "diamonds": 0}
+        reward = {key: base_reward[key] + bonus_reward[key] for key in ("coins", "diamonds")}
+        ready = base_ready or bool(bonus["pendingCount"])
         progress = max(0, total - (paid_diamonds + diamond_offset) / 2 * definition["target"])
         latest = self.db.execute("SELECT submitted_ms FROM quest_deliveries WHERE subject=? ORDER BY submitted_ms DESC,rowid DESC LIMIT 1", (subject,)).fetchone()
         if latest is None:
             latest = self.db.execute("SELECT submitted_ms FROM quest_receipts WHERE subject=? ORDER BY submitted_ms DESC LIMIT 1", (subject,)).fetchone()
         result = {"subject": subject, "name": definition["name"], "period": "anytime", "continuous": True,
-                  "recommended": {"period": definition["period"], "label": "上午可优先安排" if definition["period"] == "morning" else "下午可优先安排", "bonus": False,
-                                  "active": 6 <= current.hour < 12 if definition["period"] == "morning" else 12 <= current.hour < 18},
+                  "recommended": {"period": definition["period"], "label": "上午可优先安排" if definition["period"] == "morning" else "下午可优先安排", "bonus": True,
+                                  "active": definition["openHour"] <= current.hour < definition["deadlineHour"]},
                   "target": definition["target"], "opensAt": None, "deadline": None, "submitDeadline": None,
                   "acceptedAt": iso_ms(track["accepted_ms"]) if track else None,
                   "submittedAt": iso_ms(latest[0]) if latest else None,
@@ -824,14 +1017,15 @@ class FocusStore:
                   "progressMinutes": round(progress, 4), "progressPercent": percent(progress, definition["target"]),
                   "percent": percent(progress, definition["target"]), "firstCompleted": first_completed,
                   "paidCoins": paid_coins, "paidDiamonds": paid_diamonds,
-                  "reward": reward, "baseReward": {"coins": definition["target"] * 2, "diamonds": 2}}
+                  "reward": reward, "baseReward": {"coins": definition["target"] * 2, "diamonds": 2},
+                  "baseReady": base_ready, "rewardBreakdown": {"base": base_reward, "bonus": bonus_reward}, "bonus": bonus}
         return result, contributions, minutes
 
     def quest_state(self, now=None):
         with self.lock:
             current = quest_clock(now)
             owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
-            equipped = {row[0]: row[1] for row in self.db.execute("SELECT slot,item_id FROM shop_equipment")}
+            equipped = {row[0]: row[1] for row in self.db.execute("SELECT slot,item_id FROM shop_equipment WHERE slot<>'npc'")}
             catalog = [dict(item, currency="coins" if item["coins"] else "diamonds" if item["diamonds"] else "free",
                             category=SHOP_CATEGORIES[item["slot"]],
                             owned=item["id"] in owned or (item["coins"] == 0 and item["diamonds"] == 0),
@@ -839,7 +1033,8 @@ class FocusStore:
             history = [{"day": row["day"] or datetime.fromtimestamp(row["submitted_ms"] / 1000).astimezone().date().isoformat(),
                         "requestId": row["request_id"], "subject": row["subject"], "name": row["name"],
                         "minutes": round(row["minutes"], 4), "coins": row["coins"], "diamonds": row["diamonds"],
-                        "submittedAt": iso_ms(row["submitted_ms"])}
+                        "submittedAt": iso_ms(row["submitted_ms"]),
+                        **self._bonus_breakdown(row["request_id"], row["coins"], row["diamonds"])}
                        for row in self.db.execute("""SELECT day,subject,name,minutes,coins,diamonds,submitted_ms,NULL AS request_id
                            FROM quest_receipts UNION ALL SELECT NULL,subject,name,minutes,coins,diamonds,submitted_ms,request_id
                            FROM quest_deliveries ORDER BY submitted_ms DESC,subject LIMIT 20""")]
@@ -873,7 +1068,8 @@ class FocusStore:
         return {"requestId": row["request_id"], "day": datetime.fromtimestamp(row["submitted_ms"] / 1000).astimezone().date().isoformat(),
                 "subject": row["subject"], "name": row["name"], "minutes": round(row["minutes"], 4),
                 "coins": row["coins"], "diamonds": row["diamonds"], "totalMinutes": round(row["total_minutes"], 4),
-                "submittedAt": iso_ms(row["submitted_ms"]), "alreadyClaimed": already_claimed}
+                "submittedAt": iso_ms(row["submitted_ms"]), "alreadyClaimed": already_claimed,
+                **self._bonus_breakdown(row["request_id"], row["coins"], row["diamonds"])}
 
     def submit_quest(self, subject, now=None, request_id=None):
         definition = self._quest_definition(subject)
@@ -894,22 +1090,32 @@ class FocusStore:
                         result = self.quest_state(current)
                         result["receipt"] = self._delivery_receipt(previous, True)
                         return result
-                    raise ValueError("首次交付需达到目标；之后有新增可领取金币即可继续交付")
+                    raise ValueError("首次交付需达到目标；之后有新增金币或已达标时段奖励即可交付")
                 submitted_ms = int(current.timestamp() * 1000)
                 track = self.db.execute("SELECT * FROM quest_tracks WHERE subject=?", (subject,)).fetchone()
+                _, bonuses = self._quest_bonus(definition, track, contributions, current)
+                base_reward = row["rewardBreakdown"]["base"] if row["baseReady"] else {"coins": 0, "diamonds": 0}
+                if not row["baseReady"]:
+                    minutes, contributions = 0, []
                 total = round(track["settled_minutes"] + minutes, 8)
                 reward = row["reward"]
                 self.db.execute("INSERT INTO quest_deliveries VALUES (?,?,?,?,?,?,?,?,?)",
                     (request_id, subject, definition["name"], minutes, reward["coins"], reward["diamonds"], submitted_ms,
                      total, json.dumps(contributions, ensure_ascii=False, allow_nan=False)))
                 self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
-                                (f"quest-continuous:{request_id}", reward["coins"], reward["diamonds"], submitted_ms))
+                                (f"quest-continuous:{request_id}", base_reward["coins"], base_reward["diamonds"], submitted_ms))
                 self.db.executemany("INSERT INTO quest_allocations VALUES (?,?,?,?,?,?)",
                     [(current.date().isoformat(), subject, item["record_id"], item["start_ms"], item["end_ms"], item["minutes"])
                      for item in contributions])
                 self.db.execute("""UPDATE quest_tracks SET settled_minutes=?,paid_coins=paid_coins+?,
-                    paid_diamonds=paid_diamonds+?,first_completed=1 WHERE subject=?""",
-                    (total, reward["coins"], reward["diamonds"], subject))
+                    paid_diamonds=paid_diamonds+?,first_completed=MAX(first_completed,?) WHERE subject=?""",
+                    (total, base_reward["coins"], base_reward["diamonds"], int(row["baseReady"]), subject))
+                for bonus in bonuses:
+                    self.db.execute("INSERT INTO quest_bonus_receipts VALUES (?,?,?,?,?,?,?,?)",
+                        (bonus["day"], subject, request_id, bonus["minutes"], bonus["coins"], bonus["diamonds"], submitted_ms,
+                         json.dumps(bonus["allocations"], ensure_ascii=False, allow_nan=False)))
+                    self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                        (f"quest-bonus:{bonus['day']}:{subject}", bonus["coins"], bonus["diamonds"], submitted_ms))
             result = self.quest_state(current)
             receipt = existing or self.db.execute("SELECT * FROM quest_deliveries WHERE request_id=?", (request_id,)).fetchone()
             result["receipt"] = self._delivery_receipt(receipt, existing is not None)
