@@ -238,6 +238,7 @@ MYSTERY_GIFT_LIMIT = 6
 MYSTERY_GIFT_TICKETS = ((1, 0), (1, 1), (2, 1), (2, 2), (2, 2), (2, 2))
 LOTTERY_START_META = "lottery:featureStartMs:v1"
 LOTTERY_ROUNDS_META = "lottery:roundTickets:v1"
+METHOD_ROUNDS_META = "methodRewards:roundTickets:v1"
 LOTTERY_TIMED_V2_META = "lottery:timedTicketsV2:v1"
 PLAY_TICKETS_START_META = "arcade:persistentTicketsStartDay:v1"
 PLAY_TICKET_EXCHANGE_COSTS = {"coin": 2, "diamond": 4}
@@ -706,6 +707,13 @@ class FocusStore:
                 day TEXT PRIMARY KEY, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
                 claimed_ms INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS method_round_ticket_receipts (
+                day TEXT NOT NULL, subject TEXT NOT NULL, completed_ms INTEGER NOT NULL,
+                baseline INTEGER NOT NULL DEFAULT 0,
+                PRIMARY KEY(day,subject),
+                CHECK(subject IN ('math','cs','politics','english')),
+                CHECK(baseline IN (0,1))
+            );
             CREATE TABLE IF NOT EXISTS shop_purchases (
                 item_id TEXT PRIMARY KEY, purchased_ms INTEGER NOT NULL
             );
@@ -865,6 +873,7 @@ class FocusStore:
         self._initialize_mystery()
         self._migrate_mystery_diamond_cadence()
         self._initialize_lottery()
+        self._initialize_method_round_tickets()
         self.revision = int(self._meta("revision") or 0)
         self._initialize_goals()
         self._ensure_goal_days(quest_clock())
@@ -939,6 +948,70 @@ class FocusStore:
         cursor = self.db.execute("INSERT OR IGNORE INTO lottery_ticket_ledger VALUES (?,?,?,?,?,?)",
                                  (reference, machine, count, created_ms, source, label))
         return {"machine": machine, "count": count, "source": source, "label": label} if cursor.rowcount else None
+
+    def _initialize_method_round_tickets(self, now=None):
+        # Freeze already claimed two-tier pairs as the upgrade baseline. A
+        # half-claimed pair may still complete a new round after upgrading.
+        # Opening or observing an archive must never backfill old rewards.
+        with self._quest_transaction():
+            if self._meta(METHOD_ROUNDS_META) is None:
+                self.db.execute("""INSERT OR IGNORE INTO method_round_ticket_receipts
+                    SELECT day,subject,MAX(claimed_ms),1 FROM method_reward_claims
+                    GROUP BY day,subject HAVING COUNT(DISTINCT tier)=2""")
+                self._set_meta(METHOD_ROUNDS_META, int(quest_clock(now).timestamp()*1000))
+
+    def _method_round_ticket_state(self):
+        counts = {row[0]: row[1] for row in self.db.execute("""SELECT subject,COUNT(*)
+            FROM method_round_ticket_receipts WHERE baseline=0 GROUP BY subject""")}
+        total = sum(counts.values())
+        return {"featureStartMs": int(self._meta(METHOD_ROUNDS_META)), "totalRounds": total,
+                "coinTickets": total, "diamondTickets": total//3,
+                "roundsTowardNextDiamond": total%3, "roundsToNextDiamond": 3-total%3,
+                "subjects": [{"id": sid, "name": name, "completedRounds": counts.get(sid, 0)}
+                             for sid, name, _ in SUBJECTS]}
+
+    def _method_round_ticket_receipt(self, day, subject):
+        receipt = self.db.execute("SELECT baseline FROM method_round_ticket_receipts WHERE day=? AND subject=?",
+                                  (day, subject)).fetchone()
+        rewards = {machine: 0 for machine in ("coin", "diamond")}
+        if receipt is not None and not receipt["baseline"]:
+            for row in self.db.execute("""SELECT machine,amount FROM lottery_ticket_ledger
+                    WHERE reference IN (?,?)""", (f"method-round:{day}:{subject}:coin",
+                                                 f"method-round:{day}:{subject}:diamond")):
+                rewards[row["machine"]] += row["amount"]
+        return {"counted": receipt is not None and not receipt["baseline"],
+                "baseline": receipt is not None and bool(receipt["baseline"]),
+                "coinTickets": rewards["coin"], "diamondTickets": rewards["diamond"]}
+
+    def _method_round_lottery_tickets(self, day, subject, current):
+        # Called only inside the tier claim's IMMEDIATE transaction. The unique
+        # day/subject receipt makes either tier order and parallel claims safe.
+        claims = self.db.execute("SELECT COUNT(*) FROM method_reward_claims WHERE day=? AND subject=?",
+                                 (day, subject)).fetchone()[0]
+        if claims != len(METHOD_REWARD_TIERS):
+            return []
+        if self.db.execute("SELECT 1 FROM method_round_ticket_receipts WHERE day=? AND subject=?",
+                           (day, subject)).fetchone():
+            return []
+        stamp = int(current.timestamp()*1000)
+        baseline = stamp < max(int(self._meta(METHOD_ROUNDS_META)), int(self._meta(LOTTERY_START_META)))
+        self.db.execute("INSERT INTO method_round_ticket_receipts VALUES (?,?,?,?)",
+                        (day, subject, stamp, int(baseline)))
+        if baseline:
+            return []
+        total = self._method_round_ticket_state()["totalRounds"]
+        name = next(name for sid, name, _ in SUBJECTS if sid == subject)
+        grants = []
+        for machine, count, source, label in (
+                ("coin", 1, "method-round", f"{name} · 两档研习一轮"),
+                ("diamond", int(total%3 == 0), "method-round-three", "研习累计三轮")):
+            if count:
+                grant = self._grant_lottery_ticket(f"method-round:{day}:{subject}:{machine}",
+                    machine, source, label, current, count)
+                if grant is None:
+                    raise ValueError("这轮研习的抽奖券已经发放，请刷新后重试领取")
+                grants.append(grant)
+        return grants
 
     def _round_ticket_state(self):
         progress = json.loads(self._meta(LOTTERY_ROUNDS_META))
@@ -1094,6 +1167,14 @@ class FocusStore:
                 "SELECT machine,COUNT(*) FROM lottery_requests WHERE kind='buy' AND day=? GROUP BY machine", (day,))}
             wallet, pools = self._wallet(), self._lottery_pools()
             owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
+            ordinary_totals = {"coin": 0, "diamond": 0}
+            for item in SHOP_ITEMS.values():
+                if item.get("lotteryOnly", False):
+                    continue
+                if item["diamonds"] > 0:
+                    ordinary_totals["diamond"] += 1
+                elif item["coins"] > 0:
+                    ordinary_totals["coin"] += 1
             machines = []
             for machine, name, ticket_name in (("coin", "金币抽奖机", "金币抽奖券"), ("diamond", "钻石抽奖机", "钻石抽奖券")):
                 price = lottery_rules.PRICES[machine]
@@ -1111,6 +1192,10 @@ class FocusStore:
                                  "canExchange": play_tickets >= PLAY_TICKET_EXCHANGE_COSTS[machine]},
                     "pool": {"coinItems": len(pools["coinItem"]) if machine == "coin" else 0,
                              "diamondItems": len(pools["diamondItem"]), "exclusiveItems": 0,
+                             "coinItemsTotal": ordinary_totals["coin"] if machine == "coin" else 0,
+                             "coinItemsOwned": ordinary_totals["coin"]-len(pools["coinItem"]) if machine == "coin" else 0,
+                             "diamondItemsTotal": ordinary_totals["diamond"],
+                             "diamondItemsOwned": ordinary_totals["diamond"]-len(pools["diamondItem"]),
                              "lotteryOnlyItems": len(pools[machine+"Limited"]), "lotteryOnlyTotal": limited_total},
                     "pity": {"count": pity_count, "limit": lottery_rules.PITY_LIMITS[machine],
                              "remaining": max(1, lottery_rules.PITY_LIMITS[machine]-pity_count),
@@ -1568,9 +1653,18 @@ class FocusStore:
 
             def gift(island, eligible, coins, diamonds):
                 claimed = island in claims
+                ticket_rewards = {"coinTickets": 0, "diamondTickets": 0}
+                if claimed:
+                    for row in self.db.execute("""SELECT machine,amount FROM lottery_ticket_ledger
+                            WHERE reference IN (?,?)""", (f"island:{day}:{island}",
+                                                          f"island:{day}:{island}:coin")):
+                        ticket_rewards["coinTickets" if row["machine"] == "coin" else "diamondTickets"] += row["amount"]
+                elif now_ms >= int(self._meta(LOTTERY_START_META)):
+                    ticket_rewards = {"coinTickets": 1, "diamondTickets": int(island == "main")}
                 return {"id": island, "eligible": eligible, "claimed": claimed,
                         "available": day == today and eligible and not claimed,
                         "claimedAt": iso_ms(claims[island]["claimed_ms"]) if claimed else None,
+                        "lotteryTickets": ticket_rewards,
                         "reward": {"coins": coins, "diamonds": diamonds}}
 
             subjects = []
@@ -1618,9 +1712,16 @@ class FocusStore:
                     "island-main" if island == "main" else "island-subject", "四科同行礼盒" if island == "main" else f"{item['name']}每日礼盒", current)
                 if grant:
                     ticket_grants.append(grant)
+                if island == "main":
+                    grant = self._grant_lottery_ticket(f"island:{day}:{island}:coin", "coin",
+                        "island-main", "四科同行礼盒", current)
+                    if grant:
+                        ticket_grants.append(grant)
                 self._bump_revision()
             return {"islandRewards": self.island_rewards_state(day, current), "wallet": self._wallet(),
                     "reward": reward, "alreadyClaimed": bool(existing), "island": island, "day": day,
+                    "lotteryTickets": {"coinTickets": sum(g["count"] for g in ticket_grants if g["machine"] == "coin"),
+                                       "diamondTickets": sum(g["count"] for g in ticket_grants if g["machine"] == "diamond")},
                     "lottery": self.lottery_state(current), "ticketGrants": ticket_grants}
 
     def method_rewards_state(self, selected_day=None, now=None, records=None):
@@ -1667,6 +1768,8 @@ class FocusStore:
                                     "reward": {"coins": definition["coins"], "diamonds": definition["diamonds"]}})
                 subjects.append({"id": sid, "name": name, "color": color,
                                  **{activity: round(value, 4) for activity, value in amounts.items()},
+                                 "roundTickets": dict(self._method_round_ticket_receipt(day, sid),
+                                                      completed=all(reward["claimed"] for reward in rewards)),
                                  "rewards": rewards})
             bonus_claim = self.db.execute("SELECT * FROM method_completion_claims WHERE day=?", (day,)).fetchone()
             completed = sum(reward["eligible"] for subject in subjects for reward in subject["rewards"])
@@ -1686,6 +1789,7 @@ class FocusStore:
                      "lotteryTickets": bonus_tickets,
                      "reward": {key: METHOD_COMPLETION_BONUS[key] for key in ("coins", "diamonds")}}
             return {"day": day, "today": today, "isToday": day == today, "subjects": subjects,
+                    "roundTickets": self._method_round_ticket_state(),
                     "completionBonus": bonus,
                     "availableCount": sum(reward["available"] for subject in subjects for reward in subject["rewards"])+int(bonus["available"]),
                     "claimedCount": len(claims)+int(bonus_claim is not None),
@@ -1707,6 +1811,7 @@ class FocusStore:
             existing = self.db.execute("SELECT 1 FROM method_reward_claims WHERE day=? AND subject=? AND tier=?",
                                        (day, subject, tier)).fetchone()
             reward = {"coins": 0, "diamonds": 0}
+            ticket_grants = []
             if not existing:
                 state = self.method_rewards_state(day, current)
                 row = next(item for item in state["subjects"] if item["id"] == subject)
@@ -1719,10 +1824,14 @@ class FocusStore:
                                 (day, subject, tier, reward["coins"], reward["diamonds"], created_ms))
                 self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                                 (f"method-gift:{day}:{subject}:{tier}", reward["coins"], reward["diamonds"], created_ms))
+                ticket_grants = self._method_round_lottery_tickets(day, subject, current)
                 self._bump_revision()
             return {"day": day, "subject": subject, "tier": tier, "reward": reward,
                     "wallet": self._wallet(), "methodRewards": self.method_rewards_state(day, current),
-                    "alreadyClaimed": bool(existing), "now": current.isoformat()}
+                    "alreadyClaimed": bool(existing), "now": current.isoformat(),
+                    "lotteryTickets": {"coinTickets": sum(g["count"] for g in ticket_grants if g["machine"] == "coin"),
+                                       "diamondTickets": sum(g["count"] for g in ticket_grants if g["machine"] == "diamond")},
+                    "ticketGrants": ticket_grants}
 
     def claim_method_completion(self, day, now=None):
         parse_day(day)

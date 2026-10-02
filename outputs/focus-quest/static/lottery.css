@@ -72,3 +72,5 @@
 @media(max-width:850px){.lottery-exchange{grid-column:1/-1}}
 :root[data-interface-tone="light"] .lottery-exchange{--lottery-accent:#846121;--lottery-companion:#38695a}
 :root[data-interface-tone="light"] .lottery-room.diamond .lottery-exchange{--lottery-accent:#695192;--lottery-companion:#386779}
+
+.lottery-result-art .lottery-prize-currency{font-size:inherit;width:100%;height:100%;max-width:128px;max-height:128px;display:inline-flex;flex:none;vertical-align:middle}.lottery-result-art .lottery-prize-currency>svg{width:100%;height:100%}

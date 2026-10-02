@@ -3,7 +3,9 @@
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   const num=value=>Math.max(0,Number(value)||0).toLocaleString('zh-CN',{maximumFractionDigits:1});
-  const reward=value=>`${num(value?.coins)} 金币 · ${num(value?.diamonds)} 钻石`;
+  const currency=kind=>root.FocusCurrencyArt?.icon(kind)||`<i class="${kind==='coin'?'coin':'diamond'}-mark" aria-hidden="true">${kind==='coin'?'●':'◆'}</i>`;
+  const rewardText=value=>`${num(value?.coins)} 金币 · ${num(value?.diamonds)} 钻石`;
+  const reward=value=>!root.FocusCurrencyArt?.icon?rewardText(value):`<span class="mystery-currency">${currency('coin')}${num(value?.coins)} 金币</span> · <span class="mystery-currency">${currency('diamond')}${num(value?.diamonds)} 钻石</span>`;
   const portrait=()=>root.FocusMysteryArt?.portrait()||'';
   const gift=(index,opened)=>root.FocusMysteryArt?.gift(index,opened)||'';
   const duration=value=>`${num(value)} 分钟`;
@@ -121,7 +123,7 @@
       if(!receipt.alreadyClaimed)bridge.playSound?.(receipt.gifts?.length?'victory':'delivery',{key:`mystery:${receipt.requestId}`});
       $('mystery-dialog-title').textContent=receipt.alreadyClaimed?'这份余辉已收好':'每一束余辉，都有回响。';
       $('mystery-dialog-art').innerHTML='';$('mystery-dialog-body').innerHTML=receiptMarkup();
-      $('mystery-confirm').textContent='收下这份回响';bridge.toast?.('拾星收下了这份努力',`+${reward(receipt)}`);
+      $('mystery-confirm').textContent='收下这份回响';bridge.toast?.('拾星收下了这份努力',`+${rewardText(receipt)}`);
     }catch(error){$('mystery-dialog-error').textContent=error.message;$('mystery-dialog-error').hidden=false;$('mystery-confirm').textContent='重试确认交付';}
     finally{busy=false;$('mystery-confirm').disabled=false;}
     // A refresh failure cannot revoke an acknowledged delivery or repeat its audio.

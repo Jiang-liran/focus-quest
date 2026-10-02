@@ -35,7 +35,9 @@
   }
   function gift(item,index){
     const art=islands[item.id],main=item.id==='main';
-    const label=`领取${art.name}礼盒：${item.reward.coins}金币和${item.reward.diamonds}钻石，另有1张${main?'钻石':'金币'}抽奖券`;
+    const tickets=item.lotteryTickets||{coinTickets:1,diamondTickets:main?1:0};
+    const ticketLabel=[['coinTickets','金币'],['diamondTickets','钻石']].filter(([key])=>Number.isInteger(tickets[key])&&tickets[key]>0).map(([key,name])=>`${tickets[key]}张${name}抽奖券`).join('和');
+    const label=`领取${art.name}礼盒：${item.reward.coins}金币和${item.reward.diamonds}钻石${ticketLabel?`，另有${ticketLabel}`:''}`;
     return `<g class="island-gift${main?' island-gift-main':''}" data-island-gift="${item.id}" data-skin-block="true" role="button" tabindex="0" aria-label="${esc(label)}" aria-disabled="${Boolean(busy)}" ${busy?.id===item.id?'aria-busy="true"':''} style="--gift-color:${art.color};--gift-light:${art.light};--gift-shade:${art.shade};--gift-delay:-${index*.65}s" transform="translate(${art.x} ${art.y})">
       <title>${esc(label)} · 每日可领取一次</title>
       <ellipse class="island-gift-shadow" cy="47" rx="24" ry="7" fill="${art.color}" opacity=".17"/>

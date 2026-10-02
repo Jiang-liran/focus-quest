@@ -18,10 +18,11 @@
   const n=value=>Number(value||0).toLocaleString('zh-CN',{maximumFractionDigits:1});
   const clock=value=>new Date(value).toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false});
   const shortDay=value=>new Date(value+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
-  const money=(coins,diamonds)=>`<span class="q-money"><span class="coin-mark">●</span> ${n(coins)} <small>金币</small><span class="diamond-mark">◆</span> ${n(diamonds)} <small>钻石</small></span>`;
+  const currencyIcon=(kind,mark=false)=>window.FocusCurrencyArt?.icon?.(kind,{className:mark?`${kind}-mark`:''})||(mark?`<span class="${kind}-mark">${kind==='coin'?'●':'◆'}</span>`:kind==='coin'?'●':'◆');
+  const money=(coins,diamonds)=>`<span class="q-money">${currencyIcon('coin',true)} ${n(coins)} <small>金币</small>${currencyIcon('diamond',true)} ${n(diamonds)} <small>钻石</small></span>`;
   const currency=item=>item.currency||(item.diamonds?'diamonds':item.coins?'coins':'free');
   const possession=item=>item.equipped?'已装备':currency(item)==='free'?'初始收藏':item.lotteryOnly?'已收藏':'已购买';
-  const price=item=>item.owned&&(item.equipped||currency(item)!=='free')?`<span class="shop-possession ${item.equipped?'equipped':'purchased'}"><i aria-hidden="true">${item.equipped?'✦':'✓'}</i><b>${possession(item)}</b><small>${currency(item)==='free'?'初始收藏':'永久拥有'}</small></span>`:item.lotteryOnly?`<span class="shop-limited-price">✧ ${item.lotteryMachine==='diamond'?'钻石':'金币'}机限定 <small>只能通过抽奖获得</small></span>`:currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
+  const price=item=>item.owned&&(item.equipped||currency(item)!=='free')?`<span class="shop-possession ${item.equipped?'equipped':'purchased'}"><i aria-hidden="true">${item.equipped?'✦':'✓'}</i><b>${possession(item)}</b><small>${currency(item)==='free'?'初始收藏':'永久拥有'}</small></span>`:item.lotteryOnly?`<span class="shop-limited-price">✧ ${item.lotteryMachine==='diamond'?'钻石':'金币'}机限定 <small>只能通过抽奖获得</small></span>`:currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}">${currencyIcon(currency(item)==='coins'?'coin':'diamond',true)} ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
   const avatar=(role,outfit)=>window.QuestArt?.avatar(role,outfit)||'';
   const mentorPeriod=q=>q.recommended?.period||q.period;
   const roundName=period=>period==='afternoon'?'午后首轮':'晨光首轮';
@@ -38,6 +39,13 @@
     const rounds=data?.lottery?.roundTickets;
     if(!Number.isInteger(rounds?.totalRounds)||rounds.totalRounds<0||!Number.isInteger(rounds.roundsToNextDiamond)||rounds.roundsToNextDiamond<1||rounds.roundsToNextDiamond>3)return '';
     return `普通委托累计交付 ${n(rounds.totalRounds)} 轮，再交付 ${n(rounds.roundsToNextDiamond)} 轮可得 1 张钻石抽奖券。`;
+  }
+  function renderRoundProgress(){
+    const host=$('quest-round-progress');if(!host)return;
+    const rounds=data?.lottery?.roundTickets,summary=roundTicketSummary();
+    if(!summary){host.hidden=true;return;}host.hidden=false;
+    const completed=3-rounds.roundsToNextDiamond;
+    replace('quest-round-progress',`<div class="q-round-copy"><span>完整委托 · 跨日累计</span><strong>再交付 <b>${n(rounds.roundsToNextDiamond)}</b> 轮，收下 1 张钻石抽奖券</strong><p>每完成 1 轮另赠 1 张金币抽奖券 · 四科合计每 3 轮再赠钻石券</p></div><div class="q-round-status"><span class="q-round-steps" role="img" aria-label="本组三轮委托已完成 ${completed} 轮">${[0,1,2].map(index=>`<i class="${index<completed?'is-complete':''}" aria-hidden="true">${index<completed?'✓':index===2?currencyIcon('diamond'):index+1}</i>`).join('')}</span><small>累计已交付 ${n(rounds.totalRounds)} 轮 · 轮次与零头跨日保留</small></div>`);
   }
   function roundTicketHint(q){
     if(!q.roundTickets)return '';
@@ -126,6 +134,7 @@
       $(prefix+'-coins').textContent=n(data.wallet.coins);$(prefix+'-diamonds').textContent=n(data.wallet.diamonds);
     }
     const continuous=data.quests.some(q=>q.continuous);
+    renderRoundProgress();
     $('quest-today-label').textContent=shortDay(data.day)+(continuous?' · 全天自由委托':' · 今日委托');
     const ready=data.quests.filter(q=>q.status==='ready').length,active=data.quests.filter(q=>q.status==='active').length,available=data.quests.filter(q=>q.status==='available').length;
     $('quest-invitation-text').textContent=ready?`${ready} 项委托已达标，记得在期限内交付领奖。`:active?`${active} 项委托进行中，额外投入也会计入奖励。`:available?`${available} 项委托可以接取，去和营地伙伴聊聊。`:'今日委托已收起，明天再来开启新的旅程。';
@@ -233,13 +242,13 @@
     const amount=exchangeAmount(),rate=data.exchange?.coinsPerDiamond||75;
     if(!amount||amount*rate>data.wallet.coins)return;
     intent={action:'exchange',diamonds:amount,requestId:window.crypto.randomUUID()};
-    dialog('把积累，凝成星光','THE STAR EXCHANGE','<div class="exchange-art"><span>●</span><i>→</i><b>◆</b></div>',`<p>将 <strong>${n(amount*rate)} 金币</strong>兑换为 <strong>${n(amount)} 颗钻石</strong>。</p><div class="q-action-reward">${price({currency:'diamonds',diamonds:amount})}<small>兑换所得，立即入袋</small></div><p>兑换比例：${n(rate)} 金币 = 1 钻石。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins-amount*rate)} 金币 · ${n(data.wallet.diamonds+amount)} 钻石</p>`,'确认兑换','再攒一攒');
+    dialog('把积累，凝成星光','THE STAR EXCHANGE',`<div class="exchange-art"><span>${currencyIcon('coin')}</span><i>→</i><b>${currencyIcon('diamond')}</b></div>`,`<p>将 <strong>${n(amount*rate)} 金币</strong>兑换为 <strong>${n(amount)} 颗钻石</strong>。</p><div class="q-action-reward">${price({currency:'diamonds',diamonds:amount})}<small>兑换所得，立即入袋</small></div><p>兑换比例：${n(rate)} 金币 = 1 钻石。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins-amount*rate)} 金币 · ${n(data.wallet.diamonds+amount)} 钻石</p>`,'确认兑换','再攒一攒');
   }
   function openReverseExchange(){
     if(busy||!data||!data.exchange?.reverse||data.exchange.reverse.remaining<=0||data.wallet.diamonds<1)return;
     const rate=data.exchange.coinsPerDiamond||75,remaining=data.exchange.reverse.remaining;
     intent={action:'reverseExchange',requestId:window.crypto.randomUUID()};
-    dialog('让星光，化作旅途盘缠','THE STAR EXCHANGE','<div class="exchange-art"><b>◆</b><i>→</i><span>●</span></div>',`<p>将 <strong>1 颗钻石</strong>兑换为 <strong>${n(rate)} 金币</strong>。</p><div class="q-action-reward">${price({currency:'coins',coins:rate})}<small>兑换所得，立即入袋</small></div><p>每天最多兑换 5 次，每次 1 钻石。确认后今天还可兑换 ${n(remaining-1)} 次。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins+rate)} 金币 · ${n(data.wallet.diamonds-1)} 钻石</p>`,'确认兑换','先保留星光');
+    dialog('让星光，化作旅途盘缠','THE STAR EXCHANGE',`<div class="exchange-art"><b>${currencyIcon('diamond')}</b><i>→</i><span>${currencyIcon('coin')}</span></div>`,`<p>将 <strong>1 颗钻石</strong>兑换为 <strong>${n(rate)} 金币</strong>。</p><div class="q-action-reward">${price({currency:'coins',coins:rate})}<small>兑换所得，立即入袋</small></div><p>每天最多兑换 5 次，每次 1 钻石。确认后今天还可兑换 ${n(remaining-1)} 次。</p><p class="q-fineprint">兑换后余额：${n(data.wallet.coins+rate)} 金币 · ${n(data.wallet.diamonds-1)} 钻石</p>`,'确认兑换','先保留星光');
   }
   function dialog(title,eyebrow,art,body,label,cancel='再想一想'){
     $('quest-action-dialog').classList.toggle('campfire-item-dialog',art.includes('campfire-full-preview'));
