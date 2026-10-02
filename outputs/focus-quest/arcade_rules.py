@@ -1,11 +1,28 @@
 """Small, server-authoritative games. No study or wallet state lives here."""
 from copy import deepcopy
 import random
+import importlib.util
+from pathlib import Path
+
+
+def _load_rules(name):
+    spec = importlib.util.spec_from_file_location(name, Path(__file__).with_name(name + ".py"))
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+voyage_rules = _load_rules("voyage_rules")
+dice_rules = _load_rules("dice_rules")
 
 RULES = {"ticketMinutes": 30, "maxTickets": 8, "roundSeconds": 240,
          "dailyCoins": 60, "dailyDiamonds": 3, "winCoins": 12,
          "winDiamonds": 1, "lossCoins": 4}
 VENUES = [
+    {"id": "star-voyage", "name": "星船远征", "type": "voyage", "family": "adventure", "subtitle": "卡牌航行",
+     "description": "选择船长，沿分岔航线打出攻击与护盾，收集遗物，穿越两场遭遇，挑战最终首领。"},
+    {"id": "rune-table", "name": "符文骰局", "type": "dice", "family": "adventure", "subtitle": "骰子策略",
+     "description": "分配骰子、组合符文，预判对手意图，用有限的重掷机会完成一场短途冒险。"},
     {"id": "mist-camp", "name": "晨雾营地", "type": "trail", "subtitle": "雾野寻宝",
      "description": "在迷雾中找回三枚星石，带着它们抵达出口。留心岔路，也留一点体力返航。"},
     {"id": "glow-shore", "name": "萤石浅滩", "type": "garden", "subtitle": "潮汐造景",
@@ -177,11 +194,20 @@ def _garden(rng, venue):
 
 def create(venue, seed):
     _require(venue in CATALOG, "这处游乐地点不存在")
+    kind = CATALOG[venue]["type"]
+    if kind == "voyage":
+        return voyage_rules.create(seed)
+    if kind == "dice":
+        return dice_rules.create(seed)
     rng = random.Random(seed)
     return {"trail": _trail, "mirrors": _mirrors, "garden": _garden}[CATALOG[venue]["type"]](rng, venue)
 
 
 def public_state(kind, state):
+    if kind == "voyage":
+        return voyage_rules.public_state(state)
+    if kind == "dice":
+        return dice_rules.public_state(state)
     state = deepcopy(state)
     if kind == "trail":
         board, seen = state.pop("board"), state.pop("seen")
@@ -192,6 +218,10 @@ def public_state(kind, state):
 
 def move(kind, original, steps, max_steps, action):
     """Return (new state, new step count, terminal result or None)."""
+    if kind == "voyage":
+        return voyage_rules.move(original, steps, max_steps, action)
+    if kind == "dice":
+        return dice_rules.move(original, steps, max_steps, action)
     _require(isinstance(action, dict))
     state, result = deepcopy(original), None
     if kind == "trail":

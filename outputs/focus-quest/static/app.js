@@ -11,7 +11,7 @@ const subjectsMeta = {
 const stageNames = ['整装出发','突破外围','深入核心','决战在即','今日通关'];
 const stageTitles = ['每一分钟，都算数。','第一道迷雾，已散去。','路程过半，稳步向前。','光就在前方，继续前行。','今日远征，圆满通关。'];
 const stageMessages = ['今天的远征，从一小段专注开始。','第一座路标已点亮，脚步正在变成力量。','你的投入，正在慢慢变成看得见的积累。','已经走过四分之三，按自己的节奏完成。','今天已经做得足够好了，安心收下这份成就。'];
-const viewNames = {today:'今日远征',quests:'委托广场',review:'学习复盘',shop:'星织商店',history:'专注档案',achievements:'群岛游乐记'};
+const viewNames = {today:'今日远征',quests:'委托广场',review:'学习复盘',shop:'星织商店',history:'专注档案',achievements:'星海游乐场'};
 const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set();
@@ -230,8 +230,8 @@ function updateViewTitle() {
     $('greeting-eyebrow').textContent='EARNED THROUGH FOCUS';
   }else{
     $('page-title').textContent='去远方，玩一小会儿。';
-    $('page-subtitle').textContent='探路、追光、造一座花园。此刻，只管享受游戏。';
-    $('greeting-eyebrow').textContent='THE ISLES AT PLAY';
+    $('page-subtitle').textContent='驾船远征、掷骰对决，或在小岛间轻松玩一局。';
+    $('greeting-eyebrow').textContent='THE STARLIGHT ARCADE';
   }
 }
 

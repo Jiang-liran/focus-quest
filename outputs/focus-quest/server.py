@@ -2583,8 +2583,13 @@ class FocusStore:
         active = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchone()
         rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status!='active' ORDER BY ended_at DESC,rowid DESC LIMIT 14").fetchall()
         history = [self._serialize_arcade(row) for row in rows]
-        venue_stats = {}
-        for row in self.db.execute("SELECT venue,status,result FROM arcade_sessions"):
+        signature = tuple(self.db.execute("SELECT COUNT(*),COALESCE(SUM(version),0) FROM arcade_sessions").fetchone())
+        cached = getattr(self, "_arcade_collection_cache", None)
+        collect = cached is None or cached[0] != signature
+        venue_stats, cards, relics, captains = {}, {}, {}, {}
+        for row in self.db.execute("""SELECT venue,status,result,game_type,
+                CASE WHEN ? AND game_type IN ('voyage','dice') THEN game_state ELSE '{}' END AS game_state
+                FROM arcade_sessions""", (collect,)):
             stats = venue_stats.setdefault(row["venue"], {"plays": 0, "wins": 0, "bestScore": 0, "bestMedal": 0})
             stats["plays"] += 1
             if row["status"] in ("won", "lost"):
@@ -2592,12 +2597,36 @@ class FocusStore:
                 stats["wins"] += row["status"] == "won"
                 stats["bestScore"] = max(stats["bestScore"], result["score"])
                 stats["bestMedal"] = max(stats["bestMedal"], result["medal"])
+            if collect and row["game_type"] in ("voyage", "dice"):
+                # Only already acquired, public items enter the permanent book;
+                # never serialize private decks or pending reward choices here.
+                public = arcade_rules.public_state(row["game_type"], json.loads(row["game_state"]))
+                for kind, items, target in (("card", public.get("deckSummary", []), cards),
+                                            ("relic", public.get("relics", []), relics)):
+                    for item in items:
+                        key = row["game_type"] + ":" + item["id"]
+                        target.setdefault(key, {"id": key, "kind": kind, "game": row["game_type"],
+                            "name": item["name"], "description": item["description"]})
+                captain = public.get("captain")
+                captain_id = captain.get("id") if isinstance(captain, dict) else captain
+                if isinstance(captain_id, str) and captain_id:
+                    info = next((c for c in public.get("captains", []) if c["id"] == captain_id), {})
+                    record = captains.setdefault(captain_id, {"id": captain_id, "name": info.get("name", captain_id), "wins": 0})
+                    record["wins"] += row["status"] == "won"
+        if collect:
+            collection = {"cards": sorted(cards.values(), key=lambda c: c["id"]),
+                          "relics": sorted(relics.values(), key=lambda c: c["id"]),
+                          "captains": sorted(captains.values(), key=lambda c: c["id"])}
+            self._arcade_collection_cache = (signature, collection)
+        else:
+            collection = cached[1]
         venues = [{**v, **venue_stats.get(v["id"], {"plays": 0, "wins": 0, "bestScore": 0, "bestMedal": 0})}
                   for v in arcade_rules.VENUES]
         return {"today": current.date().isoformat(), "now": current.isoformat(timespec="microseconds"),
                 "rules": dict(arcade_rules.RULES), **self._arcade_budget(current),
                 "active": self._serialize_arcade(active) if active else None,
-                "lastResult": history[0] if history else None, "history": history, "venues": venues}
+                "lastResult": history[0] if history else None, "history": history, "venues": venues,
+                "collection": collection}
 
     def arcade_state(self, now=None):
         current = quest_clock(now)
