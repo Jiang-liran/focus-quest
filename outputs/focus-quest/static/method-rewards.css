@@ -38,6 +38,12 @@
 .method-completion-meter{height:4px;max-width:400px;background:var(--method-line);border-radius:3px;overflow:hidden;margin-top:11px}.method-completion-meter>i{display:block;height:100%;background:var(--method-accent);border-radius:inherit}
 .method-completion-reward{text-align:right;display:grid;justify-items:end;gap:9px}.method-completion-reward>strong{font-size:clamp(14px,.88vw,20px);font-weight:500;line-height:1.7}.method-completion-reward>strong>span{color:var(--method-accent)}.method-completion-reward small{font-size:clamp(10px,.64vw,14px);color:var(--method-muted)}.method-completion-reward>button{font-size:clamp(12px,.74vw,17px)}
 .method-completion.is-ready{border-color:color-mix(in srgb,var(--method-accent) 60%,var(--method-line));background:linear-gradient(115deg,color-mix(in srgb,var(--method-accent) 9%,transparent),transparent 70%),var(--method-panel)}.method-completion.is-ready .method-completion-art{opacity:1}.method-completion.is-ready button{color:var(--method-ink);border-color:var(--method-accent);background:var(--ui-soft,#a3b9ba12)}.method-completion.is-claimed .method-completion-art{opacity:.4}
+.method-completion-art{position:relative;isolation:isolate}
+.method-completion.is-ready .method-completion-art:before{content:"";position:absolute;inset:-12px;z-index:-1;border-radius:50%;background:radial-gradient(ellipse,#b88aff38,transparent 69%),radial-gradient(ellipse at 30% 65%,#68f2cf35,transparent 62%);pointer-events:none}
+.method-completion-gift{stroke:none;filter:drop-shadow(0 2px 5px #9978ec40);animation:method-gift-float 3.6s ease-in-out infinite;transform-origin:50% 80%}
+.method-completion.is-ready .method-completion-reward>button{background:linear-gradient(115deg,color-mix(in srgb,#75e3c3 16%,var(--method-panel)),color-mix(in srgb,#b894ff 18%,var(--method-panel)));border-color:color-mix(in srgb,#c0a1ff 75%,var(--method-line));color:var(--method-ink)}
+@keyframes method-gift-float{0%,100%{transform:translateY(0) rotate(-2deg)}50%{transform:translateY(-4px) rotate(2deg)}}
+.no-motion .method-completion-art:before,html.focus-runtime-hidden .method-completion-art:before,[hidden] .method-completion-art:before{animation:none!important;transition:none!important}
 /* The compact window still gets readable copy; a large display grows the type, not only the cards. */
 .method-eyebrow{font-size:clamp(10px,.6vw,13px)}.method-status,.method-intro-actions button{font-size:clamp(11px,.7vw,15px)}
 .method-mentor-name{font-size:clamp(12px,.78vw,17px)}.method-dialogue{font-size:clamp(13px,.82vw,19px)}
