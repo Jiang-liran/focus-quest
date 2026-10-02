@@ -14,6 +14,7 @@
 :root .pb-enhanced[data-pb-skin=bar-mint],:root .pb-enhanced[data-pb-skin=bar-fox]{background:#22392f!important;box-shadow:inset 0 0 0 1px #83b68018}
 :root .pb-enhanced[data-pb-skin=bar-tide],:root .pb-enhanced[data-pb-skin=bar-koi]{background:#173640!important;box-shadow:inset 0 0 0 1px #75c8cc17}
 :root .pb-enhanced[data-pb-skin=bar-prism]{background:#111c2f!important;box-shadow:inset 0 0 0 1px #7d9cf329}
+:root .pb-enhanced[data-pb-skin=bar-prism][data-pb-empty=false]>i{box-shadow:0 0 9px #8c9eff30!important}
 :root .pb-enhanced[data-pb-skin=bar-whale],:root .pb-enhanced[data-pb-skin=bar-aurora]{background:#202b48!important;box-shadow:inset 0 0 0 1px #b28bef1c}
 :root .pb-enhanced[data-pb-skin=bar-comet]{background:#352c40!important}
 :root .pb-enhanced[data-pb-skin=bar-dragon]{background:#243e46!important}
