@@ -11,10 +11,30 @@
     {id:'archive',name:'星页书库',x:600,y:178,threshold:.5,rx:138,ry:144,labelY:83},
     {id:'workshop',name:'流光工坊',x:245,y:326,threshold:.25,rx:124,ry:144,labelY:81},
     {id:'observatory',name:'天穹观测台',x:950,y:330,threshold:.75,rx:113,ry:137,labelY:78},
-    {id:'core',name:'圣物广场',x:595,y:425,threshold:0,rx:207,ry:143,labelY:123},
+    {id:'core',name:'圣物广场',x:595,y:425,threshold:0,rx:207,ry:143,labelY:130},
     {id:'dock',name:'启程码头',x:230,y:565,threshold:0,rx:147,ry:108,labelY:81},
     {id:'gate',name:'远征之门',x:925,y:565,threshold:1,rx:118,ry:144,labelY:87},
   ];
+  const coreSubjects = [
+    {id:'math',name:'数学',glyph:'∑',color:'#8dd9c0',x:-120,y:-21},
+    {id:'cs',name:'408',glyph:'⌘',color:'#b5a5ef',x:120,y:-21},
+    {id:'politics',name:'政治',glyph:'★',color:'#e7bd83',x:-106,y:43},
+    {id:'english',name:'英语',glyph:'Aa',color:'#8dc8df',x:106,y:43},
+  ];
+  function subjectEnergy(model) {
+    const rows=new Map();
+    for(const row of Array.isArray(model.subjects)?model.subjects:[])if(row&&typeof row==='object'&&coreSubjects.some(s=>s.id===row.id)&&!rows.has(row.id))rows.set(row.id,row);
+    return coreSubjects.map(definition=>{
+      const row=rows.get(definition.id)||{};
+      let ratio=finite(row.percent)?row.percent/100:finite(row.progress)?row.progress:0;
+      if(Object.prototype.hasOwnProperty.call(row,'target')) {
+        if(!finite(row.target)||row.target<=0)ratio=0;
+        else if(Object.prototype.hasOwnProperty.call(row,'minutes'))ratio=finite(row.minutes)&&row.minutes>=0?row.minutes/row.target:0;
+      }
+      ratio=Number.isFinite(ratio)?Math.max(0,ratio):0;
+      return {...definition,progress:clamp(ratio),complete:ratio>=1};
+    });
+  }
   const palettes = {
     default:{sky:'#141c31',haze:'#5d618f',top:'#666783',edge:'#a0a0bd',rock:'#303750',wall:'#c2bdd6',shade:'#8988a6',roof:'#8f81b7',roofShade:'#625e87',trim:'#ded0b3',leaf:'#8baaaa',water:'#729bad',light:'#eadac0'},
     forest:{sky:'#152830',haze:'#537d78',top:'#607c74',edge:'#9dbca0',rock:'#2c454b',wall:'#c3d3bc',shade:'#809a8b',roof:'#7caa93',roofShade:'#4f7e75',trim:'#dfd3a9',leaf:'#93bb90',water:'#7eb8ab',light:'#e4dfb6'},
@@ -39,7 +59,7 @@
     for(const [slot,names] of Object.entries(variants))equipped[slot]=names.some(name=>equipment[slot]===`${slot}-${name}`)?equipment[slot]:`${slot}-default`;
     const ids=places.map(place=>place.id);
     const awakening=options.awakening&&['workshop','archive','observatory','gate'].includes(options.awakening.id)&&finite(options.awakening.token)?{id:options.awakening.id,token:Math.max(0,Math.floor(options.awakening.token))}:null;
-    return {progress,percent,route,stage:route.stage,moving:model.moving===true,equipped,interactive:options.interactive!==false,selected:ids.includes(options.selected)?options.selected:null,
+    return {progress,percent,route,subjects:subjectEnergy(model),stage:route.stage,moving:model.moving===true,equipped,interactive:options.interactive!==false,selected:ids.includes(options.selected)?options.selected:null,
       pulse:options.pulse===true?'core':ids.includes(options.pulse)?options.pulse:null,awakening,arriving:options.arriving===true,theme:equipped.theme.slice(6)};
   }
 
@@ -162,26 +182,71 @@
     return `<g class="citadel-route-actors" data-moving="${state.moving}">${state.equipped.companion==='companion-default'?'':`<g class="citadel-route-companion" transform="translate(${n(follower.position.x)} ${n(follower.position.y)})"><g class="citadel-route-facing" transform="scale(${follower.direction} 1)"><g class="citadel-companion-walk">${previewArt(state.equipped.companion,0,2,.44,'companion')}</g></g></g>`}${player(state.equipped,p,state)}</g>`;
   }
 
+  function subjectConduits(state,p) {
+    return `<g class="citadel-subject-conduits" aria-hidden="true">${state.subjects.map(subject=>{
+      const path=`M${subject.x} ${subject.y-10}Q${n(subject.x*.52)} ${subject.y-17} 0 -28`;
+      return `<g data-core-conduit="${subject.id}" style="--subject-energy:${n(subject.progress)}"><path d="${path}" fill="none" stroke="${p.rock}" stroke-width="6"/><path class="citadel-subject-flow" d="${path}" pathLength="100" fill="none" stroke="${subject.color}" stroke-width="1.6" stroke-dasharray="2 12" opacity="${n(.09+subject.progress*.7)}"/></g>`;
+    }).join('')}</g>`;
+  }
+
+  function subjectShrines(state,p,back) {
+    return state.subjects.filter((_,i)=>back?i<2:i>=2).map(subject=>`<g class="citadel-core-subject" data-core-subject="${subject.id}" data-subject-progress="${n(subject.progress)}" data-complete="${subject.complete}" transform="translate(${subject.x} ${subject.y})" style="--subject-color:${subject.color};--subject-energy:${n(subject.progress)}">
+      <title>${subject.name}星印 · ${subject.complete?'已点亮':'随本科专注充能'}</title>
+      <ellipse cy="6" rx="28" ry="10" fill="${p.rock}" opacity=".45"/>
+      <path d="M-24-1 0-12 24-1 0 11Z" fill="${p.trim}"/><path d="M-24-1v7L0 17V11m0 0 24-12v7L0 17" fill="${p.shade}"/>
+      <path d="M-12-5v-32L0-38l12 6v27L0 1Z" fill="${p.wall}"/><path d="M0-38v39l12-6v-27Z" fill="${p.shade}"/>
+      <path class="citadel-subject-stem" d="M-6-8v-15m12 15v-15" stroke="${subject.color}" stroke-width="2" opacity="${n(.13+subject.progress*.75)}"/>
+      <g transform="translate(0 -35)"><circle class="citadel-subject-aura" r="27" fill="${subject.color}" opacity="${n(.015+subject.progress*.1)}"/>
+      <path d="M0-23 20-12 20 12 0 23-20 12v-24Z" fill="${p.rock}" stroke="${p.edge}" stroke-width="1.5"/>
+      <circle r="16" fill="#172236" stroke="${p.shade}" stroke-width="2"/><circle class="citadel-subject-charge" r="16" pathLength="100" fill="none" stroke="${subject.color}" stroke-width="2.8" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-subject.progress))}" transform="rotate(-90)"/>
+      <text class="citadel-subject-glyph" y="5" text-anchor="middle" fill="${subject.color}" font-size="${subject.id==='english'?11:15}" opacity="${n(.38+subject.progress*.62)}">${subject.glyph}</text>
+      <g class="citadel-subject-crown" ${subject.complete?'':'display="none"'}>${star(0,-29,5,subject.color)}<path d="M-11-25-17-20m28-5 6 5" stroke="${subject.color}" stroke-width="1.5"/></g></g>
+    </g>`).join('');
+  }
+
+  function coreEngine(state,p) {
+    return `<g class="citadel-heart-engine" data-core-stage="${state.stage}" style="--heart-energy:${n(state.progress)}" transform="translate(0 78)">
+      <path d="M-92-23-60-10-52 12-20 36H20L52 12 60-10 92-23 56-18 27 5H-27L-56-18Z" fill="${p.roofShade}" stroke="${p.edge}" stroke-width="1"/>
+      <path d="M-91-19-61-6-51 17m142-36L61-6 51 17M-26 30H26" fill="none" stroke="${p.trim}" stroke-width="2" opacity=".7"/>
+      <path d="M-42-22 0-35 42-22 49 4 25 28H-25L-49 4Z" fill="${p.rock}" stroke="${p.trim}" stroke-width="2"/>
+      <ellipse cy="-3" rx="37" ry="27" fill="#111e30" stroke="${p.edge}" stroke-width="1.5"/>
+      <ellipse class="citadel-heart-aura" cy="-3" rx="31" ry="22" fill="${p.water}" opacity="${n(.025+state.progress*.14)}"/>
+      <ellipse class="citadel-heart-charge" cy="-3" rx="31" ry="22" pathLength="100" fill="none" stroke="${p.light}" stroke-width="2.6" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-state.progress))}"/>
+      <g transform="translate(0 -3)"><g class="citadel-heart-rotor" fill="none" stroke="${p.water}" stroke-width="1.2" opacity=".75"><path d="M-21 0 0-17 21 0 0 17Z"/><path d="M-27 0H27M0-21V21"/><circle r="12"/></g>
+      <path class="citadel-heart-gem" d="M0-14 10 0 0 14-10 0Z" fill="${p.light}" opacity="${n(.3+state.progress*.7)}"/><path d="M0-14v28L10 0Z" fill="${p.water}" opacity=".65"/></g>
+      <g class="citadel-heart-vents" stroke="${p.water}" stroke-width="2" opacity="${n(.08+state.progress*.65)}"><path d="M-52-16-72-25M52-16 72-25M-21 33-15 44M21 33 15 44"/></g>
+    </g>`;
+  }
+
   function core(p,power,theme,equipment,state) {
-    return `<path class="citadel-canal-bed" d="M-166-3q27 28 69 15t69 22 71-6 67-6 44-21" fill="none" stroke="#30475f" stroke-width="17"/>
-      <path class="citadel-canal" d="M-166-3q27 28 69 15t69 22 71-6 67-6 44-21" pathLength="100" fill="none" stroke="${p.water}" stroke-width="10" opacity=".75"/><path class="citadel-water-current" d="M-166-3q27 28 69 15t69 22 71-6 67-6 44-21" pathLength="100" fill="none" stroke="${p.light}" stroke-width="1.3" stroke-dasharray="2 13" opacity=".52"/>
-      <path d="m-26 23 38-11 36 12-40 14Z" fill="${p.trim}"/><path d="M-25 24 8 36 47 25M-25 18 8 30 47 19" fill="none" stroke="${p.edge}" stroke-width="2"/>
-      <g class="citadel-plaza-rings"><ellipse cy="-16" rx="83" ry="38" fill="${p.roofShade}"/><ellipse cy="-23" rx="81" ry="37" fill="${p.edge}"/><ellipse cy="-24" rx="69" ry="30" fill="${p.top}"/><ellipse cy="-25" rx="58" ry="23" fill="none" stroke="${p.trim}" stroke-width="1.5"/><path d="M-59-26H59M0-48V-2" stroke="${p.trim}" stroke-width="1" opacity=".4"/><ellipse cy="-24" rx="74" ry="33" class="citadel-plaza-charge" pathLength="100" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-power))}" opacity="${n(.2+power*.6)}"/></g>
-      <g class="citadel-relic-power" style="--citadel-relic-glow:${n(.08+power*.62)};--citadel-relic-scale:${n(.88+power*.12)}"><ellipse cy="-34" rx="55" ry="23" fill="${p.light}" opacity="${n(.025+power*.07)}"/>${previewArt(equipment.relic,0,-26,1.05,'relic')}</g>
-      <g class="citadel-garden"><path d="m-155-25 50-17 29 12-47 20Z" fill="${p.roofShade}"/><path d="m-152-29 47-17 29 12-47 20Z" fill="${p.leaf}" opacity=".6"/>${tree(-135,-28,.67,p,theme)}${tree(-97,-31,.55,p,theme)}<path d="m114-32 40 4 23 21-35 8-39-18Z" fill="${p.leaf}" opacity=".35"/>${tree(137,-32,.88,p,theme)}${tree(169,-8,.47,p,theme)}</g>
-      <g transform="translate(-137 24)"><path d="M-18-9 12-18 30-11 1 0Z" fill="${p.trim}"/><path d="M-18-9v9L1 9V0m0 0 29-11v9L1 9" fill="${p.shade}"/><path d="M-12 3v12m35-17v12" stroke="${p.trim}" stroke-width="3"/></g>
-      <g transform="translate(90 -31)"><path d="M-16 0h34v-31h-34Z" fill="${p.wall}"/><path d="m-24-32 26-20 24 20Z" fill="${p.roof}"/><path d="M-24-32h50v7h-50Z" fill="${p.trim}"/><path d="M-9-23H9v17H-9Z" fill="#40526a"/><path d="M-6-18H7m-13 6H4" stroke="${p.light}" stroke-width="1.2"/></g>
-      ${lamp(-158,32,power,p)}${lamp(157,28,power,p)}${lamp(-71,-27,power,p)}${coreEnergy(state,p)}`;
+    return `<g class="citadel-sanctum">
+      <path class="citadel-canal-bed" d="M-171-2q25 38 74 28t97 28 97-28 74-28" fill="none" stroke="${p.rock}" stroke-width="16"/>
+      <path class="citadel-canal" d="M-171-2q25 38 74 28t97 28 97-28 74-28" pathLength="100" fill="none" stroke="${p.water}" stroke-width="9" opacity=".6"/><path class="citadel-water-current" d="M-171-2q25 38 74 28t97 28 97-28 74-28" pathLength="100" fill="none" stroke="${p.light}" stroke-width="1.2" stroke-dasharray="2 13" opacity=".6"/>
+      <g class="citadel-garden">${tree(-169,-9,.72,p,theme)}${tree(-148,-34,.48,p,theme)}${tree(166,-7,.7,p,theme)}${tree(145,-35,.52,p,theme)}<path d="M-184 8-148 23m332-15-36 15" stroke="${p.leaf}" stroke-width="7" stroke-linecap="round" opacity=".45"/></g>
+      <g class="citadel-sanctum-arch"><path d="M-92-28C-92-100-51-132 0-132S92-100 92-28" fill="none" stroke="${p.rock}" stroke-width="13"/><path d="M-92-28C-92-100-51-132 0-132S92-100 92-28" fill="none" stroke="${p.edge}" stroke-width="7"/>
+      <path class="citadel-arch-charge" d="M-92-28C-92-100-51-132 0-132S92-100 92-28" pathLength="100" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-state.progress))}"/>
+      ${[-1,1].map(side=>`<path d="M${side*98}-28h${-side*13}v-31h${side*13}Z" fill="${p.wall}"/><path d="M${side*102}-30h${-side*20}v7h${side*20}Z" fill="${p.trim}"/>`).join('')}
+      <path d="M0-143 12-132 0-121-12-132Z" fill="${p.trim}"/><path d="M0-139 7-132 0-125-7-132Z" fill="${p.water}"/></g>
+      ${coreEnergy(state,p)}${subjectConduits(state,p)}${subjectShrines(state,p,true)}
+      <g class="citadel-plaza-rings"><ellipse cy="-6" rx="85" ry="39" fill="${p.roofShade}"/><path d="M-84-18v11c0 23 168 23 168 0v-11" fill="${p.shade}"/>
+      <ellipse cy="-18" rx="85" ry="37" fill="${p.edge}"/><ellipse cy="-21" rx="73" ry="31" fill="${p.top}"/><path d="M-67-32v12c0 22 134 22 134 0v-12" fill="${p.roofShade}"/><ellipse cy="-32" rx="67" ry="28" fill="${p.trim}"/><ellipse cy="-33" rx="59" ry="23" fill="${p.top}"/>
+      <path d="M-34-8 0 5 34-8v7L0 12-34-1Zm-5 14L0 21 39 6v7L0 28-39 13Zm-5 15L0 38 44 21v7L0 46-44 28Z" fill="${p.trim}"/><path d="M-34-1 0 12 34-1M-39 13 0 28 39 13M-44 28 0 46 44 28" fill="none" stroke="${p.shade}" stroke-width="3"/>
+      <ellipse cy="-33" rx="55" ry="21" fill="none" stroke="${p.trim}" stroke-width="1" stroke-dasharray="2 6"/>
+      <ellipse cy="-21" rx="77" ry="32" class="citadel-plaza-charge" pathLength="100" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-power))}" opacity="${n(.2+power*.6)}"/></g>
+      <g class="citadel-relic-power" style="--citadel-relic-glow:${n(.08+power*.62)};--citadel-relic-scale:${n(.88+power*.12)}"><ellipse cy="-39" rx="51" ry="18" fill="${p.light}" opacity="${n(.025+power*.07)}"/>${previewArt(equipment.relic,0,-33,1.33,'relic')}</g>
+      ${subjectShrines(state,p,false)}${lamp(-166,26,power,p)}${lamp(164,26,power,p)}
+      ${coreEngine(state,p)}
+    </g>`;
   }
 
   function coreEnergy(state,p) {
     const colors=[p.water,p.edge,p.roof,p.trim];
-    const ring=colors.map((color,index)=>{const path=arc(0,-20,146,68,-90+index*90+4,-90+(index+1)*90-4);return `<path d="${path}" fill="none" stroke="#17283e" stroke-width="10"/><path class="citadel-charge-arc" data-energy-index="${index}" d="${path}" pathLength="100" fill="none" stroke="${color}" stroke-width="7" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="${n((1-clamp(state.progress*4-index))*100)}"/>`;}).join('');
+    const ring=colors.map((color,index)=>{const path=arc(0,-20,146,68,-90+index*90+4,-90+(index+1)*90-4);return `<path d="${path}" fill="none" stroke="#17283e" stroke-width="8"/><path class="citadel-charge-arc" data-energy-index="${index}" d="${path}" pathLength="100" fill="none" stroke="${color}" stroke-width="5" stroke-linecap="round" stroke-dasharray="100 100" stroke-dashoffset="${n((1-clamp(state.progress*4-index))*100)}"/>`;}).join('');
     return `<g class="citadel-core-energy">${ring}
-      <g class="citadel-core-tier" data-core-tier="1" ${state.stage<1?'display="none"':''}><path d="M-120-7v-26l8-5 8 5v26m208 0v-26l8-5 8 5v26" fill="${p.trim}"/><path d="M-116-13v-17m224 17v-17" stroke="${p.water}" stroke-width="3"/></g>
-      <g class="citadel-core-tier citadel-core-orbit" data-core-tier="2" ${state.stage<2?'display="none"':''}><ellipse cy="-94" rx="67" ry="20" fill="none" stroke="${p.trim}" stroke-width="1.8" transform="rotate(-12 0 -94)"/><circle cx="-61" cy="-86" r="4" fill="${p.light}"/>${star(54,-109,4,p.light)}</g>
-      <g class="citadel-core-tier" data-core-tier="3" ${state.stage<3?'display="none"':''}><path d="M-20-32-31-170H31L20-32Z" fill="${p.water}" opacity=".08"/><path d="M-7-35-11-157H11L7-35Z" fill="${p.light}" opacity=".13"/><path d="M0-57V-165" stroke="${p.light}" stroke-width="1" opacity=".5"/></g>
-      <g class="citadel-core-tier" data-core-tier="4" ${state.stage<4?'display="none"':''}>${star(0,-171,13,p.light)}<circle cy="-171" r="25" fill="none" stroke="${p.trim}" stroke-width="1.3"/><ellipse cy="-17" rx="160" ry="76" fill="none" stroke="${p.trim}" stroke-width="1" stroke-dasharray="2 9" opacity=".65"/></g>
+      <g class="citadel-core-tier" data-core-tier="1" ${state.stage<1?'display="none"':''}><path d="M-81-4v-43m162 43v-43" stroke="${p.trim}" stroke-width="2"/>${[-81,81].map(x=>`<g transform="translate(${x} -48)"><g class="citadel-sanctum-satellite"><path d="M0-12 8 0 0 12-8 0Z" fill="${p.water}" stroke="${p.light}" stroke-width="1"/>${star(0,0,3,p.light)}</g></g>`).join('')}</g>
+      <g class="citadel-core-tier citadel-core-orbit" data-core-tier="2" ${state.stage<2?'display="none"':''}><ellipse cy="-80" rx="72" ry="22" fill="none" stroke="${p.trim}" stroke-width="1.7" transform="rotate(-15 0 -80)"/><ellipse class="citadel-sanctum-orbit-trace" cy="-80" rx="72" ry="22" pathLength="100" fill="none" stroke="${p.light}" stroke-width="3" stroke-dasharray="2 48" transform="rotate(-15 0 -80)"/></g>
+      <g class="citadel-core-tier" data-core-tier="3" ${state.stage<3?'display="none"':''}><path d="M-20-35-27-125H27L20-35Z" fill="${p.water}" opacity=".09"/><ellipse cy="-69" rx="63" ry="24" fill="none" stroke="${p.water}" stroke-width="1.4" transform="rotate(19 0 -69)"/><path class="citadel-sanctum-stardust" d="M-15-61v-5m30-18v-5M-7-102v-4M8-48v-4" stroke="${p.light}" stroke-width="2.5" stroke-linecap="round"/></g>
+      <g class="citadel-core-tier" data-core-tier="4" ${state.stage<4?'display="none"':''}><g transform="translate(0 18)"><path d="M-23-133-28-151-12-143 0-156 12-143 28-151 23-133Z" fill="${p.trim}"/>${star(0,-142,6,p.light)}</g><ellipse class="citadel-sanctum-corona" cy="-20" rx="161" ry="76" pathLength="100" fill="none" stroke="${p.trim}" stroke-width="1.4" stroke-dasharray="1 4" opacity=".7"/></g>
       </g>`;
   }
 
@@ -294,6 +359,28 @@
     all('.citadel-route-travelled').forEach(el=>attr(el,'stroke-dashoffset',n((1-clamp(state.progress*4-Number(el.getAttribute('data-route-index'))))*100)));
     all('.citadel-charge-arc').forEach(el=>attr(el,'stroke-dashoffset',n((1-clamp(state.progress*4-Number(el.getAttribute('data-energy-index'))))*100)));
     all('.citadel-core-tier').forEach(el=>attr(el,'display',state.stage>=Number(el.getAttribute('data-core-tier'))?'inline':'none'));
+    attr(svgElement.querySelector('.citadel-arch-charge'),'stroke-dashoffset',n(100*(1-state.progress)));
+    const engine=svgElement.querySelector('.citadel-heart-engine');
+    if(engine){attr(engine,'data-core-stage',state.stage);engine.style.setProperty('--heart-energy',n(state.progress));}
+    attr(svgElement.querySelector('.citadel-heart-charge'),'stroke-dashoffset',n(100*(1-state.progress)));
+    attr(svgElement.querySelector('.citadel-heart-aura'),'opacity',n(.025+state.progress*.14));
+    attr(svgElement.querySelector('.citadel-heart-gem'),'opacity',n(.3+state.progress*.7));
+    attr(svgElement.querySelector('.citadel-heart-vents'),'opacity',n(.08+state.progress*.65));
+    for(const subject of state.subjects){
+      const shrine=svgElement.querySelector(`[data-core-subject="${subject.id}"]`);
+      if(shrine){
+        attr(shrine,'data-subject-progress',n(subject.progress));attr(shrine,'data-complete',subject.complete);shrine.style.setProperty('--subject-energy',n(subject.progress));
+        attr(shrine.querySelector('.citadel-subject-charge'),'stroke-dashoffset',n(100*(1-subject.progress)));
+        attr(shrine.querySelector('.citadel-subject-stem'),'opacity',n(.13+subject.progress*.75));
+        attr(shrine.querySelector('.citadel-subject-aura'),'opacity',n(.015+subject.progress*.1));
+        attr(shrine.querySelector('.citadel-subject-glyph'),'opacity',n(.38+subject.progress*.62));
+        attr(shrine.querySelector('.citadel-subject-crown'),'display',subject.complete?'inline':'none');
+        const title=shrine.querySelector('title'),copy=`${subject.name}星印 · ${subject.complete?'已点亮':'随本科专注充能'}`;
+        if(title&&title.textContent!==copy)title.textContent=copy;
+      }
+      const conduit=svgElement.querySelector(`[data-core-conduit="${subject.id}"]`);
+      if(conduit){conduit.style.setProperty('--subject-energy',n(subject.progress));attr(conduit.querySelector('.citadel-subject-flow'),'opacity',n(.09+subject.progress*.7));}
+    }
     for(const place of places) {
       const el=svgElement.querySelector(`[data-citadel-place="${place.id}"]`);if(!el)continue;
       const power=charge(place,state.progress);attr(el,'data-charge',n(power));el.style.setProperty('--citadel-charge',n(power));

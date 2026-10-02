@@ -5,7 +5,7 @@
   const slots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const places=[
     {id:'dock',name:'启程码头',icon:'⚑',threshold:0,x:230,y:565,action:'让纸舟启航',copy:'小船载着今天的第一束光靠岸。每完成一段专注，都会在这座城里留下航迹。'},
-    {id:'core',name:'圣物广场',icon:'◇',threshold:0,x:595,y:425,action:'触碰晶核',copy:'主岛的四重能量环记录每日总进度。旅人从左下方码头出发，沿顺时针光路走过四个阶段；每一次抵达，都为中央圣物添上一重力量。'},
+    {id:'core',name:'圣物广场',icon:'◇',threshold:0,x:595,y:425,action:'唤起星庭共鸣',copy:'四科星印各自充能，达标后点亮。岛前的星辉引擎汇集每日进度；每走过四分之一，层叠圣坛周围便展开一重装置，托起中央圣物的光芒。'},
     {id:'workshop',name:'流光工坊',icon:'⚙',threshold:.25,x:245,y:326,action:'连通流光阵',copy:'完成四分之一的旅程，工坊开始运转。四科的努力各自点亮一条回路，汇聚到城中。'},
     {id:'archive',name:'星页书库',icon:'▤',threshold:.5,x:600,y:178,action:'翻开光之书',copy:'走过一半，书库里的灯亮了。这里收藏这一天真正完成过的学习，随时可以回看。'},
     {id:'observatory',name:'天穹观测台',icon:'✧',threshold:.75,x:950,y:330,action:'转动星盘',copy:'完成四分之三，观测台开始寻找远处的星。每一门达到目标的科目，都会成为一枚明亮星标。'},
@@ -166,7 +166,7 @@
     if(key===detailKey)return;detailKey=key;
     let html='';
     if(selected==='dock')html=`<strong>${previewPercent===null?recordCount():'—'} <small>段已完成的专注</small></strong><p>码头记下每一次靠岸，也欢迎每一次重新出发。</p>`;
-    if(selected==='core')html=`<strong>${duration(model.minutes)} <small>汇入这座城</small></strong><div class="citadel-meter"><i style="width:${model.progress*100}%"></i></div><p>${model.complete?'目标已经达成。每一段额外专注，都会让余辉更明亮。':`当前能量 ${percent(model.percent)} · 目标 ${duration(model.target)}`}</p>`;
+    if(selected==='core')html=`<strong>${duration(model.minutes)} <small>汇入星庭的专注</small></strong><div class="citadel-meter"><i style="width:${model.progress*100}%"></i></div><p>${model.complete?'今日星庭已完全展开，额外的专注仍会化作余辉。':`星辉引擎 ${percent(model.percent)} · 每日目标 ${duration(model.target)}`}</p>`;
     if(selected==='workshop'||selected==='observatory')html=`<div class="citadel-subject-list">${model.subjects.map(s=>`<div><span>${esc(s.name)}</span><i><b style="width:${s.progress*100}%"></b></i><strong>${percent(s.percent)}</strong></div>`).join('')}</div><p>${selected==='observatory'?`${model.subjects.filter(s=>s.complete).length} / 4 枚星标已经点亮。`:'回路各自记录四科的完成比例，超过目标的努力也会完整显示。'}</p>`;
     if(selected==='archive')html=previewPercent!==null?'<p>正在预览城市生长。返回实际进度，即可查看这一天的真实航迹。</p>':rows.length?`<ul class="citadel-records">${rows.slice(0,4).map(r=>`<li><span>${esc(r.name)}</span><b>${duration(r.minutes)}</b></li>`).join('')}</ul><p>最近 ${Math.min(4,rows.length)} 段 · 共 ${recordCount()} 段${recordCount()>rows.length?'；回放含较早记录的起点与最近航迹':'，可回放整天的旅程'}。</p>`:'<p>书页暂时留白。完成第一段专注后，它会自动收藏在这里。</p>';
     if(selected==='gate')html=`<strong>${model.afterglow.active?duration(model.afterglow.minutes):percent(model.percent)} <small>${model.afterglow.active?'目标之外的余辉':'门扉能量'}</small></strong><p>${model.complete?'门已为你打开。此刻可以继续探索，也可以安心休息。':'门上的星纹随进度汇聚，完成目标后会展开完整光环。'}</p>`;
