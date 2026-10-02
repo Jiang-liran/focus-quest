@@ -1,0 +1,15 @@
+/work/
+.DS_Store
+__pycache__/
+*.py[cod]
+*.sqlite*
+*.db
+*.db-wal
+*.db-shm
+*.app/
+*.zip
+.env
+.env.*
+*.pem
+*.key
+/outputs/focus-quest/work/

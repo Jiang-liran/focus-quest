@@ -1,0 +1,19 @@
+{
+  "build": 1,
+  "version": "1.0",
+  "tag": "v1.0",
+  "recovery_type": "exact released runtime source; recovered commit, not original development commit",
+  "source_location": "work/backups/专注远征-v1.0.zip",
+  "source_kind": "app-zip",
+  "runtime_source_digest_sha256": "a3e4b70d8c0a6c60e18d8979fd99bdf6761f7c2811a10fced1df5c6ab0420b16",
+  "runtime_source_files_sha256": {
+    "server.py": "48c23b9c2f4572beef6d4cd5dca9df3cb2e77e66ea84d1dc010e129a5ea95602",
+    "static/index.html": "290fc30b646c71621a5102a6665a2a4fd0e5de499d6894d39985e6c9dacae605",
+    "static/style.css": "ae8b66411d63d967314038be09f6f6f036e50ea672bdd111618d4a08144e83ac",
+    "static/app.js": "41b07bfbdf9cb40687e15c380edbe919f442e2cef6ef07ea703d7625877d0405"
+  },
+  "native_executable_sha256": "360ed25b88eb32204f2aeb9525af7a99eebcf3b1865b5f26d8195ce6f4ba2b41",
+  "info_plist_sha256": "60d07abd494d9c122ba6a611a3ba43be0fdbd1fa78321cee38b5a2342bc78164",
+  "native_swift_source_available": false,
+  "original_zip_sha256": "da6a19e2ca8492108f3508a82d2b81f9cb5b8d0b60b7d0eedca4a4b60d534b10"
+}
