@@ -64,6 +64,10 @@
 #review-heatmap .hm-day[data-status=surpassed]:after{content:'✦';position:absolute;right:7px;bottom:5px;color:var(--hm-crown);font-size:11px}
 #review-heatmap .hm-day-seal{display:block;position:absolute;right:5px;top:5px;width:18px;height:18px;color:var(--hm-seal)}
 #review-heatmap .hm-day-seal svg{width:100%;height:100%;fill:color-mix(in srgb,var(--hm-seal) 15%,transparent);stroke:currentColor;stroke-width:1.3}
+#review-heatmap .hm-day:not(.hm-year-day):is([data-status=achieved],[data-status=surpassed]){background:radial-gradient(ellipse at center,color-mix(in srgb,var(--hm-seal) 19%,transparent),transparent 74%),var(--hm-raised)}
+#review-heatmap .hm-completion{flex:1;align-self:stretch;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:1px 0 2px}
+#review-heatmap .hm-completion .hm-day-seal{position:static;width:28px;height:28px;flex-shrink:0}
+#review-heatmap .hm-completion .hm-day-state{color:var(--hm-ink);letter-spacing:.08em}
 #review-heatmap .hm-estimate{position:absolute;right:8px;top:4px;color:var(--hm-muted);font-size:15px}
 #review-heatmap .hm-week-seal{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;min-width:0;color:var(--hm-muted);font-size:9px;line-height:1.2;text-align:center;border-left:1px solid color-mix(in srgb,var(--hm-line) 40%,transparent);padding:7px 0 7px 7px}
 #review-heatmap .hm-week-seal>svg{height:21px;width:21px;fill:color-mix(in srgb,var(--hm-crown) 10%,transparent);stroke:currentColor;stroke-width:1.4}

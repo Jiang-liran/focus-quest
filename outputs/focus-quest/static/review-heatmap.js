@@ -44,16 +44,18 @@
     if (day.achieved) return finite(day.minutes) >= finite(day.target)*1.25 ? 'surpassed' : 'achieved';
     return day.minutes > 0 ? 'active' : 'empty';
   }
-  function dayLabel(day) {
+  function dayLabel(day, today) {
     const status = dayStatus(day);
-    const suffix = status==='future' ? '尚未到来' : day.targetEstimated ? '当日目标未存档，不判断达标' : day.achieved ? '当日目标已达成' : '当日目标未达成';
+    const suffix = status==='future' ? '尚未到来' : day.targetEstimated || day.achieved==null ? '当日目标未存档，不判断达标' : day.achieved ? '当日目标已达成' : day.date===today ? '今天的专注仍在积累' : day.minutes ? '点滴皆算' : '慢慢来，每一天都可以重新开始';
     return `${day.date}，专注${duration(day.minutes)}，${suffix}`;
   }
   function dayButton(day, selected, today, annual=false) {
     const status=dayStatus(day), achieved=status==='achieved'||status==='surpassed';
     const level=day.future?0:Math.min(4,Math.ceil(finite(day.minutes)/120));
     const certificate=achieved?`<span class="hm-day-seal" title="当日目标已达成">${gem}</span>`:day.targetEstimated && !day.future?'<span class="hm-estimate" aria-hidden="true">~</span>':'';
-    return `<button type="button" class="hm-day${annual?' hm-year-day':''}${day.date===today?' is-today':''}" data-hm-day="${esc(day.date)}" data-status="${status}" data-level="${level}" aria-pressed="${day.date===selected}" aria-label="${esc(dayLabel(day))}" title="${esc(dayLabel(day))}"${day.future?' disabled':''}>${annual?certificate:`<span class="hm-day-number">${Number(day.date.slice(-2))}${day.date===today?'<i>今</i>':''}</span><strong>${day.future?'—':`${hours(day.minutes)}<small>h</small>`}</strong>${certificate}<span class="hm-day-state">${achieved?'已达标':day.future?'':day.targetEstimated?'目标未存档':day.minutes?'在路上':'待点亮'}</span>`}</button>`;
+    const caption=day.future?'':day.targetEstimated || day.achieved==null?'目标未存档':day.date<today?(day.minutes?'点滴皆算':'慢慢来'):day.minutes?'在路上':'待点亮';
+    const content=achieved?`<span class="hm-completion">${certificate}<span class="hm-day-state">已达标</span></span>`:`<strong>${day.future?'—':`${hours(day.minutes)}<small>h</small>`}</strong>${certificate}<span class="hm-day-state">${caption}</span>`;
+    return `<button type="button" class="hm-day${annual?' hm-year-day':''}${day.date===today?' is-today':''}" data-hm-day="${esc(day.date)}" data-status="${status}" data-level="${level}" aria-pressed="${day.date===selected}" aria-label="${esc(dayLabel(day,today))}" title="${esc(achieved?'目标已达成 · 点击查看当天详情':dayLabel(day,today))}"${day.future?' disabled':''}>${annual?certificate:`<span class="hm-day-number">${Number(day.date.slice(-2))}${day.date===today?'<i>今</i>':''}</span>${content}`}</button>`;
   }
   function weekLabel(week) {
     if (week.achieved===true && !week.targetEstimated) return '周目标达成';
