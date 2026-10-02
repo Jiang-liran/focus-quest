@@ -21,6 +21,12 @@ html.has-campfire-room body > main::before,
 html.has-campfire-room body > main::after,
 html.has-campfire-room body > main *,
 html.has-campfire-room body > main *::before,
-html.has-campfire-room body > main *::after {
+html.has-campfire-room body > main *::after,
+html.has-return-trail-view body > main,
+html.has-return-trail-view body > main::before,
+html.has-return-trail-view body > main::after,
+html.has-return-trail-view body > main *,
+html.has-return-trail-view body > main *::before,
+html.has-return-trail-view body > main *::after {
   animation-play-state: paused !important;
 }

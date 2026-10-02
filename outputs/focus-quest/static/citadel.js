@@ -98,7 +98,7 @@
   function open(from){
     const latest=bridge.getState?.();if(latest)render(latest);
     if(!state||isOpen()||document.querySelector('dialog[open]'))return false;
-    root.FocusCampfireRoom?.close(false);bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);
+    root.FocusReturnTrail?.close(false);root.FocusCampfireRoom?.close(false);bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);
     anchor=from||document.activeElement;inertBefore=Array.from(document.querySelectorAll('body > main')).map(element=>[element,element.inert]);
     clearCameraGesture();selected=null;zoom=1;panX=panY=0;streetKey=roomKey=contentKey='';
     for(const [element] of inertBefore)element.inert=true;

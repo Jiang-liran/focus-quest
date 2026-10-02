@@ -164,6 +164,22 @@
     const [x,y]=playerPositions[selected] || playerPositions.home;
     return `<g class="camp-world-player" data-camp-player="true" data-camp-destination="${selected||'home'}" data-skin-slots="avatar" style="transform:translate(${x}px,${y}px)"><ellipse cx="25" cy="55" rx="21" ry="6" fill="#172c34" opacity=".18"/>${avatar}<text x="25" y="70" text-anchor="middle" font-size="13" fill="#f0dfbb" font-family="-apple-system,BlinkMacSystemFont,sans-serif" font-weight="650">你</text></g>`;
   }
+  function trailExit(interactive) {
+    return `<g class="camp-world-trail-exit" data-camp-trail="open"${interactive?' role="button" tabindex="0" aria-label="沿归途小径散步" aria-controls="return-trail-view"':''}>
+      <path d="M574 678Q625 712 709 716" stroke="#23383e" stroke-width="31" fill="none"/>
+      <path d="M574 674Q625 708 709 712" stroke="#938c78" stroke-width="24" fill="none"/>
+      <path d="M574 674Q625 708 709 712" stroke="#c4b79a" stroke-width="22" stroke-dasharray="10 5" fill="none"/>
+      <rect x="552" y="633" width="324" height="104" rx="18" fill="transparent"/>
+      <g class="camp-trail-sign"><ellipse class="camp-trail-sign-glow" cx="759" cy="703" rx="99" ry="32" fill="#f3c881" opacity=".06"/>
+      <path d="M709 702v-51" stroke="#9d9075" stroke-width="6"/>
+      <path d="m681 649 157-4 20 19-20 21-157-5Z" fill="#324a4c" stroke="#acb89a" stroke-width="1.8"/>
+      <text x="763" y="665" text-anchor="middle" fill="#e9d6ae" font-size="18" font-family="-apple-system,BlinkMacSystemFont,sans-serif">归途小径 →</text>
+      <text x="763" y="684" text-anchor="middle" fill="#a7baba" font-size="11" font-family="-apple-system,BlinkMacSystemFont,sans-serif">七处风景 · 通往星辉城</text>
+      <path d="M660 701v-41h11v9" stroke="#9e9980" stroke-width="2" fill="none"/>
+      <path d="m665 669 12 0 3 17h-18Z" fill="#ceb57d"/><path d="M668 673h7v10h-7Z" fill="#ffe3a3"/>
+      <circle class="camp-world-lantern-glow" cx="671" cy="678" r="20" fill="#f4cf8d" opacity=".12"/></g>
+    </g>`;
+  }
   function scene(equipment, options) {
     const eq=normalize(equipment), opts=options&&typeof options==='object'?options:{}, interactive=opts.interactive!==false;
     const selected=characters.includes(opts.selected)?opts.selected:'';
@@ -171,7 +187,7 @@
     return `<svg class="camp-world-art" viewBox="0 0 1200 760" width="1200" height="760" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" style="stroke:none" role="${interactive?'group':'img'}" aria-label="月光下的篝火营地，地图桌、茶歇、手记书架与观星台围着温暖的篝火" data-selected="${selected}" data-interactive="${interactive}" data-skin-slots="camp fire tent campgear campglow chatframe camptrail campmark" ${attrs}>
       ${landscape(eq)}${trails(eq)}${marker(eq)}${tent(eq)}
       <g class="camp-world-hearth-floor"><ellipse cx="596" cy="475" rx="112" ry="52" fill="#77776a"/><ellipse cx="596" cy="471" rx="108" ry="49" fill="#a79c80" opacity=".6"/><ellipse cx="596" cy="471" rx="93" ry="41" fill="#6e7367"/><path d="M493 468h17m171 4h18M565 428l4 9m60 68 5 10M526 438l13 9m117 43 18 9" stroke="#c5b89a" stroke-width="2" opacity=".55"/></g>
-      ${lantern(476,396,.8)}${lantern(943,566,.8)}${fire(eq)}${furnishings(eq)}${notice(eq)}${stations(interactive,selected)}${player(equipment,selected)}${ambience(eq)}
+      ${lantern(476,396,.8)}${lantern(943,566,.8)}${fire(eq)}${furnishings(eq)}${notice(eq)}${stations(interactive,selected)}${player(equipment,selected)}${ambience(eq)}${trailExit(interactive)}
     </svg>`;
   }
   function entrance(equipment) {

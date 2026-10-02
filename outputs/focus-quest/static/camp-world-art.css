@@ -23,6 +23,12 @@
   stroke: none;
 }
 .camp-world-art text { pointer-events: none; }
+.camp-world-art[data-interactive="true"] [data-camp-trail] {cursor:pointer;outline:none}
+.camp-trail-sign {transition:transform .25s ease}
+.camp-trail-sign-glow {transition:opacity .25s ease}
+.camp-world-art[data-interactive="true"] [data-camp-trail]:is(:hover,:focus-visible) .camp-trail-sign {transform:translateY(-3px)}
+.camp-world-art[data-interactive="true"] [data-camp-trail]:is(:hover,:focus-visible) .camp-trail-sign-glow {opacity:.24}
+.camp-world-art [data-camp-trail]:focus-visible>rect {stroke:#ecd2a0;stroke-width:2}
 .camp-world-art [data-camp-station] {
   cursor: pointer;
   outline: none;

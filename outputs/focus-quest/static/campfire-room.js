@@ -34,7 +34,7 @@
   function open(anchor){
     init();if(!initialized||document.querySelector('dialog[open]'))return false;
     if(isOpen()&&!closing)return false;
-    root.FocusCitadel?.close(false);root.FocusQuickSkins?.close(false);
+    root.FocusReturnTrail?.close(false);root.FocusCitadel?.close(false);root.FocusQuickSkins?.close(false);
     if(!isOpen()){
       returnFocus=anchor||document.activeElement;
       background=document.querySelector('body > main');previousInert=Boolean(background?.inert);
@@ -120,6 +120,8 @@
     $('campfire-rest-toggle')?.addEventListener('click',toggleRest);
     $('campfire-guide-advice')?.addEventListener('click',()=>root.FocusCampfire?.choose('guide','advice'));
     room.addEventListener('click',event=>{
+      const trail=event.target.closest?.('[data-camp-trail]');
+      if(trail){if(!event.ctrlKey&&(event.button===undefined||event.button===0))bridge.openTrail?.(trail);return;}
       const station=event.target.closest?.('[data-camp-station]');
       if(station){chooseStation(station.dataset.campStation);return;}
       const page=event.target.closest?.('[data-camp-page]');
@@ -127,6 +129,8 @@
     });
     room.addEventListener('keydown',event=>{
       if(event.defaultPrevented||!['Enter',' '].includes(event.key))return;
+      const trail=event.target.closest?.('[data-camp-trail]');
+      if(trail){event.preventDefault();bridge.openTrail?.(trail);return;}
       const station=event.target.closest?.('[data-camp-station]');
       if(station){event.preventDefault();chooseStation(station.dataset.campStation);}
     });

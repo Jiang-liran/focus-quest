@@ -38,6 +38,8 @@
   <link rel="stylesheet" href="/city-life.css">
   <link rel="stylesheet" href="/record-time.css">
   <link rel="stylesheet" href="/progress-bars.css">
+  <link rel="stylesheet" href="/return-trail-art.css">
+  <link rel="stylesheet" href="/return-trail.css">
   <link rel="stylesheet" href="/performance.css">
 </head>
 <body data-page="today">
@@ -248,7 +250,7 @@
       <div class="campfire-world-map">
         <div id="campfire-scene" aria-label="篝火营地区域"></div>
         <div class="campfire-place-caption"><span>此刻停留</span><strong id="campfire-place-name">炉边茶歇</strong><p id="campfire-place-detail">阿榆给你留了一杯热茶。</p></div>
-        <p class="campfire-world-hint">点击场景里的伙伴，走近聊聊 · 右键物件，更换营地布置</p>
+        <p class="campfire-world-hint">点击伙伴聊聊 · 沿路牌去归途小径散步 · 右键更换营地布置</p>
       </div>
       <aside class="campfire-card" id="advice-card" aria-label="伙伴的对话与工作台">
         <div class="campfire-talk">
@@ -279,7 +281,7 @@
     <header class="citadel-header city-header">
       <button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button>
       <div class="citadel-heading"><span>A QUIET CORNER OF THE NIGHT</span><h2 id="citadel-title">星辉城</h2><small id="citadel-theme">雨夜里的灯，始终为你亮着</small></div>
-      <div class="citadel-header-actions"><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">星织小铺 ↗</button></div>
+      <div class="citadel-header-actions"><button type="button" id="city-trail-open" aria-controls="return-trail-view">城外小径 ↗</button><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">星织小铺 ↗</button></div>
     </header>
     <div id="city-street" class="city-street">
       <div class="city-street-topline"><span class="city-weather"><i aria-hidden="true"></i>雨夜 · 静谧街区</span><p id="city-street-caption">沿着雨巷走走 · 点击亮着灯的建筑，进去坐坐</p></div>
@@ -326,6 +328,8 @@
   <script src="/city-life.js"></script>
   <script src="/citadel.js"></script>
   <script src="/campfire-room.js"></script>
+  <script src="/return-trail-art.js"></script>
+  <script src="/return-trail.js"></script>
   <script src="/horizontal-navigation.js"></script>
   <script src="/screen-layout.js"></script>
   <script src="/runtime.js"></script>

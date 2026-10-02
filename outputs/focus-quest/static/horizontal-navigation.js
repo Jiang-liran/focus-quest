@@ -13,12 +13,12 @@
     return !surface||doc.hidden||doc.documentElement.classList.contains('focus-runtime-hidden')||
       doc.body.dataset.page!=='today'||doc.querySelector('dialog[open]')||
       (doc.getElementById('quick-skins')&&!doc.getElementById('quick-skins').hidden)||
-      root.FocusCampfireRoom?.isOpen()||root.FocusCitadel?.isOpen()||bridge.canNavigate?.()===false;
+      root.FocusCampfireRoom?.isOpen()||root.FocusCitadel?.isOpen()||root.FocusReturnTrail?.isOpen()||bridge.canNavigate?.()===false;
   }
   function reset(){pointer=null;wheel=null;}
   function observeWheel(event){
     if(Math.abs(event.deltaX)<=Math.abs(event.deltaY)*1.7||!event.deltaX)return;
-    if(root.FocusCampfireRoom?.isOpen()||root.FocusCitadel?.isOpen()){
+    if(root.FocusCampfireRoom?.isOpen()||root.FocusCitadel?.isOpen()||root.FocusReturnTrail?.isOpen()){
       lockedUntil=Math.max(lockedUntil,time()+220);wheel=null;
     }
   }

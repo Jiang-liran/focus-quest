@@ -1,0 +1,54 @@
+/* Seven quiet places share geometry helpers, but each has its own landscape.
+   Parent placement transforms never animate; only small child details do. */
+.return-trail-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  overflow: hidden;
+  isolation: isolate;
+  stroke: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.return-trail-art text { font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", sans-serif; pointer-events: none; }
+.return-trail-art .trail-player-avatar { display: block; width: 60px; height: 67.5px; max-width: none; max-height: none; overflow: visible; }
+.return-trail-art [role="button"] { cursor: pointer; outline: none; -webkit-tap-highlight-color: transparent; }
+.return-trail-art .trail-hit-area,
+.return-trail-art .trail-waypost-hit { pointer-events: all; }
+.return-trail-art .trail-activity-cue { opacity: .62; transition: opacity .2s ease; }
+.return-trail-art .trail-activity-ring,
+.return-trail-art .trail-waypost-aura { transition: opacity .2s ease; }
+.return-trail-art .trail-sign-board { transition: fill .2s ease, stroke .2s ease; }
+.return-trail-art .trail-activity:is(:hover,:focus-visible) .trail-activity-cue { opacity: 1; }
+.return-trail-art .trail-activity:is(:hover,:focus-visible) .trail-activity-ring { opacity: .62; }
+.return-trail-art .trail-waypost:is(:hover,:focus-visible) .trail-waypost-aura { opacity: .14; }
+.return-trail-art .trail-waypost:is(:hover,:focus-visible) .trail-sign-board { fill: #526f66; stroke: #c5d6b6; }
+.return-trail-art [role="button"]:focus-visible .trail-activity-ring,
+.return-trail-art [role="button"]:focus-visible .trail-sign-board { stroke-width: 3; }
+.return-trail-art[data-interactive="false"] .trail-activity-cue { display: none; }
+.return-trail-art[data-interactive="false"] [data-trail-interact],
+.return-trail-art[data-interactive="false"] [data-trail-step] { pointer-events: none; cursor: default; }
+.return-trail-art .trail-lamplight { animation: trail-lamp-breath 6s ease-in-out infinite alternate; }
+.return-trail-art .trail-water-line { animation: trail-water-drift 17s linear infinite; }
+.return-trail-art .trail-star { animation: trail-star-breath 7s ease-in-out infinite alternate; }
+.return-trail-art .trail-chimes-active { transform-box: fill-box; transform-origin: 50% 0%; animation: trail-chime-sway 4.8s ease-in-out infinite; }
+.return-trail-art .trail-touched-water { animation: trail-ripple-breath 5.5s ease-in-out infinite alternate; }
+.return-trail-art .trail-beacon-light { animation: trail-beacon-breath 8s ease-in-out infinite alternate; }
+.return-trail-art .trail-book-leaf { animation: trail-leaf-fall 4s ease-out 1 both; }
+@keyframes trail-lamp-breath { from { opacity: .07; } to { opacity: .13; } }
+@keyframes trail-water-drift { to { stroke-dashoffset: -121; } }
+@keyframes trail-star-breath { from { opacity: .42; } to { opacity: .85; } }
+@keyframes trail-chime-sway { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(4deg); } }
+@keyframes trail-ripple-breath { from { opacity: .45; } to { opacity: 1; } }
+@keyframes trail-beacon-breath { from { opacity: .07; } to { opacity: .13; } }
+@keyframes trail-leaf-fall { from { transform: translate(-12px,-15px); opacity: 0; } 18% { opacity: .8; } to { transform: translate(4px,15px); opacity: 0; } }
+.focus-runtime-hidden .return-trail-art *,
+[hidden] .return-trail-art *,
+.return-trail-art[hidden] *,
+#return-trail-view[data-paused="true"] .return-trail-art * { animation-play-state: paused !important; }
+html.no-motion .return-trail-art * { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .return-trail-art * { animation: none !important; transition: none !important; }
+}
