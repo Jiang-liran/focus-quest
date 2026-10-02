@@ -173,6 +173,7 @@
   function setScene(value){
     init();const next=SCENES.includes(value)?value:null;if(scene===next)return;
     stop();scene=next;message='';paint();
+    if(next)return start();
   }
   function setMode(value){
     if(scene!=='home'||!['home','rain'].includes(value)||prefs.home.mode===value)return false;
@@ -188,7 +189,7 @@
   function controls(id){
     if(!SCENES.includes(id))return '';
     const home=id==='home',name=home?'雨夜声景':'炉边小调',mode=prefs[id].mode;
-    return `<div class="ambience-controls" data-ambience-scene="${id}" role="group" aria-label="${name}"><span class="ambience-mark" aria-hidden="true">♫</span>${home?`<label class="ambience-mode"><span class="ambience-sr-only">选择雨夜声景</span><select data-ambience-action="mode" aria-label="选择雨夜声景"><option value="home"${mode==='home'?' selected':''}>窗边夜曲 · BGM</option><option value="rain"${mode==='rain'?' selected':''}>小雨 · 白噪音</option></select></label>`:`<span class="ambience-title">${name}</span>`}<button type="button" data-ambience-action="toggle" aria-pressed="false">播放</button><label class="ambience-volume"><span class="ambience-sr-only">${name}音量</span><input type="range" min="0" max="100" step="1" value="${Math.round(prefs[id].volume*100)}" data-ambience-action="volume" aria-label="${name}音量" aria-valuetext="${Math.round(prefs[id].volume*100)}%"><span data-ambience-volume-label>${Math.round(prefs[id].volume*100)}%</span></label><span class="ambience-status" data-ambience-status role="status">手动播放 · 离开时停止</span></div>`;
+    return `<div class="ambience-controls" data-ambience-scene="${id}" role="group" aria-label="${name}"><span class="ambience-mark" aria-hidden="true">♫</span>${home?`<label class="ambience-mode"><span class="ambience-sr-only">选择雨夜声景</span><select data-ambience-action="mode" aria-label="选择雨夜声景"><option value="home"${mode==='home'?' selected':''}>窗边夜曲 · BGM</option><option value="rain"${mode==='rain'?' selected':''}>小雨 · 白噪音</option></select></label>`:`<span class="ambience-title">${name}</span>`}<button type="button" data-ambience-action="toggle" aria-pressed="false">播放</button><label class="ambience-volume"><span class="ambience-sr-only">${name}音量</span><input type="range" min="0" max="100" step="1" value="${Math.round(prefs[id].volume*100)}" data-ambience-action="volume" aria-label="${name}音量" aria-valuetext="${Math.round(prefs[id].volume*100)}%"><span data-ambience-volume-label>${Math.round(prefs[id].volume*100)}%</span></label><span class="ambience-status" data-ambience-status role="status">进入时自动播放 · 可随时关闭</span></div>`;
   }
   function paint(){
     for(const host of root.document?.querySelectorAll?.('[data-ambience-scene]')||[]){
@@ -198,7 +199,7 @@
       const mode=host.querySelector('[data-ambience-action="mode"]');if(mode)mode.value=prefs[id].mode;
       const volume=host.querySelector('[data-ambience-action="volume"]');if(volume){volume.value=Math.round(prefs[id].volume*100);volume.setAttribute('aria-valuetext',`${volume.value}%`);}
       const label=host.querySelector('[data-ambience-volume-label]');if(label)label.textContent=`${Math.round(prefs[id].volume*100)}%`;
-      const status=host.querySelector('[data-ambience-status]');if(status)status.textContent=id===scene&&message?message:on?`${TRACKS[prefs[id].mode].name} · 轻声陪伴`:'手动播放 · 离开时停止';
+      const status=host.querySelector('[data-ambience-status]');if(status)status.textContent=id===scene&&message?message:on?`${TRACKS[prefs[id].mode].name} · 轻声陪伴`:'进入时自动播放 · 可随时关闭';
     }
   }
   function mount(container,id){init();if(!container||!SCENES.includes(id))return;if(container.querySelector?.('[data-ambience-scene]')?.dataset.ambienceScene!==id)container.innerHTML=controls(id);paint();}
