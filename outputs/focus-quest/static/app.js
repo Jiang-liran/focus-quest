@@ -15,8 +15,8 @@ const viewNames = {today:'今日远征',history:'专注档案',achievements:'成
 const activityNames = {lecture:'听课',practice:'做题',other:'复习 / 其他'};
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set(), audioContext = null;
-let dismissedAdvice = new Set();
-try { dismissedAdvice = new Set(JSON.parse(localStorage.getItem('focusquest.dismissedAdvice') || '[]')); } catch (_) {}
+let activeDialogue = null, dialogueDate = null;
+let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function icon(name) { return `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`; }
@@ -49,8 +49,19 @@ async function refresh(force=false, quietRewards=false) {
     if(seq!==requestSequence)return;
     checkNewRecords(data, quietRewards);
     state=data;
+    if(weekChartState?.start===data.weekly.start)weekChartState=null;
     render();
     $('error-banner').hidden=true;
+    if(weekChartState && !weekChartLoading){
+      const chartRequest=weekChartRequest, chartStart=weekChartState.start;
+      try{
+        const chartData=await api('/api/state?date='+encodeURIComponent(chartStart));
+        if(seq===requestSequence && chartRequest===weekChartRequest && weekChartState?.start===chartStart){
+          weekChartState=chartData.weekly;renderWeek();
+        }
+      }catch(_){/* Keep the last visible week and retry with the next poll. */}
+    }
+    if(seq!==requestSequence)return;
     return data;
   } catch(error) {
     if(seq!==requestSequence)return;
@@ -137,32 +148,35 @@ function renderSubjects() {
 }
 
 function renderAdvice() {
-  const a=state.advice;
-  $('advice-title').textContent=a.title;$('advice-text').textContent=a.text;
-  $('advice-card').hidden=dismissedAdvice.has(state.date+':'+a.id);
+  const lines=FocusAdvice.buildLines(state);
+  if(dialogueDate!==state.date){activeDialogue=null;dialogueDate=state.date;}
+  // Polling refreshes facts in the chosen line, but never randomly replaces it.
+  activeDialogue=lines.find(line=>line.id===activeDialogue?.id)||lines[0];
+  if(!activeDialogue)return;
+  $('advice-card').hidden=false;
+  for(const [id,value] of [['advice-topic',activeDialogue.topic],['advice-title',activeDialogue.title],['advice-text',activeDialogue.text]]){
+    if($(id).textContent!==value)$(id).textContent=value;
+  }
+  $('advice-card').dataset.tone=activeDialogue.tone;
 }
 
-async function requestAdvice() {
-  $('advice-request').disabled=true;
+async function requestAdvice(reveal=false) {
+  if($('advice-next').disabled)return;
+  $('advice-request').disabled=true;$('advice-next').disabled=true;
   try {
     const fresh=await refresh(true,true);
     if(!fresh)throw new Error('暂时无法取得最新记录，请稍后再试。');
-    dismissedAdvice.delete(fresh.date+':'+fresh.advice.id);
-    try{localStorage.setItem('focusquest.dismissedAdvice',JSON.stringify([...dismissedAdvice].slice(-100)));}catch(_){}
+    const lines=FocusAdvice.buildLines(fresh);
+    activeDialogue=FocusAdvice.pickLine(lines,activeDialogue?.id);
+    dialogueDate=fresh.date;
     renderAdvice();
-    $('advice-dialog-title').textContent=fresh.date===fresh.today?'接下来，怎样安排更合适？':'回看这一天的学习安排';
-    $('advice-context').textContent=`${fresh.date} · 已完成 ${duration(fresh.totals.minutes)} · ${timeOf(new Date().toISOString())} 重新分析`;
-    const insights=[{label:'先看整体节奏',...fresh.advice}];
-    const heavy=fresh.activities.subjects.filter(s=>s.advice.id==='lecture-heavy');
-    if(heavy.length)heavy.forEach(s=>insights.push({label:`${s.name} · 听课 ${duration(s.lecture)} / 做题 ${duration(s.practice)}`,...s.advice}));
-    else insights.push({label:'听课与做题',...fresh.activities.advice});
-    const w=fresh.weekly;
-    const pastWeek=w.end<fresh.today;
-    insights.push({label:`周一至周日 · ${w.start} — ${w.end}`,title:pastWeek?'回看这一周的积累':w.percent>=100?'这周的目标已经完成':'让一周的积累稳步向前',text:pastWeek?`该周累计 ${duration(w.minutes)} / ${hours(w.target)} 小时，完成 ${pct(w.percent)}。可以据此调整之后的周计划，过去的差额不需要补追。`:w.percent>=100?`已累计 ${duration(w.minutes)}，达到周目标的 ${pct(w.percent)}。额外的时间已如实记录，记得留出恢复精力的空间。`:`这周已累计 ${duration(w.minutes)} / ${hours(w.target)} 小时，完成 ${pct(w.percent)}。可以按这一周的实际安排分配余下时间，不必要求每天完全一样。`,tone:'weekly'});
-    $('advice-results').innerHTML=insights.map(a=>`<article class="advice-result ${esc(a.tone)}"><span>${esc(a.label)}</span><h3>${esc(a.title)}</h3><p>${esc(a.text)}</p></article>`).join('');
-    if(!$('advice-dialog').open)$('advice-dialog').showModal();
-  }catch(error){toast('暂时未能生成建议',error.message,true);}
-  finally{$('advice-request').disabled=false;}
+    if(currentView!=='today')switchView('today');
+    if(reveal)$('advice-card').scrollIntoView({block:'center',behavior:fresh.settings.motion?'smooth':'auto'});
+    if(fresh.settings.motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+      $('advice-line').animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,easing:'ease-out'});
+    }
+  }catch(error){toast('向导暂时没有读到新记录',error.message,true);}
+  finally{$('advice-request').disabled=false;$('advice-next').disabled=false;}
 }
 
 function renderWeek() {
@@ -177,10 +191,15 @@ function renderWeek() {
   $('weekly-progress').setAttribute('aria-valuenow',Math.min(100,w.percent));
   $('weekly-progress').setAttribute('aria-valuetext',pct(w.percent));
   $('weekly-remaining').textContent=w.minutes>=w.target ? `周目标已达成${w.minutes>w.target?' · 超额 '+duration(w.minutes-w.target):''}，收下这周的积累。` : `已出征 ${w.activeDays} 天 · 距离周目标还差 ${duration(w.target-w.minutes)}`;
-  $('weekly-total').textContent='累计 '+duration(w.minutes);
-  $('week-chart-title').textContent=current?'本周足迹':'该周足迹';
-  const max=Math.max(state.totals.target,...w.days.map(d=>d.minutes),1);
-  $('week-chart').innerHTML=w.days.map(d=>`<button class="chart-column ${d.date===state.date?'today':''} ${d.date>state.today?'future':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}" aria-label="查看${d.date}，学习${duration(d.minutes)}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
+  const chart=weekChartState||w;
+  const chartIsCurrent=chart.start<=state.today && state.today<=chart.end;
+  $('weekly-total').textContent='累计 '+duration(chart.minutes);
+  $('week-chart-title').textContent=chartIsCurrent?'本周足迹':'每周足迹';
+  $('week-chart-range').textContent=`${chart.start.replaceAll('-','.')} — ${chart.end.slice(5).replaceAll('-','.')}`;
+  $('week-reset').hidden=chartIsCurrent;
+  $('prev-week').disabled=weekChartLoading;$('next-week').disabled=weekChartLoading;$('week-reset').disabled=weekChartLoading;
+  const max=Math.max(state.totals.target,...chart.days.map(d=>d.minutes),1);
+  $('week-chart').innerHTML=chart.days.map(d=>`<button class="chart-column ${d.date===state.date?'today':''} ${d.date>state.today?'future':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}" aria-label="查看${d.date}，学习${duration(d.minutes)}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
 }
 
 function renderActivities() {
@@ -281,12 +300,28 @@ function playChime() {
   try{ensureAudio();if(!audioContext)return;[523.25,659.25,783.99].forEach((hz,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.10;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.035,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.55);osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.6);});}catch(_){}
 }
 
-function chooseDate(value) { selectedDate=value===localDay()?null:value;refresh(true); }
+function chooseDate(value) { weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
+async function browseWeek(date) {
+  const request=++weekChartRequest;
+  weekChartLoading=true;renderWeek();
+  try {
+    const result=await api('/api/state?date='+encodeURIComponent(date));
+    if(request!==weekChartRequest)return;
+    weekChartState=result.weekly;
+  }catch(error){if(request===weekChartRequest)toast('暂时未能读取这一周',error.message,true);}
+  finally{if(request===weekChartRequest){weekChartLoading=false;renderWeek();}}
+}
+function stepWeek(amount) {
+  if(!state || weekChartLoading)return;
+  const d=new Date((weekChartState||state.weekly).start+'T12:00:00');d.setDate(d.getDate()+amount*7);
+  browseWeek(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`);
+}
 function stepDate(amount) { if(!state)return;const d=new Date(state.date+'T12:00:00');d.setDate(d.getDate()+amount);chooseDate(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`); }
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();chooseDate(localDay());switchView('today');});
 $('all-records').addEventListener('click',()=>switchView('history'));
-$('advice-request').addEventListener('click',requestAdvice);
+$('advice-request').addEventListener('click',()=>requestAdvice(true));
+$('advice-next').addEventListener('click',()=>requestAdvice(false));
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
 $('weekly-target-edit').addEventListener('click',()=>{showSettings();$('weekly-target-input').focus();});
 $('activity-settings').addEventListener('click',()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});});
@@ -297,9 +332,9 @@ $('refresh').addEventListener('click',syncNow);$('sync-now').addEventListener('c
 $('date-button').addEventListener('click',()=>{$('date-picker').classList.toggle('visible');if($('date-picker').classList.contains('visible')){$('date-picker').focus();try{$('date-picker').showPicker();}catch(_){}}});
 $('date-picker').addEventListener('change',e=>{if(/^\d{4}-\d{2}-\d{2}$/.test(e.target.value))chooseDate(e.target.value);});
 $('week-chart').addEventListener('click',e=>{const b=e.target.closest('[data-date]');if(b)chooseDate(b.dataset.date);});
+$('prev-week').addEventListener('click',()=>stepWeek(-1));$('next-week').addEventListener('click',()=>stepWeek(1));$('week-reset').addEventListener('click',()=>{if(state)browseWeek(state.today);});
 $('prev-day').addEventListener('click',()=>stepDate(-1));$('next-day').addEventListener('click',()=>stepDate(1));$('go-today').addEventListener('click',()=>chooseDate(localDay()));
-$('header-today').addEventListener('click',()=>{selectedDate=null;$('date-picker').classList.remove('visible');refresh(true);});
-$('advice-dismiss').addEventListener('click',()=>{if(!state)return;dismissedAdvice.add(state.date+':'+state.advice.id);try{localStorage.setItem('focusquest.dismissedAdvice',JSON.stringify([...dismissedAdvice].slice(-100)));}catch(_){}renderAdvice();});
+$('header-today').addEventListener('click',()=>{$('date-picker').classList.remove('visible');chooseDate(state?.today||localDay());});
 $('preview-effects').addEventListener('click',()=>{showCelebration({title:'今日远征，圆满通关。',body:'目标达成时，浮空岛将被点亮，属于你的庆祝也会出现。',reward:'✦ 今日主线 100% · 成就达成',preview:true});if(state?.settings.sound)playChime();});
 document.querySelector('.celebration-close').addEventListener('click',()=>$('celebration-dialog').close());$('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());
 document.addEventListener('click',()=>{if(state?.settings.sound)ensureAudio();},{once:true});
