@@ -2594,8 +2594,9 @@ class FocusStore:
         return self._finish_action(action_id, version, "parked", now)
 
     @staticmethod
-    def _serialize_arcade(row):
-        state = arcade_rules.public_state(row["game_type"], json.loads(row["game_state"]))
+    def _serialize_arcade(row, current=None):
+        state = arcade_rules.public_state(row["game_type"], json.loads(row["game_state"]),
+                                         current.timestamp() if current else None)
         if row["game_type"] == "survivor" and row["status"] != "active":
             # History postcards show the finished build, not a frozen battlefield.
             # Keep the complete simulation in SQLite for durable saves.
@@ -2604,15 +2605,19 @@ class FocusStore:
         return {"id": row["id"], "venue": row["venue"], "type": row["game_type"],
                 # This is an opaque session label, never the private generation seed.
                 "seed": row["id"][:8], "version": row["version"],
-                "startedAt": row["started_at"], "expiresAt": row["expires_at"],
+                "startedAt": row["started_at"], "expiresAt": None if row["game_type"] == "minesweeper" else row["expires_at"],
                 "endedAt": row["ended_at"], "status": row["status"],
                 "state": state,
-                "steps": row["steps"], "maxSteps": row["max_steps"],
+                "steps": row["steps"], "maxSteps": None if row["game_type"] == "minesweeper" else row["max_steps"],
                 "result": json.loads(row["result"]) if row["result"] else None}
 
     def _arcade_expire(self, current):
         rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchall()
         for row in rows:
+            if row["game_type"] == "minesweeper":
+                # Classic Minesweeper has a stopwatch, not an expiry timer.
+                # Its already-spent admission remains assigned to its start day.
+                continue
             if row["game_type"] in ("voyage", "dice"):
                 self._arcade_end(row, "abandoned", {"won": False, "score": 0, "medal": 0,
                     "reason": "该玩法已收起。历史战绩与已获得奖励保留，可前往星海幸存者开始新冒险。"}, current)
@@ -2647,7 +2652,7 @@ class FocusStore:
     def _arcade_snapshot(self, current):
         active = self.db.execute("SELECT * FROM arcade_sessions WHERE status='active'").fetchone()
         rows = self.db.execute("SELECT * FROM arcade_sessions WHERE status!='active' ORDER BY ended_at DESC,rowid DESC LIMIT 14").fetchall()
-        history = [self._serialize_arcade(row) for row in rows]
+        history = [self._serialize_arcade(row, current) for row in rows]
         # Only completed runs change the collection. Real-time pulses never scan
         # historical entity arrays; lightweight active replies bypass this path.
         signature = tuple(self.db.execute("SELECT COUNT(*),COALESCE(SUM(version),0) FROM arcade_sessions WHERE status!='active'").fetchone())
@@ -2664,6 +2669,10 @@ class FocusStore:
                 stats["wins"] += row["status"] == "won"
                 stats["bestScore"] = max(stats["bestScore"], result["score"])
                 stats["bestMedal"] = max(stats["bestMedal"], result["medal"])
+                if row["game_type"] == "minesweeper" and row["status"] == "won":
+                    seconds = result.get("elapsedSeconds")
+                    if isinstance(seconds, (int, float)) and seconds >= 0:
+                        stats["bestSeconds"] = min(stats.get("bestSeconds", seconds), seconds)
             if collect and row["game_type"] == "survivor" and row["status"] != "active":
                 public = arcade_rules.public_state("survivor", json.loads(row["game_state"]))
                 for item in public.get("weapons", []):
@@ -2690,9 +2699,12 @@ class FocusStore:
             collection = cached[1]
         venues = [{**v, **venue_stats.get(v["id"], {"plays": 0, "wins": 0, "bestScore": 0, "bestMedal": 0})}
                   for v in arcade_rules.VENUES]
+        for venue in venues:
+            if venue["type"] == "minesweeper":
+                venue.setdefault("bestSeconds", None)
         return {"today": current.date().isoformat(), "now": current.isoformat(timespec="microseconds"),
                 "rules": dict(arcade_rules.RULES), **self._arcade_budget(current),
-                "active": self._serialize_arcade(active) if active else None,
+                "active": self._serialize_arcade(active, current) if active else None,
                 "lastResult": history[0] if history else None, "history": history, "venues": venues,
                 "collection": collection, "wallet": self._wallet()}
 
@@ -2721,18 +2733,40 @@ class FocusStore:
 
     def _arcade_end(self, row, status, result, current):
         coins, diamonds = 0, 0
+        if row["game_type"] == "minesweeper":
+            # Fetch the just-updated board: the caller's row may precede the
+            # winning move. Persist the frozen clock for history and reloads.
+            latest = self.db.execute("SELECT game_state FROM arcade_sessions WHERE id=?", (row["id"],)).fetchone()
+            board = json.loads(latest["game_state"])
+            board["_elapsedSeconds"] = arcade_rules.minesweeper_rules.elapsed_seconds(board, current.timestamp())
+            if status == "abandoned":
+                board["phase"] = "abandoned"
+            self.db.execute("UPDATE arcade_sessions SET game_state=? WHERE id=?", (json.dumps(board, ensure_ascii=False), row["id"]))
+            config = arcade_rules.minesweeper_rules.DIFFICULTIES[board["difficulty"]]
+            gross = {"coins": config["coins"] if status == "won" else 0,
+                     "diamonds": config["diamonds"] if status == "won" else 0}
+            result = dict(result, elapsedSeconds=board["_elapsedSeconds"], difficulty=board["difficulty"],
+                          grossReward=gross, rewardDay=row["day"],
+                          rewardBreakdown=[{"label": "经典扫雷通关", **gross}] if status == "won" else [])
         if row["game_type"] == "survivor":
             breakdown, gross = self._survivor_reward(result, status == "won")
             result = dict(result, rewardBreakdown=breakdown, grossReward=gross)
         if status in ("won", "lost"):
             budget, rules = self._arcade_budget(current), arcade_rules.RULES
-            if row["game_type"] == "survivor":
+            if row["game_type"] in ("survivor", "minesweeper"):
                 expected_coins, expected_diamonds = gross["coins"], gross["diamonds"]
             else:
                 expected_coins = rules["winCoins"] if status == "won" else rules["lossCoins"]
                 expected_diamonds = rules["winDiamonds"] if status == "won" else 0
-            coins = min(expected_coins, max(0, rules["dailyCoins"]-budget["rewardToday"]["coins"]))
-            diamonds = min(expected_diamonds, max(0, rules["dailyDiamonds"]-budget["rewardToday"]["diamonds"]))
+            reward_today = budget["rewardToday"]
+            if row["game_type"] == "minesweeper" and row["day"] != current.date().isoformat():
+                # Cross-day completion draws only from its original day's
+                # remaining allowance, as do the admission and history row.
+                earned = self.db.execute("""SELECT COALESCE(SUM(l.coins),0),COALESCE(SUM(l.diamonds),0)
+                    FROM arcade_sessions s JOIN wallet_ledger l ON l.reference='arcade:'||s.id WHERE s.day=?""", (row["day"],)).fetchone()
+                reward_today = {"coins": earned[0], "diamonds": earned[1]}
+            coins = min(expected_coins, max(0, rules["dailyCoins"]-reward_today["coins"]))
+            diamonds = min(expected_diamonds, max(0, rules["dailyDiamonds"]-reward_today["diamonds"]))
             self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                 ("arcade:"+row["id"], coins, diamonds, int(current.timestamp()*1000)))
         result = dict(result, coins=coins, diamonds=diamonds)
@@ -2770,7 +2804,7 @@ class FocusStore:
                 (id,request_id,day,venue,game_type,seed,started_at,expires_at,status,game_state,max_steps)
                 VALUES (?,?,?,?,?,?,?,?,'active',?,?)""",
                 (str(uuid.uuid4()), request_id, current.date().isoformat(), venue, arcade_rules.CATALOG[venue]["type"],
-                 seed, current.isoformat(timespec="microseconds"), expires.isoformat(timespec="microseconds"),
+                 seed, current.isoformat(timespec="microseconds"), "" if arcade_rules.CATALOG[venue]["type"] == "minesweeper" else expires.isoformat(timespec="microseconds"),
                  json.dumps(state, ensure_ascii=False), max_steps))
             return self._arcade_snapshot(current)
 
@@ -2799,7 +2833,7 @@ class FocusStore:
             row = self.db.execute("SELECT * FROM arcade_sessions WHERE id=? AND status='active'", (session_id,)).fetchone()
             if row:
                 return {"compact": True, "today": current.date().isoformat(),
-                        "now": current.isoformat(timespec="microseconds"), "active": self._serialize_arcade(row)}
+                        "now": current.isoformat(timespec="microseconds"), "active": self._serialize_arcade(row, current)}
         return self._arcade_snapshot(current)
 
     def pulse_arcade(self, session_id, version, move, now=None):
@@ -2841,6 +2875,12 @@ class FocusStore:
                 if move.get("kind") == "tick":
                     action["elapsed"] = elapsed
             state, steps, result = arcade_rules.move(row["game_type"], original, row["steps"], row["max_steps"], action)
+            if row["game_type"] == "minesweeper":
+                if original["phase"] == "ready" and state["phase"] != "ready":
+                    state["_clockStartedAt"] = current.timestamp()
+                if state["_clockStartedAt"] is not None:
+                    state["_elapsedSeconds"] = round(max(original.get("_elapsedSeconds", 0),
+                                                        current.timestamp() - state["_clockStartedAt"]), 3)
             if row["game_type"] == "survivor":
                 # Never move this baseline backward, even if the system clock
                 # was adjusted. Repeated requests cannot simulate extra time.

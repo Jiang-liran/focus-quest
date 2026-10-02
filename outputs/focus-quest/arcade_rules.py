@@ -15,11 +15,18 @@ def _load_rules(name):
 voyage_rules = _load_rules("voyage_rules")
 dice_rules = _load_rules("dice_rules")
 survivor_rules = _load_rules("survivor_rules")
+minesweeper_rules = _load_rules("minesweeper_rules")
 
 RULES = {"ticketMinutes": 30, "maxTickets": 8, "roundSeconds": 240,
          "dailyCoins": 120, "dailyDiamonds": 6, "winCoins": 12,
          "winDiamonds": 1, "lossCoins": 4, "purchasePrice": 50, "maxPurchasedTickets": 3}
 VENUES = [
+    {"id": "mines-beginner", "name": "经典扫雷 · 初级", "type": "minesweeper", "family": "logic",
+     "subtitle": "9 × 9 · 10 颗雷", "description": "Windows 经典扫雷：从数字判断地雷位置，翻开所有安全格。不限时，首次翻开安全。"},
+    {"id": "mines-intermediate", "name": "经典扫雷 · 中级", "type": "minesweeper", "family": "logic",
+     "subtitle": "16 × 16 · 40 颗雷", "description": "更大的经典棋盘。左键翻开、右键标记，周围旗数相符时可快速翻开。"},
+    {"id": "mines-expert", "name": "经典扫雷 · 高级", "type": "minesweeper", "family": "logic",
+     "subtitle": "30 × 16 · 99 颗雷", "description": "经典高级难度，99 颗雷。保留推理与猜测，不设步数或计时失败。"},
     {"id": "star-survivor", "name": "星海幸存者", "type": "survivor", "family": "adventure", "subtitle": "自动战斗生存",
      "description": "在星海兽潮中走位求生，收集星晶、三选一升级，组合武器与被动进化。可随时切换二倍速。"},
     {"id": "mist-camp", "name": "晨雾营地", "type": "trail", "subtitle": "雾野寻宝",
@@ -196,11 +203,15 @@ def create(venue, seed):
     kind = CATALOG[venue]["type"]
     if kind == "survivor":
         return survivor_rules.create(seed)
+    if kind == "minesweeper":
+        return minesweeper_rules.create(venue, seed)
     rng = random.Random(seed)
     return {"trail": _trail, "mirrors": _mirrors, "garden": _garden}[CATALOG[venue]["type"]](rng, venue)
 
 
-def public_state(kind, state):
+def public_state(kind, state, now=None):
+    if kind == "minesweeper":
+        return minesweeper_rules.public_state(state, now)
     if kind == "survivor":
         return survivor_rules.public_state(state)
     if kind == "voyage":
@@ -219,6 +230,8 @@ def move(kind, original, steps, max_steps, action):
     """Return (new state, new step count, terminal result or None)."""
     if kind == "survivor":
         return survivor_rules.move(original, steps, max_steps, action)
+    if kind == "minesweeper":
+        return minesweeper_rules.move(original, steps, max_steps, action)
     if kind in ("voyage", "dice"):
         raise ValueError("这个游戏已下架，历史战绩仍然保留")
     _require(isinstance(action, dict))

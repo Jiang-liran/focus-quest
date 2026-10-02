@@ -5,8 +5,10 @@
   const number=value=>Number.isFinite(Number(value))?Number(value):0;
   const minutes=value=>Math.max(0,Math.ceil(number(value)));
   const cache=new Map();
-  const sceneNames={survivor:'怪潮生存',trail:'雾中寻路',mirrors:'折光机关',garden:'口袋造景'};
+  const sceneNames={minesweeper:'经典扫雷',survivor:'怪潮生存',trail:'雾中寻路',mirrors:'折光机关',garden:'口袋造景'};
   const survivor=()=>root.FocusSurvivor;
+  const mines=()=>root.FocusMinesweeper;
+  let restartConfirm=false;
   const pageVisible=()=>root.FocusRuntime?.isVisible?.()??!document.hidden;
   const advanced=type=>type==='survivor';
   const tileNames={flower:'铃花',water:'泉水',grove:'小树',stone:'星石'};
@@ -30,7 +32,7 @@
   function put(id,html){const host=$(id);if(!host||cache.get(id)===html)return false;host.innerHTML=html;cache.set(id,html);return true;}
   function stamp(value){const part=String(value||'').match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/);return Date.parse(value)*1000+Number((part?.[1]||'').padEnd(6,'0').slice(3,6));}
   function now(){return clockServer+(Date.now()-clockLocal);}
-  function secondsLeft(){return data?.active?Math.max(0,Math.ceil((Date.parse(data.active.expiresAt)-now())/1000)):0;}
+  function secondsLeft(){return data?.active?(data.active.type==='minesweeper'?Infinity:Math.max(0,Math.ceil((Date.parse(data.active.expiresAt)-now())/1000))):0;}
   function venue(id){return data?.venues?.find(v=>v.id===id);}
   function capped(){return Math.max(number(data?.earned),Math.max(0,number(data?.used)-number(data?.purchased)))>=number(data?.rules?.maxTickets);}
   function activeVenue(){return venue(data?.active?.venue)||venue(selected)||data?.venues?.[0];}
@@ -39,6 +41,7 @@
   function tree(x,y,s=1,c='#78958e'){return `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cy="14" rx="17" ry="6" fill="#10182644"/><path d="M0 8V-29" stroke="#777087" stroke-width="5"/><path d="m0-71 25 40H-25Z" fill="${c}"/><path d="m0-49 31 41H-31Z" fill="${c}" opacity=".85"/><path d="m0-71 0 62H-31l15-24h-9Z" fill="#22344822"/></g>`;}
   function star(x,y,s=1,c='#e4d5ad'){return `<path transform="translate(${x} ${y}) scale(${s})" d="M0-10 3-3 10 0 3 3 0 10-3 3-10 0-3-3Z" fill="${c}"/>`;}
   function scene(id,compact=false){
+    if(id.startsWith('mines-')&&mines())return mines().scene(compact);
     if(id==='star-survivor'&&survivor())return survivor().scene(compact);
     const [light,accent,leaf]=palettes[id]||palettes['mist-camp'];
     let feature='';
@@ -76,12 +79,13 @@
   function header(){
     const v=activeVenue(),active=data?.active;
     put('arcade-pill-icon',scene(v?.id||selected,true));
-    if($('arcade-pill-title'))$('arcade-pill-title').textContent=active?`继续 · ${v?.name||'群岛探险'}`:`${v?.name||'晨雾营地'} · ${sceneNames[v?.type]||'雾中寻路'}`;
-    if($('arcade-pill-status'))$('arcade-pill-status').textContent=active?`${sceneNames[active.type]||'小岛游戏'} · ${formatTime(secondsLeft())} 内归航`:`${number(data?.available)} 张游玩券 · ${new Set((data?.venues||[]).map(v=>v.type)).size} 种玩法`;
+    if($('arcade-pill-title'))$('arcade-pill-title').textContent=active?`继续 · ${v?.name||'群岛探险'}`:v?.type==='minesweeper'?v.name:`${v?.name||'晨雾营地'} · ${sceneNames[v?.type]||'雾中寻路'}`;
+    if($('arcade-pill-status'))$('arcade-pill-status').textContent=active?(active.type==='minesweeper'?`经典扫雷 · ${active.state.phase==='ready'?'等待首次翻开':`已用 ${mines()?.timeLabel(mines().elapsed(active,now()))||'0 秒'}`}`:`${sceneNames[active.type]||'小岛游戏'} · ${formatTime(secondsLeft())} 内归航`):`${number(data?.available)} 张游玩券 · ${new Set((data?.venues||[]).map(v=>v.type)).size} 种玩法`;
     if($('arcade-pill-meta'))$('arcade-pill-meta').textContent=active?'这一局的旅程还在继续':number(data?.available)>0?'把这一小段时间，留给玩耍。':capped()?(number(data.purchaseRemaining)>0?'学习游玩券已用完，也可用金币购票。':'今日小憩已收好，明天再来。'):`再专注 ${minutes(data?.nextTicketMinutes)} 分钟，获得一张券`;
     if($('arcade-open'))$('arcade-open').textContent=active?'继续游玩 ↗':'打开游乐场 ↗';
   }
   function rulesPanel(type){
+    if(type==='minesweeper')return mines()?.rules()||'';
     if(advanced(type))return survivor()?.rules()||'';
     if(type==='trail')return `<div class="arcade-how-grid"><p><b>01 · 走进雾里</b>方向键 / WASD，或点击相邻格。每走一步都会看清身边的地形；石头不能穿过。</p><p><b>02 · 留意行囊</b>收集足够的青晶，再走到归航门。荆棘消耗 1 颗心；篝火恢复 1 颗心。</p><p><b>03 · 先想好再走</b>探灯能照亮更大一片区域，也会消耗一步。出口位置始终可见，别把步数都花在回头路上。</p></div>`;
     if(type==='mirrors')return `<div class="arcade-how-grid"><p><b>01 · 转动镜片</b>点击镜子切换「／」与「＼」。也可以用 Tab 选择镜子、回车转动。</p><p><b>02 · 观察光路</b>光束碰到镜面会转弯，石墙会挡住光。每次转动都能立刻看见新的轨迹。</p><p><b>03 · 让星点同时亮起</b>用同一束光经过所有星点，最后抵达圆形接收器。旋转次数有限，可以先在脑中走一遍。</p></div>`;
@@ -98,6 +102,7 @@
     put('arcade-error',error?`<div class="arcade-notice"><p>${esc(error)}</p><button type="button" data-arcade-action="reload" ${busy?'disabled':''}>重新同步</button></div>`:'');
   }
   function postcard(session){
+    if(session.type==='minesweeper')return mines()?.postcard(session)||'';
     if(advanced(session.type))return survivor()?.postcard(session)||'';
     const s=session.state;if(!s||session.status==='active'||!s.width||!s.height)return '';
     const w=number(s.width),h=number(s.height),cell=44,pad=session.type==='mirrors'?44:12;
@@ -136,18 +141,19 @@
     const v=venue(selected)||data.venues?.[0];if(!v)return;
     selected=v.id;
     const r=data.rules||{},last=latestResult||data.lastResult;
-    const groups=['survivor','trail','mirrors','garden'].map(type=>({type,places:(data.venues||[]).filter(v=>v.type===type)})).filter(g=>g.places.length);
-    const flavor={survivor:['从一束星光，到席卷整片怪潮','自动攻击 · 三选一构筑 · 武器进化 · 可切换二倍速','动作生存'],trail:['带上探灯，走一条未知的小路','迷雾探索 · 体力规划 · 星石寻宝','轻松益智'],mirrors:['一面镜子，可以改变整条光路','机关解谜 · 路径推演 · 点亮星辰','轻松益智'],garden:['几块地形，搭出一个小世界','手牌布局 · 相邻加分 · 花庭造景','轻松益智']};
+    const groups=['survivor','minesweeper','trail','mirrors','garden'].map(type=>({type,places:(data.venues||[]).filter(v=>v.type===type)})).filter(g=>g.places.length);
+    const flavor={minesweeper:['熟悉的灰色格子，熟悉的心跳','经典三档难度 · 左右双键展开 · 挑战最佳用时','经典益智'],survivor:['从一束星光，到席卷整片怪潮','自动攻击 · 三选一构筑 · 武器进化 · 可切换二倍速','动作生存'],trail:['带上探灯，走一条未知的小路','迷雾探索 · 体力规划 · 星石寻宝','轻松益智'],mirrors:['一面镜子，可以改变整条光路','机关解谜 · 路径推演 · 点亮星辰','轻松益智'],garden:['几块地形，搭出一个小世界','手牌布局 · 相邻加分 · 花庭造景','轻松益智']};
     const library=`<section class="arcade-library" aria-label="选择游戏">${groups.map(g=>{const p=g.places.find(p=>p.id===selected)||g.places[0],f=flavor[g.type],isNew=advanced(g.type);return `<button type="button" class="arcade-library-card ${g.type===v.type?'selected':''} ${isNew?'flagship':''}" data-arcade-venue="${esc(p.id)}" aria-pressed="${g.type===v.type}" ${busy?'disabled':''}><div class="arcade-library-art">${scene(p.id,true)}</div><div><small>${f[2]}${isNew?' · NEW':''}</small><strong>${isNew?esc(p.name):sceneNames[g.type]}</strong><span>${f[0]}</span></div><i>↗</i></button>`;}).join('')}</section>`;
     const variants=groups.find(g=>g.type===v.type).places;
-    const choices=variants.length>1?`<div class="arcade-variant-list" aria-label="选择场景">${variants.map(p=>`<button type="button" class="${p.id===v.id?'selected':''}" data-arcade-venue="${esc(p.id)}" aria-pressed="${p.id===v.id}" ${busy?'disabled':''}>${esc(p.name)} <span>${number(p.bestMedal)?'✦'.repeat(number(p.bestMedal)):'待探索'}</span></button>`).join('')}</div>`:'';
-    const html=`<div class="arcade-lobby">${library}<section class="arcade-destination ${advanced(v.type)?'flagship':''}" style="--arcade-color:${(palettes[v.id]||palettes['mist-camp'])[0]}"><div class="arcade-destination-art">${scene(v.id)}<span class="arcade-scene-caption">${esc(flavor[v.type]?.[1]||v.subtitle)}</span></div><div class="arcade-destination-copy"><span class="arcade-eyebrow">${esc(sceneNames[v.type]||v.type)} · 每局一段完整冒险</span><h3>${esc(v.name)}</h3><p class="arcade-subtitle">${esc(v.subtitle)}</p><p class="arcade-description">${esc(v.description)}</p>${choices}<div class="arcade-place-record"><span>${number(v.plays)?`${number(v.plays)} 次出发 · ${number(v.wins)} 次通关`:'新的旅程，等你出发'}</span><b>${number(v.bestMedal)?`${medal(v.bestMedal)} · 最佳 ${number(v.bestScore)} 分`:'通关后留下成绩与旅途留影'}</b></div><button type="button" class="arcade-primary" data-arcade-action="start" ${busy||number(data.available)<1?'disabled':''}>${busy?'正在准备旅程…':number(data.available)>0?'开始这场冒险 →':'游玩券还在路上'}</button><p class="arcade-entry-note">使用 1 张券 · 最长 ${Math.round(number(r.roundSeconds)/60)} 分钟 · 先看下方玩法手册<br>开始即用券，离开后继续计时；各玩法共用次数与奖励额度。</p></div></section><div class="arcade-lobby-bottom"><details class="arcade-rulebook"><summary>玩法手册 <span>${esc(sceneNames[v.type]||v.type)} ＋</span></summary>${rulesPanel(v.type)}</details><details class="arcade-boundaries"><summary>游玩券与奖励 <span>当日规则 ＋</span></summary><p>今天每 ${minutes(r.ticketMinutes)} 分钟有效专注获得 1 张券，学习每天最多 ${number(r.maxTickets)} 张，当日有效；另可购买最多 3 张。所有游戏共用额度，每局最多 ${Math.round(number(r.roundSeconds)/60)} 分钟。游戏过程中不需要答题或完成学习内容。</p><p>星海幸存者：通关基础 20 金币、1 钻石；每 40 次击杀 +1 金币（最多 20），每提升 2 级 +1 金币（最多 10），达到 20 级再 +1 钻石；击败最终领主额外 10 金币、1 钻石。单局最多 60 金币、3 钻石，失败零奖励。其余小游戏：通关 ${number(r.winCoins)} 金币、${number(r.winDiamonds)} 钻石，自然失败 ${number(r.lossCoins)} 金币；超时和提前归航没有奖励。每天合计最多 ${number(r.dailyCoins)} 金币与 ${number(r.dailyDiamonds)} 钻石，达到上限后成绩仍会保留。</p><p>也可以用 50 金币购买 1 张额外游玩券，每天最多购买 3 张。学习券与购买券均在当天到期，提前归航也会消耗机会。</p></details></div>${collectionBook()}${last?resultCard(last,false):''}${album()}</div>`;
+    const choices=variants.length>1?`<div class="arcade-variant-list" aria-label="选择场景或难度">${variants.map(p=>`<button type="button" class="${p.id===v.id?'selected':''}" data-arcade-venue="${esc(p.id)}" aria-pressed="${p.id===v.id}" ${busy?'disabled':''}>${esc(p.name)} <span>${p.type==='minesweeper'?(p.bestSeconds==null?'暂无纪录':mines()?.timeLabel(p.bestSeconds)):number(p.bestMedal)?'✦'.repeat(number(p.bestMedal)):'待探索'}</span></button>`).join('')}</div>`:'';
+    const html=`<div class="arcade-lobby">${library}<section class="arcade-destination ${advanced(v.type)?'flagship':''}" style="--arcade-color:${(palettes[v.id]||palettes['mist-camp'])[0]}"><div class="arcade-destination-art">${scene(v.id)}<span class="arcade-scene-caption">${esc(flavor[v.type]?.[1]||v.subtitle)}</span></div><div class="arcade-destination-copy"><span class="arcade-eyebrow">${esc(sceneNames[v.type]||v.type)} · 每局一段完整冒险</span><h3>${esc(v.name)}</h3><p class="arcade-subtitle">${esc(v.subtitle)}</p><p class="arcade-description">${esc(v.description)}</p>${choices}<div class="arcade-place-record"><span>${number(v.plays)?`${number(v.plays)} 次出发 · ${number(v.wins)} 次通关`:'新的旅程，等你出发'}</span><b>${v.type==='minesweeper'?(v.bestSeconds==null?'个人最佳：等待首次胜利':`个人最佳 ${mines()?.timeLabel(v.bestSeconds)}`):number(v.bestMedal)?`${medal(v.bestMedal)} · 最佳 ${number(v.bestScore)} 分`:'通关后留下成绩与旅途留影'}</b></div><button type="button" class="arcade-primary" data-arcade-action="start" ${busy||number(data.available)<1?'disabled':''}>${busy?'正在准备旅程…':number(data.available)>0?'开始这场冒险 →':'游玩券还在路上'}</button><p class="arcade-entry-note">使用 1 张券 · ${v.type==='minesweeper'?'不设单局时间上限':`最长 ${Math.round(number(r.roundSeconds)/60)} 分钟`} · 先看下方玩法手册<br>${v.type==='minesweeper'?'开始即用券，首次翻开开始计时；离开后仍计时，跨日可继续。':'开始即用券，离开后继续计时；各玩法共用次数与奖励额度。'}</p></div></section><div class="arcade-lobby-bottom"><details class="arcade-rulebook"><summary>玩法手册 <span>${esc(sceneNames[v.type]||v.type)} ＋</span></summary>${rulesPanel(v.type)}</details><details class="arcade-boundaries"><summary>游玩券与奖励 <span>当日规则 ＋</span></summary><p>今天每 ${minutes(r.ticketMinutes)} 分钟有效专注获得 1 张券，学习每天最多 ${number(r.maxTickets)} 张，当日有效；另可购买最多 3 张。所有游戏共用额度，扫雷不设单局时间上限，其余游戏每局最多 ${Math.round(number(r.roundSeconds)/60)} 分钟。游戏过程中不需要答题或完成学习内容。</p><p>星海幸存者：通关基础 20 金币、1 钻石；每 40 次击杀 +1 金币（最多 20），每提升 2 级 +1 金币（最多 10），达到 20 级再 +1 钻石；击败最终领主额外 10 金币、1 钻石。单局最多 60 金币、3 钻石，失败零奖励。经典扫雷：初级通关 12 金币、1 钻石；中级 24 金币、2 钻石；高级 40 金币、3 钻石；踩雷与提前结束零奖励。其余小游戏：通关 ${number(r.winCoins)} 金币、${number(r.winDiamonds)} 钻石，自然失败 ${number(r.lossCoins)} 金币；超时和提前归航没有奖励。每天合计最多 ${number(r.dailyCoins)} 金币与 ${number(r.dailyDiamonds)} 钻石，达到上限后成绩仍会保留。</p><p>也可以用 50 金币购买 1 张额外游玩券，每天最多购买 3 张。学习券与购买券均在当天到期，提前归航也会消耗机会。扫雷已开始的棋局跨日保留，奖励占用开局当日额度。</p></details></div>${collectionBook()}${last?resultCard(last,false):''}${album()}</div>`;
     putContent(html);
   }
   function resultCard(session,large){
     const r=session.result;if(!r)return '';
+    const mineRewardDay=session.type==='minesweeper'&&session.result?.rewardDay,capLabel=mineRewardDay&&mineRewardDay!==data.today?'开局日':'今日';
     const v=venue(session.venue),status={won:'这段冒险，漂亮收官。',lost:'先把这一程收好。',expired:'小憩时间到，慢慢归航。',abandoned:'这次先到这里。'}[session.status]||'一段冒险已收好。';
-    return `<section class="arcade-result ${large?'full':''}" aria-label="本局结果"><div class="arcade-result-medal ${r.won?'won':''}" aria-hidden="true"><span>${r.won?'✦':'☾'}</span><i>${number(r.medal)?'✧'.repeat(Math.min(3,number(r.medal))):'·'}</i></div><div class="arcade-result-copy"><span class="arcade-eyebrow">${large?'THE JOURNEY IS YOURS':'LAST LITTLE ADVENTURE'}</span><h3>${status}</h3><p>${esc(v?.name||'群岛探险')} · ${number(r.score)} 分${number(r.medal)?` · ${medal(r.medal)}`:''}</p><p>${esc(r.reason||'每一程，都有自己的风景。')}</p>${Array.isArray(r.rewardBreakdown)?`<div class="arcade-reward-details">${r.rewardBreakdown.map(b=>`<span>${esc(b.label)} · ${number(b.coins)?`● ${number(b.coins)}`:''}${number(b.diamonds)?` ◆ ${number(b.diamonds)}`:''}</span>`).join('')}</div>`:''}</div><div class="arcade-result-reward"><span>本次实际获得</span><div>${reward(r)}</div><small>${number(r.coins)===0&&number(r.diamonds)===0?(session.status==='abandoned'?'提前归航，本次不发放奖励。':session.status==='expired'?'时间已到，本次不发放奖励。':session.type==='survivor'&&session.status==='lost'?'守夜失败，本次不发放奖励。':'今日游戏奖励额度已用满，成绩照常保存。'):(r.grossReward&&(number(r.coins)<number(r.grossReward.coins)||number(r.diamonds)<number(r.grossReward.diamonds))?'已按今日剩余额度结算，其余成绩照常保留。':'已放入你的钱包 · 今日上限内结算')}</small></div>${large?'<button type="button" class="arcade-primary" data-arcade-action="back">回到游乐场 →</button>':''}</section>`;
+    return `<section class="arcade-result ${large?'full':''}" aria-label="本局结果"><div class="arcade-result-medal ${r.won?'won':''}" aria-hidden="true"><span>${r.won?'✦':'☾'}</span><i>${number(r.medal)?'✧'.repeat(Math.min(3,number(r.medal))):'·'}</i></div><div class="arcade-result-copy"><span class="arcade-eyebrow">${large?'THE JOURNEY IS YOURS':'LAST LITTLE ADVENTURE'}</span><h3>${status}</h3><p>${esc(v?.name||'群岛探险')} · ${session.type==='minesweeper'?mines()?.timeLabel(r.elapsedSeconds??session.state.elapsedSeconds):`${number(r.score)} 分${number(r.medal)?` · ${medal(r.medal)}`:''}`}</p><p>${esc(r.reason||'每一程，都有自己的风景。')}</p>${Array.isArray(r.rewardBreakdown)?`<div class="arcade-reward-details">${r.rewardBreakdown.map(b=>`<span>${esc(b.label)} · ${number(b.coins)?`● ${number(b.coins)}`:''}${number(b.diamonds)?` ◆ ${number(b.diamonds)}`:''}</span>`).join('')}</div>`:''}</div><div class="arcade-result-reward"><span>本次实际获得</span><div>${reward(r)}</div><small>${number(r.coins)===0&&number(r.diamonds)===0?(session.status==='abandoned'?'提前归航，本次不发放奖励。':session.status==='expired'?'时间已到，本次不发放奖励。':session.status==='lost'&&['survivor','minesweeper'].includes(session.type)?(session.type==='minesweeper'?'踩到地雷，本次不发放奖励。':'守夜失败，本次不发放奖励。'):`${capLabel}游戏奖励额度已用满，成绩照常保存。`):(r.grossReward&&(number(r.coins)<number(r.grossReward.coins)||number(r.diamonds)<number(r.grossReward.diamonds))?`已按${capLabel}剩余额度结算，其余成绩照常保留。`:`已放入你的钱包 · ${capLabel}上限内结算`)}</small>${mineRewardDay?`<small>按 ${esc(mineRewardDay)} 开局日额度结算</small>`:''}</div>${large?'<button type="button" class="arcade-primary" data-arcade-action="back">回到游乐场 →</button>':''}</section>`;
   }
   function boardCell(kind,x,y,body,attrs='',extra=''){
     return `<button type="button" class="arcade-cell ${kind} ${extra}" data-arcade-cell="${x},${y}" ${attrs} style="--x:${x};--y:${y}">${body}</button>`;
@@ -201,8 +207,9 @@
   }
   function play(){
     const a=data.active,v=venue(a.venue),s=a.state;
-    if(a.type==='survivor'){playSurvivor(a,v);return;}
-    survivor()?.destroy();
+    if(a.type==='survivor'){mines()?.destroy();playSurvivor(a,v);return;}
+    if(a.type==='minesweeper'){survivor()?.destroy();playMines(a,v);return;}
+    survivor()?.destroy();mines()?.destroy();
     const old=$('arcade-play');
     if(!old||old.dataset.session!==a.id){
       put('arcade-content',`<section id="arcade-play" class="arcade-play" data-session="${esc(a.id)}" data-type="${esc(a.type)}"><div class="arcade-game-head"><div><span class="arcade-eyebrow">${esc(sceneNames[a.type])}</span><h3>${esc(v?.name||'群岛探险')}</h3></div><button type="button" class="arcade-text-button" data-arcade-action="abandon">提前归航 ↗</button></div><div class="arcade-game-layout"><div class="arcade-game-stage"><div class="arcade-board-frame"><div id="arcade-board-host"></div></div><p id="arcade-message" class="arcade-game-message" role="status"></p></div><aside class="arcade-game-aside"><div class="arcade-live-clock"><span>这一局的时间</span><strong id="arcade-countdown">${formatTime(secondsLeft())}</strong><small>离开页面后，时间仍会继续。</small></div><div id="arcade-hud" class="arcade-hud"></div><div class="arcade-step-track"><div><span>${a.type==='garden'?'已放置':a.type==='mirrors'?'已转动':'已行动'}</span><strong id="arcade-step-label"></strong></div><i><b id="arcade-step-bar"></b></i></div><div id="arcade-controls"></div><details class="arcade-rulebook in-game"><summary>看看玩法 <span>＋</span></summary>${rulesPanel(a.type)}</details><div id="arcade-abandon"></div></aside></div></section>`);
@@ -241,6 +248,26 @@
     if(visible&&phaseChanged&&!abandon)$('arcade-play').scrollIntoView({block:'start',behavior:'auto'});
     put('arcade-abandon',abandon?`<div class="arcade-abandon-confirm"><strong>这一局就先到这里？</strong><p>本次游玩券不会返还，提前归航没有奖励。确认期间战斗停下，归航倒计时继续。</p><div><button type="button" class="arcade-text-button" data-arcade-action="cancel-abandon" ${busy?'disabled':''}>继续这局</button><button type="button" class="arcade-end-button" data-arcade-action="finish" ${busy?'disabled':''}>确认归航</button></div></div>`:'');
   }
+  function playMines(a,v){
+    const terminal=a.status!=='active';
+    if(!$('arcade-play')||$('arcade-play').dataset.session!==a.id||$('arcade-play').dataset.type!=='minesweeper'){
+      mines()?.destroy();
+      put('arcade-content',`<section id="arcade-play" class="arcade-play mines-play" data-session="${esc(a.id)}" data-type="minesweeper"><div class="arcade-game-head"><div><span class="arcade-eyebrow">CLASSIC MINESWEEPER</span><h3>${esc(v?.name||'经典扫雷')}</h3></div><div id="mines-top-actions"></div></div><div id="mines-confirm"></div><div id="mines-host"></div><div id="mines-result" class="mines-result-host"></div></section>`);
+      ['mines-top-actions','mines-confirm','mines-result'].forEach(id=>cache.delete(id));
+    }
+    put('mines-top-actions',`<button type="button" class="arcade-text-button" data-arcade-action="${terminal?'back':'abandon'}">${terminal?'选择游戏 / 难度 ↗':'结束本局 ↗'}</button>`);
+    const confirming=restartConfirm||abandon;
+    put('mines-confirm',confirming?`<div class="arcade-abandon-confirm"><strong>${restartConfirm?'重新开始一局扫雷？':'结束这一局？'}</strong><p>${terminal?'': '本局会结束且不退还游玩券。'}${restartConfirm?`新棋局另用 1 张游玩券，当前剩余 ${number(data.available)} 张。`:'提前结束没有奖励。'}</p><div><button type="button" class="arcade-text-button" data-arcade-action="cancel-mines" ${busy?'disabled':''}>${terminal?'取消':'继续这局'}</button><button type="button" class="arcade-end-button" data-arcade-action="${restartConfirm?'confirm-mines-restart':'finish'}" ${busy||restartConfirm&&number(data.available)<1?'disabled':''}>${restartConfirm?'使用 1 张券并开始新局':'确认结束'}</button></div></div>`:'');
+    mines()?.mount($('mines-host'),a,{name:v?.name,bestSeconds:v?.bestSeconds,now,visible:()=>visible,blocked:()=>busy||restartConfirm||abandon,send:move=>request('move',move),restart:()=>{if(busy)return;restartConfirm=true;abandon=false;playMines(a,v);document.querySelector('[data-arcade-action="cancel-mines"]')?.focus({preventScroll:true});}});
+    if(!visible||confirming)mines()?.suspend();
+    put('mines-result',terminal?resultCard(a,false):'');
+  }
+  async function restartMines(){
+    if(busy||!restartConfirm||number(data?.available)<1)return;
+    const previous=data.active?.id;restartConfirm=false;abandon=false;
+    if(previous){await request('finish');if(data.active||data.lastResult?.id!==previous||data.lastResult.status!=='abandoned')return;}
+    latestResult=null;await request('start');
+  }
   async function pulse(move){
     if(busy)return {retry:true};
     if(!visible||abandon||data?.active?.type!=='survivor'||secondsLeft()<=0)return {stopped:true};
@@ -275,12 +302,14 @@
     document.querySelector('.arcade-pill')?.classList.toggle('reduced-motion',settings.motion===false||settings.reducedMotion===true);
     top();
     if(data.active)play();
-    else if(latestResult){survivor()?.destroy();putContent(`<div class="arcade-result-scene"><div class="arcade-finish-layout">${postcard(latestResult)}${resultCard(latestResult,true)}</div></div>`);}
-    else {survivor()?.destroy();lobby();}
+    else if(latestResult?.type==='minesweeper'){survivor()?.destroy();playMines(latestResult,venue(latestResult.venue));}
+    else if(latestResult){survivor()?.destroy();mines()?.destroy();putContent(`<div class="arcade-result-scene"><div class="arcade-finish-layout">${postcard(latestResult)}${resultCard(latestResult,true)}</div></div>`);}
+    else {survivor()?.destroy();mines()?.destroy();lobby();}
     tick();
   }
   function tick(){
     if(!data?.active||!pageVisible())return;
+    if(data.active.type==='minesweeper'){mines()?.tick();if($('arcade-pill-status'))$('arcade-pill-status').textContent=`经典扫雷 · ${data.active.state.phase==='ready'?'等待首次翻开':`已用 ${mines()?.timeLabel(mines().elapsed(data.active,now()))||'0 秒'}`}`;return;}
     const left=secondsLeft(),clockNode=$('arcade-countdown');
     if(clockNode){clockNode.textContent=formatTime(left);clockNode.classList.toggle('ending',left<=30);}
     if($('arcade-pill-status'))$('arcade-pill-status').textContent=`${sceneNames[data.active.type]||'小岛游戏'} · ${formatTime(left)} 内归航`;
@@ -311,7 +340,7 @@
     if(purchaseIntent&&purchaseIntent.day!==data.today)purchaseIntent=null;
     if(data.lastResult?.id)rememberTerminal(data.lastResult.id);
     for(const h of data.history||[])if(h.status!=='active')rememberTerminal(h.id);
-    if(data.active){startIntent=null;knownActive=data.active.id;if(data.active.id!==was){handIndex=0;abandon=false;expiryRequest=null;}selected=data.active.venue;}
+    if(data.active){startIntent=null;knownActive=data.active.id;if(data.active.id!==was){handIndex=0;abandon=false;restartConfirm=false;expiryRequest=null;}selected=data.active.venue;}
     else {
       if(was&&data.lastResult?.id===was){latestResult=data.lastResult;if(data.lastResult.status==='won')bridge.playSound?.('arcadeWin',{key:'arcade-result:'+was});}
       knownActive=null;abandon=false;expiryRequest=null;
@@ -345,7 +374,7 @@
       busy=false;error='';if(action==='start')startIntent=null;
       render(next);
       if(action==='start'){$('arcade-play')?.scrollIntoView({block:'start',behavior:'auto'});$('arcade-play')?.querySelector('.arcade-board')?.focus({preventScroll:true});}
-      if(action==='move'&&next.active)bridge.playSound?.({trail:'arcadeStep',mirrors:'arcadeMirror',garden:'arcadePlant'}[active.type],{key:`arcade:${active.id}:${next.active.version}`});
+      if(action==='move'&&next.active&&active.type!=='minesweeper')bridge.playSound?.({trail:'arcadeStep',mirrors:'arcadeMirror',garden:'arcadePlant'}[active.type],{key:`arcade:${active.id}:${next.active.version}`});
     }catch(e){
       // An uncertain request may already be saved. Fetch authoritative state before accepting another move.
       busy=false;error=e.message||'这一步暂时没有同步，请重新同步后继续。';repaint();
@@ -355,16 +384,18 @@
   }
   function captureFocus(){
     const el=document.activeElement;if(!el||!$('arcade-root')?.contains(el))return null;
-    return {adventure:el.getAttribute?.('data-adventure-focus'),mirror:el.getAttribute?.('data-arcade-mirror'),cell:el.getAttribute?.('data-arcade-cell'),hand:el.getAttribute?.('data-arcade-hand'),direction:el.getAttribute?.('data-arcade-direction'),action:el.getAttribute?.('data-arcade-action')};
+    return {mines:el.getAttribute?.('data-mines-cell'),adventure:el.getAttribute?.('data-adventure-focus'),mirror:el.getAttribute?.('data-arcade-mirror'),cell:el.getAttribute?.('data-arcade-cell'),hand:el.getAttribute?.('data-arcade-hand'),direction:el.getAttribute?.('data-arcade-direction'),action:el.getAttribute?.('data-arcade-action')};
   }
   function restoreFocus(token){
     if(!visible||!data?.active)return;let target=null;
-    if(token?.adventure!=null)target=[...document.querySelectorAll('[data-adventure-focus]:not(:disabled)')].find(el=>el.getAttribute('data-adventure-focus')===token.adventure);
+    if(token?.mines!=null)target=document.querySelector(`[data-mines-cell="${token.mines}"]`);
+    if(!target&&token?.adventure!=null)target=[...document.querySelectorAll('[data-adventure-focus]:not(:disabled)')].find(el=>el.getAttribute('data-adventure-focus')===token.adventure);
     if(token&&!target){for(const key of ['mirror','direction','hand','cell'])if(token[key]!=null){target=document.querySelector(`[data-arcade-${key}="${token[key]}"]:not(:disabled)`);if(target)break;}}
     if(!target&&data.active.type==='garden')target=document.querySelector('.arcade-board.garden .arcade-cell:not(:disabled)');
+    if(!target&&data.active.type==='minesweeper')target=document.querySelector('[data-mines-cell="0,0"]');
     if(!target)target=document.querySelector('.adventure-board button:not(:disabled)')||document.querySelector('.arcade-board');target?.focus({preventScroll:true});
   }
-  function select(id){if(busy||data?.active||!venue(id))return;selected=id;latestResult=null;abandon=false;startIntent=null;error='';repaint();}
+  function select(id){if(busy||data?.active||!venue(id))return;selected=id;latestResult=null;abandon=false;restartConfirm=false;startIntent=null;error='';repaint();}
   function moveTrail(direction){if(data?.active?.type==='trail')request('move',{direction});}
   function cellAction(cell){
     const a=data?.active;if(!a||busy)return;
@@ -388,7 +419,9 @@
     else if(action==='start'||action==='finish')request(action);
     else if(action==='scan')request('move',{scan:true});
     else if(action==='reload')sync();
-    else if(action==='back'){latestResult=null;repaint();}
+    else if(action==='back'){latestResult=null;restartConfirm=false;repaint();}
+    else if(action==='cancel-mines'){restartConfirm=false;abandon=false;repaint();}
+    else if(action==='confirm-mines-restart')restartMines();
     else if(action==='abandon'){abandon=true;play();document.querySelector('[data-arcade-action="cancel-abandon"]')?.focus({preventScroll:true});}
     else if(action==='cancel-abandon'){abandon=false;play();document.querySelector('[data-arcade-action="abandon"]')?.focus({preventScroll:true});}
   }
@@ -396,7 +429,7 @@
     const a=data?.active;if(!a||busy||!visible||event.altKey||event.ctrlKey||event.metaKey||event.repeat||abandon)return;
     if(event.target.closest?.('input,textarea,select,summary'))return;
     if(secondsLeft()<=0){tick();return;}
-    if(a.type==='survivor')return;
+    if(a.type==='survivor'||a.type==='minesweeper')return;
     const dirs={ArrowUp:'up',w:'up',W:'up',ArrowDown:'down',s:'down',S:'down',ArrowLeft:'left',a:'left',A:'left',ArrowRight:'right',d:'right',D:'right'};
     if(a.type==='trail'&&dirs[event.key]){event.preventDefault();moveTrail(dirs[event.key]);return;}
     if(a.type==='trail'&&event.key.toLowerCase()==='f'){event.preventDefault();if(a.state.scans>0)request('move',{scan:true});return;}
@@ -409,7 +442,7 @@
     }
   }
   function enter(){visible=true;if(!data){sync();return;}repaint();setClock();if(data.active)$('arcade-play')?.scrollIntoView({block:'start',behavior:'auto'});}
-  function leave(){visible=false;survivor()?.suspend();setClock();}
+  function leave(){visible=false;survivor()?.suspend();mines()?.suspend();setClock();}
   function open(id){if(id&&venue(id)&&!data?.active)select(id);bridge.openPage?.('achievements');enter();}
   function init(callbacks){bridge=callbacks||{};if(initialized)return;initialized=true;$('arcade-open')?.addEventListener('click',()=>open());$('arcade-root')?.addEventListener('click',onClick);$('arcade-root')?.addEventListener('keydown',onKey);document.addEventListener?.('visibilitychange',clockVisibility);document.addEventListener?.('focusquest:visibility',clockVisibility);visible=!!bridge.isVisible?.();}
   root.FocusArcade={init,render,open,enter,leave};
