@@ -1,6 +1,6 @@
 (function(root){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',interface:'界面主题',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe','camptrail','campmark']);
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -11,6 +11,7 @@
     const equipped={...state.equipped,...(preview?{[preview.slot]:preview.id}:{})};
     delete document.documentElement.dataset.npc;
     for(const key of Object.keys(names))if(equipped[key])document.documentElement.dataset[key]=equipped[key];
+    root.FocusInterfaceThemes?.apply(equipped.interface);
     root.ShopArt?.apply(equipped);
     root.FocusCampfire?.previewEquipment(preview?{[preview.slot]:preview.id}:null);
     root.FocusCitadel?.previewEquipment(preview?{[preview.slot]:preview.id}:null);
@@ -25,7 +26,7 @@
     paint();
     $('quick-skin-status').textContent=preview?`正在预览「${preview.name}」· 点击换上`:'移到外观上预览，点击即可换上。';
   }
-  function owned(){return (state?.catalog||[]).filter(item=>item.slot===slot&&item.owned&&Object.hasOwn(names,item.slot));}
+  function owned(){return (state?.catalog||[]).filter(item=>item.slot===slot&&item.owned&&Object.hasOwn(names,item.slot)&&(item.slot!=='interface'||root.FocusInterfaceThemes?.has(item.id)));}
   function thumb(item){
     return campSlots.has(item.slot)?root.FocusCampfireShopArt?.preview(item.id,state.equipped)||'':root.ShopArt?.preview(item.id)||'';
   }

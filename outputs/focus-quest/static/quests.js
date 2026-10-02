@@ -4,7 +4,7 @@
   else root.FocusQuests=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',interface:'界面主题',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe','camptrail','campmark']);
   const citadelSlots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
@@ -96,6 +96,7 @@
     data=next;
     delete document.documentElement.dataset.npc;
     for(const [slot,id] of Object.entries(data.equipped||{}))document.documentElement.dataset[slot]=id;
+    window.FocusInterfaceThemes?.apply(data.equipped?.interface);
     window.ShopArt?.apply(data.equipped||{});
     window.FocusCitadel?.applyEquipment?.(data.equipped||{},data.now);
     window.FocusCampfire?.applyEquipment(data.equipped||{},data.now);
@@ -117,6 +118,8 @@
     replace('player-outfit',avatar('player',data.equipped.avatar));
     const paid=data.catalog.filter(i=>currency(i)!=='free'),owned=paid.filter(i=>i.owned);
     $('equipped-summary').textContent=`已收藏 ${owned.length} / ${paid.length} 件 · ${data.catalog.find(i=>i.id===data.equipped.avatar)?.name||'初始装扮'}`;
+    if($('loadout-slot-count'))$('loadout-slot-count').textContent=String(Object.keys(names).length);
+    if($('shop-slot-count'))$('shop-slot-count').textContent=String(Object.keys(names).length);
     replace('equipped-slots',Object.entries(names).map(([slot,label])=>`<button data-loadout-slot="${slot}"><span>${label}</span><strong>${esc(data.catalog.find(i=>i.id===data.equipped[slot])?.name||'初始装扮')}</strong><i>↗</i></button>`).join(''));
     renderShop();
     renderExchange();
@@ -125,7 +128,7 @@
     window.FocusMystery?.render(data);
   }
   function renderShop(){
-    const inArea=i=>area==='all'||(area==='camp')===campSlots.has(i.slot);
+    const inArea=i=>area==='all'||(area==='interface'?i.slot==='interface':area==='camp'?campSlots.has(i.slot):i.slot!=='interface'&&!campSlots.has(i.slot));
     const marketItems=data.catalog.filter(i=>inArea(i)&&(market==='owned'?i.owned:currency(i)===market));
     document.querySelectorAll('[data-shop-area]').forEach(b=>{b.classList.toggle('active',b.dataset.shopArea===area);b.setAttribute('aria-pressed',String(b.dataset.shopArea===area));});
     if(filter!=='all'&&!marketItems.some(i=>i.slot===filter))filter='all';
@@ -141,6 +144,7 @@
     for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&(m==='owned'?i.owned:currency(i)===m)).length);
     $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。'}[market];
     if(area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
+    if(area==='interface'||filter==='interface')$('shop-market-description').textContent='从配色到边框、纹理与按钮，给整间书房换一种气质。界面主题独立装备，你已有的星岛环境、装饰和特效照常搭配。';
     if(filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
@@ -169,6 +173,7 @@
     $('quest-action-dialog').classList.toggle('campfire-item-dialog',art.includes('campfire-full-preview'));
     $('quest-action-dialog').classList.toggle('citadel-item-dialog',art.includes('citadel-full-preview'));
     $('quest-action-dialog').classList.toggle('island-item-dialog',art.includes('island-full-preview'));
+    $('quest-action-dialog').classList.toggle('interface-item-dialog',art.includes('interface-full-preview'));
     $('quest-action-title').textContent=title;$('quest-action-eyebrow').textContent=eyebrow;
     $('quest-action-art').innerHTML=art;$('quest-action-body').innerHTML=body;
     $('quest-action-error').hidden=true;$('quest-action-confirm').textContent=label;
@@ -198,6 +203,7 @@
     return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampWorldArt?.scene(equipped,{interactive:false})||window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
   }
   function itemPreview(item){
+    if(item.slot==='interface'&&window.FocusInterfaceThemes)return window.FocusInterfaceThemes.fullPreview(item.id,data.equipped,window.ShopArt);
     if(campSlots.has(item.slot))return campPreview(item);
     if(item.slot==='island'&&window.ShopArt?.islandPreview)return `<div class="island-full-preview">${window.ShopArt.islandPreview(item.id,data.equipped)}<p>首页主岛整套布置 · 替换当前布置，保留其余装备与篝火入口</p></div>`;
     if(citadelSlots.has(item.slot)){
@@ -213,11 +219,12 @@
   function openItem(action,id){
     if(busy)return;
     const item=data?.catalog.find(item=>item.id===id);if(!item)return;
+    if(item.slot==='interface'&&!window.FocusInterfaceThemes?.has(item.id))return;
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
     const placement=item.slot==='island'?'<p>一套布置包含配套的前景与建筑；装备时整套替换，多套收藏不会自动叠加。素岛原貌随时可免费恢复。</p>':'';
-    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p>${placement}<div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
+    dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':item.slot==='interface'?'A DIFFERENT ATMOSPHERE':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p>${placement}<div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
   }
   async function perform(job){
     if(busy||!job)return;
@@ -238,7 +245,7 @@
         const extra=reward.bonusReward,split=Number(extra?.coins)>0||Number(extra?.diamonds)>0?`；基础 ${rewardText(reward.baseReward)}，首轮加赠 ${rewardText(extra)}`:'';
         bridge.toast(reward.alreadyClaimed?'这次交付已确认':'委托交付 · 收获已入袋',`+${n(reward.coins)} 金币 · +${n(reward.diamonds)} 钻石${split}`);
       }else if(job.action==='exchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'星光已入袋',`+${n(job.diamonds)} 钻石 · ${n(result.receipt?.coins||job.diamonds*(result.exchange?.coinsPerDiamond||75))} 金币已兑换`);
-      else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，把收藏放进你的远征。',equip:'已应用到你的星岛与营地。'}[job.action]);
+      else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，把收藏放进你的远征。',equip:item?.slot==='interface'?'整间书房已换上新气质，原有装饰与特效继续保留。':'已应用到你的星岛与营地。'}[job.action]);
       await bridge.refresh(true);
     }catch(error){
       if($('quest-action-dialog').open){$('quest-action-error').textContent=error.message;$('quest-action-error').hidden=false;}
@@ -253,7 +260,7 @@
     document.querySelectorAll('[data-shop-filter]').forEach(button=>button.addEventListener('click',()=>{filter=button.dataset.shopFilter;render(data);}));
     document.querySelectorAll('[data-shop-area]').forEach(button=>button.addEventListener('click',()=>{area=button.dataset.shopArea;filter='all';render(data);}));
     document.querySelectorAll('[data-shop-market]').forEach(button=>button.addEventListener('click',()=>{market=button.dataset.shopMarket;filter='all';render(data);}));
-    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;area=campSlots.has(filter)?'camp':'journey';render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
+    $('equipped-slots').addEventListener('click',event=>{const b=event.target.closest('[data-loadout-slot]');if(b){market='owned';filter=b.dataset.loadoutSlot;area=filter==='interface'?'interface':campSlots.has(filter)?'camp':'journey';render(data);$('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});}});
     $('exchange-amount').addEventListener('input',()=>{if(data)renderExchange();});
     $('exchange-open').addEventListener('click',openExchange);
     $('quest-action-confirm').addEventListener('click',()=>perform(intent));

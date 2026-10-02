@@ -1,8 +1,8 @@
 (function (root, factory) {
-  const api = factory(root, typeof module === 'object' && module.exports ? require('./quest-art.js') : null, typeof module === 'object' && module.exports ? require('./camp-world-art.js') : null);
+  const api = factory(root, typeof module === 'object' && module.exports ? require('./quest-art.js') : null, typeof module === 'object' && module.exports ? require('./camp-world-art.js') : null, typeof module === 'object' && module.exports ? require('./interface-themes.js') : null);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.ShopArt = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeArt, nodeCampArt) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeArt, nodeCampArt, nodeInterfaceThemes) {
   'use strict';
 
   const inventory = {
@@ -135,6 +135,8 @@
   }
 
   function preview(itemId) {
+    const interfaceThemes=nodeInterfaceThemes||root.FocusInterfaceThemes;
+    if(interfaceThemes?.has(itemId))return interfaceThemes.preview(itemId);
     const item=items.get(itemId);if(!item)return '';
     const {slot,variant}=item;
     let content;

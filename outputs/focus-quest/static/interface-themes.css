@@ -1,0 +1,241 @@
+/* Purchased interface themes. This layer owns the application chrome only:
+   no world palette, artwork, equipped bar, character, particles, or game board. */
+:root[data-interface="interface-forest"] {
+  --ui-bg:#101b18;--ui-sidebar:#15231c;--ui-surface:#1b3027;--ui-surface-raised:#243b30;
+  --ui-ink:#e5ebdf;--ui-muted:#9db3a5;--ui-faint:#8a9f90;--ui-accent:#b4cda0;--ui-line:#49634f;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#1a2a21;--ui-button-ink:#203022;
+  --ui-radius:17px 8px 17px 8px;--ui-shadow:#030f0a30;
+  --ui-panel-detail:radial-gradient(ellipse at 100% 0,#b4cda00c,transparent 43%),repeating-linear-gradient(93deg,#b7c89703 0 1px,transparent 1px 13px);
+  --ui-shell-detail:radial-gradient(ellipse at 0 20%,#5c865718,transparent 55%);
+}
+:root[data-interface="interface-tide"] {
+  --ui-bg:#0d1923;--ui-sidebar:#102430;--ui-surface:#172e40;--ui-surface-raised:#223e50;
+  --ui-ink:#e0edf0;--ui-muted:#97b5c2;--ui-faint:#87a6b3;--ui-accent:#9cd7df;--ui-line:#3f697c;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#122633;--ui-button-ink:#16333b;
+  --ui-radius:5px 15px 5px 15px;--ui-shadow:#02101c38;
+  --ui-panel-detail:linear-gradient(#9cd7df05 1px,transparent 1px),linear-gradient(90deg,#9cd7df05 1px,transparent 1px);
+  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 55px,#9cd7df06 55px 56px);
+}
+:root[data-interface="interface-amber"] {
+  --ui-bg:#211913;--ui-sidebar:#2a2018;--ui-surface:#33271d;--ui-surface-raised:#403326;
+  --ui-ink:#f3e5d0;--ui-muted:#c0aa8e;--ui-faint:#b59e81;--ui-accent:#e6bc7d;--ui-line:#765b3b;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#2a2119;--ui-button-ink:#362413;
+  --ui-radius:6px;--ui-shadow:#10090340;
+  --ui-panel-detail:radial-gradient(circle at 12px 12px,#d8b27d8c 0 1px,transparent 1.6px),radial-gradient(circle at calc(100% - 12px) calc(100% - 12px),#d8b27d8c 0 1px,transparent 1.6px),linear-gradient(125deg,#b9925709,transparent 45%);
+  --ui-shell-detail:repeating-linear-gradient(0deg,transparent 0 79px,#c2a16a07 79px 80px);
+}
+/* Match the specificity of the common opt-in rule so later light-surface
+   corrections also win for labels with authored dark-preview backgrounds. */
+:root[data-interface][data-interface="interface-paper"] {
+  color-scheme:light;
+  --ui-bg:#ede8db;--ui-sidebar:#e4e3d5;--ui-surface:#faf7ee;--ui-surface-raised:#e7e5d8;
+  --ui-ink:#353a39;--ui-muted:#61685e;--ui-faint:#73796e;--ui-accent:#536c60;--ui-line:#b8bfad;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 7%,transparent);--ui-control:#fffdf6;--ui-button-ink:#fffdf2;
+  --ui-radius:5px 12px 5px 12px;--ui-shadow:#69644816;
+  --ui-panel-detail:repeating-linear-gradient(0deg,transparent 0 31px,#68765e07 31px 32px);
+  --ui-shell-detail:radial-gradient(circle at 1px 1px,#776b460b .6px,transparent .8px);
+}
+
+/* Explicit opt-in means the original theme is pixel-for-pixel unchanged. */
+:root:is([data-interface="interface-forest"],[data-interface="interface-tide"],[data-interface="interface-amber"],[data-interface="interface-paper"]) {
+  color:var(--ui-ink);background:var(--ui-bg);
+}
+:root[data-interface]:not([data-interface="interface-default"]) body {background:var(--ui-shell-detail),var(--ui-bg);color:var(--ui-ink)}
+:root[data-interface][data-interface="interface-paper"] body {background-size:6px 6px,auto}
+:root[data-interface]:not([data-interface="interface-default"]) .sidebar {background:var(--ui-panel-detail),var(--ui-sidebar);border-color:var(--ui-line)}
+:root[data-interface="interface-tide"] .sidebar {background-size:32px 32px,32px 32px,auto}
+:root[data-interface]:not([data-interface="interface-default"]) .topbar {background:color-mix(in srgb,var(--ui-bg) 96%,transparent);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.brand small,.nav-label,.source-status,.local-label,.side-note p,.side-note>span,.breadcrumb,.breadcrumb span,.live-clock,.greeting p,footer,.muted) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.brand-mark,.small-orbit,.eyebrow,.section-kicker,.text-button,.level-help,.skin-hint,footer>span:first-child) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .brand-mark {border-color:var(--ui-line);background:var(--ui-soft);box-shadow:inset 0 0 18px var(--ui-soft)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.greeting h1,.breadcrumb b,.date-button,.icon-button,.section-heading h2) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.side-note,.source-status,footer) {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .nav-item {color:var(--ui-muted);border-radius:var(--ui-radius)}
+:root[data-interface]:not([data-interface="interface-default"]) .nav-item:hover {background:var(--ui-soft);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .nav-item.active {background:var(--ui-soft);color:var(--ui-accent);box-shadow:inset 3px 0 0 var(--ui-accent),inset 0 0 0 1px var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .nav-dot {background:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.date-button:hover,.icon-button:hover) {background:var(--ui-surface-raised);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .section-kicker i {background:var(--ui-accent);box-shadow:0 0 10px var(--ui-soft)}
+:root[data-interface]:not([data-interface="interface-default"]):is([data-banner="banner-default"],:not([data-banner])) .level-pill {background:var(--ui-surface-raised);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]):is([data-banner="banner-default"],:not([data-banner])) .greeting .arcade-pill :is(span,small) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]):is([data-banner="banner-default"],:not([data-banner])) .arcade-pill #arcade-open {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]):is([data-banner="banner-default"],:not([data-banner])) .q-loadout {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .toast {background:var(--ui-surface-raised);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .toast small {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .toast.error {border-color:#b17365}
+
+/* General surfaces. Art previews and purchased frames are deliberately absent. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.q-mentor,.q-mentor.afternoon,.q-rules,.shop-welcome,.q-loadout:not(.equipped-player-card),.shop-exchange,.mystery-quest,.arcade-destination,.arcade-destination.flagship,.arcade-collection,.arcade-album,.arcade-rulebook,.arcade-boundaries,.arcade-result,.arcade-result.full) {
+  background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);border-radius:var(--ui-radius);color:var(--ui-ink);
+}
+:root[data-interface="interface-tide"] :is(.panel,.stat-card,.weekly-goal,.q-mentor,.q-rules,.shop-welcome,.q-loadout:not(.equipped-player-card),.shop-exchange,.mystery-quest,.arcade-destination,.arcade-collection,.arcade-album,.arcade-rulebook,.arcade-boundaries,.arcade-result) {background-size:32px 32px,32px 32px,auto}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-item,.q-task,.equipped-slots button,.shop-markets>button,.arcade-library-card,.arcade-library-card.flagship,.arcade-memory,.arcade-collection-grid article,.home-shortcuts>button,.activity-total,.opening-settings,.mystery-settings-note) {background:var(--ui-surface);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-item.equipped,.arcade-library-card.selected,.arcade-library-card:hover,.shop-markets>button[data-shop-market=owned].active) {border-color:var(--ui-accent);background-color:var(--ui-surface-raised)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.wallet-side,.activity-overview,.target-summary,.weekly-setting,.source-explanation,.calendar-pending,.level-guide-current,.q-action-reward,.arcade-pass,.arcade-variant-list button,.arcade-captain-records>span) {background:var(--ui-soft);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.ghost-button,.secondary-button,.today-shortcut,.week-arrow,.shop-filter button,.quick-skin-tabs button,.expedition-discover-toggle,.expedition-trail button,.expedition-replay-controls button,.preview-stages button,.preview-subjects button,.arcade-primary,.arcade-end-button,.arcade-buy-ticket) {background:var(--ui-soft);border-color:var(--ui-line);color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.ghost-button:hover,.secondary-button:hover,.today-shortcut:hover,.week-arrow:hover,.shop-filter button:hover,.quick-skin-tabs button:hover,.arcade-primary:hover:not(:disabled)) {background:var(--ui-surface-raised);color:var(--ui-ink);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-filter button.active,.quick-skin-tabs button[aria-pressed=true],.arcade-variant-list button.selected,.preview-stages button.active) {background:var(--ui-surface-raised);color:var(--ui-accent);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .primary-button:not(#opening-done) {background:var(--ui-accent);border-color:var(--ui-accent);color:var(--ui-button-ink);box-shadow:0 3px 12px var(--ui-shadow)}
+:root[data-interface]:not([data-interface="interface-default"]) .primary-button:not(#opening-done):hover {background:color-mix(in srgb,var(--ui-accent) 88%,white);color:var(--ui-button-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.nav-item,.text-button,.ghost-button,.primary-button,.secondary-button,.shop-filter button,.quick-skin-tabs button,.arcade-primary,.citadel-header button,.campfire-room-bar button):focus-visible {outline-color:var(--ui-accent)}
+
+/* The home map is a display case for separately collected worlds and effects. */
+:root[data-interface]:not([data-interface="interface-default"]) .quest-hero.expedition-hero {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);border-radius:var(--ui-radius);box-shadow:0 10px 35px var(--ui-shadow)}
+:root[data-interface="interface-tide"] .quest-hero.expedition-hero {background-size:40px 40px,40px 40px,auto}
+:root[data-interface]:not([data-interface="interface-default"]) .expedition-hero .hero-copy {background:linear-gradient(110deg,var(--ui-soft),transparent),var(--ui-surface-raised);border-color:var(--ui-line);box-shadow:inset 0 1px 0 var(--ui-soft),0 6px 22px var(--ui-shadow)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.hero-copy h2,.hero-numbers strong,.expedition-deck h3,.expedition-trail strong,.weekly-numbers>span>strong,.stat-card strong,.activity-total>strong) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.expedition-hero .hero-copy>p,.hero-numbers strong small,.expedition-hero .hero-numbers>span,.expedition-hero .total-progress-label span,.expedition-inspector-kicker,#expedition-detail-copy,.expedition-next,#expedition-log-summary,.expedition-log-heading>div>span,.expedition-trail small,.expedition-replay-controls span,#expedition-frame-copy,.weekly-goal-heading p,.weekly-numbers strong small,.weekly-numbers>span>small,.weekly-goal-progress>p,.stat-card span,.stat-card strong small) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.stage-tag,.expedition-hero .total-progress-label strong,.expedition-discover-toggle,.expedition-trail span,.weekly-numbers>strong,.weekly-goal-icon) {color:var(--ui-accent);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .stage-tag {background:var(--ui-soft)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.expedition-deck,.expedition-log,.expedition-discoveries,.effects-preview,.total-progress-label strong,.activity-row,.activity-table-heading,.record-row,.q-schedule,.q-history-row,.shop-item-actions,.loadout-details,.shop-welcome .q-wallet,.mystery-identity,.mystery-rules,.mystery-history) {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.expedition-hero .effects-preview,.expedition-hero .expedition-discoveries,.expedition-hero .hero-content>.expedition-replay-controls) {background:var(--ui-surface);border-color:var(--ui-line);box-shadow:0 10px 35px var(--ui-shadow)}
+:root[data-interface]:not([data-interface="interface-default"]) .home-shortcuts>button:hover {background:var(--ui-surface-raised);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.home-shortcuts small,.home-shortcuts .invitation-link) {color:var(--ui-muted)}
+
+/* Readable labels on review, quests, records and the atelier. Currency and
+   per-subject accents keep their established semantic colors on dark themes. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-wallet b,.q-mentor h2,.q-task h3,.q-numbers strong,.q-history-row strong,.shop-words h2,.shop-item h3,.q-loadout h3,.equipped-slots strong,.exchange-intro h3,.quick-skin-item strong,.record-row strong,.record-duration,.activity-subject>div>strong,.mystery-identity h2,.mystery-heading h3,.mystery-conditions li>span,.mystery-subjects b,.source-explanation strong,.settings-label,.weekly-setting label,.opening-settings strong,.mystery-settings-note strong) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-topline p,.q-topline .eyebrow,.q-wallet small,.q-mentor h2 small,.q-mentor-header p,.afternoon .q-mentor-header p,.q-schedule,.q-numbers strong small,.q-numbers>span,.q-reward>small,.q-money small,.q-task-note,.q-rules p,.q-rules summary span,.q-history-row,.q-history-row small,.q-empty,.q-empty small,.shop-words p,.shop-words small,.q-loadout p,.shop-item-info>p,.shop-item-type,.shop-browser-heading p,.shop-browser-heading>span,.q-shop-note,.loadout-details summary>span,.equipped-slots span,.exchange-intro small,.exchange-controls label,.exchange-hint,.exchange-history time,.exchange-history p,.shop-markets small,.quick-skins header small,.quick-skin-item small,.quick-skin-empty,.activity-subject small,.activity-insight p,.activity-table-heading,.activity-rule,.activity-label,.record-row small,.empty,.trash-row p,.trash-note,.mystery-identity p,.mystery-identity h2 small,.mystery-disabled,.mystery-conditions li,.mystery-conditions small,.mystery-today>span,.mystery-today p,.mystery-gift-track p,.mystery-pending span,.mystery-subjects>span,.mystery-actions>p,.mystery-rules p,.mystery-history small,.mystery-history summary span,.mystery-settings-note,.opening-settings p,.opening-settings small) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-loadout .eyebrow,.shop-words .eyebrow,.loadout-details summary,.q-rules,.shop-item.equipped .shop-owned,.equipped-slots i,.quick-skin-status,.quick-skin-item i,.mystery-eyebrow,.mystery-rules summary,.mystery-history summary,.activity-overview,.activity-insight strong) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-progress-caption,.q-study-account,.q-reward-breakdown,.q-action-reward>small,.mystery-multiplier small,.mystery-status,.mystery-conditions i,.mystery-open-gifts button) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-study-account b,.q-reward-breakdown b) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-study-account,.q-reward-breakdown,.mystery-history>div,.mystery-open-gifts button) {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-markets>button,.shop-markets b) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button[data-shop-market=owned].active {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button[data-shop-market=owned].active :is(small,b) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-areas {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-areas>[data-shop-area] {background:var(--ui-surface);border-color:var(--ui-line);color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-areas>[data-shop-area].active {background:var(--ui-surface-raised);border-color:var(--ui-accent);color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-areas>[data-shop-area]:hover {background:var(--ui-soft);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-areas small {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-areas>.text-button {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(th,.chart-value,.chart-day,.chart-footer,.week-navigation>div,.record-source) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) td {color:var(--ui-ink);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(td:first-child,td:last-child) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(th,.record-source,.toggle-row,.source-group,.source-detail-row,.trash-row,.trash-note) {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .chart-bar {background:linear-gradient(var(--ui-line),var(--ui-surface-raised))}
+:root[data-interface]:not([data-interface="interface-default"]) .chart-column.today .chart-bar {background:linear-gradient(var(--ui-accent),var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.chart-column.today .chart-value,.chart-column.today .chart-day,.week-navigation .text-button) {color:var(--ui-accent)}
+
+/* Dialog chrome excludes bespoke illustrated opening/celebration scenes. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(dialog:not(#opening-dialog):not(#celebration-dialog),.quick-skins) {color:var(--ui-ink);background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);box-shadow:0 30px 100px #0006}
+:root[data-interface="interface-tide"] :is(dialog:not(#opening-dialog):not(#celebration-dialog),.quick-skins) {background-size:32px 32px,32px 32px,auto}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.dialog-intro,.settings-label span,.target-inputs label,.mapping-row label,.mapping-help,.mapping-table-head,.toggle-row span,.target-summary,.weekly-setting p,.weekly-setting-input>span,.source-explanation,.source-detail-row span,.source-detail-row b,.calendar-pending p,.calendar-pending small,#quest-action-body>p,#quest-action-body .q-fineprint,#mystery-dialog-body>p,#mystery-dialog-body p.mystery-fineprint) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.target-summary strong,.source-group .source-detail-row:first-child span,.calendar-pending p b,#quest-action-body strong,#quest-action-body b,.quick-skins h2) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(#date-picker,.target-inputs input,.weekly-setting-input input,.mapping-row select,.exchange-controls input) {background:var(--ui-control);color:var(--ui-ink);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .toggle-row input {accent-color:var(--ui-accent)}
+:root[data-interface][data-interface="interface-paper"] #date-picker {color-scheme:light}
+:root[data-interface]:not([data-interface="interface-default"]) .quick-skin-item {background:var(--ui-soft);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .quick-skin-item[aria-pressed=true] {border-color:var(--ui-accent)}
+
+/* City / camp interface framing only; interiors remain their collected worlds. */
+:root[data-interface]:not([data-interface="interface-default"]) .citadel-view {background:var(--ui-panel-detail),var(--ui-bg);color:var(--ui-ink);border-color:var(--ui-line);box-shadow:0 0 0 20px color-mix(in srgb,var(--ui-bg) 92%,transparent),0 25px 100px var(--ui-shadow)}
+:root[data-interface]:not([data-interface="interface-default"]) .citadel-header {background:var(--ui-sidebar)}
+:root[data-interface]:not([data-interface="interface-default"]) .citadel-inspector {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.citadel-header button,.citadel-preview-row>button,.citadel-replay,.citadel-locations button) {background:var(--ui-soft);color:var(--ui-muted);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.citadel-header button:hover,.citadel-preview-row>button:hover,.citadel-replay:hover,.citadel-locations button:hover,.citadel-locations button[aria-pressed=true]) {background:var(--ui-surface-raised);color:var(--ui-ink);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.citadel-heading>span,.citadel-eyebrow,.citadel-heading h2 small,.citadel-status,.citadel-inspector>p,.citadel-place-data p,.citadel-aside-note,.citadel-place-data>strong small,.citadel-preview-note,.citadel-locations button>span,.citadel-subject-list span,.citadel-records span) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.citadel-place-data,.citadel-status) {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.citadel-place-data>strong,.citadel-preview-row b,.citadel-status strong) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.citadel-route-text>span,.citadel-route-text>p,.citadel-map-hint) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .citadel-route-text>strong {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) #campfire-room {background:var(--ui-shell-detail),var(--ui-bg);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) #campfire-room .campfire-card {background:linear-gradient(100deg,var(--ui-soft),transparent 90%);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-room-bar,.campfire-duty,.campfire-memory-records li) {border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-room-bar h2,.campfire-duty h3,.campfire-memory-records strong,.campfire-study-stars span) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-room-bar>div>span,.campfire-world-status,.campfire-world-status>span,.campfire-speaker small,.campfire-speaker p,.campfire-talk-footer>span,.campfire-duty>p,.campfire-duty>small,.campfire-duty-summary span,.campfire-rest-clock span,.campfire-memory-records small,.campfire-study-stars small) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-place-caption>span,.campfire-place-caption>p,.campfire-world-hint) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-place-caption>strong {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-room-bar button,.campfire-next,.campfire-duty-action,.campfire-topics button) {background:var(--ui-soft);border-color:var(--ui-line);color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-room-bar button:hover,.campfire-next:hover,.campfire-duty-action:hover,.campfire-topics button[aria-pressed=true]) {background:var(--ui-surface-raised);border-color:var(--ui-accent);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-card:is([data-chatframe="chatframe-default"],:not([data-chatframe])) .campfire-line p {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-card:is([data-chatframe="chatframe-default"],:not([data-chatframe])) .campfire-line strong {color:var(--ui-muted)}
+
+/* Arcade lobby, game instructions, results; no selector reaches mines cells,
+   classic toolbar, canvases or game art. */
+:root[data-interface]:not([data-interface="interface-default"]) .arcade-shell {color:var(--ui-ink);--arcade-line:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.arcade-play,.arcade-pass,.arcade-collection-grid article,.arcade-memory) {background:var(--ui-surface);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.arcade-destination-copy h3,.arcade-pass>strong,.arcade-library-card strong,.arcade-collection-grid strong,.arcade-memory strong,.arcade-how-grid b,.arcade-rulebook summary,.arcade-boundaries summary,.arcade-collection>summary,.arcade-album>summary,.mines-guide h4,.mines-guide dt) {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.arcade-eyebrow,.arcade-subtitle,.arcade-library-card small,.arcade-collection>summary b,.arcade-place-record b,.arcade-text-button,.arcade-quota>span b,.arcade-captain-records>span) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.arcade-heading h2>span,.arcade-pass>span,.arcade-pass>i,.arcade-pass strong small,.arcade-quota,.arcade-description,.arcade-place-record,.arcade-entry-note,.arcade-library-card span,.arcade-library-card i,.arcade-variant-list button span,.arcade-collection>summary small,.arcade-collection-body>p,.arcade-collection-grid p,.arcade-collection-grid small,.arcade-captain-records b,.arcade-how-grid p,.arcade-boundaries>p,.arcade-rulebook summary span,.arcade-boundaries summary span,.arcade-result-copy p,.arcade-result-reward>span,.arcade-result-reward small,.arcade-memory small,.arcade-memory-body p,.arcade-memory-reward-label,.arcade-memory-body>div>small,.arcade-album>summary small,.arcade-album>summary>span:last-child,.arcade-game-message,.mines-status,.mines-guide,.mines-best,.mines-safety span) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .arcade-ticket-dots i.ready {background:var(--ui-accent);border-color:var(--ui-line);box-shadow:0 0 9px var(--ui-soft)}
+
+/* Distinct construction details: carved leaf corners / chart plotting lines /
+   brass brackets / stitched notebook edge. All are static paints. */
+:root[data-interface="interface-forest"] :is(.shop-welcome,.weekly-goal,.quest-hero.expedition-hero) {box-shadow:inset 0 1px 0 #cfdfad18,inset 0 -1px 0 #0a171955,0 10px 30px var(--ui-shadow)}
+:root[data-interface="interface-forest"] .brand-mark {border-radius:16px 5px 16px 5px}
+:root[data-interface="interface-forest"] .sidebar {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 190'%3E%3Cg fill='none' stroke='%237d9b6b' stroke-width='1' opacity='.18'%3E%3Cpath d='M7 184Q69 152 87 58M53 147Q18 115 25 81Q64 99 53 147M70 115Q111 110 129 80Q88 75 70 115M80 91Q53 65 63 37Q89 49 80 91M17 179Q88 182 165 154'/%3E%3Cpath d='M54 145L31 96M72 112L117 88M80 90L67 48'/%3E%3C/g%3E%3C/svg%3E"),var(--ui-panel-detail);background-position:left bottom,0 0,0 0;background-size:100% 190px,auto,auto;background-repeat:no-repeat,repeat,repeat}
+:root[data-interface="interface-forest"] .topbar {border-bottom-style:double}
+:root[data-interface="interface-tide"] :is(.side-note,.source-status,footer,.q-schedule,.q-rules,.loadout-details,.citadel-status,.campfire-room-bar) {border-style:dashed}
+:root[data-interface="interface-tide"] .brand-mark {border-radius:50%;outline:1px dashed var(--ui-line);outline-offset:3px}
+:root[data-interface="interface-tide"] .nav-item.active {box-shadow:inset 0 0 0 1px var(--ui-line);background-image:linear-gradient(90deg,var(--ui-accent) 2px,transparent 2px);background-repeat:no-repeat;background-size:2px 40%;background-position:7px center}
+:root[data-interface="interface-amber"] :is(.shop-welcome,.weekly-goal,.quest-hero.expedition-hero) {box-shadow:inset 3px 3px 0 #d6ae6521,inset -3px -3px 0 #d6ae6514,0 10px 30px var(--ui-shadow)}
+:root[data-interface="interface-amber"] .brand-mark {border-radius:4px;box-shadow:inset 0 0 0 3px #6f573132}
+:root[data-interface="interface-amber"] :is(.section-heading,.q-schedule,.loadout-details) {text-decoration-color:var(--ui-line)}
+:root[data-interface][data-interface="interface-paper"] :is(.panel,.shop-welcome,.weekly-goal,.quest-hero.expedition-hero,.stat-card) {box-shadow:1px 2px 0 #76826522,3px 4px 0 #f6f2e7}
+:root[data-interface][data-interface="interface-paper"] .sidebar {background:linear-gradient(90deg,transparent calc(100% - 13px),#858e7620 calc(100% - 13px),#858e7620 calc(100% - 12px),transparent calc(100% - 12px)),var(--ui-sidebar)}
+:root[data-interface][data-interface="interface-paper"] .brand-mark {border-radius:4px 12px 4px 12px;box-shadow:inset 0 0 0 3px #f6f3e766}
+:root[data-interface][data-interface="interface-paper"] .nav-item.active {box-shadow:inset 0 -2px 0 var(--ui-accent);background:var(--ui-soft)}
+
+/* Paper is light, but the collected landscape, banner, portraits and classic
+   games keep their authored contrast and colors inside a dark display case. */
+:root[data-interface][data-interface="interface-paper"] :is(.expedition-canvas,.campfire-world-map) {background-color:#1c2733;border:1px solid #425563}
+:root[data-interface][data-interface="interface-paper"] .expedition-canvas {--ui-ink:#e6e5eb;--ui-muted:#aab3c5;--ui-accent:#d2c5e4}
+:root[data-interface][data-interface="interface-paper"] :is(.expedition-map-heading>span,.expedition-map-footer) {color:#adb6c8}
+:root[data-interface][data-interface="interface-paper"] .expedition-map-heading>strong {color:#d6d5e2}
+:root[data-interface][data-interface="interface-paper"] .expedition-map-footer>span:last-child {color:#c1bccf}
+:root[data-interface][data-interface="interface-paper"] :is(.expedition-subjects>button,.subject-card) {background:#253447;border-color:#47546a;color:#e7e7f2}
+:root[data-interface][data-interface="interface-paper"] .expedition-subjects>button:hover,:root[data-interface][data-interface="interface-paper"] .expedition-subjects>button[aria-pressed=true] {background:color-mix(in srgb,var(--isle-color) 13%,#253447);border-color:var(--isle-color)}
+:root[data-interface][data-interface="interface-paper"][data-banner]:not([data-banner="banner-default"]) .level-pill {color:#e7e7f2}
+:root[data-interface][data-interface="interface-paper"][data-banner]:not([data-banner="banner-default"]) .equipped-player-card {--ui-ink:#e2d5ea;--ui-muted:#aaa1b7;--ui-accent:#c4abd9;--ui-surface:#1b2232;--ui-soft:#bda3d510;--ui-line:#93839f60}
+:root[data-interface][data-interface="interface-paper"] :is(.shop-item-visual,.q-action-art,.quick-skin-thumb) {background-color:#1e2836}
+:root[data-interface][data-interface="interface-paper"] :is(.shop-item .shop-item-visual .shop-item-type,.shop-item .shop-item-visual .shop-owned) {color:#c4c9d5}
+:root[data-interface][data-interface="interface-paper"] .shop-item.owned .shop-owned {color:#b3d8c2}
+:root[data-interface][data-interface="interface-paper"] .shop-item.equipped .shop-owned {color:#dbc5f1}
+:root[data-interface][data-interface="interface-paper"] :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b) {color:#49645b}
+:root[data-interface][data-interface="interface-paper"] .afternoon :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b) {color:#645b82}
+:root[data-interface][data-interface="interface-paper"] :is(.q-task.ready .q-status,.q-task.claimed .q-status,.shop-free,.mystery-today strong,.mystery-conditions .met i,.campfire-duty-summary strong,.mines-safety strong) {color:#406c52}
+:root[data-interface][data-interface="interface-paper"] .q-task:not(.ready):not(.claimed) .q-status {color:var(--ui-muted)}
+:root[data-interface][data-interface="interface-paper"] :is(.q-money,.coin-mark,.shop-single-price,.arcade-money,.exchange-cost,.exchange-intro p>b,.mystery-pending strong,.mystery-gift-track h4,.mystery-multiplier,.mystery-history strong,.mystery-status.ready,.citadel-place-state[data-awake=true],.citadel-records b,.citadel-subject-list strong,.mines-best strong) {color:#856025}
+:root[data-interface][data-interface="interface-paper"] :is(.diamond-mark,.shop-single-price.diamonds,.arcade-money.diamond,.exchange-intro p,.exchange-history strong) {color:#3d708f}
+:root[data-interface][data-interface="interface-paper"] :is(.shop-markets>button.active,.shop-markets>button.active small,.shop-markets>button.active b) {color:#856025}
+:root[data-interface][data-interface="interface-paper"] :is(.shop-markets>button[data-shop-market=diamonds].active,.shop-markets>button[data-shop-market=diamonds].active small,.shop-markets>button[data-shop-market=diamonds].active b) {color:#3d708f}
+:root[data-interface][data-interface="interface-paper"] :is(.shop-markets>button[data-shop-market=owned].active,.shop-markets>button[data-shop-market=owned].active small,.shop-markets>button[data-shop-market=owned].active b) {color:var(--ui-accent)}
+:root[data-interface][data-interface="interface-paper"] :is(.q-first-round,.q-first-round-window,.q-first-round-amount>span,.q-first-round>p) {color:#766545}
+:root[data-interface][data-interface="interface-paper"] :is(.q-first-round-heading strong,.q-first-round-heading>span,.q-first-round-amount b,.q-first-round.ready .q-first-round-heading>span,.q-first-round>p.q-first-round-pending) {color:#80602a}
+:root[data-interface][data-interface="interface-paper"] .q-first-round.claimed .q-first-round-heading>span {color:#406c52}
+:root[data-interface][data-interface="interface-paper"] :is(.q-first-round-window>span:last-child,.mystery-open-gifts strong,.mystery-dialog-reward) {color:#80602a}
+:root[data-interface][data-interface="interface-paper"] :is(.activity-time.lecture strong,.activity-label.lecture) {color:#795c92}
+:root[data-interface][data-interface="interface-paper"] :is(.activity-time.practice strong,.activity-label.practice) {color:#40745c}
+:root[data-interface][data-interface="interface-paper"] .activity-total.lecture {--activity-color:#795c92}
+:root[data-interface][data-interface="interface-paper"] .activity-total.practice {--activity-color:#40745c}
+:root[data-interface][data-interface="interface-paper"] .activity-total:not(.lecture):not(.practice) {--activity-color:#647175}
+:root[data-interface][data-interface="interface-paper"] :is(.activity-total>strong small,.activity-insight.rest strong,.activity-insight.neutral strong) {color:var(--ui-muted)}
+:root[data-interface][data-interface="interface-paper"] :is(.record-remove,.form-error) {color:#a04458}
+:root[data-interface][data-interface="interface-paper"] .table-subject {background:color-mix(in srgb,var(--subject-color) 32%,white);color:#35433e}
+:root[data-interface][data-interface="interface-paper"] :is(.citadel-locations button[data-current=true] small,.citadel-locations button[data-awake=true]>span,.citadel-preview-row>#citadel-demo,.citadel-interact,.citadel-inspector>.citadel-feedback) {color:#80602a}
+:root[data-interface][data-interface="interface-paper"] .citadel-locations button[data-citadel-select=core] {background:var(--ui-soft)}
+:root[data-interface][data-interface="interface-paper"] .citadel-locations button[data-citadel-select=core]>span {color:var(--ui-accent)}
+:root[data-interface][data-interface="interface-paper"] :is(.citadel-place-state,.campfire-duty-kicker,.campfire-speaker strong,.campfire-duty-link,.campfire-memory-records li>span,.campfire-rest-clock strong) {color:var(--ui-accent)}
+:root[data-interface][data-interface="interface-paper"] .campfire-study-stars strong {color:color-mix(in srgb,var(--study-star) 35%,#21382f)}
+:root[data-interface][data-interface="interface-paper"] .campfire-card[data-chatframe]:not([data-chatframe="chatframe-default"]) .campfire-line p {color:var(--chat-ink)}
+:root[data-interface][data-interface="interface-paper"] .campfire-card[data-chatframe]:not([data-chatframe="chatframe-default"]) .campfire-line strong {color:var(--chat-title)}
+:root[data-interface][data-interface="interface-paper"] .arcade-notice {color:#7c5a25}
+:root[data-interface][data-interface="interface-paper"] .arcade-abandon-confirm {background:#f0dfd8;border-color:#b28c7b}
+:root[data-interface][data-interface="interface-paper"] .arcade-abandon-confirm :is(strong,p) {color:#80564d}
+:root[data-interface][data-interface="interface-paper"] :is(.arcade-reward-details,.arcade-empty-collection) {color:var(--ui-muted)}
+
+/* Product detail cards describe construction, not merely a color swatch. */
+#quest-action-dialog.interface-item-dialog {width:min(780px,94vw)}
+.interface-item-dialog .q-action-art {height:auto;min-height:0;overflow:visible;background:none;display:block;margin:16px 0}
+.interface-full-preview {width:100%;overflow:hidden;border-radius:12px;border:1px solid #a8afbc3d;background:var(--ui-surface,#1b2131)}
+.interface-full-preview>svg {width:100%;height:auto;display:block;stroke:none;max-height:300px}
+.shop-item-visual .interface-app-mini {width:94%;height:auto;max-height:100%}
+.interface-preview-details {display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:12px}
+.interface-preview-detail {padding:12px;border:1px solid var(--ui-line,#71638655);border-radius:8px;background:var(--ui-soft,#a98ac009)}
+.interface-preview-detail>span {display:block;font-size:10px;color:var(--ui-accent,#b99ada);margin-bottom:6px;letter-spacing:1px}
+.interface-preview-detail strong {display:block;font-size:12px;color:var(--ui-ink,#ded1ec)}
+.interface-preview-detail p {margin-top:7px;font-size:11px;line-height:1.75;color:var(--ui-muted,#a69ab7)}
+.interface-compat-note {color:var(--ui-muted,#a69ab7);font-size:11px;line-height:1.8;margin:12px;padding-top:10px;border-top:1px solid var(--ui-line,#71638655)}
+@media(max-height:820px) {#quest-action-dialog.interface-item-dialog {padding:20px 24px}.interface-full-preview>svg {max-height:210px}.interface-item-dialog .dialog-footer {margin-top:16px}.interface-item-dialog .q-action-reward {margin:12px 0;padding:12px}.interface-item-dialog .interface-preview-detail {padding:10px}}
+@media(max-width:600px) {.interface-preview-details {grid-template-columns:1fr}#quest-action-dialog.interface-item-dialog {width:94vw}}

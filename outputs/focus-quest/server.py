@@ -121,6 +121,11 @@ SHOP_CATALOG = (
     ("theme-ocean", "theme", "深海回廊", "让星辉城与群岛映入深蓝海光的环境", 0, 36),
     ("theme-sakura", "theme", "樱色晴空", "为星辉城与群岛铺开温柔的樱色天幕", 0, 48),
     ("theme-aurora", "theme", "极夜天幕", "让极光夜色环绕星辉城与群岛的天际", 0, 60),
+    ("interface-default", "interface", "原初星夜", "保留熟悉的紫色夜幕与界面纹理，可与所有装饰、时装和特效搭配", 0, 0),
+    ("interface-forest", "interface", "松风书斋", "让界面浸入松绿与暖木色，以枝叶边饰和书斋纹理装点卡片；保留已装备的装饰与特效", 1200, 0),
+    ("interface-tide", "interface", "潮汐航图", "为界面换上深蓝海色、航图网格与罗盘细节；保留已装备的装饰与特效", 1800, 0),
+    ("interface-amber", "interface", "琥珀工坊", "让琥珀暖光、黄铜边框与工坊刻度贯穿界面；保留已装备的装饰与特效", 0, 24),
+    ("interface-paper", "interface", "月白手札", "用月白纸面、墨色文字与手札页边带来明亮界面；保留已装备的装饰与特效", 0, 32),
     ("companion-default", "companion", "独自出发", "沿星辉城环岛路线独自前行，暂不携带随行伙伴", 0, 0),
     ("companion-fox", "companion", "萤尾灵狐", "让萤尾灵狐陪着旅人，随学习进度沿星辉城外围同行", 0, 16),
     ("companion-owl", "companion", "书卷夜枭", "让书卷夜枭陪着旅人，随学习进度沿星辉城外围同行", 0, 24),
@@ -185,7 +190,7 @@ SHOP_CATALOG = (
 SHOP_ITEMS = {item[0]: dict(zip(("id", "slot", "name", "description", "coins", "diamonds"), item))
               for item in SHOP_CATALOG}
 SHOP_CATEGORIES = {"bar": "进度条", "fx": "星岛特效", "avatar": "我的时装",
-                   "banner": "旅人铭牌", "theme": "星岛环境", "companion": "随行伙伴",
+                   "banner": "旅人铭牌", "theme": "星岛环境", "interface": "界面主题", "companion": "随行伙伴",
                    "relic": "星岛圣物", "portal": "远征之门", "island": "主岛布置", "camp": "营地地貌",
                    "fire": "篝火样式", "tent": "歇脚帐篷", "campgear": "营地陈设",
                    "campglow": "营地氛围", "chatframe": "对话外观", "camptrail": "营地小径", "campmark": "营地地标"}
