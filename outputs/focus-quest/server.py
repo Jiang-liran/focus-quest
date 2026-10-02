@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """Focus Quest: local-only, read-only TomatoTodo importer and study dashboard.
 
-No third-party packages are required. Completed task records are retained in a
-separate SQLite database, even if TomatoTodo removes its local copies. Targets
-are current settings, including when viewing previous days.
+No third-party packages are required. Records stay recoverable in a separate
+SQLite archive; confirmed source deletions move them out of active statistics.
+Targets are current settings, including when viewing previous days.
 """
 from __future__ import annotations
 
@@ -391,8 +391,23 @@ class FocusStore:
                 PRIMARY KEY (source, source_key)
             );
             CREATE INDEX IF NOT EXISTS record_aliases_record ON record_aliases(record_id);
+            CREATE TABLE IF NOT EXISTS source_presence (
+                source TEXT NOT NULL, source_key TEXT NOT NULL, active INTEGER NOT NULL DEFAULT 1,
+                missing_count INTEGER NOT NULL DEFAULT 0, last_snapshot TEXT,
+                PRIMARY KEY (source, source_key)
+            );
+            CREATE TABLE IF NOT EXISTS record_lifecycle (
+                record_id TEXT PRIMARY KEY, deleted_at TEXT, reason TEXT, manual_action TEXT
+            );
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
+        # Upgrade old archives without changing record IDs or dropping history.
+        with self.db:
+            for row in self.db.execute("SELECT * FROM records").fetchall():
+                key = row["source_id"] if row["source"] == "calendar" else f'{row["source_id"]}:{row["start_ms"]}'
+                self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (row["source"], key, row["id"]))
+            self.db.execute("""INSERT OR IGNORE INTO source_presence(source,source_key)
+                               SELECT source,source_key FROM record_aliases""")
         self.settings = json.loads(json.dumps(DEFAULT_SETTINGS))
         stored = self._meta("settings")
         if stored:
@@ -404,7 +419,7 @@ class FocusStore:
         self.revision = int(self._meta("revision") or 0)
         self.sync = {"connected": False, "sourcePath": str(self.source), "lastCheck": None,
                      "lastImport": self._meta("lastImport"), "error": None,
-                     "importedCount": self.db.execute("SELECT COUNT(*) FROM records").fetchone()[0],
+                     "importedCount": self._active_count(),
                      "pollSeconds": POLL_SECONDS}
         self.calendar_config = self.data_dir / "calendar-bridge-config.json"
         self.calendar_snapshot = self.data_dir / "calendar-bridge-snapshot.json"
@@ -426,6 +441,57 @@ class FocusStore:
     def _bump_revision(self):
         self.revision += 1
         self._set_meta("revision", self.revision)
+
+    def _active_count(self, source=None):
+        sql = """SELECT COUNT(*) FROM records r WHERE NOT EXISTS
+                 (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)"""
+        if source:
+            sql += " AND EXISTS (SELECT 1 FROM record_aliases a WHERE a.record_id=r.id AND a.source=?)"
+        return self.db.execute(sql, (source,) if source else ()).fetchone()[0]
+
+    def _reset_missing(self, source):
+        self.db.execute("UPDATE source_presence SET missing_count=0 WHERE source=? AND missing_count<>0", (source,))
+
+    def _observe_source(self, source, seen, token, eligible=lambda row: True):
+        """Two healthy observations confirm absence; each source has its own vote."""
+        rows = self.db.execute("""SELECT a.source_key,a.record_id,r.name,r.start_ms,r.end_ms,
+                p.active,p.missing_count,p.last_snapshot FROM record_aliases a
+                JOIN records r ON r.id=a.record_id
+                JOIN source_presence p ON p.source=a.source AND p.source_key=a.source_key
+                WHERE a.source=?""", (source,)).fetchall()
+        for row in rows:
+            # Calendar timestamps are monotonically increasing; rereading the
+            # same cached file or an older replay is not a new observation.
+            if row["last_snapshot"] == token or (source == "calendar" and row["last_snapshot"] is not None
+                                                  and int(token) <= int(row["last_snapshot"])):
+                continue
+            if row["source_key"] in seen:
+                self.db.execute("""UPDATE source_presence SET active=1,missing_count=0,last_snapshot=?
+                                   WHERE source=? AND source_key=?""", (token, source, row["source_key"]))
+            elif eligible(row):
+                missing = min(2, row["missing_count"] + 1)
+                self.db.execute("""UPDATE source_presence SET active=?,missing_count=?,last_snapshot=?
+                                   WHERE source=? AND source_key=?""",
+                                (0 if missing >= 2 else row["active"], missing, token, source, row["source_key"]))
+            else:
+                self.db.execute("""UPDATE source_presence SET missing_count=0,last_snapshot=?
+                                   WHERE source=? AND source_key=?""", (token, source, row["source_key"]))
+        changed = 0
+        rows = self.db.execute("""SELECT r.id,l.deleted_at,l.manual_action,
+                EXISTS(SELECT 1 FROM record_aliases a JOIN source_presence p
+                  ON a.source=p.source AND a.source_key=p.source_key
+                  WHERE a.record_id=r.id AND p.active=1) AS source_active
+                FROM records r LEFT JOIN record_lifecycle l ON l.record_id=r.id""").fetchall()
+        for row in rows:
+            if row["manual_action"] in ("delete", "keep"):
+                continue
+            deleted = not row["source_active"]
+            if deleted != bool(row["deleted_at"]):
+                self.db.execute("""INSERT INTO record_lifecycle VALUES (?,?,?,NULL)
+                    ON CONFLICT(record_id) DO UPDATE SET deleted_at=excluded.deleted_at,reason=excluded.reason""",
+                    (row["id"], now_iso() if deleted else None, "source_missing" if deleted else None))
+                changed += 1
+        return changed
 
     def close(self):
         with self.lock:
@@ -473,6 +539,7 @@ class FocusStore:
             if len(candidates) == 1:
                 previous, record_id = candidates[0], candidates[0]["id"]
         self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (source, source_key, record_id))
+        self.db.execute("INSERT OR IGNORE INTO source_presence(source,source_key) VALUES (?,?)", (source, source_key))
         # A matching desktop record includes Tomato's measured focus minutes,
         # which are more authoritative than a calendar event's elapsed span.
         if previous is not None and source == "calendar" and previous["source"] == "tomatodo":
@@ -496,13 +563,37 @@ class FocusStore:
                 with self.db:
                     for record in records:
                         changed += self._upsert_record(record)
+                    # Zero-minute/incomplete source rows still prove presence.
+                    # Any unidentifiable row makes absence detection unsafe.
+                    seen = set()
+                    healthy = True
+                    for item in source_records:
+                        try:
+                            rid = item["id"]
+                            if isinstance(rid, bool) or not isinstance(rid, (str, int)) or not str(rid):
+                                raise ValueError("记录标识无效")
+                            start = int(finite_number(item["startDate"], minimum=1, maximum=32503680000000))
+                            finite_number(item["createDate"], minimum=1, maximum=32503680000000)
+                            finite_number(item["time"], minimum=0, maximum=1440 * 365)
+                            if (not isinstance(item["name"], str) or not item["name"].strip()
+                                    or type(item["isComplete"]) is not int or item["isComplete"] not in (0, 1)):
+                                raise ValueError("记录字段无效")
+                            seen.add(f"{rid}:{start}")
+                        except (KeyError, TypeError, ValueError, OverflowError):
+                            healthy = False
+                    if healthy:
+                        changed += self._observe_source("tomatodo", seen, str(uuid.uuid4()))
+                    else:
+                        self._reset_missing("tomatodo")
                     if changed:
                         self.sync["lastImport"] = now_iso()
                         self._set_meta("lastImport", self.sync["lastImport"])
                         self._bump_revision()
-                self.sync.update(connected=True, error=None, importedCount=self.db.execute("SELECT COUNT(*) FROM records").fetchone()[0])
+                self.sync.update(connected=True, error=None, importedCount=self._active_count())
                 return changed
             except (OSError, ValueError, UnicodeError, sqlite3.Error) as error:
+                with self.db:
+                    self._reset_missing("tomatodo")
                 if isinstance(error, FileNotFoundError):
                     message = "暂时找不到番茄 ToDo 本地记录；已保存的学习记录仍然保留。"
                 elif isinstance(error, PermissionError):
@@ -551,9 +642,10 @@ class FocusStore:
         with self.lock:
             self.calendar_sync["lastCheck"] = now_iso()
             self.calendar_sync.update(pendingCount=0, pendingRecords=[])
-            self.calendar_sync["importedCount"] = self.db.execute(
-                "SELECT COUNT(DISTINCT record_id) FROM record_aliases WHERE source='calendar'").fetchone()[0]
+            self.calendar_sync["importedCount"] = self._active_count("calendar")
             if not self.calendar_config.exists():
+                with self.db:
+                    self._reset_missing("calendar")
                 self.calendar_sync.update(enabled=False, connected=False, error=None, calendarName=None)
                 return 0
             try:
@@ -562,12 +654,15 @@ class FocusStore:
                     raise ValueError("日历同步开关无效")
                 self.calendar_sync["enabled"] = config["enabled"]
                 if not config["enabled"]:
+                    with self.db:
+                        self._reset_missing("calendar")
                     self.calendar_sync.update(connected=False, error=None)
                     return 0
                 calendar_id = config.get("calendarID")
                 if not isinstance(calendar_id, str) or not calendar_id or len(calendar_id) > 2000:
                     raise ValueError("尚未选择用于同步的日历")
                 allowed = self._refresh_calendar_titles(config)
+                observed_allowed = set(config["allowedTitles"])
                 snapshot = self._read_bridge_json(self.calendar_snapshot)
                 if snapshot.get("kind") != "focus_calendar_snapshot":
                     raise ValueError("日历快照类型无效")
@@ -608,15 +703,34 @@ class FocusStore:
                     if record[0] in unique and unique[record[0]] != record:
                         raise ValueError("日历快照包含冲突的重复记录")
                     unique[record[0]] = record
+                # Validate the whole collection at the moment the helper read it.
+                # In particular, an old pending item is still evidence that the
+                # event exists even if its end passed while this file was cached.
+                observed = [normalize_calendar_record(event, calendar_id, allowed, generated_ms,
+                            range_start, range_end, pending=is_pending)
+                            for values, is_pending in ((events, False), (pending_events, True)) for event in values]
+                healthy = all(item is not None for item in observed)
+                stale = now_ms - generated_ms > CALENDAR_STALE_SECONDS * 1000
+                def covered(row):
+                    try:
+                        identity = json.loads(row["source_key"])
+                    except (TypeError, ValueError):
+                        return False
+                    return (isinstance(identity, list) and identity and identity[0] == calendar_id
+                            and row["name"] in observed_allowed
+                            and range_start <= row["start_ms"] < row["end_ms"] <= min(range_end, generated_ms))
                 changed = 0
                 with self.db:
                     for record in unique.values():
                         changed += self._upsert_record(record)
+                    if healthy and not stale:
+                        changed += self._observe_source("calendar", {item[1] for item in observed}, str(generated_ms), covered)
+                    else:
+                        self._reset_missing("calendar")
                     if changed:
                         self.calendar_sync["lastImport"] = now_iso()
                         self._set_meta("calendarLastImport", self.calendar_sync["lastImport"])
                         self._bump_revision()
-                stale = now_ms - generated_ms > CALENDAR_STALE_SECONDS * 1000
                 title = calendar.get("title")
                 self.calendar_sync.update(connected=not stale, calendarName=title[:500] if isinstance(title, str) else None,
                     snapshotAt=snapshot["generatedAt"], ignoredCount=len(events) - len(records),
@@ -624,10 +738,12 @@ class FocusStore:
                     pendingRecords=[{"name": item[2], "start": iso_ms(item[4]), "end": iso_ms(item[5]), "minutes": item[3]}
                                     for item in sorted(pending_records.values(), key=lambda item: (item[5], item[0]))[:10]],
                     error="日历读取暂未更新；已保存的记录仍然保留，唤醒 Mac 后会继续同步。" if stale else None,
-                    importedCount=self.db.execute("SELECT COUNT(DISTINCT record_id) FROM record_aliases WHERE source='calendar'").fetchone()[0])
-                self.sync["importedCount"] = self.db.execute("SELECT COUNT(*) FROM records").fetchone()[0]
+                    importedCount=self._active_count("calendar"))
+                self.sync["importedCount"] = self._active_count()
                 return changed
             except (OSError, ValueError, UnicodeError, sqlite3.Error, OverflowError) as error:
+                with self.db:
+                    self._reset_missing("calendar")
                 message = "等待手机日历同步服务读取记录。" if isinstance(error, FileNotFoundError) else f"日历同步将自动重试：{error}"
                 self.calendar_sync.update(connected=False, error=message)
                 return 0
@@ -665,12 +781,48 @@ class FocusStore:
             self.settings = updated
             return updated
 
+    def move_record(self, record_id, *, restore=False):
+        if not isinstance(record_id, str) or not record_id or len(record_id) > 5000:
+            raise ValueError("记录标识无效")
+        with self.lock, self.db:
+            if not self.db.execute("SELECT 1 FROM records WHERE id=?", (record_id,)).fetchone():
+                raise ValueError("找不到这条学习记录")
+            # Explicit restoration pins this local copy, even if both source
+            # records remain deleted. Explicit trashing blocks reimport forever
+            # unless the user later restores this same record.
+            self.db.execute("""INSERT INTO record_lifecycle VALUES (?,?,?,?)
+                ON CONFLICT(record_id) DO UPDATE SET deleted_at=excluded.deleted_at,
+                reason=excluded.reason,manual_action=excluded.manual_action""",
+                (record_id, None if restore else now_iso(), None if restore else "manual", "keep" if restore else "delete"))
+            self._bump_revision()
+            self.sync["importedCount"] = self._active_count()
+            self.calendar_sync["importedCount"] = self._active_count("calendar")
+
+    def _serialize_record(self, row):
+        return {"id": row["id"], "name": row["name"], "subject": classify(row["name"], self.settings["mapping"]),
+                "activity": classify_activity(row["name"], self.settings["activityMapping"]),
+                "minutes": row["minutes"], "start": iso_ms(row["start_ms"]), "end": iso_ms(row["end_ms"]),
+                "day": row["day"], "source": row["source"]}
+
+    def trash(self):
+        with self.lock:
+            count = self.db.execute("SELECT COUNT(*) FROM record_lifecycle WHERE deleted_at IS NOT NULL").fetchone()[0]
+            records = [dict(self._serialize_record(row), deletedAt=row["deleted_at"], deletionReason=row["reason"],
+                            manualDeleted=row["manual_action"] == "delete") for row in self.db.execute("""
+                SELECT r.*,l.deleted_at,l.reason,l.manual_action FROM records r
+                JOIN record_lifecycle l ON l.record_id=r.id WHERE l.deleted_at IS NOT NULL
+                ORDER BY l.deleted_at DESC,r.end_ms DESC,r.id DESC LIMIT 100""")]
+            return {"count": count, "records": records}
+
     def state(self, selected_day=None, now=None):
         now = now or datetime.now().astimezone()
         selected_day = selected_day or now.date().isoformat()
         selected = parse_day(selected_day)
         with self.lock:
-            all_records = [dict(row) for row in self.db.execute("SELECT * FROM records ORDER BY end_ms DESC, id DESC")]
+            all_records = [dict(row) for row in self.db.execute("""SELECT r.* FROM records r
+                WHERE NOT EXISTS (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)
+                ORDER BY end_ms DESC,id DESC""")]
+            task_names = sorted(row[0] for row in self.db.execute("SELECT DISTINCT name FROM records"))
             settings = json.loads(json.dumps(self.settings))
             daily = [row for row in all_records if row["day"] == selected_day]
             minutes = round(sum(row["minutes"] for row in daily), 4)
@@ -688,11 +840,7 @@ class FocusStore:
             # No multipliers: rewards reflect actual completed minutes.
             xp = math.floor(all_minutes)
             level = xp // 120 + 1
-            def serialize(row):
-                return {"id": row["id"], "name": row["name"], "subject": classify(row["name"], settings["mapping"]),
-                        "activity": classify_activity(row["name"], settings["activityMapping"]),
-                        "minutes": row["minutes"], "start": iso_ms(row["start_ms"]), "end": iso_ms(row["end_ms"]),
-                        "day": row["day"], "source": row["source"]}
+            serialize = self._serialize_record
             serialized = [serialize(row) for row in daily[:100]]
             weekly_totals = {}
             for row in all_records:
@@ -724,15 +872,16 @@ class FocusStore:
                     "activities": activity_summary(selected_day, daily, settings, minutes, target, now, advice),
                     "activityTypes": [{"id": aid, "name": name} for aid, name in ACTIVITY_TYPES],
                     "taskActivities": {name: classify_activity(name, settings["activityMapping"])
-                                       for name in sorted({row["name"] for row in all_records})},
-                    "taskNames": sorted({row["name"] for row in all_records}),
+                                       for name in task_names},
+                    "taskNames": task_names,
                     "dayRecordCount": len(daily),
                     "latestRecords": [serialize(row) for row in all_records[:20]],
                     "allTime": {"minutes": all_minutes, "records": len(all_records), "activeDays": len(weekly_totals)},
                     "badges": badges, "advice": advice,
-                    "sync": dict(self.sync), "calendarSync": dict(self.calendar_sync), "settings": settings,
+                    "sync": dict(self.sync, importedCount=len(all_records)),
+                    "calendarSync": dict(self.calendar_sync, importedCount=self._active_count("calendar")), "settings": settings,
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
-                    "revision": self.revision}
+                    "trash": self.trash(), "revision": self.revision}
 
     def export_csv(self):
         with self.lock:
@@ -741,7 +890,9 @@ class FocusStore:
             writer.writerow(["记录ID", "日期", "任务", "科目", "学习方式", "分钟", "开始时间", "完成时间", "来源"])
             names = {sid: name for sid, name, _ in SUBJECTS} | {"other": "待分类"}
             activity_names = dict(ACTIVITY_TYPES)
-            for row in self.db.execute("SELECT * FROM records ORDER BY day, end_ms"):
+            for row in self.db.execute("""SELECT r.* FROM records r WHERE NOT EXISTS
+                (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)
+                ORDER BY day,end_ms"""):
                 # Escape spreadsheet formulas in user-controlled names/IDs.
                 def safe(value):
                     value = str(value)
@@ -816,6 +967,8 @@ def make_handler(store, static_dir=STATIC_DIR):
                     self._send(200, store.state(query.get("date", [None])[0]))
                 elif url.path == "/api/export":
                     self._send(200, store.export_csv(), "text/csv; charset=utf-8", "focus-quest-records.csv")
+                elif url.path == "/api/trash":
+                    self._send(200, store.trash())
                 elif url.path.startswith("/api/"):
                     self._send(404, {"error": "接口不存在"})
                 else:
@@ -839,7 +992,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                 return
             try:
                 path = urlsplit(self.path).path
-                if path not in ("/api/settings", "/api/sync"):
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore"):
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -855,6 +1008,11 @@ def make_handler(store, static_dir=STATIC_DIR):
                     raise ValueError("请求必须为 JSON 对象")
                 if path == "/api/settings":
                     store.update_settings(payload)
+                    self._send(200, store.state())
+                elif path in ("/api/records/trash", "/api/records/restore"):
+                    if set(payload) != {"id"}:
+                        raise ValueError("请提供要操作的记录标识")
+                    store.move_record(payload["id"], restore=path.endswith("/restore"))
                     self._send(200, store.state())
                 else:
                     store.import_sources()

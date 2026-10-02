@@ -17,6 +17,7 @@ let state = null, currentView = 'today', selectedDate = null, inFlight = false, 
 let baselineReady = false, seenRecords = new Set(), audioContext = null;
 let activeDialogue = null, dialogueDate = null;
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
+let recordMutationBusy = false;
 
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function icon(name) { return `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`; }
@@ -110,6 +111,7 @@ function render() {
   renderCalendarPending();
   renderHero();renderSubjects();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
+  if($('trash-dialog').open)renderTrash();
 }
 
 function pendingEnd(value) {
@@ -233,7 +235,27 @@ function renderRecords() {
   $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span><span class="record-xp">+${number(r.minutes)} XP</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
   $('history-stats').innerHTML=statCard('本日专注',durationHTML(state.totals.minutes))+statCard('完成任务',`${state.dayRecordCount??records.length}<small>个</small>`)+statCard('每日主线进度',`${pct(state.totals.percent)}`);
   $('archive-note').textContent=`${dateText(state.date)} · ${state.date} · ${(state.dayRecordCount??records.length)>100?'展示最近 100 条，全部记录可导出':'全部完成记录'}`;
-  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
+  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td>+${number(r.minutes)} XP</td><td><button class="record-remove" data-trash-record="${esc(r.id)}" aria-label="将${esc(r.name)}${number(r.minutes)}分钟移入回收站" ${recordMutationBusy?'disabled':''}>移除</button></td></tr>`).join(''):'<tr><td colspan="7"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
+  $('trash-open').textContent=`回收站${state.trash?.count?' · '+number(state.trash.count,0):''}`;
+}
+
+function renderTrash() {
+  const trash=state.trash||{count:0,records:[]};
+  $('trash-summary').textContent=`${number(trash.count,0)} 条记录 · 不计入时长、进度、经验及导出${trash.count>trash.records.length?' · 显示最近 '+trash.records.length+' 条':''}`;
+  $('trash-records').innerHTML=trash.records.length?trash.records.map(r=>`<article class="trash-row"><div><strong>${esc(r.name)} <span>${duration(r.minutes)}</span></strong><p>${esc(r.day)} · ${timeOf(r.end)} 完成 · ${r.deletionReason==='manual'?'在本机移除':'来源已删除'}</p></div><button class="secondary-button" data-restore-record="${esc(r.id)}" aria-label="恢复${esc(r.name)}${number(r.minutes)}分钟" ${recordMutationBusy?'disabled':''}>恢复</button></article>`).join(''):'<div class="empty">回收站是空的。</div>';
+}
+
+async function changeRecord(id, action) {
+  if(recordMutationBusy)return;
+  recordMutationBusy=true;renderRecords();if($('trash-dialog').open)renderTrash();
+  try {
+    const result=await api('/api/records/'+action,{id});
+    // Restoring a saved record is not a newly completed study session.
+    (result.latestRecords||[]).forEach(r=>seenRecords.add(r.id));
+    await refresh(true,true);
+    toast(action==='trash'?'记录已移到回收站':'记录已恢复',action==='trash'?'已从进度和经验中移除，可以在回收站恢复。':'已恢复到本机统计，不会重新写入番茄或日历。');
+  }catch(error){toast('记录更新未完成',error.message,true);}
+  finally{recordMutationBusy=false;renderRecords();if($('trash-dialog').open)renderTrash();}
 }
 
 function statCard(label,value) { return `<div class="stat-card"><span>${esc(label)}</span><strong>${value}</strong></div>`; }
@@ -354,6 +376,9 @@ function stepDate(amount) { if(!state)return;const d=new Date(state.date+'T12:00
 document.querySelectorAll('[data-view]').forEach(el=>el.addEventListener('click',()=>switchView(el.dataset.view)));
 document.querySelector('.brand').addEventListener('click',e=>{e.preventDefault();chooseDate(localDay());switchView('today');});
 $('all-records').addEventListener('click',()=>switchView('history'));
+$('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-dialog').showModal();}});
+$('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
+$('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
 $('advice-request').addEventListener('click',()=>requestAdvice(true));
 $('advice-next').addEventListener('click',()=>requestAdvice(false));
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);

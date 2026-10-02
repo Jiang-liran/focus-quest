@@ -1,0 +1,20 @@
+{
+  "build": 6,
+  "version": "1.4",
+  "tag": "v1.4",
+  "recovery_type": "exact released runtime source; recovered commit, not original development commit",
+  "source_location": "work/backups/before-v1.4.1-app.zip",
+  "source_kind": "app-zip",
+  "runtime_source_digest_sha256": "bacf61963ff9142eba1d2d3fbc5fdb9891910d3676955795696cf4187c43bca8",
+  "runtime_source_files_sha256": {
+    "server.py": "d4049dca3f92937ae9cb58f91a8882769d79d1459807e3a2ff4c05f82b21cd31",
+    "static/index.html": "613c8414e8dcd5330a6a8fe7fe7caa358a87183f59ab8f70fc5b396d18e3a7af",
+    "static/advice.js": "66d59cdbc984510d008c3ca58f6ca4024ef174018eb30ad86d41cab7e1912be6",
+    "static/style.css": "63c5b2a47498f762a70592394a3940e8f8157581b6f819c32975bccfdb17509a",
+    "static/app.js": "55d317e44870de21d51c7f0f71d2f355229402a06ac06ee1bc1a1cda659a1cf4"
+  },
+  "native_executable_sha256": "5c1836c2b7a123270d95a4098c266398fa872f1ec7369f152412bfef62baafaf",
+  "info_plist_sha256": "c34cdc838a3f36925f8f6662ef9312f9028272965c750618e3929f95d1091ce0",
+  "native_swift_source_available": false,
+  "original_zip_sha256": "8c0a0f88dd6d737d2dbe693a5809327ab05aa7f5150759ddb539691126492de3"
+}
