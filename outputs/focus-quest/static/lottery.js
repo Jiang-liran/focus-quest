@@ -64,12 +64,27 @@
     return ticketArt(machine);
   }
   function resultTitle(result){return result.type==='item'?result.item?.name||'一件新收藏':result.type==='coins'?`${count(result.coins)} 金币`:result.type==='diamonds'?`${count(result.diamonds)} 钻石`:'一份小小惊喜';}
+  function resultKind(result){
+    if(result.type==='item'){
+      const item=result.item||{},catalog=data?.machines?.flatMap(row=>row.collection||[]).find(row=>row.id===item.id);
+      if(result.limited===true||item.lotteryOnly===true||catalog?.lotteryOnly===true)return {id:'limited',label:'抽奖限定商品'};
+      if(number(item.diamonds)>0)return {id:'diamond-item',label:'钻石商品'};
+      if(number(item.coins)>0)return {id:'coin-item',label:'金币商品'};
+      return {id:'item',label:'收藏商品'};
+    }
+    if(result.type==='coins'||result.type==='diamonds'){
+      const diamond=result.type==='diamonds',unit=diamond?'钻石':'金币';
+      if(result.fallback)return {id:'supply',label:`${result.limited?'限定藏品':'商品奖池'}集齐补给 · ${unit}`};
+      return {id:diamond?'diamonds':'coins',label:`随机${unit}`};
+    }
+    return {id:'other',label:'惊喜奖励'};
+  }
   function resultHTML(){
     const result=results.get(machine);
     if(busy?.action==='draw'&&busy.machine===machine&&busy.viewId===viewId)return `<div class="lottery-stage is-opening" role="status"><div class="lottery-sealed-orb" aria-hidden="true"><i></i><b>✦</b><i></i></div><h3>正在打开这份惊喜…</h3><p>用掉一张券，收下一份礼物。</p></div>`;
     if(!result)return `<div class="lottery-stage is-idle">${cabinetArt(machine)}<h3>${machine==='coin'?'把小小的努力，换成一份惊喜。':'月光里，藏着另一种幸运。'}</h3><p>投入一张${labels[machine].ticket}，打开一次。</p></div>`;
-    const rarity=['ordinary','rare','jackpot'].includes(result.rarity)?result.rarity:'ordinary';
-    return `<div class="lottery-stage is-result ${rarity}${result.limited?' is-limited':''}" role="status" aria-live="polite"><span class="lottery-result-eyebrow">${result.pityTriggered?'如约而来的限定惊喜':result.limited?'只有这里，才会遇见':rarity==='jackpot'?'闪耀的惊喜':result.type==='item'?'新的收藏':rarity==='rare'?'幸运的小礼':'你的抽奖结果'}</span><div class="lottery-result-art" aria-hidden="true">${resultArt(result)}</div><h3>${esc(resultTitle(result))}</h3><p>${result.type==='item'?esc(result.item?.description||'已永久加入收藏，喜欢的话可以去换上。'):'已经收进你的行囊。'}${result.fallback?result.limited?' 限定藏品已集齐，本次换成限定补给。':' 藏品池已集齐，本次换成货币补给。':''}</p>${result.limited&&!result.fallback?'<span class="lottery-limited-stamp">抽奖限定 · 无法购买</span>':''}${result.type==='item'?'<button type="button" class="lottery-quiet" data-lottery-action="collection" data-lottery-focus="collection">去看看收藏 ↗</button>':''}</div>`;
+    const rarity=['ordinary','rare','jackpot'].includes(result.rarity)?result.rarity:'ordinary',kind=resultKind(result);
+    return `<div class="lottery-stage is-result ${rarity}${result.limited?' is-limited':''}" role="status" aria-live="polite"><div class="lottery-result-meta"><span class="lottery-result-kind ${kind.id}">${esc(kind.label)}</span><span class="lottery-result-eyebrow">${result.pityTriggered?'如约而来的限定惊喜':result.limited?'只有这里，才会遇见':rarity==='jackpot'?'闪耀的惊喜':result.type==='item'?'新的收藏':rarity==='rare'?'幸运的小礼':'你的抽奖结果'}</span></div><div class="lottery-result-art" aria-hidden="true">${resultArt(result)}</div><h3>${esc(resultTitle(result))}</h3><p>${result.type==='item'?esc(result.item?.description||'已永久加入收藏，喜欢的话可以去换上。'):'已经收进你的行囊。'}${result.fallback?result.limited?' 限定藏品已集齐，本次换成限定补给。':' 藏品池已集齐，本次换成货币补给。':''}</p>${result.limited&&!result.fallback?'<span class="lottery-limited-stamp">抽奖限定 · 无法购买</span>':''}${result.type==='item'?'<button type="button" class="lottery-quiet" data-lottery-action="collection" data-lottery-focus="collection">去看看收藏 ↗</button>':''}</div>`;
   }
   const percent=value=>number(value).toLocaleString('zh-CN',{maximumFractionDigits:3});
   function ruleLink(kind){
@@ -176,7 +191,7 @@
   }
   function historyHTML(){
     const rows=(data?.history||[]).filter(row=>row.machine===machine).slice(0,4);
-    return rows.length?`<div class="lottery-history"><h3>最近拆开的礼物</h3><ul>${rows.map(row=>`<li><span>${esc(resultTitle(row.result||{}))}</span><small>${Number.isFinite(Date.parse(row.drawnAt))?esc(new Date(row.drawnAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})):'已收好'}</small></li>`).join('')}</ul></div>`:'';
+    return rows.length?`<div class="lottery-history"><h3>最近拆开的礼物</h3><ul>${rows.map(row=>`<li><span>${esc(resultTitle(row.result||{}))}<span class="lottery-history-kind">${esc(resultKind(row.result||{}).label)}</span></span><small>${Number.isFinite(Date.parse(row.drawnAt))?esc(new Date(row.drawnAt).toLocaleString('zh-CN',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit',hour12:false})):'已收好'}</small></li>`).join('')}</ul></div>`:'';
   }
   function paint(){
     if(!host||!machine||rulesDialog?.open)return;
