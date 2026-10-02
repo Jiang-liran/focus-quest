@@ -19,6 +19,7 @@
   const currency=item=>item.currency||(item.diamonds?'diamonds':item.coins?'coins':'free');
   const price=item=>currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
   const avatar=(role,outfit)=>window.QuestArt?.avatar(role,outfit)||'';
+  const mentorPeriod=q=>q.recommended?.period||q.period;
   function replace(id,html){
     const el=$(id);
     // Browsers normalize SVG and boolean attributes in innerHTML. Compare the
@@ -28,9 +29,19 @@
   function actionFor(q){
     if(q.status==='available')return {action:'accept',label:'接取委托'};
     if(q.status==='ready')return {action:'submit',label:'交付委托'};
+    if(q.continuous)return {action:null,label:q.status==='active'?(q.firstCompleted?'继续专注 · 等待新收获':'专注中 · 等待首次达标'):'暂不可用'};
     return {action:null,label:{locked:clock(q.opensAt)+' 发布',active:new Date(data?.now||0)>=new Date(q.deadline)?'等待同步 · 未达标':'专注中 · 等待达标',expired:'已过今日期限',claimed:'奖励已收下'}[q.status]||'暂不可用'};
   }
+  function continuousTaskMarkup(q,disabled){
+    const action=actionFor(q),progress=Math.max(0,Number(q.progressMinutes)||0),shownPercent=Math.floor(progress/q.target*1000)/10;
+    const first=!q.firstCompleted,reward=q.reward||{coins:0,diamonds:0};
+    const advertised=q.status==='available'||first&&q.status!=='ready'?q.baseReward:reward;
+    const rewardLabel=q.status==='available'||first&&q.status!=='ready'?'首次达标基础奖励':'本次可交付收获';
+    const note=q.status==='available'?'接取后开始累计，四科可同时接取。听课、做题均计入。':q.status==='ready'?'交付后继续累计；未满的金币与钻石进度会保留。':first?'先完成首次目标，再交付收获。跨天保留进度，按自己的节奏完成。':'首次目标已完成，新增专注继续产生奖励，有新收获就能再次交付。';
+    return `<article class="q-task continuous ${esc(q.status)}" data-subject="${esc(q.subject)}"><div class="q-task-heading"><h3>${esc(q.name)}</h3><span class="q-status">${esc(statuses[q.status]||'待同步')}</span></div><p class="q-progress-caption">${first?'首次目标与钻石进度':'下一份钻石进度'} · 每满 ${n(q.target)} 分钟得 2 钻石</p><div class="q-numbers"><strong>${n(progress)}<small>分钟</small></strong><span>/ ${n(q.target)} 分钟</span><b>${n(shownPercent)}%</b></div><div class="q-progress" role="progressbar" aria-label="${esc(q.name)}钻石进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,shownPercent)}" aria-valuetext="${n(shownPercent)}%"><i style="width:${Math.min(100,shownPercent)}%"></i></div><div class="q-study-account"><span>待交付专注 <b>${n(q.minutes)} 分钟</b></span><span>已交付专注 <b>${n(q.settledMinutes)} 分钟</b></span></div><div class="q-reward"><small>${rewardLabel}</small>${money(advertised?.coins||0,advertised?.diamonds||0)}</div><p class="q-task-note">${note}</p><button class="${action.action==='submit'?'primary-button':'secondary-button'} q-task-button" ${action.action?`data-quest-action="${action.action}" data-subject="${esc(q.subject)}"`:''} ${!action.action||disabled?'disabled':''}>${esc(action.label)}</button></article>`;
+  }
   function taskMarkup(q,disabled=false){
+    if(q.continuous)return continuousTaskMarkup(q,disabled);
     const action=actionFor(q),complete=q.status==='claimed',shownPercent=Math.floor(Math.max(0,Number(q.minutes)/Number(q.target)||0)*1000)/10;
     const reward=q.reward||{coins:0,diamonds:0},base=q.baseReward||{coins:q.target*2,diamonds:2};
     const gain=q.minutes>=q.target?`已积累 ${n(Math.floor(q.minutes/q.target*10)/10)} 倍目标时长`:'达标基础奖励';
@@ -62,10 +73,17 @@
     for(const prefix of ['wallet-side','quest','shop']){
       $(prefix+'-coins').textContent=n(data.wallet.coins);$(prefix+'-diamonds').textContent=n(data.wallet.diamonds);
     }
-    $('quest-today-label').textContent=shortDay(data.day)+' · 今日委托';
+    const continuous=data.quests.some(q=>q.continuous);
+    $('quest-today-label').textContent=shortDay(data.day)+(continuous?' · 全天自由委托':' · 今日委托');
     const ready=data.quests.filter(q=>q.status==='ready').length,active=data.quests.filter(q=>q.status==='active').length,available=data.quests.filter(q=>q.status==='available').length;
     $('quest-invitation-text').textContent=ready?`${ready} 项委托已达标，记得在期限内交付领奖。`:active?`${active} 项委托进行中，额外投入也会计入奖励。`:available?`${available} 项委托可以接取，去和营地伙伴聊聊。`:'今日委托已收起，明天再来开启新的旅程。';
-    replace('quest-board',Object.entries(mentors).map(([period,m])=>`<section class="q-mentor ${period}"><header class="q-mentor-header"><div class="q-portrait">${avatar(period,data.equipped.npc)}</div><div><span class="q-mentor-role">${esc(m.title)} · ${m.subjects}</span><h2>${m.name}<small>${period==='morning'?'守住晨光里的秩序':'沿着午后的光前行'}</small></h2><p>${m.quote}</p></div></header><div class="q-schedule"><span><i></i>${m.hours} 学习窗口</span><span>${m.grace} 交付截止</span></div><div class="q-task-grid">${data.quests.filter(q=>q.period===period).map(q=>taskMarkup(q,busy)).join('')}</div></section>`).join(''));
+    if(continuous)$('quest-invitation-text').textContent=ready?`${ready} 项委托有收获可交付，交付后继续累计。`:active?`${active} 项委托持续进行中，跨天保留进度，全天同等奖励。`:'四科委托随时可接，选好科目，再按自己的计划出发。';
+    replace('quest-board',Object.entries(mentors).map(([period,m])=>{
+      const tasks=data.quests.filter(q=>mentorPeriod(q)===period),recommended=tasks.some(q=>q.recommended?.active);
+      const quote=continuous?(period==='morning'?'「思路有它自己的节奏。想推演或思辨时，我一直在这里。」':'「带着问题出发，循着理解前行。每个时刻，都能写下新的进展。」'):m.quote;
+      const schedule=continuous?`<span><i></i>全天可接 · 跨天有效</span><span class="${recommended?'q-recommended':''}">${recommended?'此刻推荐':'常练时段：'+(period==='morning'?'上午':'下午')} · 奖励全天相同</span>`:`<span><i></i>${m.hours} 学习窗口</span><span>${m.grace} 交付截止</span>`;
+      return `<section class="q-mentor ${period}"><header class="q-mentor-header"><div class="q-portrait">${avatar(period,data.equipped.npc)}</div><div><span class="q-mentor-role">${esc(m.title)} · ${m.subjects}</span><h2>${m.name}<small>${continuous?'按你的节奏，随时启程':period==='morning'?'守住晨光里的秩序':'沿着午后的光前行'}</small></h2><p>${quote}</p></div></header><div class="q-schedule">${schedule}</div><div class="q-task-grid">${tasks.map(q=>taskMarkup(q,busy)).join('')}</div></section>`;
+    }).join(''));
     replace('shop-keeper',avatar('shop',data.equipped.npc));
     replace('player-outfit',avatar('player',data.equipped.avatar));
     const paid=data.catalog.filter(i=>currency(i)!=='free'),owned=paid.filter(i=>i.owned);
@@ -124,6 +142,13 @@
     if(busy)return;
     const q=data?.quests.find(q=>q.subject===subject);
     if(!q||actionFor(q).action!==action)return;
+    if(q.continuous){
+      intent={action,subject,...(action==='submit'?{requestId:window.crypto.randomUUID()}:{})};
+      const period=mentorPeriod(q),m=mentors[period];
+      const body=action==='accept'?`<p>接下 ${esc(m.name)} 的持续委托，首次完成 <strong>${n(q.target)} 分钟${esc(subjectNames[q.subject])}</strong>，就能交付收获。</p><div class="q-action-reward">${money(q.baseReward.coins,q.baseReward.diamonds)}<small>首次达标基础奖励 · 之后继续累计</small></div><p>从接取这一刻开始计入，全天同等奖励，跨天保留进度。听课、做题均可，四科可同时接取。</p><p class="q-fineprint">首次达标后，有新增金币即可再次交付。每有效分钟 2 金币，每满 ${n(q.target)} 分钟 2 钻石，零头跨次保留。</p>`:`<p>本次待交付 <strong>${n(q.minutes)} 分钟${esc(subjectNames[q.subject])}</strong>。</p><div class="q-action-reward">${money(q.reward.coins,q.reward.diamonds)}<small>本次预计收获</small></div><p>交付后，这项委托继续有效，后续学习会持续计入；未满的金币与钻石进度保留。</p><p class="q-fineprint">按提交时已同步的有效记录结算。手机稍后同步的记录仍可在下次交付，不会因这次提交而漏掉。</p>`;
+      dialog(action==='accept'?`接取${q.name}委托`:'把这份收获带回营地',action==='accept'?'YOUR OWN PACE':'READY TO TURN IN',avatar(period,data.equipped.npc),body,action==='accept'?'接下委托':'交付并继续',action==='accept'?'先看看':'稍后交付');
+      return;
+    }
     intent={action,subject};
     const m=mentors[q.period],body=action==='accept'?`<p>接下 ${esc(m.name)} 的委托，完成 <strong>${n(q.target)} 分钟${esc(subjectNames[q.subject])}</strong>。</p><div class="q-action-reward">${money(q.baseReward.coins,q.baseReward.diamonds)}<small>达标基础奖励 · 超额学习继续累积奖励</small></div><p>从接取这一刻开始累计。学习截止 <b>${clock(q.deadline)}</b>，请在 <b>${clock(q.submitDeadline)}</b> 前回来交付。</p>`:`<p>本次已计入 <strong>${n(q.minutes)} 分钟${esc(subjectNames[q.subject])}</strong>，达到目标的 <strong>${n(Math.floor(q.minutes/q.target*10)/10)} 倍</strong>。</p><div class="q-action-reward">${money(q.reward.coins,q.reward.diamonds)}<small>本次预计收获</small></div><p>确认后本项委托结算，后续学习不再追加本次奖励。${new Date(data.now)<new Date(q.deadline)?`若还有余力，可继续学习后再提交。`:''}</p><p class="q-fineprint">最晚 ${clock(q.submitDeadline)} 交付，以提交时已同步的有效记录结算。</p>`;
     dialog(action==='accept'?`接取${q.name}委托`:'把这份收获带回营地',action==='accept'?'A NEW CHAPTER':'READY TO TURN IN',avatar(q.period,data.equipped.npc),body,action==='accept'?'接下委托':'确认交付',action==='accept'?'先看看':'暂不交付');
@@ -141,13 +166,13 @@
     busy=true;$('quest-action-confirm').disabled=true;render(data);
     try{
       const paths={accept:'/api/quests/accept',submit:'/api/quests/submit',buy:'/api/shop/buy',equip:'/api/shop/equip',exchange:'/api/shop/exchange'};
-      const body=job.action==='exchange'?{diamonds:job.diamonds,requestId:job.requestId}:job.subject?{subject:job.subject}:{itemId:job.id};
+      const body=job.action==='exchange'?{diamonds:job.diamonds,requestId:job.requestId}:job.subject?{subject:job.subject,...(job.requestId?{requestId:job.requestId}:{})}:{itemId:job.id};
       const result=await bridge.api(paths[job.action],body);
       render(result);
       if(intent===job){intent=null;$('quest-action-dialog').close();}
       if(job.action==='submit'){
-        const q=result.quests.find(q=>q.subject===job.subject);
-        bridge.toast('委托交付 · 收获已入袋',`+${n(q.reward.coins)} 金币 · +${n(q.reward.diamonds)} 钻石`);
+        const reward=result.receipt||result.quests.find(q=>q.subject===job.subject).reward;
+        bridge.toast(reward.alreadyClaimed?'这次交付已确认':'委托交付 · 收获已入袋',`+${n(reward.coins)} 金币 · +${n(reward.diamonds)} 钻石`);
       }else if(job.action==='exchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'星光已入袋',`+${n(job.diamonds)} 钻石 · ${n(result.receipt?.coins||job.diamonds*(result.exchange?.coinsPerDiamond||75))} 金币已兑换`);
       else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，让星岛换上新模样。',equip:'已应用到你的星岛与营地。'}[job.action]);
       await bridge.refresh(true);

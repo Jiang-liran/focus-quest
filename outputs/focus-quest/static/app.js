@@ -211,7 +211,7 @@ function updateViewTitle() {
     $('greeting-eyebrow').textContent='YOUR FOCUS ARCHIVE';
   }else if(currentView==='quests'){
     $('page-title').textContent='接一份委托，踏实地出发。';
-    $('page-subtitle').textContent='跟着考试的时段练习，把专注换成属于你的收藏。';
+    $('page-subtitle').textContent='四科全天可接，按自己的计划学习，让每段专注都有回响。';
     $('greeting-eyebrow').textContent='MEET YOUR COMPANIONS';
   }else if(currentView==='shop'){
     $('page-title').textContent='让努力，拥有自己的模样。';
