@@ -104,16 +104,17 @@
     const sources=machine==='coin'?[
       ['完整委托','普通委托每交付完整 1 轮：1 张。数学、408 每轮 60 分钟，政治、英语每轮 30 分钟。'],
       ['学科礼盒','每科当日目标完成，打开该科岛屿礼盒：1 张。'],
-      ['时段加赠','上午两科首轮加赠领齐、下午两科首轮加赠领齐：各 1 张。'],
+      ['单科首轮','领取每科当日首轮加赠：1 张。四科各领一次，每天最多 4 张；与完整委托赠券分别计算。'],
       ['拾星星礼','「拾星」第 1、2 份星礼：各 1 张。']
     ]:[
       ['完整委托','四科普通委托合计每交付完整 3 轮：1 张。可连续学习同一科，也可自由搭配科目。'],
       ['主岛礼盒','总目标与四科目标都完成，打开主岛礼盒：1 张。'],
       ['融会贯通','知行研习所「融会贯通」额外奖赏：1 张。'],
       ['拾星星礼','「拾星」第 3、4 份星礼：各 1 张。'],
-      ['首轮集齐','四科首轮加赠全部领齐：1 张。']
+      ['上午首轮','同一学习日的数学、政治首轮加赠都领取：1 张。'],
+      ['下午首轮','同一学习日的 408、英语首轮加赠都领取：1 张。上午、下午各一次，每天最多 2 张。']
     ];
-    return `<p class="lottery-dialog-intro">专注带来的小票，可以留到想拆礼物的时候。以下奖励领取时会一起收好${labels[machine].ticket}。</p><section class="lottery-rule-section"><div class="lottery-rule-section-heading"><h3>随学习获得</h3><span>每次领取，都有迹可循</span></div><ol class="lottery-source-cards">${sources.map(([title,text],index)=>`<li><span class="lottery-source-index">${String(index+1).padStart(2,'0')}</span><div><h4>${esc(title)}</h4><p>${esc(text)}</p></div></li>`).join('')}</ol></section>${exchangeCost(item)?`<section class="lottery-rule-guarantee lottery-rule-exchange"><span>把游玩券留给幸运</span><h3>${exchangeCost(item)} 张游玩券，换 1 张${labels[machine].ticket}</h3><p>累计游玩券 ${count(data?.playTickets?.available)} 张。游玩券与抽奖券都会跨日永久保留。</p><p>兑换不限次数，不占用每日购券额度，也不会自动开奖。剩余游玩券仍可用于游戏；游玩次数与游戏奖励仍按日限制。</p></section>`:''}<section class="lottery-rule-guarantee"><span>也可以给幸运留一张小票</span><h3>${cost(item.price)} 换 1 张</h3><p>${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。</p><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次。回到机器旁即可购买，购券不会自动开奖。</p></section><section class="lottery-rule-section lottery-ticket-notes"><h3>收好以后，慢慢拆</h3><p>抽奖券永久保留，两种券各用各的。新领取的对应奖励会带上抽奖券，已经收好的旧奖励不补发。</p><p>普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。原有礼盒和时段加赠的抽奖券照常获得。</p></section>`;
+    return `<p class="lottery-dialog-intro">专注带来的小票，可以留到想拆礼物的时候。以下奖励领取时会一起收好${labels[machine].ticket}。</p><section class="lottery-rule-section"><div class="lottery-rule-section-heading"><h3>随学习获得</h3><span>每次领取，都有迹可循</span></div><ol class="lottery-source-cards">${sources.map(([title,text],index)=>`<li><span class="lottery-source-index">${String(index+1).padStart(2,'0')}</span><div><h4>${esc(title)}</h4><p>${esc(text)}</p></div></li>`).join('')}</ol></section>${exchangeCost(item)?`<section class="lottery-rule-guarantee lottery-rule-exchange"><span>把游玩券留给幸运</span><h3>${exchangeCost(item)} 张游玩券，换 1 张${labels[machine].ticket}</h3><p>累计游玩券 ${count(data?.playTickets?.available)} 张。游玩券与抽奖券都会跨日永久保留。</p><p>兑换不限次数，不占用每日购券额度，也不会自动开奖。剩余游玩券仍可用于游戏；游玩次数与游戏奖励仍按日限制。</p></section>`:''}<section class="lottery-rule-guarantee"><span>也可以给幸运留一张小票</span><h3>${cost(item.price)} 换 1 张</h3><p>${cost(item.price)}购买 1 张，每天最多购买 ${count(item.purchaseLimit)} 张。</p><p>今日已买 ${count(item.purchasesToday)} / ${count(item.purchaseLimit)} 张 · 剩余 ${count(item.purchasesRemaining)} 次。回到机器旁即可购买，购券不会自动开奖。</p></section><section class="lottery-rule-section lottery-ticket-notes"><h3>收好以后，慢慢拆</h3><p>抽奖券永久保留，两种券各用各的。首轮赠券按学习发生日归属；同一天、同一科和同一时段组合都只结算一次，晚些领取也不会重复发券。</p><p>普通委托的轮次与不足一轮的余量，跨天、重启都会保留；旧时已经交付的完整轮次不补发。更新前已经入袋的券会保留，历史首轮与补领以实际交付提示为准。</p></section>`;
   }
   function closeRules(refresh=true){
     const dialog=rulesDialog,focus=rulesFocus;rulesDialog=null;rulesFocus='';

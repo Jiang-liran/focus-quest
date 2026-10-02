@@ -236,6 +236,7 @@ MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
 LOTTERY_START_META = "lottery:featureStartMs:v1"
 LOTTERY_ROUNDS_META = "lottery:roundTickets:v1"
+LOTTERY_TIMED_V2_META = "lottery:timedTicketsV2:v1"
 PLAY_TICKETS_START_META = "arcade:persistentTicketsStartDay:v1"
 PLAY_TICKET_EXCHANGE_COSTS = {"coin": 2, "diamond": 4}
 RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
@@ -904,13 +905,28 @@ class FocusStore:
     def _initialize_lottery(self, now=None):
         # A feature epoch is installation time, not midnight: opening an old
         # archive never mints tickets for previously opened gifts or bonuses.
-        with self.lock, self.db:
+        with self._quest_transaction():
             if self._meta(LOTTERY_START_META) is None:
                 self._set_meta(LOTTERY_START_META, int(quest_clock(now).timestamp()*1000))
             if self._meta(LOTTERY_ROUNDS_META) is None:
                 self._set_meta(LOTTERY_ROUNDS_META, json.dumps({
                     "featureStartMs": int(quest_clock(now).timestamp()*1000), "totalRounds": 0,
                     "subjects": {sid: 0 for sid, _, _ in SUBJECTS}}, sort_keys=True))
+            if self._meta(LOTTERY_TIMED_V2_META) is None:
+                current = quest_clock(now)
+                day = current.date().isoformat()
+                legacy_subjects, legacy_pairs = [], []
+                for key, machine, slot in (("morning", "coin", "math"), ("afternoon", "coin", "cs"),
+                                           ("all", "diamond", "morning")):
+                    saved = self.db.execute("SELECT amount FROM lottery_ticket_ledger WHERE reference=? AND machine=?",
+                                            (f"timed:{day}:{key}", machine)).fetchone()
+                    if saved and saved[0] > 0:
+                        (legacy_subjects if machine == "coin" else legacy_pairs).append(slot)
+                self._set_meta(LOTTERY_TIMED_V2_META, json.dumps({"featureStartMs": int(current.timestamp()*1000),
+                    "migrationDay": day, "legacySubjectCredits": legacy_subjects,
+                    "legacyPairCredits": legacy_pairs}, sort_keys=True))
+                if self._timed_lottery_tickets(day, current):
+                    self._bump_revision()
 
     def _grant_lottery_ticket(self, reference, machine, source, label, current, count=1):
         created_ms = int(current.timestamp()*1000)
@@ -983,23 +999,50 @@ class FocusStore:
         total = progress["totalRounds"]
         return {"rounds": rounds, "coinTickets": rounds, "diamondTickets": (total+rounds)//3-total//3}
 
+    def _timed_ticket_plan(self, day, current, pending_subject=None):
+        policy = json.loads(self._meta(LOTTERY_TIMED_V2_META))
+        stamp, epoch = int(current.timestamp()*1000), int(self._meta(LOTTERY_START_META))
+        if stamp < max(epoch, policy["featureStartMs"]):
+            return []
+        completed = {row[0]: row[1] for row in self.db.execute(
+            "SELECT subject,submitted_ms FROM quest_bonus_receipts WHERE day=? AND submitted_ms>=?", (day, epoch))}
+        if pending_subject:
+            completed[pending_subject] = stamp
+        # Today's old rewards are assigned fixed new slots, preserving even
+        # already-spent tickets. Previously settled historical days are never
+        # scanned or upgraded; late claims reward only their new subject/pair.
+        migration_day = day == policy["migrationDay"]
+        subject_credits = set(policy["legacySubjectCredits"]) if migration_day else set()
+        pair_credits = set(policy["legacyPairCredits"]) if migration_day else set()
+        references = [f"timed-v2:{day}:subject:{sid}" for sid, _, _ in SUBJECTS]
+        references.extend(f"timed-v2:{day}:pair:{key}" for key in ("morning", "afternoon"))
+        marks = ",".join("?" for _ in references)
+        paid = {row[0] for row in self.db.execute(f"SELECT reference FROM lottery_ticket_ledger WHERE reference IN ({marks})", references)}
+        plans = []
+        for sid, name, _ in SUBJECTS:
+            reference = f"timed-v2:{day}:subject:{sid}"
+            eligible = sid in completed and (day >= policy["migrationDay"] or completed[sid] >= policy["featureStartMs"])
+            if eligible and sid not in subject_credits and reference not in paid:
+                plans.append((reference, "coin", "timed-subject", f"{name} · 首轮加赠"))
+        for subjects, key, label in (({"math", "politics"}, "morning", "上午双科首轮加赠"),
+                                     ({"cs", "english"}, "afternoon", "下午双科首轮加赠")):
+            reference = f"timed-v2:{day}:pair:{key}"
+            eligible = subjects <= completed.keys() and (day >= policy["migrationDay"] or
+                any(completed[sid] >= policy["featureStartMs"] for sid in subjects))
+            if eligible and key not in pair_credits and reference not in paid:
+                plans.append((reference, "diamond", "timed-"+key, label))
+        return plans
+
     def _timed_lottery_tickets(self, day, current):
-        # Period completion is based on claimed first-round bonuses. All
-        # constituents must have been claimed since this feature was installed;
-        # the final receipt cannot turn a pre-upgrade archive into free tickets.
-        epoch = int(self._meta(LOTTERY_START_META))
-        completed = {row[0] for row in self.db.execute(
-            "SELECT subject FROM quest_bonus_receipts WHERE day=? AND submitted_ms>=?", (day, epoch))}
-        grants = []
-        for subjects, machine, key, label in (
-            ({"math", "politics"}, "coin", "morning", "上午双科首轮加赠"),
-            ({"cs", "english"}, "coin", "afternoon", "下午双科首轮加赠"),
-            (SUBJECT_IDS, "diamond", "all", "四科首轮加赠")):
-            if subjects <= completed:
-                grant = self._grant_lottery_ticket(f"timed:{day}:{key}", machine, f"timed-{key}", label, current)
-                if grant:
-                    grants.append(grant)
-        return grants
+        return [grant for reference, machine, source, label in self._timed_ticket_plan(day, current)
+                if (grant := self._grant_lottery_ticket(reference, machine, source, label, current))]
+
+    def _timed_ticket_preview(self, subject, pending, current):
+        counts = {"coinTickets": 0, "diamondTickets": 0}
+        for item in pending:
+            for _, machine, _, _ in self._timed_ticket_plan(item["day"], current, subject):
+                counts["coinTickets" if machine == "coin" else "diamondTickets"] += 1
+        return counts
 
     @staticmethod
     def _lottery_machine(machine):
@@ -2260,7 +2303,8 @@ class FocusStore:
                   "status": status, "claimedAt": iso_ms(receipt["submitted_ms"]) if receipt else None,
                   "reward": {"coins": definition["target"], "diamonds": 1}, "pending": pending,
                   "pendingCount": len(pending), "pendingCoins": sum(item["coins"] for item in pending),
-                  "pendingDiamonds": sum(item["diamonds"] for item in pending)}
+                  "pendingDiamonds": sum(item["diamonds"] for item in pending),
+                  "lotteryTickets": self._timed_ticket_preview(subject, pending, current)}
         return result, eligible
 
     def _bonus_breakdown(self, request_id, coins, diamonds):

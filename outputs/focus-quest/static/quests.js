@@ -25,9 +25,13 @@
   const mentorPeriod=q=>q.recommended?.period||q.period;
   const roundName=period=>period==='afternoon'?'午后首轮':'晨光首轮';
   const rewardText=reward=>`${n(reward?.coins)} 金币 · ${n(reward?.diamonds)} 钻石`;
+  function ticketReward(tickets){
+    if(!tickets||!['coinTickets','diamondTickets'].every(key=>Number.isInteger(tickets[key])&&tickets[key]>=0))return null;
+    return [['coinTickets','金币抽奖券'],['diamondTickets','钻石抽奖券']].filter(([key])=>tickets[key]>0).map(([key,label])=>`${n(tickets[key])} 张${label}`).join(' · ');
+  }
   function roundTicketReward(round){
     if(!round||!['rounds','coinTickets','diamondTickets'].every(key=>Number.isInteger(round[key])&&round[key]>=0))return '';
-    return [['coinTickets','金币抽奖券'],['diamondTickets','钻石抽奖券']].filter(([key])=>round[key]>0).map(([key,label])=>`${n(round[key])} 张${label}`).join(' · ');
+    return ticketReward(round)||'';
   }
   function roundTicketSummary(){
     const rounds=data?.lottery?.roundTickets;
@@ -49,7 +53,8 @@
     const labels={unaccepted:'接取后开始',upcoming:'尚未开始',active:'慢慢积累',ready:'已达成 · 待领取',claimed:'今日已领取',ended:'时段已结束'};
     const notes={unaccepted:'接取后，这个时段内的专注就会开始累计。',upcoming:'还没到这个时段，现在学习的基础奖励照常。',active:'这一段有份小小加赠，按自己的节奏来。',ready:'这份收获会为你保留，方便时再来交付。',claimed:'今天的这份加赠已收下，基础奖励继续累计。',ended:'基础奖励照常，稍后同步的时段内记录仍可补入。'};
     const pending=Array.isArray(b.pending)?b.pending:[],past=pending.filter(row=>row.day!==b.day);
-    return `<section class="q-first-round ${esc(b.status)}" aria-label="${esc(q.name)}${roundName(b.period)}"><div class="q-first-round-heading"><strong>${roundName(b.period)}</strong><span>${esc(labels[b.status]||'等待同步')}</span></div><div class="q-first-round-window"><span>${esc(b.windowLabel)}</span><span>每天一次</span></div><div class="q-first-round-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${roundName(b.period)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}" aria-valuetext="${n(minutes)} / ${n(target)} 分钟"><i style="width:${percent}%"></i></div><div class="q-first-round-amount"><span>${n(minutes)} / ${n(target)} 分钟</span><span>额外 <b>${n(b.reward?.coins)}</b> 金币 · <b>${n(b.reward?.diamonds)}</b> 钻石</span></div><p>${esc(notes[b.status]||'已同步的有效专注会记在这里。')}</p>${past.length?`<p class="q-first-round-pending">另有过往 ${n(past.length)} 天的首轮待领取，交付时一起收下。</p>`:''}</section>`;
+    const tickets=ticketReward(b.lotteryTickets),ticketCopy=tickets?`本次首轮另得 ${tickets}，交付时一起收好。`:tickets!==null&&['unaccepted','upcoming','active'].includes(b.status)?'当日新首轮领取另赠 1 张金币抽奖券。':'';
+    return `<section class="q-first-round ${esc(b.status)}" aria-label="${esc(q.name)}${roundName(b.period)}"><div class="q-first-round-heading"><strong>${roundName(b.period)}</strong><span>${esc(labels[b.status]||'等待同步')}</span></div><div class="q-first-round-window"><span>${esc(b.windowLabel)}</span><span>每天一次</span></div><div class="q-first-round-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${roundName(b.period)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${percent}" aria-valuetext="${n(minutes)} / ${n(target)} 分钟"><i style="width:${percent}%"></i></div><div class="q-first-round-amount"><span>${n(minutes)} / ${n(target)} 分钟</span><span>额外 <b>${n(b.reward?.coins)}</b> 金币 · <b>${n(b.reward?.diamonds)}</b> 钻石</span></div><p>${esc(notes[b.status]||'已同步的有效专注会记在这里。')}</p>${ticketCopy?`<p class="q-first-round-ticket">${esc(ticketCopy)}</p>`:''}${past.length?`<p class="q-first-round-pending">另有过往 ${n(past.length)} 天的首轮待领取，交付时一起收下。</p>`:''}</section>`;
   }
   function bonusDays(rows){
     return Array.isArray(rows)&&rows.length?rows.map(row=>esc(row.day)).join('、'):'';
@@ -127,7 +132,8 @@
     replace('quest-board',Object.entries(mentors).map(([period,m])=>{
       const tasks=data.quests.filter(q=>mentorPeriod(q)===period),recommended=tasks.some(q=>q.recommended?.active);
       const quote=continuous?(period==='morning'?'「思路有它自己的节奏。想推演或思辨时，我一直在这里。」':'「带着问题出发，循着理解前行。每个时刻，都能写下新的进展。」'):m.quote;
-      const schedule=continuous?`<span><i></i>全天可接 · 基础奖励始终相同</span><span class="${recommended?'q-recommended':''}">${recommended?'此刻推荐':'常练时段：'+(period==='morning'?'上午':'下午')} · 首轮额外加赠</span>`:`<span><i></i>${m.hours} 学习窗口</span><span>${m.grace} 交付截止</span>`;
+      const pairTickets=continuous&&tasks.some(q=>q.bonus?.enabled&&ticketReward(q.bonus.lotteryTickets)!==null)?`<span>同日${period==='morning'?'数学、政治':'408、英语'}首轮领齐 · 1 张钻石抽奖券</span>`:'';
+      const schedule=continuous?`<span><i></i>全天可接 · 基础奖励始终相同</span><span class="${recommended?'q-recommended':''}">${recommended?'此刻推荐':'常练时段：'+(period==='morning'?'上午':'下午')} · 首轮额外加赠</span>${pairTickets}`:`<span><i></i>${m.hours} 学习窗口</span><span>${m.grace} 交付截止</span>`;
       return `<section class="q-mentor ${period}"><header class="q-mentor-header"><div class="q-portrait">${avatar(period)}</div><div><span class="q-mentor-role">${esc(m.title)} · ${m.subjects}</span><h2>${m.name}<small>${continuous?'按你的节奏，随时启程':period==='morning'?'守住晨光里的秩序':'沿着午后的光前行'}</small></h2><p>${quote}</p></div></header><div class="q-schedule">${schedule}</div><div class="q-task-grid">${tasks.map(q=>taskMarkup(q,busy)).join('')}</div></section>`;
     }).join(''));
     replace('shop-keeper',avatar('shop'));
@@ -226,11 +232,13 @@
     if(q.continuous){
       intent={action,subject,...(action==='submit'?{requestId:window.crypto.randomUUID()}:{})};
       const period=mentorPeriod(q),m=mentors[period];
-      const round=q.bonus,roundHint=round?.enabled?`<p class="q-accept-bonus">${roundName(round.period)}：${esc(round.windowLabel)} 内，接取后累计 ${n(round.target)} 分钟，额外获得 ${esc(rewardText(round.reward))}。每天每科一次，达成后可以晚些再领取。</p>`:'';
+      const round=q.bonus,bonusTickets=ticketReward(round?.lotteryTickets);
+      const roundHint=round?.enabled?`<p class="q-accept-bonus">${roundName(round.period)}：${esc(round.windowLabel)} 内，接取后累计 ${n(round.target)} 分钟，额外获得 ${esc(rewardText(round.reward))}。每天每科一次，达成后可以晚些再领取。</p>${bonusTickets!==null?`<p class="q-fineprint">当日每科首轮领取另赠 1 张金币抽奖券；同一学习日的${period==='morning'?'数学、政治':'408、英语'}首轮都领取，再赠 1 张钻石抽奖券。首轮赠券与普通委托轮次赠券分别计算。</p>`:''}`:'';
+      const bonusTicketHint=round?.enabled&&bonusTickets?`<p class="q-claim-bonus">本次首轮另得 <strong>${esc(bonusTickets)}</strong>，交付时一起收好。历史首轮按本次实际可领数量结算。</p>`:'';
       const pendingDays=bonusDays(round?.pending);
-      const ticketReward=roundTicketReward(q.roundTickets),ticketSummary=roundTicketSummary();
-      const ticketHint=q.roundTickets?`<p class="q-fineprint">${action==='submit'&&ticketReward?`本次普通委托另得 <strong>${esc(ticketReward)}</strong>。`:`每交付完整 ${n(q.target)} 分钟，得 1 张金币抽奖券。`}四科合计每交付 3 轮，再得 1 张钻石抽奖券；轮次与零头跨天、重启保留，旧完整轮次不补发。${ticketSummary?`<br>${esc(ticketSummary)}`:''}</p>`:'';
-      const body=action==='accept'?`<p>接下 ${esc(m.name)} 的持续委托，首次完成 <strong>${n(q.target)} 分钟${esc(subjectNames[q.subject])}</strong>，就能交付收获。</p><div class="q-action-reward">${money(q.baseReward.coins,q.baseReward.diamonds)}<small>首次达标基础奖励 · 之后继续累计</small></div><p>从接取这一刻开始计入，基础奖励始终相同，跨天保留进度。听课、做题均可，四科可同时接取。</p>${roundHint}<p class="q-fineprint">首次达标后，有新增基础奖励或已达成的首轮加赠即可交付。每有效分钟 2 金币，每满 ${n(q.target)} 分钟 2 钻石，零头跨次保留。</p>${ticketHint}`:`<p>${q.minutes>0?`本次待交付 <strong>${n(q.minutes)} 分钟${esc(subjectNames[q.subject])}</strong>。`:'这次带回已达成的首轮加赠，之前的基础奖励已经结算。'}</p><div class="q-action-reward">${money(q.reward.coins,q.reward.diamonds)}<small>本次预计总收获</small>${q.rewardBreakdown?rewardBreakdown(q.rewardBreakdown.base,q.rewardBreakdown.bonus):''}</div>${ticketHint}${pendingDays?`<p class="q-claim-bonus">首轮归属 ${pendingDays}，本次一起领取。奖励按学习发生的时段判断，与这次交付时间无关。</p>`:''}<p>交付后，这项委托继续有效，后续学习会持续计入；未满的金币与钻石进度保留。</p><p class="q-fineprint">按已同步的有效记录结算。手机稍后同步的记录仍可补入，已达成的首轮也能在下一次交付领取。</p>`;
+      const roundTicketText=roundTicketReward(q.roundTickets),ticketSummary=roundTicketSummary();
+      const ticketHint=q.roundTickets?`<p class="q-fineprint">${action==='submit'&&roundTicketText?`本次普通委托另得 <strong>${esc(roundTicketText)}</strong>。`:`每交付完整 ${n(q.target)} 分钟，得 1 张金币抽奖券。`}四科合计每交付 3 轮，再得 1 张钻石抽奖券；轮次与零头跨天、重启保留，旧完整轮次不补发。${ticketSummary?`<br>${esc(ticketSummary)}`:''}</p>`:'';
+      const body=action==='accept'?`<p>接下 ${esc(m.name)} 的持续委托，首次完成 <strong>${n(q.target)} 分钟${esc(subjectNames[q.subject])}</strong>，就能交付收获。</p><div class="q-action-reward">${money(q.baseReward.coins,q.baseReward.diamonds)}<small>首次达标基础奖励 · 之后继续累计</small></div><p>从接取这一刻开始计入，基础奖励始终相同，跨天保留进度。听课、做题均可，四科可同时接取。</p>${roundHint}<p class="q-fineprint">首次达标后，有新增基础奖励或已达成的首轮加赠即可交付。每有效分钟 2 金币，每满 ${n(q.target)} 分钟 2 钻石，零头跨次保留。</p>${ticketHint}`:`<p>${q.minutes>0?`本次待交付 <strong>${n(q.minutes)} 分钟${esc(subjectNames[q.subject])}</strong>。`:'这次带回已达成的首轮加赠，之前的基础奖励已经结算。'}</p><div class="q-action-reward">${money(q.reward.coins,q.reward.diamonds)}<small>本次预计总收获</small>${q.rewardBreakdown?rewardBreakdown(q.rewardBreakdown.base,q.rewardBreakdown.bonus):''}</div>${bonusTicketHint}${ticketHint}${pendingDays?`<p class="q-claim-bonus">首轮归属 ${pendingDays}，本次一起领取。奖励按学习发生的时段判断，与这次交付时间无关。</p>`:''}<p>交付后，这项委托继续有效，后续学习会持续计入；未满的金币与钻石进度保留。</p><p class="q-fineprint">按已同步的有效记录结算。手机稍后同步的记录仍可补入，已达成的首轮也能在下一次交付领取。</p>`;
       dialog(action==='accept'?`接取${q.name}委托`:'把这份收获带回营地',action==='accept'?'YOUR OWN PACE':'READY TO TURN IN',avatar(period),body,action==='accept'?'接下委托':'交付并继续',action==='accept'?'先看看':'稍后交付');
       return;
     }
