@@ -114,9 +114,12 @@
       if (row.day !== selectedDay) { outsideDay++; continue; }
       if (seen.has(row.id)) { duplicates++; continue; }
       seen.add(row.id);
+      const actualStart=typeof row.start==='string'&&Number.isFinite(Date.parse(row.start))&&Date.parse(row.start)<=Date.parse(row.end);
+      const estimatedStart=new Date(Date.parse(row.end)-minutes*60000);
       records.push({id: row.id, name: typeof row.name === 'string' ? row.name : '专注记录',
         subject: IDS.has(row.subject) ? row.subject : 'other', minutes,
-        start: typeof row.start === 'string' && Number.isFinite(Date.parse(row.start)) ? row.start : null,
+        start: actualStart ? row.start : Number.isFinite(estimatedStart.getTime()) ? estimatedStart.toISOString() : null,
+        startInferred: row.startInferred===true || !actualStart,
         end: row.end, day: row.day, source: typeof row.source === 'string' ? row.source : null});
     }
     records.sort((a, b) => Date.parse(a.end) - Date.parse(b.end) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));

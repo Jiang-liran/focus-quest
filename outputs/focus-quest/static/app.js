@@ -33,6 +33,12 @@ function hours(value) { return number(value/60,2); }
 function duration(value) { const m=Math.round(value); return m>=60 ? `${Math.floor(m/60)}小时${m%60 ? `${m%60}分钟` : ''}` : `${m}分钟`; }
 function durationHTML(value) { const m=Math.round(value); return m>=60 ? `${Math.floor(m/60)}<small>小时</small>${m%60 ? `${m%60}<small>分钟</small>` : ''}` : `${m}<small>分钟</small>`; }
 function timeOf(value) { if(!value)return '—'; const d=new Date(value); return Number.isNaN(+d)?'—':d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }
+function recordRange(record,referenceDay=state?.date) {
+  if(globalThis.FocusRecordTime)return globalThis.FocusRecordTime.range(record,{referenceDay});
+  const end=Date.parse(record.end),minutes=Number(record.minutes),start=record.start||(Number.isFinite(end)&&Number.isFinite(minutes)?new Date(end-minutes*60000).toISOString():null);
+  return `${timeOf(start)} → ${timeOf(record.end)}`;
+}
+function recordTimeTitle(record,referenceDay=state?.date){return globalThis.FocusRecordTime?.describe(record,{referenceDay})||`开始 → 结束：${recordRange(record,referenceDay)}`;}
 function dateText(value) { const d=new Date(value+'T12:00:00'); return d.toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'}); }
 function stageOf(percent) { return Math.max(0,Math.min(4,Math.floor(percent/25))); }
 function meta(id) { return subjectsMeta[id]||subjectsMeta.other; }
@@ -111,7 +117,7 @@ function checkNewRecords(next, quietRewards=false) {
     celebrationQueue.push(...unlocked.filter(event=>!(cityHandlesDaily&&event.type==='daily')).map(event=>celebrationFor(event)));
     setTimeout(playNextCelebration,0);
   } else if(!quietRewards) {
-    toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · 这段专注已记入今日旅程`);
+    toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `${fresh.length===1?recordRange(fresh[0],next.today):globalThis.FocusRecordTime?.group(fresh,{referenceDay:next.today})||recordRange(fresh[0],next.today)} · +${duration(gained)} · 已记入今日旅程`);
   }
   if(!quietRewards)globalThis.FocusExpedition?.noteArrival(fresh,next);
   if(!quietRewards && next.settings.sound){
@@ -230,7 +236,7 @@ function renderCalendarPending() {
   const pending=phone?.enabled?(phone.pendingRecords||[]):[];
   box.hidden=!pending.length;
   if(!pending.length){box.innerHTML='';return;}
-  const lines=pending.slice(0,3).map(r=>`<p><b>${esc(r.name)}</b> · ${number(r.minutes)} 分钟 · 日历结束时间 ${esc(pendingEnd(r.end))}</p>`).join('');
+  const lines=pending.slice(0,3).map(r=>`<p><b>${esc(r.name)}</b> · ${number(r.minutes)} 分钟 · <span class="record-time-range" title="${esc(recordTimeTitle(r,state.today))}">${esc(recordRange(r,state.today))}</span></p>`).join('');
   const content=`<strong>手机记录已收到 · 等待入账</strong>${lines}<small>结束时间到达后自动计入进度，无需重新添加。${phone.pendingCount>3?`另有 ${phone.pendingCount-3} 条等待记录。`:''}</small>`;
   if(box.innerHTML!==content)box.innerHTML=content;
 }
@@ -371,17 +377,17 @@ function renderActivities() {
 function renderRecords() {
   if(!changedView('records',[state.date,state.records,state.totals,state.dayRecordCount,state.trash?.count,recordMutationBusy]))return;
   const records=state.records;
-  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small>${timeOf(r.end)} 完成 · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':r.source==='history_xlsx'?' · 历史导入':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
+  $('recent-records').innerHTML=records.length?records.slice(0,3).map(r=>`<div class="record-row" style="--subject-color:${meta(r.subject).color}"><span class="record-dot"></span><div><strong>${esc(r.name)}</strong><small><span class="record-time-range" title="${esc(recordTimeTitle(r))}">${esc(recordRange(r))}</span> · ${esc(meta(r.subject).name)} · ${activityNames[r.activity]||activityNames.other}${r.source==='calendar'?' · 手机日历':r.source==='history_xlsx'?' · 历史导入':''}</small></div><span class="record-duration">${number(r.minutes)} 分钟</span></div>`).join(''):'<div class="empty"><span>✧</span>下一份收获，正在路上。<br>完成番茄 ToDo 计时后会自动出现在这里。</div>';
   $('history-stats').innerHTML=statCard('本日专注',durationHTML(state.totals.minutes))+statCard('完成任务',`${state.dayRecordCount??records.length}<small>个</small>`)+statCard('每日主线进度',`${pct(state.totals.percent)}`);
   $('archive-note').textContent=`${dateText(state.date)} · ${state.date} · ${(state.dayRecordCount??records.length)>100?'展示最近 100 条，全部记录可导出':'全部完成记录'}`;
-  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':r.source==='history_xlsx'?'<span class="record-source">历史导入</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td>${timeOf(r.end)}</td><td>${duration(r.minutes)}</td><td><button class="record-remove" data-trash-record="${esc(r.id)}" aria-label="将${esc(r.name)}${number(r.minutes)}分钟移入回收站" ${recordMutationBusy?'disabled':''}>移除</button></td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
+  $('history-records').innerHTML=records.length?records.map(r=>`<tr><td>${esc(r.name)}${r.source==='calendar'?'<span class="record-source">手机日历</span>':r.source==='history_xlsx'?'<span class="record-source">历史导入</span>':''}</td><td><span class="table-subject" style="--subject-color:${meta(r.subject).color}">${esc(meta(r.subject).name)}</span></td><td><span class="activity-label ${esc(r.activity)}">${activityNames[r.activity]||activityNames.other}</span></td><td class="record-time-range" title="${esc(recordTimeTitle(r))}">${esc(recordRange(r))}</td><td>${duration(r.minutes)}</td><td><button class="record-remove" data-trash-record="${esc(r.id)}" aria-label="将${esc(r.name)}${number(r.minutes)}分钟移入回收站" ${recordMutationBusy?'disabled':''}>移除</button></td></tr>`).join(''):'<tr><td colspan="6"><div class="empty">这一天还没有已完成的专注记录。</div></td></tr>';
   $('trash-open').textContent=`回收站${state.trash?.count?' · '+number(state.trash.count,0):''}`;
 }
 
 function renderTrash() {
   const trash=state.trash||{count:0,records:[]};
   $('trash-summary').textContent=`${number(trash.count,0)} 条记录 · 不计入时长、进度及导出${trash.count>trash.records.length?' · 显示最近 '+trash.records.length+' 条':''}`;
-  $('trash-records').innerHTML=trash.records.length?trash.records.map(r=>`<article class="trash-row"><div><strong>${esc(r.name)} <span>${duration(r.minutes)}</span></strong><p>${esc(r.day)} · ${timeOf(r.end)} 完成 · ${r.deletionReason==='manual'?'在本机移除':'来源已删除'}</p></div><button class="secondary-button" data-restore-record="${esc(r.id)}" aria-label="恢复${esc(r.name)}${number(r.minutes)}分钟" ${recordMutationBusy?'disabled':''}>恢复</button></article>`).join(''):'<div class="empty">回收站是空的。</div>';
+  $('trash-records').innerHTML=trash.records.length?trash.records.map(r=>`<article class="trash-row"><div><strong>${esc(r.name)} <span>${duration(r.minutes)}</span></strong><p>${esc(r.day)} · <span class="record-time-range" title="${esc(recordTimeTitle(r,r.day))}">${esc(recordRange(r,r.day))}</span> · ${r.deletionReason==='manual'?'在本机移除':'来源已删除'}</p></div><button class="secondary-button" data-restore-record="${esc(r.id)}" aria-label="恢复${esc(r.name)}${number(r.minutes)}分钟" ${recordMutationBusy?'disabled':''}>恢复</button></article>`).join(''):'<div class="empty">回收站是空的。</div>';
 }
 
 async function changeRecord(id, action) {
@@ -472,7 +478,7 @@ function renderSource() {
   if(p?.enabled){
     phoneRows.push(['同步日历',p.calendarName||'等待日历信息'],['最近读取',timeOf(p.snapshotAt)],['已同步的手机记录',number(p.importedCount,0)+' 条']);
     if(p.pendingCount)phoneRows.push(['等待入账',`${p.pendingCount} 条 · 日历结束时间尚未到达`]);
-    for(const r of (p.pendingRecords||[]).slice(0,3))phoneRows.push([r.name,`${number(r.minutes)} 分钟 · ${pendingEnd(r.end)} 后计入`]);
+    for(const r of (p.pendingRecords||[]).slice(0,3))phoneRows.push([r.name,`${number(r.minutes)} 分钟 · ${recordRange(r,state.today)} · 结束后计入`]);
     if(p.error)phoneRows.push(['手机同步提示',p.error]);
   }
   $('source-details').innerHTML='<div class="source-group">'+rows.map(row).join('')+'</div><div class="source-group">'+phoneRows.map(row).join('')+'</div>'+row(['全部学习存档',number(state.allTime.records,0)+' 条']);
@@ -630,6 +636,11 @@ globalThis.FocusIslandRewards?.init({api,toast,refresh,playSound,unlock:ensureAu
   globalThis.FocusQuests?.render(state.quests);
 }});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
+globalThis.FocusCityLife?.init({api,toast,playSound,refresh:()=>refresh(true,true),acceptQuests:snapshot=>{
+  if(state){requestSequence++;inFlight=false;state={...state,quests:snapshot};}
+  globalThis.FocusQuests?.render(snapshot);globalThis.FocusQuickSkins?.render(snapshot);
+  globalThis.FocusCitadel?.applyEquipment(snapshot.equipped,snapshot.now);
+}});
 globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},onOpen:()=>setNavSelection('city'),afterClose:()=>{setNavSelection(currentView);setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);},openShop:()=>switchView('shop'),openReview:()=>switchView('review'),openArcade:()=>globalThis.FocusArcade?.open(),openCamp:()=>{switchView('today');globalThis.FocusCampfireRoom?.open($('campfire-room-open'));}});
 $('city-open')?.addEventListener('click',event=>openCity(event.currentTarget));
 $('arcade-city-return')?.addEventListener('click',()=>openCity($('citadel-enter')));

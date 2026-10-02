@@ -1,0 +1,12 @@
+.ambience-controls{display:flex;align-items:center;flex-wrap:wrap;gap:9px 11px;padding:10px 12px;border:1px solid #9da9b033;border-radius:11px;background:#121e29a6;color:#c9d2d7;font:inherit;font-size:.83em;max-width:100%;box-sizing:border-box}
+.ambience-mark{color:#afc5cb;font-size:1.4em;line-height:1;opacity:.75}.ambience-controls.is-playing .ambience-mark{color:#e2cdac;opacity:1}
+.ambience-title{white-space:nowrap;color:#d8c7b2}.ambience-controls button,.ambience-controls select{font:inherit;color:#dce3e4;background:#263543;border:1px solid #90a4af44;border-radius:7px;padding:6px 10px;cursor:pointer;line-height:1.3}
+.ambience-controls button:hover,.ambience-controls select:hover{background:#344858;border-color:#bed0d17a}.ambience-controls button[aria-pressed="true"]{color:#e8d2ac;background:#7a62442e;border-color:#cfb68a6b}.ambience-controls button:disabled{cursor:wait;opacity:.6}.ambience-controls select option{background:#1b2b38;color:#dbe3e8}
+.ambience-controls :is(button,select,input):focus-visible{outline:2px solid #c6d8d7;outline-offset:3px}
+.ambience-volume{display:flex;align-items:center;gap:6px;white-space:nowrap;font-size:.85em;color:#a4b4bc}.ambience-volume input{width:70px;max-width:100%;accent-color:#b6c6c7;cursor:pointer}.ambience-volume [data-ambience-volume-label]{min-width:2.5em;font-variant-numeric:tabular-nums}
+.ambience-status{color:#9baeb8;font-size:.8em;line-height:1.5;flex:1 0 100%}.ambience-sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.campfire-header-actions{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap}
+#campfire-ambience .ambience-controls{padding:7px 10px;gap:7px;font-size:.78em;background:#392f292e;border-color:#ba997d35;max-width:315px}
+#campfire-ambience .ambience-status{display:none}#campfire-ambience .has-message .ambience-status{display:block}#campfire-ambience .ambience-controls button{font-size:inherit;padding:6px 9px}#campfire-ambience .ambience-volume input{width:57px}
+@media(min-width:2000px){.ambience-controls{padding:13px 16px;gap:12px 14px}.ambience-volume input{width:92px}#campfire-ambience .ambience-controls{max-width:400px;padding:9px 13px}}
+@media(max-width:1150px){#campfire-ambience .ambience-volume input{width:42px}#campfire-ambience .ambience-volume [data-ambience-volume-label]{display:none}.campfire-header-actions{gap:7px}}

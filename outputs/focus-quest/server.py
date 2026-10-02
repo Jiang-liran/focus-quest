@@ -205,6 +205,8 @@ GOAL_HISTORY_WEEKLY_META = "goalHistory:weeklySuggestion:v1"
 GOAL_HISTORY_DEFAULTS_META = "goalHistory:dailyDefaults:v1"
 DAILY_GOAL_CHANGE_LIMIT = 2
 REVERSE_EXCHANGE_DAILY_LIMIT = 5
+CITY_LIFE_LIMITS = {"notes": 200, "storedNotes": 1000, "outfits": 8, "storedOutfits": 64}
+CITY_NOTE_TYPES = {"note", "question", "quote", "plan"}
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
 MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
@@ -737,6 +739,23 @@ class FocusStore:
                 request_id TEXT PRIMARY KEY, day TEXT NOT NULL, created_ms INTEGER NOT NULL
             );
             CREATE INDEX IF NOT EXISTS reverse_exchange_day ON shop_reverse_exchanges(day);
+            CREATE TABLE IF NOT EXISTS city_notes (
+                id TEXT PRIMARY KEY, type TEXT NOT NULL, text TEXT NOT NULL, day TEXT,
+                done INTEGER NOT NULL DEFAULT 0, archived INTEGER NOT NULL DEFAULT 0,
+                created_ms INTEGER NOT NULL, updated_ms INTEGER NOT NULL,
+                CHECK(type IN ('note','question','quote','plan')),
+                CHECK(done IN (0,1)), CHECK(archived IN (0,1))
+            );
+            CREATE TABLE IF NOT EXISTS city_outfits (
+                id TEXT PRIMARY KEY, name TEXT NOT NULL, equipped TEXT NOT NULL,
+                archived INTEGER NOT NULL DEFAULT 0,
+                created_ms INTEGER NOT NULL, updated_ms INTEGER NOT NULL,
+                CHECK(archived IN (0,1))
+            );
+            CREATE TABLE IF NOT EXISTS city_life_requests (
+                request_id TEXT PRIMARY KEY, kind TEXT NOT NULL, payload TEXT NOT NULL,
+                item_id TEXT NOT NULL, created_ms INTEGER NOT NULL
+            );
         """)
         # Upgrade old archives without changing record IDs or dropping history.
         with self.db:
@@ -1941,6 +1960,182 @@ class FocusStore:
             self.db.execute("INSERT INTO shop_equipment VALUES (?,?) ON CONFLICT(slot) DO UPDATE SET item_id=excluded.item_id",
                             (item["slot"], item_id))
             return self.quest_state(current)
+
+    def city_life_state(self):
+        """Small, explicitly requested personal notes; never part of study polling."""
+        with self.lock:
+            notes = [{"id": row["id"], "type": row["type"], "text": row["text"], "day": row["day"],
+                      "done": bool(row["done"]), "archived": bool(row["archived"]),
+                      "createdAt": iso_ms(row["created_ms"]), "updatedAt": iso_ms(row["updated_ms"])}
+                     for row in self.db.execute("SELECT * FROM city_notes ORDER BY updated_ms DESC,rowid DESC")]
+            outfits = [{"id": row["id"], "name": row["name"], "equipped": json.loads(row["equipped"]),
+                        "archived": bool(row["archived"]), "createdAt": iso_ms(row["created_ms"]),
+                        "updatedAt": iso_ms(row["updated_ms"])}
+                       for row in self.db.execute("SELECT * FROM city_outfits ORDER BY updated_ms DESC,rowid DESC")]
+            return {"notes": notes, "outfits": outfits, "limits": dict(CITY_LIFE_LIMITS),
+                    "revision": self.db.execute("SELECT COUNT(*) FROM city_life_requests").fetchone()[0]}
+
+    @staticmethod
+    def _city_id(value):
+        if not isinstance(value, str) or len(value) != 36:
+            raise ValueError("城市记录和请求标识必须为 UUID 字符串")
+        try:
+            canonical = str(uuid.UUID(value))
+        except (ValueError, AttributeError):
+            raise ValueError("城市记录和请求标识必须为 UUID 字符串") from None
+        if value.lower() != canonical:
+            raise ValueError("城市记录和请求标识必须为 UUID 字符串")
+        return canonical
+
+    @staticmethod
+    def _city_text(value, maximum, label):
+        if not isinstance(value, str):
+            raise ValueError(f"{label}请填写文字")
+        value = value.strip()
+        if not 1 <= len(value) <= maximum or any(
+                (ord(char) < 32 and char not in "\n\r\t") or 0xd800 <= ord(char) <= 0xdfff for char in value):
+            raise ValueError(f"{label}请填写 1 至 {maximum} 个字，不支持控制字符")
+        return value
+
+    def _city_payload(self, payload, required, optional=()):
+        if not isinstance(payload, dict) or not set(required).issubset(payload) or set(payload) - (set(required) | set(optional)):
+            raise ValueError("城市生活参数无效；请仅提供本次操作需要的内容")
+        result = dict(payload)
+        result["requestId"] = self._city_id(result["requestId"])
+        for key in ("noteId", "outfitId"):
+            if key in result:
+                result[key] = self._city_id(result[key])
+        for key in ("done", "archived"):
+            if key in result and type(result[key]) is not bool:
+                raise ValueError("完成和归档状态必须为布尔值")
+        if "type" in result and (not isinstance(result["type"], str) or result["type"] not in CITY_NOTE_TYPES):
+            raise ValueError("请选择便笺、待想清楚、摘句或明日行囊")
+        if "text" in result:
+            result["text"] = self._city_text(result["text"], 1000, "便笺")
+        if "day" in result and result["day"] is not None:
+            parse_day(result["day"])
+        return result
+
+    def _city_mutate(self, kind, payload, change, now=None, with_quests=False):
+        request_id = payload["requestId"]
+        # Preserve omitted dates in the signature: retrying tomorrow must return
+        # the original plan rather than create another one with a new default day.
+        signature = json.dumps({key: value for key, value in payload.items() if key != "requestId"},
+                               sort_keys=True, ensure_ascii=False, allow_nan=False)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            existing = self.db.execute("SELECT * FROM city_life_requests WHERE request_id=?", (request_id,)).fetchone()
+            if existing:
+                if existing["kind"] != kind or existing["payload"] != signature:
+                    raise ValueError("同一个保存请求不能改变内容；请刷新后重试")
+                item_id = existing["item_id"]
+            else:
+                item_id = change(current)
+                self.db.execute("INSERT INTO city_life_requests VALUES (?,?,?,?,?)",
+                                (request_id, kind, signature, item_id, int(current.timestamp()*1000)))
+            result = {"cityLife": self.city_life_state(), "receipt": {
+                "requestId": request_id, "id": item_id, "kind": kind, "alreadyApplied": existing is not None}}
+            if with_quests:
+                result["quests"] = self.quest_state(current)
+            return result
+
+    def _city_capacity(self, table, active_limit, total_limit=None):
+        # table names are internal constants, never supplied by the caller.
+        count, active = self.db.execute(f"SELECT COUNT(*),COALESCE(SUM(archived=0),0) FROM {table}").fetchone()
+        if active >= active_limit:
+            raise ValueError(f"最多保留 {active_limit} 份未归档内容，请先归档一份")
+        if total_limit is not None and count >= total_limit:
+            raise ValueError(f"本地收藏已达到 {total_limit} 份存储上限，现有内容仍可查看和编辑")
+
+    def city_life_note(self, payload, now=None):
+        payload = self._city_payload(payload, ("type", "text", "requestId"), ("day",))
+        def save(current):
+            self._city_capacity("city_notes", CITY_LIFE_LIMITS["notes"], CITY_LIFE_LIMITS["storedNotes"])
+            day = payload.get("day")
+            if day is None and payload["type"] == "plan":
+                day = (current.date()+timedelta(days=1)).isoformat()
+            item_id, stamp = str(uuid.uuid4()), int(current.timestamp()*1000)
+            self.db.execute("INSERT INTO city_notes VALUES (?,?,?,?,0,0,?,?)",
+                            (item_id, payload["type"], payload["text"], day, stamp, stamp))
+            return item_id
+        return self._city_mutate("note", payload, save, now)
+
+    def city_life_note_update(self, payload, now=None):
+        payload = self._city_payload(payload, ("noteId", "requestId"), ("text", "type", "day", "done", "archived"))
+        if len(payload) <= 2:
+            raise ValueError("请提供要修改的便笺内容或状态")
+        def update(current):
+            row = self.db.execute("SELECT * FROM city_notes WHERE id=?", (payload["noteId"],)).fetchone()
+            if row is None:
+                raise ValueError("这份便笺不存在，请刷新书屋")
+            archived = payload.get("archived", bool(row["archived"]))
+            if row["archived"] and not archived:
+                self._city_capacity("city_notes", CITY_LIFE_LIMITS["notes"])
+            kind, day = payload.get("type", row["type"]), payload.get("day", row["day"])
+            if kind == "plan" and day is None:
+                day = (current.date()+timedelta(days=1)).isoformat()
+            self.db.execute("UPDATE city_notes SET type=?,text=?,day=?,done=?,archived=?,updated_ms=? WHERE id=?",
+                (kind, payload.get("text", row["text"]), day, payload.get("done", bool(row["done"])), archived,
+                 int(current.timestamp()*1000), row["id"]))
+            return row["id"]
+        return self._city_mutate("note-update", payload, update, now)
+
+    def _city_equipment(self, equipped):
+        if not isinstance(equipped, dict) or not equipped or set(equipped) - set(SHOP_CATEGORIES):
+            raise ValueError("请选择至少一种现有装扮分类")
+        result = {}
+        for slot, item_id in equipped.items():
+            item = self._shop_item(item_id)
+            if item["slot"] != slot:
+                raise ValueError("装扮与所选分类不匹配")
+            owned = not item["coins"] and not item["diamonds"] or self.db.execute(
+                "SELECT 1 FROM shop_purchases WHERE item_id=?", (item_id,)).fetchone() is not None
+            if not owned:
+                raise ValueError("搭配只能使用已经拥有的装扮，请先购买")
+            result[slot] = item_id
+        return result
+
+    def city_life_outfit(self, payload, now=None):
+        payload = self._city_payload(payload, ("name", "equipped", "requestId"))
+        payload["name"] = self._city_text(payload["name"], 30, "搭配名称")
+        if not isinstance(payload["equipped"], dict):
+            raise ValueError("搭配装扮应为分类与物品的对应表")
+        def save(current):
+            equipped = self._city_equipment(payload["equipped"])
+            self._city_capacity("city_outfits", CITY_LIFE_LIMITS["outfits"], CITY_LIFE_LIMITS["storedOutfits"])
+            item_id, stamp = str(uuid.uuid4()), int(current.timestamp()*1000)
+            self.db.execute("INSERT INTO city_outfits VALUES (?,?,?,0,?,?)",
+                            (item_id, payload["name"], json.dumps(equipped, sort_keys=True), stamp, stamp))
+            return item_id
+        return self._city_mutate("outfit", payload, save, now)
+
+    def city_life_outfit_apply(self, payload, now=None):
+        payload = self._city_payload(payload, ("outfitId", "requestId"))
+        def apply(current):
+            row = self.db.execute("SELECT * FROM city_outfits WHERE id=?", (payload["outfitId"],)).fetchone()
+            if row is None or row["archived"]:
+                raise ValueError("请先从收藏中恢复这套搭配")
+            # Revalidate every slot before writing any: applying a collection
+            # must never bypass ownership or partially equip an invalid outfit.
+            equipped = self._city_equipment(json.loads(row["equipped"]))
+            for slot, item_id in equipped.items():
+                self.db.execute("INSERT INTO shop_equipment VALUES (?,?) ON CONFLICT(slot) DO UPDATE SET item_id=excluded.item_id",
+                                (slot, item_id))
+            return row["id"]
+        return self._city_mutate("outfit-apply", payload, apply, now, with_quests=True)
+
+    def city_life_outfit_archive(self, payload, now=None):
+        payload = self._city_payload(payload, ("outfitId", "archived", "requestId"))
+        def archive(current):
+            row = self.db.execute("SELECT * FROM city_outfits WHERE id=?", (payload["outfitId"],)).fetchone()
+            if row is None:
+                raise ValueError("这套搭配不存在，请刷新小铺")
+            if row["archived"] and not payload["archived"]:
+                self._city_capacity("city_outfits", CITY_LIFE_LIMITS["outfits"])
+            self.db.execute("UPDATE city_outfits SET archived=?,updated_ms=? WHERE id=?",
+                            (payload["archived"], int(current.timestamp()*1000), row["id"]))
+            return row["id"]
+        return self._city_mutate("outfit-archive", payload, archive, now)
 
     def exchange_diamonds(self, diamonds, request_id, now=None):
         if type(diamonds) is not int or not 1 <= diamonds <= EXCHANGE_MAX_DIAMONDS:
@@ -3465,6 +3660,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query:
                         raise ValueError("行动罗盘使用电脑当前日期和时间，不接受查询参数")
                     self._send(200, store.actions_state())
+                elif url.path == "/api/city-life":
+                    if url.query:
+                        raise ValueError("城市生活不接受查询参数")
+                    self._send(200, store.city_life_state())
                 elif url.path == "/api/arcade":
                     if url.query:
                         raise ValueError("游乐记只使用电脑当前日期和时间，不接受查询参数")
@@ -3511,7 +3710,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                                   "/api/arcade/pulse": (("id", "version", "move"), store.pulse_arcade),
                                   "/api/arcade/tickets/buy": (("requestId",), store.buy_arcade_ticket),
                                   "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions:
+                city_actions = {"/api/city-life/note": store.city_life_note,
+                                "/api/city-life/note-update": store.city_life_note_update,
+                                "/api/city-life/outfit": store.city_life_outfit,
+                                "/api/city-life/outfit-apply": store.city_life_outfit_apply,
+                                "/api/city-life/outfit-archive": store.city_life_outfit_archive}
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3525,7 +3729,11 @@ def make_handler(store, static_dir=STATIC_DIR):
                 payload = json.loads(raw or b"{}", parse_constant=lambda value: (_ for _ in ()).throw(ValueError("JSON 数字无效")))
                 if not isinstance(payload, dict):
                     raise ValueError("请求必须为 JSON 对象")
-                if path in goal_actions:
+                if path in city_actions:
+                    if url.query:
+                        raise ValueError("城市生活修改不接受查询参数")
+                    self._send(200, city_actions[path](payload))
+                elif path in goal_actions:
                     fields, action = goal_actions[path]
                     if url.query or set(payload) != set(fields):
                         raise ValueError("目标参数无效；请仅提供目标、日期和请求标识")

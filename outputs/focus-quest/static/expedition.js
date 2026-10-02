@@ -96,10 +96,15 @@
     $('expedition-discovery-count').textContent='星辉城 · 随时走走';
     replace('expedition-discoveries',m.discoveries.map(d=>`<button type="button" class="expedition-discovery ${d.unlocked?'unlocked':'locked'}" data-expedition-discovery="${esc(d.id)}" ${d.unlocked?'':'disabled'} aria-pressed="${entry.id===d.id&&!subject}"><span class="discovery-stamp" aria-hidden="true"><svg viewBox="0 0 64 48"><path d="M8 39 23 15l12 17 9-24 13 31Z"/><circle cx="46" cy="12" r="5"/><path d="M8 43h49M21 39l5-9 8 9"/></svg><i>${String(d.index+1).padStart(2,'0')}</i></span><strong>${esc(d.name)}</strong><small>${d.unlocked?'到城里歇一会儿':`主线 ${d.threshold}% 后显现`}</small></button>`).join(''));
   }
+  function frameRange(frame){
+    if(root.FocusRecordTime)return root.FocusRecordTime.group(frame.records,{referenceDay:latest?.date});
+    const start=frame.records.map(r=>r.start).filter(Boolean).sort((a,b)=>Date.parse(a)-Date.parse(b))[0];
+    return `${clock(start)} → ${clock(frame.at)}`;
+  }
   function frameCopy(frame){
     if(frame.type==='start')return frame.baseline?`较早记录已计入起点 · ${duration(frame.minutes)}，从可读取的记录继续回顾。`:'从第一束微光开始，看看这一天如何展开。';
     const names=[...new Set(frame.records.map(r=>r.name))];
-    return `${clock(frame.at)} · ${names.slice(0,2).join('、')}${names.length>2?'等':''} · +${duration(frame.deltaMinutes)}${frame.completedCount>1?`（合并回顾 ${frame.completedCount} 段）`:''}`;
+    return `${frameRange(frame)} · ${names.slice(0,2).join('、')}${names.length>2?'等':''} · +${duration(frame.deltaMinutes)}${frame.completedCount>1?`（合并回顾 ${frame.completedCount} 段）`:''}`;
   }
   function replayUI(){
     const liveFrames=mode==='replay'?replay:modelApi().replayFrames(latest,{maxFrames:24}),summary=liveFrames.summary;
@@ -117,7 +122,7 @@
       $('expedition-frame-copy').textContent=frameCopy(replay.frames[index])+(reduced()?' · 动态已关闭，可逐幕查看。':atEnd?' · 回顾结束，随时返回实时进度。':'');
     }
     const frames=liveFrames.frames.filter(f=>f.type==='completion').slice(-4);
-    replace('expedition-trail',frames.map(f=>`<button type="button" data-expedition-frame="${f.index}" aria-label="查看${esc(clock(f.at))}完成的${f.completedCount}段专注" title="${esc(frameCopy(f))}"><span aria-hidden="true">✧</span><strong>${clock(f.at)}</strong><small>+${duration(f.deltaMinutes)}</small></button>`).join(''));
+    replace('expedition-trail',frames.map(f=>`<button type="button" data-expedition-frame="${f.index}" aria-label="查看${esc(frameRange(f))}的${f.completedCount}段专注" title="${esc(frameCopy(f))}"><span aria-hidden="true">✧</span><strong class="record-time-range">${esc(frameRange(f)).replace(' → ','<span class="record-time-end">→ ')+ '</span>'}</strong><small>+${duration(f.deltaMinutes)}</small></button>`).join(''));
   }
   function paint(){
     if(!latest)return;
@@ -166,7 +171,7 @@
     if(!bridge||mode!=='live'||!records?.length||next.date!==next.today||bridge.isHome?.()===false)return;
     const valid=records.filter(r=>r.day===next.date&&r.minutes>0);if(!valid.length)return;
     clearArrival();const token=arrivalGeneration,minutes=valid.reduce((sum,r)=>sum+r.minutes,0);
-    $('expedition-arrival').textContent=`✦ ${valid.length} 段专注化作流光 · +${duration(minutes)}`;
+    $('expedition-arrival').textContent=`✦ ${valid.length} 段专注化作流光 · ${root.FocusRecordTime?.group(valid,{referenceDay:next.date})||''} · +${duration(minutes)}`;
     $('expedition-arrival').hidden=false;
     if(next.settings?.motion!==false&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches)$('expedition-canvas').classList.add('receiving-focus');
     arrivalTimer=root.setTimeout(()=>{if(token===arrivalGeneration)clearArrival();},5500);

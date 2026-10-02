@@ -1,0 +1,6 @@
+.record-time-range{font-variant-numeric:tabular-nums;line-height:1.65;white-space:normal;overflow-wrap:normal}
+#history-records .record-time-range{min-width:145px;max-width:255px}
+#recent-records .record-time-range{display:inline}
+.campfire-memory-records li{flex-wrap:wrap;gap:4px 12px}.campfire-memory-records li>span.record-time-range{flex:1 0 100%;font-size:.74em;line-height:1.6;padding-top:0}.campfire-memory-records li>div{min-width:0;flex:1}
+.expedition-trail strong.record-time-range{font-size:.7em;white-space:normal;overflow-wrap:normal}.expedition-trail .record-time-range .record-time-end{display:block;font:inherit;color:inherit;grid-row:auto}
+@media(min-width:2000px){#history-records .record-time-range{min-width:180px;max-width:350px}}

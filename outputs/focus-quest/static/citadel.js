@@ -6,7 +6,7 @@
   const fallbackPlaces=[
     {id:'library',name:'雨巷书屋',subtitle:'翻一页手记',copy:'纸页收好今天的专注，窗边留着一盏灯。'},
     {id:'tea',name:'听雨茶馆',subtitle:'在窗边坐坐',copy:'茶已经温好，今晚不必急着说些什么。'},
-    {id:'observatory',name:'屋顶天台',subtitle:'看雨落向远城',copy:'屋檐之外，灯火一直延伸到看不清的地方。'},
+    {id:'observatory',name:'我的家',subtitle:'高层窗边，灯火可亲',copy:'窗外是雨夜，屋里有一盏为你留着的灯。'},
     {id:'atelier',name:'星织小铺',subtitle:'挑一件喜欢的物品',copy:'喜欢的外观留在橱窗里，慢慢挑。'},
     {id:'arcade',name:'星海游乐场',subtitle:'偶尔玩一局',copy:'熟悉的扫雷和其他小游戏都在这里，随时可以回来。'},
     {id:'station',name:'归途车站',subtitle:'回群岛或营地',copy:'站台亮着柔和的灯，回去的路一直都在。'}
@@ -15,14 +15,13 @@
   let bridge={},state=null,equipped={},equipmentStamp=-Infinity,equipmentPreview=null,initialized=false;
   let anchor=null,inertBefore=[];
   let selected=null,streetKey='',roomKey='',contentKey='',zoom=1,panX=0,panY=0,drag=null,suppressClickUntil=0,wheelTimer=null;
-  let teaLine=0,windowMode='rain',rooftopMode='rain';
+  let teaLine=0,windowMode='rain',rooftopMode='rain',homeView='home';
   const places=()=>root.FocusRainCityArt?.places||fallbackPlaces;
   const place=id=>places().find(p=>p.id===id);
   const isOpen=()=>!!$('citadel-view')&&!$('citadel-view').hidden;
   const isVisible=()=>!document.hidden&&root.FocusRuntime?.isVisible?.()!==false;
   const motionAllowed=()=>state?.settings?.motion!==false&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
   const visibleEquipment=()=>({...equipped,...equipmentPreview});
-  const duration=value=>{const minutes=Math.max(0,Math.floor(Number(value)||0)),h=Math.floor(minutes/60),m=minutes%60;return h?`${h}小时${m?m+'分':''}`:minutes?`${minutes}分钟`:Number(value)>0?'不足1分钟':'0分钟';};
   function setText(id,text){if($(id)&&$(id).textContent!==text)$(id).textContent=text;}
   function setHTML(id,html){if($(id)&&$(id).innerHTML!==html)$(id).innerHTML=html;}
   function timestamp(now){const fraction=String(now).match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/);return Date.parse(now)*1000+Number((fraction?.[1]||'').padEnd(6,'0').slice(3,6));}
@@ -37,24 +36,27 @@
     for(let parent=node;parent;parent=parent.parentElement)if(parent.hidden||parent.inert)return false;
     node.focus?.({preventScroll:true});return document.activeElement===node;
   }
-  function records(){return (Array.isArray(state?.records)?state.records:[]).filter(r=>!r.deleted&&(!(r.day||r.date)||(r.day||r.date)===state.date)).slice().sort((a,b)=>String(b.end||'').localeCompare(String(a.end||'')));}
   function roomContent(){
-    const rows=records(),today=state.date===state.today;
-    if(selected==='library')return `<span class="city-room-eyebrow">${esc(today?'今天':state.date)}的手记</span><h3>这一页，已经写下了。</h3>${rows.length?`<ul class="city-book-records">${rows.slice(0,3).map(r=>`<li><span>${esc(r.name)}</span><b>${duration(r.minutes)}</b></li>`).join('')}</ul><p>共 ${Math.max(rows.length,Number(state.dayRecordCount)||0)} 段专注 · ${duration(state.totals?.minutes)}。想翻更多页，可以到学习复盘看看。</p>`:'<p>书页还留着空白。开始的时候，它会替你收好每一段专注。</p>'}<div class="city-room-actions"><button type="button" data-city-action="review">翻开学习复盘 ↗</button></div>`;
-    if(selected==='tea')return `<span class="city-room-eyebrow">窗边的位置，为你留着</span><h3>茶暖着，雨还在下。</h3><p id="city-tea-line" class="city-tea-line" aria-live="polite">${teaLines[teaLine%teaLines.length]}</p><div class="city-room-actions"><button type="button" data-city-action="tea-chat">再坐一会儿</button><button type="button" class="city-secondary" data-city-action="tea-window" aria-pressed="${windowMode==='lamplight'}">${windowMode==='lamplight'?'看窗外的雨':'把灯调暖一些'}</button></div>`;
-    if(selected==='observatory')return `<span class="city-room-eyebrow">城市另一面的安静</span><h3>${rooftopMode==='stars'?'云隙里，还有几颗星。':'在屋檐下，看一会儿远方。'}</h3><p>${rooftopMode==='stars'?'不必数清它们。远处的灯，和天上的星，都可以只是风景。':'雨落在屋顶、街灯和很远的桥上。这里没有需要完成的事。'}</p><div class="city-room-actions"><button type="button" data-city-action="sky" aria-pressed="${rooftopMode==='stars'}">${rooftopMode==='stars'?'回到雨夜':'看一眼云隙星光'}</button></div>`;
-    if(selected==='atelier')return '<span class="city-room-eyebrow">星织小铺 · 今晚也营业</span><h3>把喜欢的风景，慢慢带回家。</h3><p>你收藏的外观仍然在。主岛、篝火和旅人的装饰可以继续搭配，城市也会留下它们的细节。</p><div class="city-room-actions"><button type="button" data-city-action="shop">逛逛星织商店 ↗</button><button type="button" class="city-secondary" data-skin-open="theme fx relic portal companion avatar">试试已有外观</button></div>';
+    if(selected==='library')return '<span class="city-room-eyebrow">雨巷书屋 · 私人的纸页</span><h3>想法先放在这里。</h3><p>随手记、待查的问题、舍不得忘的一句话。下次来，纸页还在。</p><div id="city-life-pane"></div><div class="city-room-actions"><button type="button" class="city-secondary" data-city-action="review">翻开学习复盘 ↗</button></div>';
+    if(selected==='tea')return `<span class="city-room-eyebrow">窗边的位置，为你留着</span><h3>茶暖着，雨还在下。</h3><p id="city-tea-line" class="city-tea-line" aria-live="polite">${teaLines[teaLine%teaLines.length]}</p><div class="city-room-actions"><button type="button" data-city-action="tea-chat">听店主说一句</button><button type="button" class="city-secondary" data-city-action="tea-window" aria-pressed="${windowMode==='lamplight'}">${windowMode==='lamplight'?'看窗外的雨':'把灯调暖一些'}</button></div><div id="city-life-pane"></div>`;
+    if(selected==='observatory'){
+      const copy=homeView==='panorama'?['高层窗边 · 雨夜全景','整座城，慢慢安静下来。','']:
+        homeView==='rooftop'?['我的家 / 屋顶天台',rooftopMode==='stars'?'云隙里，还有几颗星。':'在屋檐下，看一会儿远方。','楼下是灯火，抬头是夜空。在这里，不用急着赶路。']:
+        ['欢迎回家','门关上，今晚就慢一点。','窗边能看整座城的夜景，右侧的小门通向屋顶。'];
+      return `<span class="city-room-eyebrow">${copy[0]}</span><h3>${copy[1]}</h3>${copy[2]?`<p>${copy[2]}</p>`:''}<div class="city-room-actions">${homeView==='home'?'<button type="button" data-city-action="home-window">到窗边看雨</button><button type="button" class="city-secondary" data-city-action="home-rooftop">上屋顶坐坐</button>':'<button type="button" data-city-action="home-living">回到家里</button>'}${homeView==='rooftop'?`<button type="button" class="city-secondary" data-city-action="sky" aria-pressed="${rooftopMode==='stars'}">${rooftopMode==='stars'?'回到雨夜':'看一眼云隙星光'}</button>`:''}</div><div id="city-home-audio"></div>`;
+    }
+    if(selected==='atelier')return '<span class="city-room-eyebrow">星织小铺 · 你的私人衣柜</span><h3>留住喜欢的一整套。</h3><div class="city-room-actions"><button type="button" data-skin-open="interface theme bar fx avatar banner companion relic portal camp fire tent campgear campglow chatframe island camptrail campmark">搭配已有外观</button><button type="button" class="city-secondary" data-city-action="shop">逛逛商店 ↗</button></div><div id="city-life-pane"></div>';
     if(selected==='arcade')return `<span class="city-room-eyebrow">星海游乐场 · 一小段休息</span><h3>熟悉的游戏，都留在这里。</h3><p>扫雷和其他游戏、原来的成绩与奖励都保留着。只想看看街景，也可以随时离开。</p><div class="city-room-actions"><button type="button" data-city-action="arcade">${state.arcade?.active?'继续未结束的游戏':'进入星海游乐场'} ↗</button></div><small class="city-room-note">${Number(state.arcade?.available)||0} 张可用游玩券 · 进入大厅不会消耗游玩券</small>`;
-    return '<span class="city-room-eyebrow">归途车站 · 灯还亮着</span><h3>下一程，由你决定。</h3><p>可以回到群岛，也可以去篝火旁坐坐。城市会在这里等你再来。</p><div class="city-room-actions"><button type="button" data-city-action="home">回到群岛</button><button type="button" class="city-secondary" data-city-action="camp">去篝火营地</button></div>';
+    return '<span class="city-room-eyebrow">归途车站 · 灯还亮着</span><h3>下一程，轻装出发。</h3><p>把明天想做的小事装进行囊，今晚就不用一直记着了。</p><div id="city-life-pane"></div><div class="city-room-actions"><button type="button" data-city-action="home">回到群岛</button><button type="button" class="city-secondary" data-city-action="camp">去篝火营地</button></div>';
   }
   function paint(){
     if(!isOpen()||!state||!root.FocusRainCityArt)return;
     const view=$('citadel-view'),eq=visibleEquipment(),inRoom=!!selected;
-    view.dataset.motion=String(motionAllowed());view.dataset.paused=String(!isVisible());view.dataset.room=selected||'street';
+    view.dataset.motion=String(motionAllowed());view.dataset.paused=String(!isVisible());view.dataset.room=selected||'street';view.dataset.homeView=selected==='observatory'?homeView:'';
     $('city-street').hidden=inRoom;$('city-room').hidden=!inRoom;
-    setText('citadel-title',inRoom?place(selected).name:'星辉城');
+    setText('citadel-title',selected==='observatory'?(homeView==='panorama'?'窗边夜景':homeView==='rooftop'?'屋顶天台':'我的家'):inRoom?place(selected).name:'星辉城');
     setText('citadel-theme',inRoom?'星辉城 / '+place(selected).subtitle:'雨夜里的灯，始终为你亮着');
-    setText('citadel-close',inRoom?'← 返回街道':'← 返回群岛');
+    setText('citadel-close',selected==='observatory'&&homeView!=='home'?'← 回到家里':inRoom?'← 返回街道':'← 返回群岛');
     setText('city-street-caption','沿着雨巷走走 · 点击亮着灯的建筑，进去坐坐');
     const key=JSON.stringify(eq);
     if(!inRoom&&key!==streetKey){
@@ -62,14 +64,17 @@
       $('citadel-scene').innerHTML=root.FocusRainCityArt.scene(state,eq,{interactive:true});
       if(focused)$('citadel-scene').querySelector(`[data-city-place="${focused}"]`)?.focus({preventScroll:true});
     }
+    $('city-interior-art').setAttribute('aria-hidden',selected==='observatory'?'false':'true');
     if(inRoom){
-      const mode=selected==='tea'?windowMode:selected==='observatory'?rooftopMode:'rain',key=JSON.stringify([selected,eq,mode]);
-      if(key!==roomKey){roomKey=key;$('city-interior-art').innerHTML=root.FocusRainCityArt.interior(selected,state,eq,{mode,interactive:false});}
+      const mode=selected==='tea'?windowMode:selected==='observatory'?(homeView==='rooftop'?rooftopMode:homeView):'rain',key=JSON.stringify([selected,eq,mode]);
+      if(key!==roomKey){roomKey=key;$('city-interior-art').innerHTML=root.FocusRainCityArt.interior(selected,state,eq,{mode,interactive:selected==='observatory'});}
       const html=roomContent();if(html!==contentKey){contentKey=html;
         const action=$('city-room-content').contains(document.activeElement)?document.activeElement?.dataset?.cityAction:null;
-        $('city-room-content').innerHTML=html;
+        root.FocusCityLife?.unmount();$('city-room-content').innerHTML=html;
         if(action)$('city-room-content').querySelector(`[data-city-action="${action}"]`)?.focus({preventScroll:true});
       }
+      if(selected==='observatory')root.FocusAmbience?.mount($('city-home-audio'),'home');
+      else root.FocusCityLife?.mount(selected,$('city-life-pane'),state);
     }
   }
   function render(next){if(!next)return;state=next;applyEquipment(next.quests?.equipped||equipped,next.quests?.now);if(isOpen())paint();}
@@ -102,7 +107,7 @@
   }
   function close(restoreFocus=true){
     if(!isOpen())return false;
-    $('citadel-view').inert=true;root.FocusQuickSkins?.close(false);clearCameraGesture();equipmentPreview=null;
+    $('citadel-view').inert=true;root.FocusAmbience?.setScene(null);root.FocusCityLife?.unmount();root.FocusQuickSkins?.close(false);clearCameraGesture();equipmentPreview=null;
     document.documentElement.classList.remove('has-citadel-view');
     $('citadel-view').hidden=true;$('citadel-view').inert=false;
     for(const [element,previous] of inertBefore)element.inert=previous;
@@ -110,12 +115,24 @@
     if(restoreFocus&&!focusEntry(from))focusEntry($('citadel-enter'));
     bridge.afterClose?.();return true;
   }
-  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();selected=id;roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
-  function backToStreet(){if(!selected||!isOpen())return false;const previous=selected;root.FocusQuickSkins?.close(false);selected=null;paint();focusEntry($('citadel-scene').querySelector(`[data-city-place="${previous}"]`))||focusEntry($('citadel-close'));return true;}
+  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();root.FocusCityLife?.unmount();selected=id;homeView='home';root.FocusAmbience?.setScene(id==='observatory'?'home':null);roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
+  function setHomeView(next){
+    if(selected!=='observatory'||!['home','panorama','rooftop'].includes(next))return false;
+    homeView=next;paint();$('citadel-close').focus({preventScroll:true});return true;
+  }
+  function backToStreet(){
+    if(!selected||!isOpen())return false;
+    if(selected==='observatory'&&homeView!=='home')return setHomeView('home');
+    const previous=selected;root.FocusQuickSkins?.close(false);root.FocusAmbience?.setScene(null);root.FocusCityLife?.unmount();selected=null;paint();
+    focusEntry($('citadel-scene').querySelector(`[data-city-place="${previous}"]`))||focusEntry($('citadel-close'));return true;
+  }
   function action(id){
     if(!selected||!isOpen())return;
-    if(id==='tea-chat'){teaLine=(teaLine+1)%teaLines.length;paint();return;}
-    if(id==='tea-window'){windowMode=windowMode==='rain'?'lamplight':'rain';paint();return;}
+    if(id==='home-window'){setHomeView('panorama');return;}
+    if(id==='home-rooftop'){setHomeView('rooftop');return;}
+    if(id==='home-living'){setHomeView('home');return;}
+    if(id==='tea-chat'){teaLine=(teaLine+1)%teaLines.length;setText('city-tea-line',teaLines[teaLine]);contentKey=roomContent();return;}
+    if(id==='tea-window'){windowMode=windowMode==='rain'?'lamplight':'rain';const button=$('city-room-content').querySelector('[data-city-action="tea-window"]');button?.setAttribute('aria-pressed',String(windowMode==='lamplight'));if(button)button.textContent=windowMode==='lamplight'?'看窗外的雨':'把灯调暖一些';contentKey=roomContent();paint();return;}
     if(id==='sky'){rooftopMode=rooftopMode==='rain'?'stars':'rain';paint();return;}
     const jump={arcade:'openArcade',review:'openReview',shop:'openShop',camp:'openCamp'}[id];
     if(jump&&bridge[jump]){close(false);bridge[jump]();}else if(id==='home')close();
@@ -136,6 +153,8 @@
     $('citadel-locations').addEventListener('click',event=>{const button=event.target.closest('[data-city-select]');if(button)openPlace(button.dataset.citySelect);});
     $('citadel-scene').addEventListener('click',event=>{if(event.ctrlKey||event.button!==0||Date.now()<suppressClickUntil)return;const node=event.target.closest('[data-city-place]');if(node)openPlace(node.dataset.cityPlace);});
     $('citadel-scene').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){const node=event.target.closest('[data-city-place]');if(node){event.preventDefault();openPlace(node.dataset.cityPlace);}}});
+    $('city-interior-art').addEventListener('click',event=>{if(event.button!==0||event.ctrlKey)return;const node=event.target.closest('[data-home-action]');if(node)action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));});
+    $('city-interior-art').addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;const node=event.target.closest('[data-home-action]');if(node){event.preventDefault();action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));}});
     $('city-room-content').addEventListener('click',event=>{const button=event.target.closest('[data-city-action]');if(button)action(button.dataset.cityAction);});
     $('citadel-overview').addEventListener('click',()=>{clearCameraGesture();zoom=1;panX=panY=0;camera();});
     for(const [id,delta] of [['citadel-zoom-in',.4],['citadel-zoom-out',-.4]])$(id).addEventListener('click',()=>{clearCameraGesture();zoom=Math.round(Math.max(1,Math.min(2.4,zoom+delta))*10)/10;if(zoom===1)panX=panY=0;camera();});

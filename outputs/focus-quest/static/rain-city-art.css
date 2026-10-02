@@ -28,3 +28,13 @@
 .rain-city-art .rain-city-place-interactive{pointer-events:auto}
 .rain-city-art .rain-city-equipment,.rain-city-art .rain-city-traveler{pointer-events:visiblePainted}
 #city-street[hidden] .rain-city-art *,#city-room[hidden] .rain-city-art *,[hidden] .rain-city-preview .rain-city-art *,dialog:not([open]) .rain-city-art *{animation:none!important;transition:none!important}
+/* The home keeps two real architectural exits; the window is a view, the door leads upstairs. */
+.rain-city-art .rain-city-home-action{cursor:pointer;outline:none;pointer-events:auto}
+.rain-city-art .rain-city-home-focus{opacity:0;transition:opacity .2s ease;pointer-events:none}
+.rain-city-art .rain-city-home-hint{opacity:.8;transition:opacity .2s ease}
+.rain-city-art .rain-city-home-action:hover .rain-city-home-focus,.rain-city-art .rain-city-home-action:focus-visible .rain-city-home-focus{opacity:.7}
+.rain-city-art .rain-city-home-action:hover .rain-city-home-hint,.rain-city-art .rain-city-home-action:focus-visible .rain-city-home-hint{opacity:1}
+.rain-city-art[data-city-mode=home] .rain-city-room-window{filter:saturate(.86)}
+.rain-city-art[data-city-mode=panorama] .rain-city-rain-layer{stroke-width:.8;animation-duration:2.7s}
+.rain-city-art[data-city-mode=panorama] .rain-city-rain-1{animation-duration:3.6s}
+html.no-motion .rain-city-art *,html.focus-runtime-hidden .rain-city-art *{animation:none!important;transition:none!important}

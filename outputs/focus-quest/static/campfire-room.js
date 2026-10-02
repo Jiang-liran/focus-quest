@@ -41,12 +41,14 @@
     }
     closing=false;if(background)background.inert=true;
     $('campfire-room').hidden=false;document.documentElement.classList.add('has-campfire-room');
+    root.FocusAmbience?.setScene('camp');
     slide(true);focus($('campfire-room-close'));tickRest();return true;
   }
   function close(restoreFocus=true){
     if(!isOpen())return false;
     if(closing&&restoreFocus)return false;
     closing=true;root.FocusQuickSkins?.close(false);stopRestTick();
+    root.FocusAmbience?.setScene(null);
     document.documentElement.classList.remove('has-campfire-room');
     const finish=()=>{
       $('campfire-room').hidden=true;if(background)background.inert=previousInert;
@@ -85,7 +87,7 @@
     if(key!==detailKey){
       detailKey=key;
       text('campfire-memory-summary',`${history?'这一天':'今天'}收下了 ${Number(next.dayRecordCount??next.records?.length??0)} 段专注，共 ${minutes(next.totals?.minutes)}。`);
-      if($('campfire-memory-records'))$('campfire-memory-records').innerHTML=records.length?records.map(r=>`<li><span>${esc(String(r.end||'').slice(11,16)||'—')}</span><div><strong>${esc(r.name)}</strong><small>留下了 ${minutes(r.minutes)}</small></div></li>`).join(''):'<li class="campfire-memory-empty">纸页还空着，等下一段专注落在这里。</li>';
+      if($('campfire-memory-records'))$('campfire-memory-records').innerHTML=records.length?records.map(r=>`<li><span class="record-time-range" title="${esc(root.FocusRecordTime?.describe(r,{referenceDay:next.date})||'开始 → 结束')}">${esc(root.FocusRecordTime?.range(r,{referenceDay:next.date})||`${String(r.start||'').slice(11,16)||'—'} → ${String(r.end||'').slice(11,16)||'—'}`)}</span><div><strong>${esc(r.name)}</strong><small>留下了 ${minutes(r.minutes)}</small></div></li>`).join(''):'<li class="campfire-memory-empty">纸页还空着，等下一段专注落在这里。</li>';
       if($('campfire-study-stars'))$('campfire-study-stars').innerHTML=(next.subjects||[]).map(s=>{const p=Math.max(0,Number(s.percent)||0);return `<div><span>${esc(s.name)}</span><strong>${p.toFixed(1)}%</strong><i><b style="width:${Math.min(100,p)}%"></b></i><small>${minutes(s.minutes)} / ${minutes(s.target)}</small></div>`;}).join('');
     }
   }
@@ -112,6 +114,8 @@
   function init(options){
     if(options)bridge={...bridge,...options};
     const room=$('campfire-room');if(initialized||!room)return;initialized=true;
+    const actions=document.querySelector('#campfire-room .campfire-header-actions');
+    if(actions&&root.FocusAmbience){const sound=document.createElement('div');sound.id='campfire-ambience';actions.prepend(sound);root.FocusAmbience.mount(sound,'camp');}
     $('campfire-room-close')?.addEventListener('click',()=>close());
     $('campfire-rest-toggle')?.addEventListener('click',toggleRest);
     $('campfire-guide-advice')?.addEventListener('click',()=>root.FocusCampfire?.choose('guide','advice'));
