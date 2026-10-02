@@ -91,7 +91,7 @@ html.has-campfire-room body>main{transform:translateX(-105vw);opacity:.25}
 #campfire-room-open:focus-visible .island-camp-focus{stroke-width:2.5}
 /* The same dimensional camp is also used by store previews. */
 .campfire-preview-scene .camp-world-art{display:block;width:100%;height:auto;max-height:58vh}
-.campfire-shop-thumb .camp-world-art,.quick-skin-thumb .camp-world-art{width:100%;height:100%;display:block}
+.quick-skin-thumb .camp-world-art{width:100%;height:100%;display:block}
 @media(min-width:1400px) and (min-height:850px){
   #campfire-room{--camp-font:15px;--camp-aside:350px;padding:24px 30px 20px}
   .campfire-world-layout{gap:28px}
