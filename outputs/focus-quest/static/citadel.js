@@ -14,10 +14,38 @@
   let bridge={},state=null,equipped={},equipmentStamp=-Infinity,equipmentPreview=null;
   let anchor=null,inertBefore=[],selected='core',zoom=1,panX=0,panY=0,previewPercent=null,pulse=null,pulseTimer=null,pulseGeneration=0,artKey='',detailKey='',drag=null,suppressClickUntil=0,wheelTimer=null,initialized=false;
   const isOpen=()=>!!$('citadel-view')&&!$('citadel-view').hidden;
+  let pageAnimations=[],pageGeneration=0,pageFinish=null,closing=false,background=null;
   let motionPercent=null,moving=false,flowTarget=null,flowGates=[],flowKind=null,pendingProgress=null,awakening=null,raf=null,awakeningTimer=null,generation=0,awakeningToken=0;
   const gateIds=['workshop','archive','observatory','gate'];
   const gateTitles=['工坊升起 · 回路连通','书库展开 · 光页归位','星轨升空 · 观测台共鸣','门扉洞开 · 全城加冕'];
   const motionAllowed=()=>state?.settings?.motion!==false&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
+  function cancelPageSlide(){
+    // Artwork-only shop previews render the controller without entering a page.
+    // Release shell styling only when this controller actually owns a slide.
+    if(pageAnimations.length)document.documentElement.classList.remove('citadel-page-moving');
+    pageGeneration++;pageAnimations.forEach(animation=>animation.cancel());pageAnimations=[];pageFinish=null;
+  }
+  function finishPageSlide(){if(!pageAnimations.length&&!pageFinish)return;const done=pageFinish;cancelPageSlide();done?.();}
+  function slidePage(enter,done){
+    cancelPageSlide();pageFinish=done||null;
+    const view=$('citadel-view'),token=pageGeneration;
+    if(!motionAllowed()||document.hidden||root.FocusRuntime?.isVisible?.()===false||!view.animate){finishPageSlide();return;}
+    document.documentElement.classList.add('citadel-page-moving');
+    const options={duration:520,easing:'cubic-bezier(.22,.75,.2,1)'};
+    // Camp lives to the right; the city is the neighboring place to the left.
+    const page=view.animate([{transform:enter?'translateX(-105%)':'translateX(0)'},{transform:enter?'translateX(0)':'translateX(-105%)'}],options);
+    pageAnimations.push(page);
+    if(background?.animate){
+      const behind=background.animate([{transform:enter?'translateX(0)':'translateX(105vw)',opacity:enter?1:.25},{transform:enter?'translateX(105vw)':'translateX(0)',opacity:enter?.25:1}],options);
+      behind.finished.catch(()=>{});pageAnimations.push(behind);
+    }
+    page.finished.then(()=>{if(token===pageGeneration)finishPageSlide();},()=>{});
+  }
+  function focusEntry(node){
+    if(!node?.isConnected||node.disabled||!node.getClientRects?.().length)return false;
+    for(let parent=node;parent;parent=parent.parentElement)if(parent.hidden||parent.inert)return false;
+    node.focus?.({preventScroll:true});return document.activeElement===node;
+  }
   function currentModel(){
     if(previewPercent!==null)return {...root.FocusExpeditionModel.preview(state,motionPercent??previewPercent),moving};
     const model=root.FocusExpeditionModel.build(state);
@@ -204,7 +232,7 @@
     const reset=state&&(changedDate||state.totals.target!==next.totals.target||next.totals.minutes<state.totals.minutes);
     if(changedDate){clearCameraGesture();clearPulse();previewPercent=null;selected='core';zoom=1;panX=panY=0;artKey=detailKey='';if(isOpen())camera();}
     if(reset)cancelJourney();state=next;
-    if(!motionAllowed())cancelJourney();
+    if(!motionAllowed()){cancelJourney();finishPageSlide();}
     const pending=pendingProgress;pendingProgress=null;
     if(pending&&isOpen()&&previewPercent===null&&pending.date===next.date&&pending.target===next.totals.target&&pending.percent===next.totals.minutes/next.totals.target*100){
       if(flowKind!=='live')motionPercent=previous?previous.totals.minutes/previous.totals.target*100:pending.from;
@@ -219,21 +247,34 @@
   }
   function open(from){
     const latest=bridge.getState?.();if(latest)render(latest);
-    if(!state||isOpen()||document.querySelector('dialog[open]'))return;
+    if(!state||(isOpen()&&!closing)||document.querySelector('dialog[open]'))return false;
+    // Release the camp's inert ownership before saving the underlying page.
+    root.FocusCampfireRoom?.close(false);
     bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);cancelJourney();
-    clearCameraGesture();anchor=from||document.activeElement;selected='core';zoom=1;panX=panY=0;previewPercent=null;artKey=detailKey='';clearPulse();setText('citadel-feedback','');
-    inertBefore=Array.from(document.querySelectorAll('body > main, body > .sidebar')).map(element=>[element,element.inert]);
+    if(!isOpen()){
+      anchor=from||document.activeElement;
+      inertBefore=Array.from(document.querySelectorAll('body > main')).map(element=>[element,element.inert]);
+      background=document.querySelector('body > main')||inertBefore[0]?.[0];
+    }
+    closing=false;clearCameraGesture();selected='core';zoom=1;panX=panY=0;previewPercent=null;artKey=detailKey='';clearPulse();setText('citadel-feedback','');
     for(const [element] of inertBefore)element.inert=true;
-    $('citadel-view').hidden=false;document.documentElement.classList.add('has-citadel-view');
-    camera();paint();$('citadel-close').focus({preventScroll:true});
+    $('citadel-view').inert=false;$('citadel-view').hidden=false;document.documentElement.classList.add('has-citadel-view');
+    camera();paint();slidePage(true);$('citadel-close').focus({preventScroll:true});return true;
   }
   function close(restoreFocus=true){
-    if(!isOpen())return;
+    if(!isOpen()||(closing&&restoreFocus))return false;
+    closing=true;$('citadel-view').inert=true;
     root.FocusQuickSkins?.close(false);cancelJourney();clearPulse();clearCameraGesture();previewPercent=null;equipmentPreview=null;
-    $('citadel-view').hidden=true;document.documentElement.classList.remove('has-citadel-view');
-    for(const [element,previous] of inertBefore)element.inert=previous;inertBefore=[];
-    if(restoreFocus&&anchor?.isConnected)anchor.focus?.({preventScroll:true});anchor=null;
-    bridge.afterClose?.();
+    document.documentElement.classList.remove('has-citadel-view');
+    const finish=()=>{
+      $('citadel-view').hidden=true;$('citadel-view').inert=false;
+      for(const [element,previous] of inertBefore)element.inert=previous;inertBefore=[];
+      const from=anchor;anchor=null;background=null;closing=false;
+      if(restoreFocus&&!focusEntry(from))focusEntry($('citadel-enter'));
+      bridge.afterClose?.();
+    };
+    if(restoreFocus)slidePage(false,finish);else{cancelPageSlide();finish();}
+    return true;
   }
   function interact(){
     if(!isOpen()||pulse||!unlocked(places.find(p=>p.id===selected),currentModel()))return;
@@ -249,7 +290,7 @@
   function init(callbacks={}){
     bridge=callbacks;if(initialized)return;initialized=true;
     $('citadel-enter').addEventListener('click',event=>{if(!event.ctrlKey)open(event.currentTarget);});
-    document.querySelector('.quest-scene').addEventListener('click',event=>{if(event.target.closest?.('#campfire-room-open'))return;if(event.button===0&&!event.ctrlKey)open($('citadel-enter'));});
+    document.querySelector('.quest-scene').addEventListener('click',event=>{if(event.target.closest?.('#campfire-room-open,[data-island-gift]'))return;if(event.button===0&&!event.ctrlKey)open($('citadel-enter'));});
     $('citadel-close').addEventListener('click',()=>close());
     $('citadel-shop').addEventListener('click',()=>{close(false);bridge.openShop?.();});
     $('citadel-replay').addEventListener('click',()=>{if(previewPercent!==null)return;close();bridge.replayDay?.();});
@@ -263,7 +304,10 @@
     $('citadel-preview-toggle').addEventListener('click',()=>{const at=currentModel().percent,enter=previewPercent===null;cancelJourney();clearPulse();previewPercent=enter?Math.min(100,Math.round(at)):null;paint();});
     $('citadel-demo').addEventListener('click',startDemo);
     $('citadel-preview-range').addEventListener('input',event=>{const before=currentModel().percent;cancelJourney();clearPulse();previewPercent=Math.max(0,Math.min(100,Number(event.target.value)||0));const stage=Math.min(4,Math.floor(previewPercent/25));paint();if(stage>Math.floor(before/25)&&motionAllowed())awaken(stage*25,()=>{});});
-    root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(!motionAllowed()){cancelJourney();if(isOpen())paint();}});
+    root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(!motionAllowed()){cancelJourney();finishPageSlide();if(isOpen())paint();}});
+    const suspend=()=>{finishPageSlide();cancelJourney();clearPulse();clearCameraGesture();};
+    document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend();});
+    document.addEventListener('focusquest:visibility',event=>{if(event.detail?.visible===false)suspend();});
     const stage=$('citadel-stage');
     stage.addEventListener('wheel',wheelCamera,{passive:false});
     stage.addEventListener('pointerdown',event=>{if(zoom<=1||event.button!==0||event.ctrlKey||event.target.closest('button'))return;finishWheel();drag={id:event.pointerId,x:event.clientX,y:event.clientY,px:panX,py:panY,moved:false};});
@@ -273,7 +317,8 @@
       if(!isOpen()||event.defaultPrevented||document.querySelector('dialog[open]'))return;
       if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();close();return;}
       if(event.key!=='Tab')return;
-      const quick=$('quick-skins'),container=quick&&!quick.hidden?quick:$('citadel-view');
+      const quick=$('quick-skins');if(!quick||quick.hidden)return;
+      const container=quick;
       const nodes=Array.from(container.querySelectorAll('button:not([disabled]),a[href],input:not([disabled]),[tabindex="0"]')).filter(el=>!el.closest('[hidden]')&&el.getClientRects().length);
       const first=nodes[0],last=nodes[nodes.length-1];if(!first)return;
       if(!container.contains(document.activeElement)||(event.shiftKey&&document.activeElement===first)||(!event.shiftKey&&document.activeElement===last)){event.preventDefault();(event.shiftKey?last:first).focus();}

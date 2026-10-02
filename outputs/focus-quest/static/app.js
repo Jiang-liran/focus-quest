@@ -601,8 +601,16 @@ globalThis.FocusReviewHeatmap?.init({api,chooseDate,getState:()=>state});
 globalThis.FocusQuickSkins?.init({api,toast,refresh,playSound});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh,playSound});
 globalThis.FocusMystery?.init({api,toast,refresh,playSound,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});
+globalThis.FocusIslandRewards?.init({api,toast,refresh,playSound,unlock:ensureAudio,isHome:()=>currentView==='today',acceptReceipt:result=>{
+  if(!state||state.today!==result.day)return;
+  // A pre-claim poll must not briefly put the old wallet or gift back on screen.
+  requestSequence++;inFlight=false;
+  state={...state,quests:{...state.quests,wallet:result.wallet},islandRewards:state.date===result.day?result.islandRewards:state.islandRewards};
+  globalThis.FocusQuests?.render(state.quests);
+}});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
 globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
+globalThis.FocusHorizontalNavigation?.init({canNavigate:()=>Boolean(state)&&currentView==='today'&&!globalThis.FocusGoals?.required(),beforeOpen:()=>{stopScenePreview();globalThis.FocusExpedition?.leave();}});
 globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 globalThis.FocusArcade?.init({api,toast,refresh,playSound,openPage:switchView,isVisible:()=>currentView==='achievements'});
 if(globalThis.FocusRuntime)globalThis.FocusRuntime.start({tickClock,refresh,onWake:noteOpeningArrival,onSuspend:()=>{globalThis.FocusExpedition?.pause();globalThis.FocusExpedition?.deferResonance?.();}});

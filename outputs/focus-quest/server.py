@@ -656,6 +656,12 @@ class FocusStore:
                 reference TEXT PRIMARY KEY, coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
                 created_ms INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS island_reward_claims (
+                day TEXT NOT NULL, island TEXT NOT NULL,
+                coins INTEGER NOT NULL, diamonds INTEGER NOT NULL, claimed_ms INTEGER NOT NULL,
+                PRIMARY KEY(day,island),
+                CHECK(island IN ('math','cs','politics','english','main'))
+            );
             CREATE TABLE IF NOT EXISTS shop_purchases (
                 item_id TEXT PRIMARY KEY, purchased_ms INTEGER NOT NULL
             );
@@ -1061,6 +1067,84 @@ class FocusStore:
                 self.db.execute("INSERT INTO goal_requests VALUES (?,?,?,?,?)", (request_id, "weekly", week_start, encoded, now_ms))
                 self._bump_revision()
             return dict(self.goals_state(current), receipt={"requestId": request_id, "kind": "weekly", "alreadyApplied": bool(existing)})
+
+    def island_rewards_state(self, selected_day=None, now=None, records=None):
+        """Read daily island gifts without allocating study or writing receipts.
+
+        Historical dates retain their claim markers but cannot mint old gifts.
+        The optional records are the already filtered active rows from state().
+        Eligibility uses unrounded completed minutes, not displayed percentages.
+        """
+        with self.lock:
+            current = quest_clock(now)
+            today = current.date().isoformat()
+            day = selected_day if selected_day is not None else today
+            parse_day(day)
+            goal = self._daily_goal(day, current)
+            now_ms = int(current.timestamp()*1000)
+            if records is None:
+                records = self.db.execute("""SELECT r.* FROM records r WHERE r.day=?
+                    AND r.end_ms<=? AND NOT EXISTS (SELECT 1 FROM record_lifecycle l
+                        WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""", (day, now_ms)).fetchall()
+            completed = [row for row in records if row["day"] == day and row["end_ms"] <= now_ms]
+            totals = {sid: [] for sid in SUBJECT_IDS}
+            for row in completed:
+                subject = classify(row["name"], self.settings["mapping"])
+                if subject in totals:
+                    totals[subject].append(row["minutes"])
+            claims = {row["island"]: row for row in self.db.execute(
+                "SELECT * FROM island_reward_claims WHERE day=?", (day,))}
+
+            def gift(island, eligible, coins, diamonds):
+                claimed = island in claims
+                return {"id": island, "eligible": eligible, "claimed": claimed,
+                        "available": day == today and eligible and not claimed,
+                        "claimedAt": iso_ms(claims[island]["claimed_ms"]) if claimed else None,
+                        "reward": {"coins": coins, "diamonds": diamonds}}
+
+            subjects = []
+            for sid, name, _ in SUBJECTS:
+                minutes = math.fsum(totals[sid])
+                target = goal["targets"][sid]
+                eligible = day <= today and not goal["targetEstimated"] and minutes >= target
+                subjects.append(dict(gift(sid, eligible, 30, 1), name=name,
+                                     minutes=round(minutes, 4), target=target))
+            minutes = math.fsum(row["minutes"] for row in completed)
+            main = dict(gift("main", all(item["eligible"] for item in subjects)
+                            and minutes >= goal["total"], 100, 4),
+                        name="四科同行", minutes=round(minutes, 4), target=goal["total"])
+            return {"day": day, "today": today, "isToday": day == today,
+                    "subjects": subjects, "main": main,
+                    "availableCount": sum(item["available"] for item in [*subjects, main])}
+
+    def claim_island_reward(self, day, island, now=None):
+        parse_day(day)
+        if not isinstance(island, str) or island not in SUBJECT_IDS | {"main"}:
+            raise ValueError("请选择四科岛屿或主岛的礼盒")
+        with self._quest_transaction():
+            # Resolve the clock after acquiring the write lock: a click queued
+            # before midnight must not claim yesterday's gift after midnight.
+            current = quest_clock(now)
+            if day != current.date().isoformat():
+                raise ValueError("日期已变化，请回到今天领取礼盒；礼盒仅限当天领取")
+            existing = self.db.execute("SELECT 1 FROM island_reward_claims WHERE day=? AND island=?",
+                                       (day, island)).fetchone()
+            reward = {"coins": 0, "diamonds": 0}
+            if not existing:
+                state = self.island_rewards_state(day, current)
+                item = state["main"] if island == "main" else next(
+                    item for item in state["subjects"] if item["id"] == island)
+                if not item["available"]:
+                    raise ValueError("这份礼盒还在准备，完成对应的今日目标后再来领取吧")
+                reward = item["reward"]
+                created_ms = int(current.timestamp()*1000)
+                self.db.execute("INSERT INTO island_reward_claims VALUES (?,?,?,?,?)",
+                                (day, island, reward["coins"], reward["diamonds"], created_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                (f"island-gift:{day}:{island}", reward["coins"], reward["diamonds"], created_ms))
+                self._bump_revision()
+            return {"islandRewards": self.island_rewards_state(day, current), "wallet": self._wallet(),
+                    "reward": reward, "alreadyClaimed": bool(existing), "island": island, "day": day}
 
     def _goal_mystery_epochs(self, current):
         """Insert midnight resets into the temporal projection, including days
@@ -3260,6 +3344,7 @@ class FocusStore:
                                "level": level, "levelXp": xp % 120, "levelTarget": 120},
                     "subjects": subjects, "records": serialized, "week": week, "weekly": weekly,
                     "goals": self.goals_state(now), "selectedGoal": selected_goal, "heatmapRevision": self.revision,
+                    "islandRewards": self.island_rewards_state(selected_day, now, daily),
                     "activities": activity_summary(selected_day, daily, settings, minutes, target, now, advice),
                     "activityTypes": [{"id": aid, "name": name} for aid, name in ACTIVITY_TYPES],
                     "taskActivities": {name: classify_activity(name, settings["activityMapping"])
@@ -3426,7 +3511,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                   "/api/arcade/pulse": (("id", "version", "move"), store.pulse_arcade),
                                   "/api/arcade/tickets/buy": (("requestId",), store.buy_arcade_ticket),
                                   "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions:
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3445,6 +3530,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != set(fields):
                         raise ValueError("目标参数无效；请仅提供目标、日期和请求标识")
                     self._send(200, action(*(payload[field] for field in fields)))
+                elif path == "/api/island-rewards/claim":
+                    if url.query or set(payload) != {"day", "island"}:
+                        raise ValueError("请仅提供页面日期与岛屿；礼盒资格与奖励由服务器决定")
+                    self._send(200, store.claim_island_reward(payload["day"], payload["island"]))
                 elif path in arcade_actions:
                     fields, action = arcade_actions[path]
                     if url.query or set(payload) != set(fields):

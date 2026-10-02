@@ -30,6 +30,7 @@
   <link rel="stylesheet" href="/arcade-hub.css">
   <link rel="stylesheet" href="/minesweeper.css">
   <link rel="stylesheet" href="/interface-themes.css">
+  <link rel="stylesheet" href="/island-rewards.css">
   <link rel="stylesheet" href="/performance.css">
 </head>
 <body data-page="today">
@@ -92,6 +93,7 @@
           <div data-scene-ratio="1.851851852" class="expedition-canvas" id="expedition-canvas" aria-label="学习驱动的星海群岛">
             <div class="expedition-world" id="expedition-world"></div>
             <div class="expedition-resonance" id="expedition-resonance" aria-hidden="true"></div>
+            <div id="island-rewards" hidden></div>
             <div class="expedition-map-heading"><span>THE ISLES OF YOUR EFFORT</span><strong id="expedition-map-title">雾中的群岛，正等待第一束光。</strong></div>
             <div class="expedition-scene-state" id="expedition-scene-state" role="status" hidden></div>
           <div class="quest-scene" data-skin-slots="island theme fx companion relic portal avatar">
@@ -265,7 +267,7 @@
       </aside>
     </div>
   </section>
-  <section id="citadel-view" class="citadel-view" role="dialog" aria-modal="true" aria-labelledby="citadel-title" hidden>
+  <section id="citadel-view" class="citadel-view" role="region" aria-labelledby="citadel-title" hidden>
     <header class="citadel-header"><button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button><div class="citadel-heading"><span>星海群岛 / INNER WORLD</span><h2 id="citadel-title">星辉城 <small id="citadel-theme">晨雾星岛</small></h2></div><div class="citadel-header-actions"><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">前往商店 ↗</button></div></header>
     <div class="citadel-status"><p id="citadel-mode"></p><strong id="citadel-summary"></strong></div>
     <div class="citadel-layout">
@@ -303,11 +305,13 @@
   <script src="/quick-skins.js"></script>
   <script src="/expedition-model.js"></script>
   <script src="/expedition-art.js"></script>
+  <script src="/island-rewards.js"></script>
   <script src="/expedition.js"></script>
   <script src="/citadel-route.js"></script>
   <script src="/citadel-art.js"></script>
   <script src="/citadel.js"></script>
   <script src="/campfire-room.js"></script>
+  <script src="/horizontal-navigation.js"></script>
   <script src="/screen-layout.js"></script>
   <script src="/runtime.js"></script>
   <script src="/survivor.js"></script>

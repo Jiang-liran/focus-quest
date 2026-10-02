@@ -2,9 +2,15 @@
 .citadel-enter{position:absolute;left:50%;top:70%;transform:translateX(-50%);z-index:6;border:1px solid #b9afdb55;border-radius:20px;padding:8px 15px;background:#25283eea;color:#e8e0fc;font-size:12px;letter-spacing:.06em;box-shadow:0 5px 20px #11152740;white-space:nowrap;transition:background .2s,box-shadow .2s}
 .citadel-enter:hover{background:#46415b;box-shadow:0 0 25px #baade624}.citadel-enter span{margin-left:8px;color:#d4c190}
 .has-citadel-view body{overflow:hidden}
+html.has-citadel-view{overflow:hidden}
+html.citadel-page-moving,html.citadel-page-moving body{overflow:hidden}
+html.has-citadel-view body>main{transform:translateX(105vw);opacity:.25}
 .citadel-view[hidden]{display:none!important}
 .citadel-view{position:fixed;inset:12px;z-index:135;overflow:auto;overscroll-behavior:contain;background:radial-gradient(ellipse at 35% 10%,#2c34474a,transparent 65%),#151b2b;border:1px solid #626b8555;border-radius:22px;padding:25px 30px 28px;box-shadow:0 0 0 20px #0b0f1ade,0 25px 100px #0008;color:#e8e6ec;animation:citadel-arrive .4s ease both;scrollbar-width:thin}
 .citadel-view button{font-family:inherit;cursor:pointer}.citadel-view button:disabled{cursor:default;opacity:.4}
+/* Keep the shell in place as the city slides in from the left of the homepage. */
+#citadel-view{inset:0 0 0 var(--shell-width,210px);border:0;border-radius:0;box-shadow:none;animation:none}
+@media(min-width:880px) and (max-height:740px){#citadel-view{left:185px}}
 .citadel-view button:focus-visible,.citadel-view input:focus-visible{outline:2px solid #e0cd99;outline-offset:4px}
 .citadel-header{display:flex;align-items:center;gap:24px;max-width:1700px;margin:auto}.citadel-header button,.citadel-map-controls button,.citadel-preview-row>button,.citadel-replay{border:1px solid #7f879a45;background:#ffffff04;border-radius:10px;padding:10px 13px;color:#d2d0df;font-size:12px;white-space:nowrap}
 .citadel-header button:hover,.citadel-map-controls button:hover,.citadel-preview-row>button:hover,.citadel-replay:hover{background:#ffffff0a;border-color:#b2adc773}

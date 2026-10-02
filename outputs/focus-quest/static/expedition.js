@@ -132,6 +132,7 @@
     }
     replace('expedition-subjects',m.subjects.map(s=>`<button type="button" data-expedition-subject="${s.id}" aria-pressed="${selected===s.id}" class="${s.complete?'complete':''}" style="--isle-color:${{math:'#99d8c1',cs:'#b5aceb',politics:'#e3c295',english:'#a0cfe5'}[s.id]}"><i aria-hidden="true">${glyph[s.id]}</i><span><strong>${s.name} <small>${s.landmark}</small></strong><em>${s.complete?'星桥已共鸣':s.minutes?'设施建设中':'等待第一束光'}</em></span><b>${percent(s.percent)}%</b></button>`).join(''));
     resonance(m);sceneDescription(m);detail(m);replayUI();
+    root.FocusIslandRewards?.render(latest,{mode});
     bridge.renderHero();
   }
   function schedule(){
