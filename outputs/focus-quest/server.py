@@ -234,6 +234,8 @@ CITY_NOTE_TYPES = {"note", "question", "quote", "plan"}
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
 MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
+MYSTERY_GIFT_LIMIT = 6
+MYSTERY_GIFT_TICKETS = ((1, 0), (1, 1), (2, 1), (2, 2), (2, 2), (2, 2))
 LOTTERY_START_META = "lottery:featureStartMs:v1"
 LOTTERY_ROUNDS_META = "lottery:roundTickets:v1"
 LOTTERY_TIMED_V2_META = "lottery:timedTicketsV2:v1"
@@ -1050,6 +1052,19 @@ class FocusStore:
             raise ValueError("请选择金币或钻石抽奖机")
         return machine
 
+    @staticmethod
+    def _star_gift_tickets(index):
+        coins, diamonds = MYSTERY_GIFT_TICKETS[index-1]
+        return {"coinTickets": coins, "diamondTickets": diamonds}
+
+    def _claimed_star_gift_tickets(self, day, index):
+        reference = f"mystery:{day}:{index}"
+        counts = {"coinTickets": 0, "diamondTickets": 0}
+        for row in self.db.execute("SELECT machine,amount FROM lottery_ticket_ledger WHERE reference IN (?,?,?)",
+                                   (reference, reference+":coin", reference+":diamond")):
+            counts["coinTickets" if row["machine"] == "coin" else "diamondTickets"] += row["amount"]
+        return counts
+
     def _lottery_pools(self):
         owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
         pools = {"coinItem": [], "diamondItem": [], "coinLimited": [], "diamondLimited": []}
@@ -1112,12 +1127,18 @@ class FocusStore:
                       for row in self.db.execute("SELECT * FROM lottery_ticket_ledger WHERE amount>0 ORDER BY created_ms DESC,rowid DESC LIMIT 20")]
             star_gifts = [{"day": row["day"], "index": row["gift_index"],
                            "machine": "coin" if row["gift_index"] <= 2 else "diamond",
-                           "claimed": row["claimed"] is not None}
-                          for row in self.db.execute("""SELECT g.day,g.gift_index,t.reference AS claimed FROM mystery_gifts g
+                           "claimed": row["claimed"] is not None,
+                           "lotteryTickets": {"coinTickets": (row["amount"] if row["machine"] == "coin" else 0) + (row["extra_coin"] or 0),
+                                              "diamondTickets": (row["amount"] if row["machine"] == "diamond" else 0) + (row["extra_diamond"] or 0)}
+                               if row["claimed"] is not None else self._star_gift_tickets(row["gift_index"])}
+                          for row in self.db.execute("""SELECT g.day,g.gift_index,t.reference AS claimed,t.machine,t.amount,
+                                  c.amount AS extra_coin,x.amount AS extra_diamond FROM mystery_gifts g
                               JOIN mystery_deliveries d ON d.request_id=g.request_id
                               LEFT JOIN lottery_ticket_ledger t ON t.reference='mystery:'||g.day||':'||g.gift_index
-                              WHERE g.gift_index BETWEEN 1 AND 4 AND d.submitted_ms>=?
-                              ORDER BY g.day DESC,g.gift_index""", (int(self._meta(LOTTERY_START_META)),))]
+                              LEFT JOIN lottery_ticket_ledger c ON c.reference='mystery:'||g.day||':'||g.gift_index||':coin'
+                              LEFT JOIN lottery_ticket_ledger x ON x.reference='mystery:'||g.day||':'||g.gift_index||':diamond'
+                              WHERE g.gift_index BETWEEN 1 AND ? AND d.submitted_ms>=?
+                              ORDER BY g.day DESC,g.gift_index""", (MYSTERY_GIFT_LIMIT, int(self._meta(LOTTERY_START_META))))]
             return {"day": day, "now": current.isoformat(), "revision": int(self._meta("revision") or 0),
                     "featureStartMs": int(self._meta(LOTTERY_START_META)), "tickets": tickets, "wallet": wallet,
                     "playTickets": {"available": play_tickets, "persistent": True},
@@ -1204,8 +1225,8 @@ class FocusStore:
 
     def open_lottery_star_gift(self, day, index, request_id, now=None):
         parse_day(day)
-        if type(index) is not int or index not in (1, 2, 3, 4):
-            raise ValueError("请选择拾星处第 1 至第 4 份星礼")
+        if type(index) is not int or not 1 <= index <= MYSTERY_GIFT_LIMIT:
+            raise ValueError(f"请选择拾星处第 1 至第 {MYSTERY_GIFT_LIMIT} 份星礼")
         request_id = self._action_uuid(request_id)
         machine = "coin" if index <= 2 else "diamond"
         with self._quest_transaction():
@@ -1213,11 +1234,16 @@ class FocusStore:
             if self.db.execute("SELECT 1 FROM lottery_play_ticket_exchanges WHERE request_id=?", (request_id,)).fetchone():
                 raise ValueError("同一个抽奖请求标识不能更改机器或操作")
             previous = self.db.execute("SELECT * FROM lottery_requests WHERE request_id=?", (request_id,)).fetchone()
-            result = {"type": "starGift", "machine": machine, "day": day, "index": index}
+            result = {"type": "starGift", "machine": machine, "day": day, "index": index,
+                      "lotteryTickets": self._star_gift_tickets(index)}
             ticket_grants, already_claimed = [], False
             if previous:
-                if previous["kind"] != "starGift" or json.loads(previous["result"]) != result:
+                stored = json.loads(previous["result"])
+                if previous["kind"] != "starGift" or any(stored.get(key) != result[key] for key in ("type", "machine", "day", "index")):
                     raise ValueError("同一个星礼请求标识不能更改礼物或操作")
+                # Old UUIDs retain their original receipt and single-ticket
+                # reward; changing rules cannot reopen an already opened box.
+                result = stored
             else:
                 eligible = self.db.execute("""SELECT 1 FROM mystery_gifts g JOIN mystery_deliveries d ON d.request_id=g.request_id
                     WHERE g.day=? AND g.gift_index=? AND d.submitted_ms>=?""",
@@ -1227,11 +1253,19 @@ class FocusStore:
                 reference = f"mystery:{day}:{index}"
                 already_claimed = self.db.execute("SELECT 1 FROM lottery_ticket_ledger WHERE reference=?", (reference,)).fetchone() is not None
                 if not already_claimed:
-                    grant = self._grant_lottery_ticket(reference, machine, "mystery-gift", f"拾星 · 第 {index} 份星礼", current)
-                    if grant is None:
-                        raise ValueError("系统时间早于抽奖功能开启时间，请检查电脑日期")
-                    ticket_grants.append(grant)
+                    # The original primary reference remains the opened-box
+                    # marker. Both currencies and the receipt commit together.
+                    for kind in (machine, "diamond" if machine == "coin" else "coin"):
+                        count = result["lotteryTickets"]["coinTickets" if kind == "coin" else "diamondTickets"]
+                        if count:
+                            grant = self._grant_lottery_ticket(reference if kind == machine else reference+":"+kind,
+                                kind, "mystery-gift", f"拾星 · 第 {index} 份星礼", current, count)
+                            if grant is None:
+                                raise ValueError("系统时间早于抽奖功能开启时间，请检查电脑日期")
+                            ticket_grants.append(grant)
                     self._bump_revision()
+                else:
+                    result["lotteryTickets"] = self._claimed_star_gift_tickets(day, index)
                 self.db.execute("INSERT INTO lottery_requests VALUES (?,?,?,?,?,?)",
                     (request_id, "starGift", machine, current.date().isoformat(), int(current.timestamp()*1000),
                      json.dumps(result, ensure_ascii=False, allow_nan=False)))
@@ -1992,12 +2026,15 @@ class FocusStore:
         for day_key, entries in sorted(grouped.items()):
             settled = sum(entry["settledMinutes"] for entry in entries.values())
             available = sum(entry["pendingMinutes"] for entry in entries.values())
-            count = math.floor((settled + available) / 30 + 1e-10)
-            boxes = [{"day": day_key, "index": index, "coins": index * 20, "diamonds": index}
+            count = min(MYSTERY_GIFT_LIMIT, math.floor((settled + available) / 30 + 1e-10))
+            boxes = [{"day": day_key, "index": index, "coins": index * 20, "diamonds": index,
+                      "lotteryTickets": self._star_gift_tickets(index)}
                      for index in range(claimed_gifts.get(day_key, 0) + 1, count + 1)]
             gifts.extend(boxes)
             day_rows.append({"day": day_key, "minutes": round(settled + available, 4),
                 "settledMinutes": round(settled, 4), "pendingMinutes": round(available, 4), "pendingGifts": boxes,
+                "giftCount": min(MYSTERY_GIFT_LIMIT, max(claimed_gifts.get(day_key, 0), count)),
+                "giftLimitReached": max(claimed_gifts.get(day_key, 0), count) >= MYSTERY_GIFT_LIMIT,
                 "subjects": [{"id": subject, "name": next(name for sid, name, _ in SUBJECTS if sid == subject),
                     **{key: round(value, 4) for key, value in entry.items()}} for subject, entry in entries.items()]})
         subjects, base = [], {"coins": 0, "diamonds": 0}
@@ -2027,8 +2064,9 @@ class FocusStore:
             (int(midnight.timestamp() * 1000), int((midnight + timedelta(days=1)).timestamp() * 1000))).fetchone()[0]
         today_day = next((row for row in day_rows if row["day"] == today), None)
         today_minutes = sum(entry["settledMinutes"] + entry["pendingMinutes"] for entry in grouped.get(today, {}).values())
-        earned_count = math.floor(today_minutes / 30 + 1e-10)
-        next_index = max(claimed_gifts.get(today, 0), earned_count) + 1
+        earned_count = min(MYSTERY_GIFT_LIMIT, math.floor(today_minutes / 30 + 1e-10))
+        today_gift_count = min(MYSTERY_GIFT_LIMIT, max(claimed_gifts.get(today, 0), earned_count))
+        next_index = today_gift_count + 1
         target = sum(goals["targets"].values())
         enabled = target >= 480 and all(goals["targets"].get(sid, 0) > 0 for sid in SUBJECT_IDS)
         unlocked = enabled and plan["unlockedAt"] is not None
@@ -2042,8 +2080,11 @@ class FocusStore:
             "todayMinutes": round(today_minutes, 4), "todaySettledMinutes": round(today_settled, 4),
             "todayPendingMinutes": today_day["pendingMinutes"] if today_day else 0,
             "reward": reward, "baseReward": base, "giftReward": gift_reward,
+            "giftLimit": MYSTERY_GIFT_LIMIT, "todayGiftCount": today_gift_count,
+            "todayGiftLimitReached": today_gift_count >= MYSTERY_GIFT_LIMIT,
             "nextGift": {"index": next_index, "progressMinutes": round(max(0, today_minutes - earned_count * 30), 4),
-                         "target": 30, "coins": next_index * 20, "diamonds": next_index},
+                         "target": 30, "coins": next_index * 20, "diamonds": next_index,
+                         "lotteryTickets": self._star_gift_tickets(next_index)} if next_index <= MYSTERY_GIFT_LIMIT else None,
             "pendingGifts": gifts, "days": day_rows, "history": history}
 
     def submit_mystery(self, request_id, now=None):

@@ -105,12 +105,12 @@
       ['完整委托','普通委托每交付完整 1 轮：1 张。数学、408 每轮 60 分钟，政治、英语每轮 30 分钟。'],
       ['学科礼盒','每科当日目标完成，打开该科岛屿礼盒：1 张。'],
       ['单科首轮','领取每科当日首轮加赠：1 张。四科各领一次，每天最多 4 张；与完整委托赠券分别计算。'],
-      ['拾星星礼','「拾星」第 1、2 份星礼：各 1 张。']
+      ['拾星星礼','「拾星」第 1、2 份星礼各 1 张，第 3—6 份各 2 张。每天最多 6 份星礼；打开混合礼盒时，两种券会一起收好。']
     ]:[
       ['完整委托','四科普通委托合计每交付完整 3 轮：1 张。可连续学习同一科，也可自由搭配科目。'],
       ['主岛礼盒','总目标与四科目标都完成，打开主岛礼盒：1 张。'],
       ['融会贯通','知行研习所「融会贯通」额外奖赏：1 张。'],
-      ['拾星星礼','「拾星」第 3、4 份星礼：各 1 张。'],
+      ['拾星星礼','「拾星」第 2、3 份星礼各 1 张，第 4—6 份各 2 张。达标后每额外学习 30 分钟备好一份，每日最多 6 份；同盒的金币券会一起收好。'],
       ['上午首轮','同一学习日的数学、政治首轮加赠都领取：1 张。'],
       ['下午首轮','同一学习日的 408、英语首轮加赠都领取：1 张。上午、下午各一次，每天最多 2 张。']
     ];
@@ -148,10 +148,17 @@
     const available=count(data?.playTickets?.available),waiting=busy?.action==='exchange'&&busy.machine===machine;
     return `<section class="lottery-exchange" aria-labelledby="lottery-exchange-title"><div class="lottery-exchange-heading"><span class="lottery-eyebrow">把留存的小票，换成一份期待</span><span class="lottery-play-balance">累计游玩券 <b>${available}</b> 张</span></div><div class="lottery-exchange-route"><span><b>${amount}</b> 张游玩券</span><i aria-hidden="true">⇢</i><span><b>1</b> 张${labels[machine].ticket}</span></div><h3 id="lottery-exchange-title" class="lottery-exchange-caption">游玩券也可以留给幸运</h3><button type="button" data-lottery-action="exchange" data-lottery-focus="exchange" aria-disabled="${!canExchange()}"${waiting?' aria-busy="true"':''}>${waiting?'正在兑换…':available<amount?`还差 ${amount-available} 张游玩券`:`用 ${amount} 张游玩券兑换`}</button><p>游玩券永久保留 · 兑换不限次数<br>收好抽奖券，再按自己的心情开奖。</p></section>`;
   }
-  function pendingGifts(){return (data?.starGifts||[]).filter(row=>row?.machine===machine&&row.claimed===false&&/^\d{4}-\d{2}-\d{2}$/.test(row.day)&&Number.isInteger(row.index)&&row.index>=1&&row.index<=4);}
+  function giftTicketCounts(row){
+    const tickets=row?.lotteryTickets;
+    if(tickets!==undefined)return ['coinTickets','diamondTickets'].every(key=>Number.isSafeInteger(tickets?.[key])&&tickets[key]>=0)&&tickets.coinTickets+tickets.diamondTickets>0?{coinTickets:tickets.coinTickets,diamondTickets:tickets.diamondTickets}:null;
+    return kinds.has(row?.machine)&&Number.isInteger(row.index)&&row.index>=1&&row.index<=4?{coinTickets:row.machine==='coin'?1:0,diamondTickets:row.machine==='diamond'?1:0}:null;
+  }
+  function giftTicketSummary(tickets){return [['coinTickets','金币抽奖券'],['diamondTickets','钻石抽奖券']].filter(([key])=>tickets?.[key]>0).map(([key,label])=>`${count(tickets[key])} 张${label}`).join(' · ');}
+  function sameGiftTickets(a,b){return a!==null&&b!==null&&a.coinTickets===b.coinTickets&&a.diamondTickets===b.diamondTickets;}
+  function pendingGifts(){return (data?.starGifts||[]).filter(row=>row?.claimed===false&&/^\d{4}-\d{2}-\d{2}$/.test(row.day)&&Number.isInteger(row.index)&&row.index>=1&&row.index<=6&&kinds.has(row.machine)&&giftTicketCounts(row)?.[machine==='coin'?'coinTickets':'diamondTickets']>0);}
   function starGiftsHTML(){
     const rows=pendingGifts();if(!rows.length)return '';
-    return `<section class="lottery-star-gifts" aria-label="拾星留存的星礼"><h3>拾星为你留下的星礼</h3><p>余辉的货币奖励已结算，这里再打开礼盒，收下其中的抽奖券。</p>${rows.slice(0,12).map(row=>`<div><span>${esc(row.day)} · 第 ${row.index} 份星礼</span><button type="button" data-lottery-action="star-gift" data-lottery-day="${row.day}" data-lottery-index="${row.index}" data-lottery-focus="star-${row.day}-${row.index}" aria-disabled="${Boolean(busy||retry)}">${busy?.action==='star-gift'&&busy.day===row.day&&busy.index===row.index?'正在打开…':'开启星礼'}</button></div>`).join('')}${rows.length>12?`<small>还有 ${rows.length-12} 份，打开这些后即可继续查看。</small>`:''}</section>`;
+    return `<section class="lottery-star-gifts" aria-label="拾星留存的星礼"><h3>拾星为你留下的星礼</h3><p>余辉的货币奖励已结算；任一机器打开一次，同盒的两种抽奖券会一起收好。</p>${rows.slice(0,12).map(row=>`<div><span>${esc(row.day)} · 第 ${row.index} 份星礼<br><small>内含 ${esc(giftTicketSummary(giftTicketCounts(row)))}</small></span><button type="button" data-lottery-action="star-gift" data-lottery-day="${row.day}" data-lottery-index="${row.index}" data-lottery-focus="star-${row.day}-${row.index}" aria-disabled="${Boolean(busy||retry)}">${busy?.action==='star-gift'&&busy.day===row.day&&busy.index===row.index?'正在打开…':'开启星礼'}</button></div>`).join('')}${rows.length>12?`<small>还有 ${rows.length-12} 份，打开这些后即可继续查看。</small>`:''}</section>`;
   }
   function historyHTML(){
     const rows=(data?.history||[]).filter(row=>row.machine===machine).slice(0,4);
@@ -197,25 +204,40 @@
     const hex=Array.from(bytes,value=>value.toString(16).padStart(2,'0')).join('');return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
   }
   function validOutcome(result,operation){
+    if(operation.action==='star-gift')return result?.type==='starGift'&&result.day===operation.day&&result.index===operation.index&&result.machine===(operation.giftMachine||operation.machine);
     if(result?.machine!==operation.machine)return false;
     if(operation.action==='exchange')return result.type==='ticket'&&result.amount===1&&result.source==='playTicketExchange'&&result.playTicketsSpent===operation.exchangeCost;
     if(operation.action==='buy')return result.type==='ticket'&&result.amount===1;
-    if(operation.action==='star-gift')return result.type==='starGift'&&result.day===operation.day&&result.index===operation.index;
     if(result.type==='item')return Boolean(result.item&&/^[a-z0-9-]+$/.test(result.item.id||'')&&typeof result.item.name==='string');
     const amount=result.type==='coins'?result.coins:result.type==='diamonds'?result.diamonds:null;
     return typeof amount==='number'&&Number.isInteger(amount)&&amount>0;
+  }
+  function validStarReceipt(result,operation){
+    const claimed=result.lottery?.starGifts?.find(row=>row.day===operation.day&&row.index===operation.index&&row.machine===(operation.giftMachine||operation.machine)&&row.claimed===true);
+    if(!claimed)return false;
+    if(!operation.giftModern)return true;
+    if(result.alreadyProcessed===true&&result.result.lotteryTickets===undefined)return true;
+    if(result.result.lotteryTickets===undefined||claimed.lotteryTickets===undefined)return false;
+    const actual=giftTicketCounts(result.result),saved=giftTicketCounts(claimed);
+    if(!sameGiftTickets(actual,saved))return false;
+    if(result.alreadyProcessed===true)return true;
+    if(!sameGiftTickets(actual,operation.giftTickets))return false;
+    const granted={coinTickets:0,diamondTickets:0};
+    for(const row of Array.isArray(result.ticketGrants)?result.ticketGrants:[]){if(!kinds.has(row?.machine)||!Number.isSafeInteger(row.count)||row.count<1)return false;granted[row.machine==='coin'?'coinTickets':'diamondTickets']+=row.count;}
+    return sameGiftTickets(actual,granted);
   }
   async function mutate(action,confirm=false,gift=null){
     if(busy||rulesDialog?.open||!visible()||!['draw','buy','star-gift','exchange'].includes(action))return;
     if(confirm){if(!retry||retry.action!==action)return;}
     else if(retry||(action==='draw'?!canDraw():action==='buy'?!canBuy():action==='exchange'?!canExchange():!pendingGifts().some(row=>row.day===gift?.day&&row.index===gift?.index)))return;
-    try{busy=confirm?{...retry,viewId}:{machine,action,viewId,requestId:requestId(),...(action==='exchange'?{exchangeCost:exchangeCost()}:{}),...(action==='star-gift'?{day:gift.day,index:gift.index}:{})};}catch(e){error=e.message;paint();return;}
+    const giftEntry=action==='star-gift'&&!confirm?pendingGifts().find(row=>row.day===gift?.day&&row.index===gift?.index):null;
+    try{busy=confirm?{...retry,viewId}:{machine,action,viewId,requestId:requestId(),...(action==='exchange'?{exchangeCost:exchangeCost()}:{}),...(action==='star-gift'?{day:gift.day,index:gift.index,giftMachine:giftEntry.machine,giftTickets:giftTicketCounts(giftEntry),giftModern:giftEntry.lotteryTickets!==undefined}:{})};}catch(e){error=e.message;paint();return;}
     const operation=busy,operationView=viewId;retry=operation;error='';loadError='';bridge.unlock?.();paint();
     try{
       const payload=action==='star-gift'?{day:operation.day,index:operation.index,requestId:operation.requestId}:{machine:operation.machine,requestId:operation.requestId};
       const result=await bridge.api(`/api/lottery/${action}`,payload);
       const outcome=result?.result;
-      if(!valid(result?.lottery)||!result?.quests||!validOutcome(outcome,operation)||(action==='exchange'&&(!Number.isInteger(result.arcade?.available)||result.arcade.available<0||result.arcade.persistentTickets!==true||result.lottery.playTickets?.available!==result.arcade.available))||(action==='star-gift'&&!result.lottery.starGifts?.some(row=>row.day===operation.day&&row.index===operation.index&&row.machine===operation.machine&&row.claimed===true)))throw new Error('这份礼物的回执还没有完整送到，请确认上次操作。');
+      if(!valid(result?.lottery)||!result?.quests||!validOutcome(outcome,operation)||(action==='exchange'&&(!Number.isInteger(result.arcade?.available)||result.arcade.available<0||result.arcade.persistentTickets!==true||result.lottery.playTickets?.available!==result.arcade.available))||(action==='star-gift'&&!validStarReceipt(result,operation)))throw new Error('这份礼物的回执还没有完整送到，请确认上次操作。');
       accept(result.lottery);retry=null;
       if(action==='draw'&&host&&machine===operation.machine&&viewId===operationView)results.set(operation.machine,outcome);
       if(bridge.acceptReceipt)bridge.acceptReceipt(result);else bridge.acceptQuests?.(result.quests);
@@ -223,7 +245,7 @@
         if(action==='draw'&&visible()&&machine===operation.machine&&viewId===operationView)pendingReveals.add(operation.machine);
         announced.add(operation.requestId);if(announced.size>96)announced.delete(announced.values().next().value);
         if(!result.alreadyProcessed&&visible()&&machine===operation.machine&&viewId===operationView)bridge.playSound?.(action==='buy'||action==='exchange'?'purchase':outcome.limited||outcome.rarity==='jackpot'?'victory':'delivery',{key:`lottery:${operation.requestId}`});
-        bridge.toast?.(action==='exchange'?`${labels[operation.machine].ticket}已兑换`:action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='exchange'?`已使用 ${operation.exchangeCost} 张游玩券，收下 1 张${labels[operation.machine].ticket}。抽奖券永久保留。`:action==='star-gift'?`+1 ${labels[operation.machine].ticket} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?`${number(outcome.price?.coins)||number(outcome.price?.diamonds)?`已使用 ${cost(outcome.price)}。`:''}抽奖券会一直保留，想拆开时再来。`:outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
+        bridge.toast?.(action==='exchange'?`${labels[operation.machine].ticket}已兑换`:action==='buy'?`${labels[operation.machine].ticket}已收好`:action==='star-gift'?`拾星 · 第 ${operation.index} 份星礼已打开`:`${labels[operation.machine].name} · ${resultTitle(outcome)}`,action==='exchange'?`已使用 ${operation.exchangeCost} 张游玩券，收下 1 张${labels[operation.machine].ticket}。抽奖券永久保留。`:action==='star-gift'?`${result.alreadyProcessed?'这份星礼已经收好':ticketText(result.ticketGrants).replace(/^ · /,'')||giftTicketSummary(giftTicketCounts(outcome)||operation.giftTickets)} · 星礼的金币与钻石奖励不重复结算。`:action==='buy'?`${number(outcome.price?.coins)||number(outcome.price?.diamonds)?`已使用 ${cost(outcome.price)}。`:''}抽奖券会一直保留，想拆开时再来。`:outcome.type==='item'?'新物品已永久加入收藏。':'这份小礼已经记进行囊。');
       }
     }catch(e){
       if(Number(e?.status)>=400&&Number(e.status)<500&&Number(e.status)!==408&&Number(e.status)!==429)retry=null;
