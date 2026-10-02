@@ -8,6 +8,7 @@
   const shopArt = isNode ? require('./shop-art.js') : null;
   const expansion = isNode ? require('./shop-expansion.js') : root.FocusShopExpansion;
   const currencyArt = isNode ? require('./currency-art.js') : root.FocusCurrencyArt;
+  const islandEffects = isNode ? require('./island-effects.js') : root.FocusIslandEffects;
   const places = [
     {id:'library', name:'雨巷书屋', subtitle:'窗边，一盏灯', copy:'书架之间留着一张靠窗的桌子。把今天的喧闹留在门外，坐一会儿也很好。'},
     {id:'tea', name:'听雨茶馆', subtitle:'杯中有暖，檐下有雨', copy:'水刚刚烧开。这里没有待办，也没有必须完成的对话；你可以安静地听一会儿雨。'},
@@ -78,6 +79,8 @@
   }
   function player(eq,x,y,scale=.7){const art=questArt||root.QuestArt;return `<g class="rain-city-traveler" data-skin-slots="avatar" data-citadel-equipment="${eq.avatar}" transform="translate(${x} ${y}) scale(${scale})">${strip(art?.avatar?.('player',eq.avatar,0))}</g>`;}
   function effects(eq){
+    if(eq.fx==='fx-default')return '';
+    if(islandEffects?.has(eq.fx))return `<g class="rain-city-equipped-fx" data-skin-slots="fx" data-citadel-equipment="${eq.fx}" pointer-events="none">${islandEffects.scene(eq.fx,'city')}</g>`;
     if(expansion?.has(eq.fx,'fx'))return `<g class="rain-city-equipped-fx" data-skin-slots="fx" data-citadel-equipment="${eq.fx}" pointer-events="none">${expansion.effectScene(eq.fx,'city')}</g>`;
     const variant=eq.fx.slice(3);if(variant==='default')return '';
     const points=[[122,305],[309,248],[501,331],[792,286],[947,443],[402,545],[674,476],[1072,574]];

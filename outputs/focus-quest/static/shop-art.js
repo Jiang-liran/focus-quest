@@ -17,6 +17,7 @@
     island: ['default', 'lanterns', 'garden', 'pavilion', 'supplies', 'banners', 'fountain', 'library', 'observatory', 'arcade', 'palace'],
   };
   const expansion=typeof module==='object'&&module.exports?require('./shop-expansion.js'):root.FocusShopExpansion;
+  const islandEffects=typeof module==='object'&&module.exports?require('./island-effects.js'):root.FocusIslandEffects;
   for(const entry of expansion?.entries||[])if(inventory[entry.slot])inventory[entry.slot].push(entry.id.slice(entry.id.indexOf('-')+1));
   const items = new Map(Object.entries(inventory).flatMap(([slot, variants]) => variants.map(variant => [`${slot}-${variant}`, {slot, variant}])));
   const cache = new WeakMap();
@@ -234,8 +235,13 @@
     put(portal,valid.portal,valid.portal==='portal-default'?'':(expansion?.portal(valid.portal)||portals[items.get(valid.portal).variant]),'translate(220 123) scale(.57)');
     put(backdrop,valid.theme,themeBackdrop(items.get(valid.theme).variant));
     let fx=doc.getElementById('equipped-extra-fx');
-    if(expansion?.has(valid.fx,'fx'))fx=mount(doc,'equipped-extra-fx','.floating-island',true);
-    if(fx)put(fx,valid.fx,expansion?.has(valid.fx,'fx')?expansion.effectScene(valid.fx,'home'):'');
+    const sharedFx=islandEffects?.has(valid.fx)===true;
+    if(sharedFx||expansion?.has(valid.fx,'fx'))fx=mount(doc,'equipped-extra-fx','.floating-island',true);
+    if(fx){
+      const renderer=sharedFx?'island':'legacy';
+      if(fx.getAttribute('data-fx-renderer')!==renderer)fx.setAttribute('data-fx-renderer',renderer);
+      put(fx,valid.fx,sharedFx?islandEffects.scene(valid.fx,'home'):expansion?.has(valid.fx,'fx')?expansion.effectScene(valid.fx,'home'):'');
+    }
     (nodeProgressBars||root.FocusProgressBars)?.decorate(doc);
     return valid;
   }

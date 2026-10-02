@@ -30,7 +30,9 @@
 .rain-city-art .rain-city-traveler{filter:saturate(.74) brightness(.9)}
 /* Purchased decorative artwork can contain its own animation; the city uses only its geometry. */
 .rain-city-art .rain-city-equipment *,.rain-city-art .rain-city-traveler *{animation:none!important}
-.rain-city-art .rain-city-equipped-fx{opacity:.7}
+/* Shared effect artwork already sets its night-city intensity. Keep that light
+   intact, and let every building, cabinet and route remain clickable. */
+.rain-city-art .rain-city-equipped-fx,.rain-city-art .rain-city-equipped-fx *{pointer-events:none}
 @keyframes rain-city-rain-fall{from{transform:translate(0,-24px)}to{transform:translate(-10px,20px)}}
 @keyframes rain-city-river-glow{from{opacity:.65}to{opacity:1}}
 @keyframes rain-city-tea-steam{0%,100%{opacity:.18;transform:translateY(1px)}50%{opacity:.36;transform:translateY(-5px)}}
