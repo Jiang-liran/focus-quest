@@ -50,3 +50,13 @@
 .rain-city-art[data-city-mode=panorama] .rain-city-rain-layer{stroke-width:.8;animation-duration:2.7s}
 .rain-city-art[data-city-mode=panorama] .rain-city-rain-1{animation-duration:3.6s}
 html.no-motion .rain-city-art *,html.focus-runtime-hidden .rain-city-art *{animation:none!important;transition:none!important}
+.rain-city-lottery-machine{pointer-events:none;outline:none}
+.rain-city-lottery-machine.is-interactive{cursor:pointer;pointer-events:auto}
+.rain-city-machine-focus{opacity:0;transition:opacity .2s ease}
+.rain-city-machine-body{transition:filter .22s ease,transform .22s ease}
+.rain-city-machine-glow{transition:opacity .22s ease;pointer-events:none}
+.rain-city-machine-hint{opacity:.65;transition:opacity .2s ease}
+.rain-city-lottery-machine.is-interactive:is(:hover,:focus-visible) .rain-city-machine-body{filter:brightness(1.16);transform:translateY(-4px)}
+.rain-city-lottery-machine.is-interactive:is(:hover,:focus-visible) .rain-city-machine-glow{opacity:.9}
+.rain-city-lottery-machine.is-interactive:is(:hover,:focus-visible) .rain-city-machine-hint{opacity:1}
+.rain-city-lottery-machine.is-interactive:focus-visible .rain-city-machine-focus{opacity:1}

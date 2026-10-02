@@ -14,6 +14,8 @@
     camptrail: ['default', 'stone', 'stars'],
     campmark: ['default', 'chimes', 'moon'],
   };
+  const expansion=typeof module==='object'&&module.exports?require('./shop-expansion.js'):root.FocusShopExpansion;
+  const nodeWorld=typeof module==='object'&&module.exports?require('./camp-world-art.js'):null;
   const slots = Object.keys(catalog);
   const prefix = slot => slot === 'camptrail' ? 'trail' : slot;
   const products = new Map(slots.flatMap(slot => catalog[slot].map(variant => [`${prefix(slot)}-${variant}`, slot])));
@@ -24,7 +26,7 @@
     const source = equipped && typeof equipped === 'object' && !Array.isArray(equipped) ? equipped : {};
     return Object.fromEntries(slots.map(slot => {
       const id = Object.prototype.hasOwnProperty.call(source, slot) ? source[slot] : null;
-      return [slot, products.get(id) === slot ? id : `${prefix(slot)}-default`];
+      return [slot, (products.get(id) === slot||expansion?.has(id,slot)) ? id : `${prefix(slot)}-default`];
     }));
   }
 
@@ -226,6 +228,7 @@
   }
 
   function scene(equipped) {
+    if(slots.some(slot=>expansion?.has(equipped?.[slot],slot)))return (nodeWorld||root.FocusCampWorldArt)?.scene(equipped,{interactive:false})||'';
     const chosen = normalize(equipped);
     let svg = campfireArt.scene();
     const variant = slot => chosen[slot].slice(slot.length+1);
@@ -252,10 +255,10 @@
 
   function preview(itemId, equipped) {
     const chosen = normalize(equipped);
-    const slot = products.get(itemId);
+    const slot = products.get(itemId)||(expansion?.has(itemId)?expansion.item(itemId).slot:null);
     if (slot) chosen[slot] = itemId;
     // Resolve at call time: the full camp module may load after the shop bridge.
-    const world = root?.FocusCampWorldArt?.scene?.(chosen, {interactive: false});
+    const world = (root?.FocusCampWorldArt||(expansion?.has(itemId)?nodeWorld:null))?.scene?.(chosen, {interactive: false});
     let svg = typeof world === 'string' && world ? world : scene(chosen);
     if (world) return svg;
     if (slot === 'chatframe') svg = svg.replace('</svg>', chatSample(chosen.chatframe.slice(10)) + '</svg>');

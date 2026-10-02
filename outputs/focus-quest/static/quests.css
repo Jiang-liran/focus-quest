@@ -60,3 +60,6 @@
 .exchange-reverse>span{font-size:11px;color:var(--ui-accent,#c3a9df)}.exchange-reverse>.secondary-button{white-space:nowrap}
 @media(min-width:1700px) and (min-height:850px){.exchange-reverse strong{font-size:clamp(15px,1vw,21px)}.exchange-reverse p,.exchange-reverse>span{font-size:clamp(13px,.8vw,17px)}}
 @media(max-width:650px){.exchange-reverse>div{flex-basis:100%}.exchange-reverse>.secondary-button{margin-left:auto}}
+.shop-limited-price{display:flex;flex-wrap:wrap;gap:6px;color:var(--ui-accent,#c2b3eb);font-size:13px}.shop-limited-price small{width:100%;color:var(--ui-muted,#9994ad);font-size:11px}
+.shop-markets{grid-template-columns:repeat(4,minmax(0,1fr))}
+@media(max-width:800px){.shop-markets{grid-template-columns:repeat(2,minmax(0,1fr))}}

@@ -31,6 +31,12 @@ from urllib.parse import parse_qs, unquote, urlsplit
 _arcade_spec = importlib.util.spec_from_file_location("focusquest_arcade_rules", Path(__file__).with_name("arcade_rules.py"))
 arcade_rules = importlib.util.module_from_spec(_arcade_spec)
 _arcade_spec.loader.exec_module(arcade_rules)
+_lottery_spec = importlib.util.spec_from_file_location("focusquest_lottery_rules", Path(__file__).with_name("lottery_rules.py"))
+lottery_rules = importlib.util.module_from_spec(_lottery_spec)
+_lottery_spec.loader.exec_module(lottery_rules)
+_shop_spec = importlib.util.spec_from_file_location("focusquest_shop_expansion", Path(__file__).with_name("shop_catalog_expansion.py"))
+shop_expansion = importlib.util.module_from_spec(_shop_spec)
+_shop_spec.loader.exec_module(shop_expansion)
 
 DEFAULT_SOURCE = Path.home() / "Library/Application Support/tomatodo/tomatodo_db.json"
 DEFAULT_DATA = Path.home() / "Library/Application Support/FocusQuest"
@@ -191,8 +197,11 @@ SHOP_CATALOG = (
     ("chatframe-parchment", "chatframe", "旅途信笺", "让对话像写在一张随身的旧信纸上", 360, 0),
     ("chatframe-constellation", "chatframe", "星图低语", "让小小星图沿着对话卡片边缘铺开", 0, 12),
 )
+SHOP_CATALOG = SHOP_CATALOG + shop_expansion.SHOP_CATALOG_EXTRA
 SHOP_ITEMS = {item[0]: dict(zip(("id", "slot", "name", "description", "coins", "diamonds"), item))
               for item in SHOP_CATALOG}
+for _item_id, _metadata in shop_expansion.SHOP_ITEM_META.items():
+    SHOP_ITEMS[_item_id].update(_metadata)
 SHOP_CATEGORIES = {"bar": "进度条", "fx": "星岛特效", "avatar": "我的时装",
                    "banner": "旅人铭牌", "theme": "星岛环境", "interface": "界面主题", "companion": "随行伙伴",
                    "relic": "星岛圣物", "portal": "远征之门", "island": "主岛布置", "camp": "营地地貌",
@@ -219,6 +228,7 @@ CITY_NOTE_TYPES = {"note", "question", "quote", "plan"}
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
 MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
+LOTTERY_START_META = "lottery:featureStartMs:v1"
 RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "npc-astral", "npc-phoenix")
 # These are historical upgrade prices, not purchasable catalog entries. Old
 # archives still need the v1.8 difference credited before the final net refund.
@@ -687,6 +697,21 @@ class FocusStore:
             CREATE TABLE IF NOT EXISTS shop_purchases (
                 item_id TEXT PRIMARY KEY, purchased_ms INTEGER NOT NULL
             );
+            CREATE TABLE IF NOT EXISTS lottery_ticket_ledger (
+                reference TEXT PRIMARY KEY, machine TEXT NOT NULL, amount INTEGER NOT NULL,
+                created_ms INTEGER NOT NULL, source TEXT NOT NULL, label TEXT NOT NULL,
+                CHECK(machine IN ('coin','diamond'))
+            );
+            CREATE TABLE IF NOT EXISTS lottery_requests (
+                request_id TEXT PRIMARY KEY, kind TEXT NOT NULL, machine TEXT NOT NULL,
+                day TEXT NOT NULL, created_ms INTEGER NOT NULL, result TEXT NOT NULL,
+                CHECK(kind IN ('buy','draw','starGift')), CHECK(machine IN ('coin','diamond'))
+            );
+            CREATE INDEX IF NOT EXISTS lottery_request_day ON lottery_requests(kind,machine,day);
+            CREATE TABLE IF NOT EXISTS lottery_pity (
+                machine TEXT PRIMARY KEY, count INTEGER NOT NULL DEFAULT 0,
+                CHECK(machine IN ('coin','diamond')), CHECK(count>=0)
+            );
             CREATE TABLE IF NOT EXISTS shop_equipment (
                 slot TEXT PRIMARY KEY, item_id TEXT NOT NULL
             );
@@ -806,6 +831,7 @@ class FocusStore:
                     self._set_meta("settings", json.dumps(self.settings, ensure_ascii=False, allow_nan=False))
         self._initialize_mystery()
         self._migrate_mystery_diamond_cadence()
+        self._initialize_lottery()
         self.revision = int(self._meta("revision") or 0)
         self._initialize_goals()
         self._ensure_goal_days(quest_clock())
@@ -843,6 +869,208 @@ class FocusStore:
     def _wallet(self):
         row = self.db.execute("SELECT COALESCE(SUM(coins),0),COALESCE(SUM(diamonds),0) FROM wallet_ledger").fetchone()
         return {"coins": row[0], "diamonds": row[1]}
+
+    def _initialize_lottery(self, now=None):
+        # A feature epoch is installation time, not midnight: opening an old
+        # archive never mints tickets for previously opened gifts or bonuses.
+        with self.lock, self.db:
+            if self._meta(LOTTERY_START_META) is None:
+                self._set_meta(LOTTERY_START_META, int(quest_clock(now).timestamp()*1000))
+
+    def _grant_lottery_ticket(self, reference, machine, source, label, current):
+        created_ms = int(current.timestamp()*1000)
+        if created_ms < int(self._meta(LOTTERY_START_META)):
+            return None
+        cursor = self.db.execute("INSERT OR IGNORE INTO lottery_ticket_ledger VALUES (?,?,1,?,?,?)",
+                                 (reference, machine, created_ms, source, label))
+        return {"machine": machine, "count": 1, "source": source, "label": label} if cursor.rowcount else None
+
+    def _timed_lottery_tickets(self, day, current):
+        # Period completion is based on claimed first-round bonuses. All
+        # constituents must have been claimed since this feature was installed;
+        # the final receipt cannot turn a pre-upgrade archive into free tickets.
+        epoch = int(self._meta(LOTTERY_START_META))
+        completed = {row[0] for row in self.db.execute(
+            "SELECT subject FROM quest_bonus_receipts WHERE day=? AND submitted_ms>=?", (day, epoch))}
+        grants = []
+        for subjects, machine, key, label in (
+            ({"math", "politics"}, "coin", "morning", "上午双科首轮加赠"),
+            ({"cs", "english"}, "coin", "afternoon", "下午双科首轮加赠"),
+            (SUBJECT_IDS, "diamond", "all", "四科首轮加赠")):
+            if subjects <= completed:
+                grant = self._grant_lottery_ticket(f"timed:{day}:{key}", machine, f"timed-{key}", label, current)
+                if grant:
+                    grants.append(grant)
+        return grants
+
+    @staticmethod
+    def _lottery_machine(machine):
+        if not isinstance(machine, str) or machine not in lottery_rules.PRICES:
+            raise ValueError("请选择金币或钻石抽奖机")
+        return machine
+
+    def _lottery_pools(self):
+        owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
+        pools = {"coinItem": [], "diamondItem": [], "coinLimited": [], "diamondLimited": []}
+        for item in SHOP_ITEMS.values():
+            if item["id"] in owned:
+                continue
+            if item.get("lotteryOnly", False):
+                machine = item.get("lotteryMachine")
+                if machine in lottery_rules.PRICES:
+                    pools[machine+"Limited"].append(item)
+                continue
+            if not item.get("lotteryEligible", True):
+                continue
+            if item["diamonds"] > 0:
+                pools["diamondItem"].append(item)
+            elif item["coins"] > 0:
+                pools["coinItem"].append(item)
+        return pools
+
+    def lottery_state(self, now=None):
+        with self.lock:
+            current = quest_clock(now)
+            day = current.date().isoformat()
+            tickets = {machine: 0 for machine in lottery_rules.PRICES}
+            for row in self.db.execute("SELECT machine,SUM(amount) FROM lottery_ticket_ledger GROUP BY machine"):
+                tickets[row[0]] = row[1]
+            purchased = {row[0]: row[1] for row in self.db.execute(
+                "SELECT machine,COUNT(*) FROM lottery_requests WHERE kind='buy' AND day=? GROUP BY machine", (day,))}
+            wallet, pools = self._wallet(), self._lottery_pools()
+            owned = {row[0] for row in self.db.execute("SELECT item_id FROM shop_purchases")}
+            exclusive = sum(not item.get("lotteryOnly", False) and bool(item.get("lotteryExclusive", False) or not item.get("lotteryEligible", True))
+                            and bool(item["coins"] or item["diamonds"]) for item in SHOP_ITEMS.values())
+            machines = []
+            for machine, name, ticket_name in (("coin", "金币抽奖机", "金币抽奖券"), ("diamond", "钻石抽奖机", "钻石抽奖券")):
+                price = lottery_rules.PRICES[machine]
+                used = purchased.get(machine, 0)
+                remaining = max(0, lottery_rules.PURCHASE_LIMIT-used)
+                pity_row = self.db.execute("SELECT count FROM lottery_pity WHERE machine=?", (machine,)).fetchone()
+                pity_count = pity_row[0] if pity_row else 0
+                limited_total = sum(item.get("lotteryOnly", False) and item.get("lotteryMachine") == machine for item in SHOP_ITEMS.values())
+                machines.append({"id": machine, "name": name, "ticketName": ticket_name,
+                    "price": dict(price), "purchasesToday": used, "purchaseLimit": lottery_rules.PURCHASE_LIMIT,
+                    "purchasesRemaining": remaining,
+                    "canBuy": remaining > 0 and all(wallet[key] >= amount for key, amount in price.items()),
+                    "canDraw": tickets[machine] > 0, "odds": lottery_rules.odds_for(machine),
+                    "pool": {"coinItems": len(pools["coinItem"]) if machine == "coin" else 0,
+                             "diamondItems": len(pools["diamondItem"]), "exclusiveItems": exclusive,
+                             "lotteryOnlyItems": len(pools[machine+"Limited"]), "lotteryOnlyTotal": limited_total},
+                    "pity": {"count": pity_count, "limit": lottery_rules.PITY_LIMITS[machine],
+                             "remaining": max(1, lottery_rules.PITY_LIMITS[machine]-pity_count),
+                             "allCollected": limited_total > 0 and not pools[machine+"Limited"]},
+                    "collection": [dict(item, owned=item["id"] in owned) for item in SHOP_ITEMS.values()
+                                   if item.get("lotteryOnly", False) and item.get("lotteryMachine") == machine],
+                    "currencyExpected": lottery_rules.currency_expectation(machine),
+                    "fullPoolCurrencyExpected": lottery_rules.currency_expectation(machine, exhausted=True)})
+            history = [{"requestId": row["request_id"], "machine": row["machine"],
+                        "drawnAt": iso_ms(row["created_ms"]), "result": json.loads(row["result"])}
+                       for row in self.db.execute("SELECT * FROM lottery_requests WHERE kind='draw' ORDER BY created_ms DESC,rowid DESC LIMIT 20")]
+            grants = [{"machine": row["machine"], "count": row["amount"], "source": row["source"],
+                       "label": row["label"], "grantedAt": iso_ms(row["created_ms"])}
+                      for row in self.db.execute("SELECT * FROM lottery_ticket_ledger WHERE amount>0 ORDER BY created_ms DESC,rowid DESC LIMIT 20")]
+            star_gifts = [{"day": row["day"], "index": row["gift_index"],
+                           "machine": "coin" if row["gift_index"] <= 2 else "diamond",
+                           "claimed": row["claimed"] is not None}
+                          for row in self.db.execute("""SELECT g.day,g.gift_index,t.reference AS claimed FROM mystery_gifts g
+                              JOIN mystery_deliveries d ON d.request_id=g.request_id
+                              LEFT JOIN lottery_ticket_ledger t ON t.reference='mystery:'||g.day||':'||g.gift_index
+                              WHERE g.gift_index BETWEEN 1 AND 4 AND d.submitted_ms>=?
+                              ORDER BY g.day DESC,g.gift_index""", (int(self._meta(LOTTERY_START_META)),))]
+            return {"day": day, "now": current.isoformat(), "revision": int(self._meta("revision") or 0),
+                    "featureStartMs": int(self._meta(LOTTERY_START_META)), "tickets": tickets, "wallet": wallet,
+                    "machines": machines, "history": history, "grants": grants, "starGifts": star_gifts,
+                    "persistentTickets": True, "onlyUnownedItems": True, "shopExclusiveItemsExcluded": True}
+
+    def _lottery_request(self, machine, request_id, kind, now=None):
+        machine = self._lottery_machine(machine)
+        request_id = self._action_uuid(request_id)
+        with self._quest_transaction():
+            current = quest_clock(now)
+            previous = self.db.execute("SELECT * FROM lottery_requests WHERE request_id=?", (request_id,)).fetchone()
+            if previous is not None:
+                if previous["kind"] != kind or previous["machine"] != machine:
+                    raise ValueError("同一个抽奖请求标识不能更改机器或操作")
+                result = json.loads(previous["result"])
+            else:
+                stamp, day = int(current.timestamp()*1000), current.date().isoformat()
+                if kind == "buy":
+                    count = self.db.execute("SELECT COUNT(*) FROM lottery_requests WHERE kind='buy' AND machine=? AND day=?",
+                                            (machine, day)).fetchone()[0]
+                    if count >= lottery_rules.PURCHASE_LIMIT:
+                        raise ValueError("这台机器今天已购买三张抽奖券，明天再来看看吧")
+                    price, wallet = lottery_rules.PRICES[machine], self._wallet()
+                    if any(wallet[key] < amount for key, amount in price.items()):
+                        raise ValueError("金币或钻石不足，先收下学习奖励再来吧")
+                    result = {"type": "ticket", "machine": machine, "amount": 1, "price": dict(price)}
+                    self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                    (f"lottery-buy:{request_id}", -price["coins"], -price["diamonds"], stamp))
+                    self.db.execute("INSERT INTO lottery_ticket_ledger VALUES (?,?,1,?,?,?)",
+                                    (f"lottery-buy:{request_id}", machine, stamp, "purchase", "购买抽奖券"))
+                else:
+                    balance = self.db.execute("SELECT COALESCE(SUM(amount),0) FROM lottery_ticket_ledger WHERE machine=?", (machine,)).fetchone()[0]
+                    if balance < 1:
+                        raise ValueError("需要一张对应的抽奖券才能启动这台机器")
+                    pity_row = self.db.execute("SELECT count FROM lottery_pity WHERE machine=?", (machine,)).fetchone()
+                    pity_count = pity_row[0] if pity_row else 0
+                    result = lottery_rules.draw(machine, self._lottery_pools(),
+                                                force_limited=pity_count+1 >= lottery_rules.PITY_LIMITS[machine])
+                    self.db.execute("INSERT INTO lottery_pity VALUES (?,?) ON CONFLICT(machine) DO UPDATE SET count=excluded.count",
+                                    (machine, 0 if result["limited"] else pity_count+1))
+                    self.db.execute("INSERT INTO lottery_ticket_ledger VALUES (?,?,-1,?,?,?)",
+                                    (f"lottery-draw:{request_id}", machine, stamp, "draw", "使用抽奖券"))
+                    if result["type"] == "item":
+                        self.db.execute("INSERT INTO shop_purchases VALUES (?,?)", (result["item"]["id"], stamp))
+                    else:
+                        self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                        (f"lottery-draw:{request_id}", result["coins"], result["diamonds"], stamp))
+                self.db.execute("INSERT INTO lottery_requests VALUES (?,?,?,?,?,?)",
+                    (request_id, kind, machine, day, stamp, json.dumps(result, ensure_ascii=False, allow_nan=False)))
+                self._bump_revision()
+            return {"lottery": self.lottery_state(current), "quests": self.quest_state(current),
+                    "result": result, "alreadyProcessed": previous is not None, "now": current.isoformat()}
+
+    def buy_lottery_ticket(self, machine, request_id, now=None):
+        return self._lottery_request(machine, request_id, "buy", now)
+
+    def draw_lottery(self, machine, request_id, now=None):
+        return self._lottery_request(machine, request_id, "draw", now)
+
+    def open_lottery_star_gift(self, day, index, request_id, now=None):
+        parse_day(day)
+        if type(index) is not int or index not in (1, 2, 3, 4):
+            raise ValueError("请选择拾星处第 1 至第 4 份星礼")
+        request_id = self._action_uuid(request_id)
+        machine = "coin" if index <= 2 else "diamond"
+        with self._quest_transaction():
+            current = quest_clock(now)
+            previous = self.db.execute("SELECT * FROM lottery_requests WHERE request_id=?", (request_id,)).fetchone()
+            result = {"type": "starGift", "machine": machine, "day": day, "index": index}
+            ticket_grants, already_claimed = [], False
+            if previous:
+                if previous["kind"] != "starGift" or json.loads(previous["result"]) != result:
+                    raise ValueError("同一个星礼请求标识不能更改礼物或操作")
+            else:
+                eligible = self.db.execute("""SELECT 1 FROM mystery_gifts g JOIN mystery_deliveries d ON d.request_id=g.request_id
+                    WHERE g.day=? AND g.gift_index=? AND d.submitted_ms>=?""",
+                    (day, index, int(self._meta(LOTTERY_START_META)))).fetchone()
+                if eligible is None:
+                    raise ValueError("这份星礼尚未获得；请先向拾星交付达标后新增的专注")
+                reference = f"mystery:{day}:{index}"
+                already_claimed = self.db.execute("SELECT 1 FROM lottery_ticket_ledger WHERE reference=?", (reference,)).fetchone() is not None
+                if not already_claimed:
+                    grant = self._grant_lottery_ticket(reference, machine, "mystery-gift", f"拾星 · 第 {index} 份星礼", current)
+                    if grant is None:
+                        raise ValueError("系统时间早于抽奖功能开启时间，请检查电脑日期")
+                    ticket_grants.append(grant)
+                    self._bump_revision()
+                self.db.execute("INSERT INTO lottery_requests VALUES (?,?,?,?,?,?)",
+                    (request_id, "starGift", machine, current.date().isoformat(), int(current.timestamp()*1000),
+                     json.dumps(result, ensure_ascii=False, allow_nan=False)))
+            return {"lottery": self.lottery_state(current), "quests": self.quest_state(current), "result": result,
+                    "ticketGrants": ticket_grants, "alreadyProcessed": previous is not None or already_claimed,
+                    "now": current.isoformat()}
 
     def _migrate_shop_v18(self):
         """Refund only pre-upgrade purchases, never retroactively charge more.
@@ -1172,6 +1400,7 @@ class FocusStore:
             existing = self.db.execute("SELECT 1 FROM island_reward_claims WHERE day=? AND island=?",
                                        (day, island)).fetchone()
             reward = {"coins": 0, "diamonds": 0}
+            ticket_grants = []
             if not existing:
                 state = self.island_rewards_state(day, current)
                 item = state["main"] if island == "main" else next(
@@ -1184,9 +1413,14 @@ class FocusStore:
                                 (day, island, reward["coins"], reward["diamonds"], created_ms))
                 self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                                 (f"island-gift:{day}:{island}", reward["coins"], reward["diamonds"], created_ms))
+                grant = self._grant_lottery_ticket(f"island:{day}:{island}", "diamond" if island == "main" else "coin",
+                    "island-main" if island == "main" else "island-subject", "四科同行礼盒" if island == "main" else f"{item['name']}每日礼盒", current)
+                if grant:
+                    ticket_grants.append(grant)
                 self._bump_revision()
             return {"islandRewards": self.island_rewards_state(day, current), "wallet": self._wallet(),
-                    "reward": reward, "alreadyClaimed": bool(existing), "island": island, "day": day}
+                    "reward": reward, "alreadyClaimed": bool(existing), "island": island, "day": day,
+                    "lottery": self.lottery_state(current), "ticketGrants": ticket_grants}
 
     def method_rewards_state(self, selected_day=None, now=None, records=None):
         """Observe completed active study; method gifts never allocate its time.
@@ -1289,6 +1523,7 @@ class FocusStore:
                 raise ValueError("日期已变化，请回到今天领取；研习额外奖赏仅限当天领取")
             existing = self.db.execute("SELECT 1 FROM method_completion_claims WHERE day=?", (day,)).fetchone()
             reward = {"coins": 0, "diamonds": 0}
+            ticket_grants = []
             if not existing:
                 bonus = self.method_rewards_state(day, current)["completionBonus"]
                 if not bonus["available"]:
@@ -1299,10 +1534,14 @@ class FocusStore:
                                 (day, reward["coins"], reward["diamonds"], created_ms))
                 self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                                 (f"method-completion:{day}", reward["coins"], reward["diamonds"], created_ms))
+                grant = self._grant_lottery_ticket(f"method:{day}:completion", "diamond", "method-completion", "融会贯通奖赏", current)
+                if grant:
+                    ticket_grants.append(grant)
                 self._bump_revision()
             return {"day": day, "subject": "all", "tier": "completion", "reward": reward,
                     "wallet": self._wallet(), "methodRewards": self.method_rewards_state(day, current),
-                    "alreadyClaimed": bool(existing), "now": current.isoformat()}
+                    "alreadyClaimed": bool(existing), "now": current.isoformat(),
+                    "lottery": self.lottery_state(current), "ticketGrants": ticket_grants}
 
     def _goal_mystery_epochs(self, current):
         """Insert midnight resets into the temporal projection, including days
@@ -1681,8 +1920,12 @@ class FocusStore:
                 [(gift["day"], gift["index"], request_id, gift["coins"], gift["diamonds"]) for gift in summary["pendingGifts"]])
             self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                 (f"quest-mystery:{request_id}", receipt["coins"], receipt["diamonds"], submitted_ms))
+            # The existing star currencies settle here. Its lottery ticket is
+            # a separate, explicit gift-opening event, recoverable from either
+            # the 拾星 gift scene or the matching lottery machine.
             result = self.quest_state(current)
             result["receipt"] = receipt
+            result["ticketGrants"] = []
             return result
 
     def _exchange_state(self, wallet, current=None):
@@ -1983,7 +2226,8 @@ class FocusStore:
             return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": wallet,
                     "mystery": self._mystery_state(current, mystery_plan),
                     "quests": [self._quest_row(definition, current, mystery_plan)[0] for definition in QUEST_DEFINITIONS],
-                    "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet, current)}
+                    "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet, current),
+                    "lottery": self.lottery_state(current)}
 
     def accept_quest(self, subject, now=None):
         self._quest_definition(subject)
@@ -2020,6 +2264,7 @@ class FocusStore:
         with self._quest_transaction():
             current = quest_clock(now)
             existing = self.db.execute("SELECT * FROM quest_deliveries WHERE request_id=?", (request_id,)).fetchone()
+            ticket_grants = []
             if existing is not None and existing["subject"] != subject:
                 raise ValueError("同一个交付请求标识不能更改科目")
             if existing is None:
@@ -2058,9 +2303,14 @@ class FocusStore:
                          json.dumps(bonus["allocations"], ensure_ascii=False, allow_nan=False)))
                     self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
                         (f"quest-bonus:{bonus['day']}:{subject}", bonus["coins"], bonus["diamonds"], submitted_ms))
+                for day in sorted({bonus["day"] for bonus in bonuses}):
+                    ticket_grants.extend(self._timed_lottery_tickets(day, current))
+                if ticket_grants:
+                    self._bump_revision()
             result = self.quest_state(current)
             receipt = existing or self.db.execute("SELECT * FROM quest_deliveries WHERE request_id=?", (request_id,)).fetchone()
             result["receipt"] = self._delivery_receipt(receipt, existing is not None)
+            result["ticketGrants"] = ticket_grants
             return result
 
     def _shop_item(self, item_id):
@@ -2070,6 +2320,8 @@ class FocusStore:
 
     def buy_item(self, item_id, now=None):
         item = self._shop_item(item_id)
+        if item.get("lotteryOnly", False):
+            raise ValueError("这是抽奖限定藏品，只能在对应抽奖机中获得")
         with self._quest_transaction():
             current = quest_clock(now)
             already_owned = (item["coins"] == 0 and item["diamonds"] == 0) or self.db.execute(
@@ -3694,7 +3946,8 @@ class FocusStore:
                     "unmapped": sorted({row["name"] for row in all_records if classify(row["name"], settings["mapping"]) == "other"}),
                     "trash": self.trash(), "quests": self.quest_state(now.astimezone()),
                     "actions": self.actions_state(now.astimezone()),
-                    "arcade": self.arcade_state(now.astimezone()), "revision": self.revision}
+                    "arcade": self.arcade_state(now.astimezone()), "lottery": self.lottery_state(now.astimezone()),
+                    "revision": self.revision}
 
     def interface_mode(self):
         """One collector and one archive serve both the current and v1.0 UI."""
@@ -3826,6 +4079,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query:
                         raise ValueError("游乐记只使用电脑当前日期和时间，不接受查询参数")
                     self._send(200, store.arcade_state())
+                elif url.path == "/api/lottery":
+                    if url.query:
+                        raise ValueError("抽奖机只使用电脑当前日期和时间，不接受查询参数")
+                    self._send(200, store.lottery_state())
                 elif url.path == "/api/export":
                     self._send(200, store.export_csv(), "text/csv; charset=utf-8", "focus-quest-records.csv")
                 elif url.path == "/api/trash":
@@ -3871,12 +4128,15 @@ def make_handler(store, static_dir=STATIC_DIR):
                                   "/api/arcade/pulse": (("id", "version", "move"), store.pulse_arcade),
                                   "/api/arcade/tickets/buy": (("requestId",), store.buy_arcade_ticket),
                                   "/api/arcade/finish": (("id", "version"), store.finish_arcade)}
+                lottery_actions = {"/api/lottery/buy": store.buy_lottery_ticket,
+                                   "/api/lottery/draw": store.draw_lottery,
+                                   "/api/lottery/star-gift": store.open_lottery_star_gift}
                 city_actions = {"/api/city-life/note": store.city_life_note,
                                 "/api/city-life/note-update": store.city_life_note_update,
                                 "/api/city-life/outfit": store.city_life_outfit,
                                 "/api/city-life/outfit-apply": store.city_life_outfit_apply,
                                 "/api/city-life/outfit-archive": store.city_life_outfit_archive}
-                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim", "/api/method-rewards/completion") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
+                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim", "/api/method-rewards/completion") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions and path not in lottery_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3915,6 +4175,12 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != {"day"}:
                         raise ValueError("请仅提供页面日期；四科研习资格与额外奖赏由服务器决定")
                     self._send(200, store.claim_method_completion(payload["day"]))
+                elif path in lottery_actions:
+                    fields = ("day", "index", "requestId") if path.endswith("/star-gift") else ("machine", "requestId")
+                    if url.query or set(payload) != set(fields):
+                        raise ValueError("请仅提供星礼日期、份数与 UUID 请求标识" if path.endswith("/star-gift") else
+                                         "请仅提供抽奖机与 UUID 请求标识；奖券、概率及奖品由服务器决定")
+                    self._send(200, lottery_actions[path](*(payload[field] for field in fields)))
                 elif path in arcade_actions:
                     fields, action = arcade_actions[path]
                     if url.query or set(payload) != set(fields):

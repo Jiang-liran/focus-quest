@@ -19,8 +19,8 @@
   const shortDay=value=>new Date(value+'T12:00:00').toLocaleDateString('zh-CN',{month:'long',day:'numeric',weekday:'short'});
   const money=(coins,diamonds)=>`<span class="q-money"><span class="coin-mark">●</span> ${n(coins)} <small>金币</small><span class="diamond-mark">◆</span> ${n(diamonds)} <small>钻石</small></span>`;
   const currency=item=>item.currency||(item.diamonds?'diamonds':item.coins?'coins':'free');
-  const possession=item=>item.equipped?'已装备':currency(item)==='free'?'初始收藏':'已购买';
-  const price=item=>item.owned&&(item.equipped||currency(item)!=='free')?`<span class="shop-possession ${item.equipped?'equipped':'purchased'}"><i aria-hidden="true">${item.equipped?'✦':'✓'}</i><b>${possession(item)}</b><small>${currency(item)==='free'?'初始收藏':'永久拥有'}</small></span>`:currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}</small></span>`;
+  const possession=item=>item.equipped?'已装备':currency(item)==='free'?'初始收藏':item.lotteryOnly?'已收藏':'已购买';
+  const price=item=>item.owned&&(item.equipped||currency(item)!=='free')?`<span class="shop-possession ${item.equipped?'equipped':'purchased'}"><i aria-hidden="true">${item.equipped?'✦':'✓'}</i><b>${possession(item)}</b><small>${currency(item)==='free'?'初始收藏':'永久拥有'}</small></span>`:item.lotteryOnly?`<span class="shop-limited-price">✧ ${item.lotteryMachine==='diamond'?'钻石':'金币'}机限定 <small>只能通过抽奖获得</small></span>`:currency(item)==='free'?'<span class="shop-free">初始收藏 · 免费</span>':`<span class="shop-single-price ${currency(item)}"><i class="${currency(item)==='coins'?'coin':'diamond'}-mark">${currency(item)==='coins'?'●':'◆'}</i> ${n(item[currency(item)])} <small>${currency(item)==='coins'?'金币':'钻石'}${item.lotteryExclusive?' · 商店专藏':''}</small></span>`;
   const avatar=(role,outfit)=>window.QuestArt?.avatar(role,outfit)||'';
   const mentorPeriod=q=>q.recommended?.period||q.period;
   const roundName=period=>period==='afternoon'?'午后首轮':'晨光首轮';
@@ -83,8 +83,8 @@
   }
   function itemMarkup(item,wallet,disabled=false){
     const affordable=wallet.coins>=item.coins&&wallet.diamonds>=item.diamonds;
-    const label=item.equipped?'已装备':item.owned?'装备':affordable?'购买':'余额不足';
-    return `<article class="shop-item ${item.owned?'owned ':''}${item.equipped?'equipped':''}" data-currency="${esc(currency(item))}"><div class="shop-item-visual">${swatch(item)}<span class="shop-item-type">${esc(names[item.slot])}</span>${item.owned?`<span class="shop-owned">${item.equipped?'✦ ':''}${possession(item)}</span>`:''}</div><div class="shop-item-info"><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="shop-price">${price(item)}</div><div class="shop-item-actions"><button class="text-button" data-shop-action="preview" data-item="${esc(item.id)}">${item.slot==='avatar'?'试穿':'预览'}</button><button class="secondary-button" data-shop-action="${item.owned?'equip':'buy'}" data-item="${esc(item.id)}" ${disabled||item.equipped||!item.owned&&!affordable?'disabled':''}>${label}</button></div></div></article>`;
+    const label=item.equipped?'已装备':item.owned?'装备':item.lotteryOnly?'抽奖限定':affordable?'购买':'余额不足';
+    return `<article class="shop-item ${item.owned?'owned ':''}${item.equipped?'equipped':''}" data-currency="${esc(currency(item))}"><div class="shop-item-visual">${swatch(item)}<span class="shop-item-type">${esc(names[item.slot])}</span>${item.owned?`<span class="shop-owned">${item.equipped?'✦ ':''}${possession(item)}</span>`:''}</div><div class="shop-item-info"><h3>${esc(item.name)}</h3><p>${esc(item.description)}</p><div class="shop-price">${price(item)}</div><div class="shop-item-actions"><button class="text-button" data-shop-action="preview" data-item="${esc(item.id)}">${item.slot==='avatar'?'试穿':'预览'}</button><button class="secondary-button" data-shop-action="${item.owned?'equip':'buy'}" data-item="${esc(item.id)}" ${disabled||item.equipped||!item.owned&&(!affordable||item.lotteryOnly)?'disabled':''}>${label}</button></div></div></article>`;
   }
   function render(next){
     if(!next||!bridge)return;
@@ -132,7 +132,8 @@
   }
   function renderShop(){
     const inArea=i=>area==='all'||(area==='interface'?i.slot==='interface':area==='camp'?campSlots.has(i.slot):i.slot!=='interface'&&!campSlots.has(i.slot));
-    const marketItems=data.catalog.filter(i=>inArea(i)&&(market==='owned'?i.owned:currency(i)===market));
+    const inMarket=(i,m)=>m==='owned'?i.owned:m==='limited'?i.lotteryOnly:currency(i)===m&&!i.lotteryOnly;
+    const marketItems=data.catalog.filter(i=>inArea(i)&&inMarket(i,market));
     document.querySelectorAll('[data-shop-area]').forEach(b=>{b.classList.toggle('active',b.dataset.shopArea===area);b.setAttribute('aria-pressed',String(b.dataset.shopArea===area));});
     if(filter!=='all'&&!marketItems.some(i=>i.slot===filter))filter='all';
     document.querySelectorAll('[data-shop-filter]').forEach(b=>{
@@ -144,11 +145,11 @@
       const selected=b.dataset.shopMarket===market;
       b.classList.toggle('active',selected);b.setAttribute('aria-pressed',String(selected));
     });
-    for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&(m==='owned'?i.owned:currency(i)===m)).length);
-    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。'}[market];
-    if(area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
-    if(area==='interface'||filter==='interface')$('shop-market-description').textContent='从配色到边框、纹理与按钮，给整间书房换一种气质。界面主题独立装备，你已有的星岛环境、装饰和特效照常搭配。';
-    if(filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
+    for(const m of ['coins','diamonds','owned','limited'])if($('market-'+m+'-count'))$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&inMarket(i,m)).length);
+    $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。',limited:'只能通过星海抽奖机获得的特别收藏。金币机60抽、钻石机40抽保底；提前遇见限定藏品会重置对应计数，优先获得尚未拥有的款式。'}[market];
+    if(market!=='limited'&&area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
+    if(market!=='limited'&&(area==='interface'||filter==='interface'))$('shop-market-description').textContent='从配色到边框、纹理与按钮，给整间书房换一种气质。界面主题独立装备，你已有的星岛环境、装饰和特效照常搭配。';
+    if(market!=='limited'&&filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
     const catalogKey=JSON.stringify([area,market,filter,items,data.wallet,data.equipped,busy]);
@@ -240,12 +241,17 @@
     if(!data)return;
     area='camp';market='coins';filter='all';renderShop();
   }
+  function browseCollection(slot){
+    if(!data)return;
+    market='owned';area='all';filter=Object.hasOwn(names,slot)?slot:'all';renderShop();
+    $('shop-catalog').scrollIntoView({behavior:'auto',block:'start'});
+  }
   function openItem(action,id){
     if(busy)return;
     const item=data?.catalog.find(item=>item.id===id);if(!item)return;
     if(item.slot==='interface'&&!window.FocusInterfaceThemes?.has(item.id))return;
     if(action==='equip'){perform({action,id});return;}
-    if(action==='buy'&&(item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
+    if(action==='buy'&&(item.lotteryOnly||item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
     const placement=item.slot==='island'?'<p>一套布置包含配套的前景与建筑；装备时整套替换，多套收藏不会自动叠加。素岛原貌随时可免费恢复。</p>':'';
     dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':item.slot==='interface'?'A DIFFERENT ATMOSPHERE':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p>${placement}<div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
@@ -267,7 +273,7 @@
       if(job.action==='submit'){
         const reward=result.receipt||result.quests.find(q=>q.subject===job.subject).reward;
         const extra=reward.bonusReward,split=Number(extra?.coins)>0||Number(extra?.diamonds)>0?`；基础 ${rewardText(reward.baseReward)}，首轮加赠 ${rewardText(extra)}`:'';
-        bridge.toast(reward.alreadyClaimed?'这次交付已确认':'委托交付 · 收获已入袋',`+${n(reward.coins)} 金币 · +${n(reward.diamonds)} 钻石${split}`);
+        bridge.toast(reward.alreadyClaimed?'这次交付已确认':'委托交付 · 收获已入袋',`+${n(reward.coins)} 金币 · +${n(reward.diamonds)} 钻石${split}${window.FocusLottery?.ticketText?.(result.ticketGrants)||''}`);
       }else if(job.action==='exchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'星光已入袋',`+${n(job.diamonds)} 钻石 · ${n(result.receipt?.coins||job.diamonds*(result.exchange?.coinsPerDiamond||75))} 金币已兑换`);
       else if(job.action==='reverseExchange')bridge.toast(result.receipt?.alreadyExchanged?'兑换已确认':'旅途盘缠已入袋',`+${n(result.receipt?.coins||result.exchange?.coinsPerDiamond||75)} 金币 · 使用 1 钻石，今日还可兑换 ${n(result.exchange?.reverse?.remaining)} 次`);
       else bridge.toast({accept:'委托已接取',buy:'新收藏已入库',equip:'装扮已更新'}[job.action],{accept:'从现在开始，完成对应科目的专注即可推进。',buy:'在商店点击「装备」，把收藏放进你的远征。',equip:item?.slot==='interface'?'整间书房已换上新气质，原有装饰与特效继续保留。':'已应用到你的星岛与营地。'}[job.action]);
@@ -292,5 +298,5 @@
     $('quest-action-confirm').addEventListener('click',()=>perform(intent));
     $('quest-action-dialog').addEventListener('close',()=>{intent=null;});
   }
-  return {init,render,actionFor,taskMarkup,itemMarkup,browseCamp};
+  return {init,render,actionFor,taskMarkup,itemMarkup,browseCamp,browseCollection};
 });

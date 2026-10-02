@@ -1,8 +1,8 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(root, typeof module === 'object' && module.exports ? require('./shop-expansion.js') : null);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.QuestArt = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeExpansion) {
   'use strict';
 
   const roles = new Set(['morning', 'afternoon', 'shop', 'player', 'guide']);
@@ -156,6 +156,8 @@
 
   function avatar(role, outfit = 'default', stage = 0) {
     role = roles.has(role) ? role : 'guide';
+    const expansion = nodeExpansion || root.FocusShopExpansion;
+    if (role === 'player' && expansion?.has(outfit, 'avatar')) return expansion.avatar(outfit, stage);
     // NPCs keep their individual character designs, including for old saves.
     outfit = role === 'player' ? (playerOutfits.has(outfit) ? outfit : 'avatar-default') : 'npc-default';
     const palette = {...palettes[role], ...(palettes[outfit] || {})};

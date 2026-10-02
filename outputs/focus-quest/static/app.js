@@ -53,7 +53,7 @@ async function api(path, body) {
   if(body!==undefined){ options.method='POST';options.headers={'Content-Type':'application/json'};options.body=JSON.stringify(body); }
   const response=await fetch(path,options);
   const data=await response.json();
-  if(!response.ok) throw new Error(data.error||'本地服务暂时没有响应');
+  if(!response.ok){const error=new Error(data.error||'本地服务暂时没有响应');error.status=response.status;throw error;}
   return data;
 }
 
@@ -147,6 +147,7 @@ function render() {
     ?(s.methodRewards.availableCount?`砚青备好了 ${s.methodRewards.availableCount} 份研习奖励，去把收获带回来。`:'做题满 20 分钟就有收获 · 听练结合或深入练习，还有星礼。')
     :'查看这一天的听练进度与研习收获';
   globalThis.FocusArcade?.render(s.arcade,s.settings);
+  globalThis.FocusLottery?.render(s);
   const phone=s.calendarSync;
   $('source-label').textContent=phone?.enabled ? (s.sync.connected&&phone.connected?'电脑 + 手机 · 已连接':phone.connected?'手机已连接 · 电脑待连接':s.sync.connected?'电脑已连接 · 手机待连接':'记录同步 · 等待连接') : (s.sync.connected?'番茄 ToDo · 已连接':'番茄 ToDo · 等待连接');
   $('source-dot').classList.toggle('connected',s.sync.connected&&(!phone?.enabled||phone.connected));
@@ -640,14 +641,24 @@ globalThis.FocusGoals?.init({api,toast,refresh,afterChange:()=>{if(state)seedEff
 globalThis.FocusReviewHeatmap?.init({api,chooseDate,getState:()=>state});
 globalThis.FocusQuickSkins?.init({api,toast,refresh,playSound});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh,playSound});
-globalThis.FocusMystery?.init({api,toast,refresh,playSound,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});
+function acceptLotteryReceipt(result){
+  if(!state||!result.quests)return;
+  const stamp=value=>{const fraction=String(value).match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/);return Date.parse(value)*1000+Number((fraction?.[1]||'').padEnd(6,'0').slice(3,6));};
+  const incoming=stamp(result.quests.now||result.now),current=stamp(state.quests?.now);
+  if(Number.isFinite(incoming)&&Number.isFinite(current)&&incoming<current)return;
+  requestSequence++;inFlight=false;
+  state={...state,quests:result.quests,lottery:result.lottery||result.quests.lottery};
+  globalThis.FocusQuests?.render(state.quests);globalThis.FocusQuickSkins?.render(state.quests);
+  globalThis.FocusCitadel?.applyEquipment(state.quests.equipped,state.quests.now);
+}
+globalThis.FocusMystery?.init({api,toast,refresh,playSound,acceptReceipt:acceptLotteryReceipt,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});
 globalThis.FocusMethodRewards?.init({api,toast,refresh,playSound,unlock:ensureAudio,
   isVisible:()=>currentView==='review'&&!globalThis.FocusCitadel?.isOpen()&&!globalThis.FocusCampfireRoom?.isOpen()&&!globalThis.FocusReturnTrail?.isOpen(),
   openMethods:()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});},
   acceptReceipt:result=>{
     if(!state||state.today!==result.day)return;
     requestSequence++;inFlight=false;
-    state={...state,quests:{...state.quests,wallet:result.wallet,now:result.now},methodRewards:state.date===result.day?result.methodRewards:state.methodRewards};
+    state={...state,quests:{...state.quests,wallet:result.wallet,now:result.now,lottery:result.lottery||state.quests.lottery},lottery:result.lottery||state.lottery,methodRewards:state.date===result.day?result.methodRewards:state.methodRewards};
     globalThis.FocusQuests?.render(state.quests);
   }
 });
@@ -655,7 +666,7 @@ globalThis.FocusIslandRewards?.init({api,toast,refresh,playSound,unlock:ensureAu
   if(!state||state.today!==result.day)return;
   // A pre-claim poll must not briefly put the old wallet or gift back on screen.
   requestSequence++;inFlight=false;
-  state={...state,quests:{...state.quests,wallet:result.wallet},islandRewards:state.date===result.day?result.islandRewards:state.islandRewards};
+  state={...state,quests:{...state.quests,wallet:result.wallet,now:result.now,lottery:result.lottery||state.quests.lottery},lottery:result.lottery||state.lottery,islandRewards:state.date===result.day?result.islandRewards:state.islandRewards};
   globalThis.FocusQuests?.render(state.quests);
 }});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'&&!globalThis.FocusReturnTrail?.isOpen()});
@@ -664,6 +675,11 @@ globalThis.FocusCityLife?.init({api,toast,playSound,refresh:()=>refresh(true,tru
   globalThis.FocusQuests?.render(snapshot);globalThis.FocusQuickSkins?.render(snapshot);
   globalThis.FocusCitadel?.applyEquipment(snapshot.equipped,snapshot.now);
 }});
+globalThis.FocusLottery?.init({api,toast,playSound,unlock:ensureAudio,refresh:()=>refresh(true,true),
+  isVisible:()=>globalThis.FocusCitadel?.isOpen()&&!!$('citadel-view')?.dataset.lottery,
+  showShop:slot=>{globalThis.FocusCitadel?.close(false);switchView('shop');globalThis.FocusQuests?.browseCollection(slot);},
+  acceptReceipt:acceptLotteryReceipt
+});
 globalThis.FocusCitadel?.init({getState:()=>state,playSound,openTrail:anchor=>globalThis.FocusReturnTrail?.open(anchor,{from:'city'}),leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},onOpen:()=>setNavSelection('city'),afterClose:()=>{setNavSelection(currentView);setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);},openShop:()=>switchView('shop'),openReview:()=>switchView('review'),openArcade:()=>globalThis.FocusArcade?.open(),openCamp:()=>{switchView('today');globalThis.FocusCampfireRoom?.open($('campfire-room-open'));}});
 $('city-open')?.addEventListener('click',event=>openCity(event.currentTarget));
 $('arcade-city-return')?.addEventListener('click',()=>openCity($('citadel-enter')));

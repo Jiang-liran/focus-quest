@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./campfire-art.js'), require('./quest-art.js'));
-  else root.FocusCampWorldArt = factory(root.FocusCampfireArt, root.QuestArt);
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (campfireArt, questArt) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./campfire-art.js'), require('./quest-art.js'), require('./shop-expansion.js'));
+  else root.FocusCampWorldArt = factory(root.FocusCampfireArt, root.QuestArt, root.FocusShopExpansion);
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (campfireArt, questArt, expansion) {
   'use strict';
 
   const catalog = {
@@ -29,7 +29,7 @@
     const source = equipment && typeof equipment === 'object' && !Array.isArray(equipment) ? equipment : {};
     return Object.fromEntries(slots.map(slot => {
       const value = Object.prototype.hasOwnProperty.call(source, slot) ? source[slot] : undefined;
-      return [slot, catalog[slot].includes(value) ? value : catalog[slot][0]];
+      return [slot, (catalog[slot].includes(value)||expansion?.has(value,slot)) ? value : catalog[slot][0]];
     }));
   }
   const variant = (eq, slot) => eq[slot].slice(eq[slot].indexOf('-') + 1);
@@ -41,7 +41,7 @@
     return `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cy="6" rx="16" ry="5" fill="#182b34" opacity=".3"/><path d="M0 4v-46q0-8 9-8h7" stroke="#9b977f" stroke-width="3" stroke-linecap="round"/><path d="M15-48v6m-6 1h12l3 18H6Z" fill="#d5b67f" stroke="#938574" stroke-width="2"/><path d="M11-37h8v10h-8Z" fill="#ffe1a2"/><circle class="camp-world-lantern-glow" cx="15" cy="-33" r="21" fill="#f2c989" opacity=".09"/></g>`;
   }
   function landscape(eq) {
-    const theme = variant(eq,'camp'), p = palettes[theme], snow = theme === 'snow';
+    const theme = variant(eq,'camp'), p = expansion?.campPalette(eq.camp)||palettes[theme], snow = theme === 'snow';
     const trees = [[165,367,1.16],[216,324,.84],[267,299,.7],[356,264,.7],[1003,400,1.13],[1063,460,1.47],[952,318,.85],[921,291,.64]];
     return `<g class="camp-world-landscape" data-skin-slots="camp" data-camp-part="landscape">
       <rect width="1200" height="760" rx="34" fill="${p.sky}"/>
@@ -64,7 +64,7 @@
       <path d="m157 401 347-159 403 64 164 155-135 122-342 91-358-130Z" stroke="${p.edge}" stroke-width="5" opacity=".7"/>
       <path d="m217 420 287-135 385 57 119 118-100 89-321 88-311-116Z" fill="${snow?'#c4d1cf':'#7f8968'}" opacity=".2"/>
       <path d="m237 523 117 52 67 73-129-46Zm612 92 87-32 69-62-31 78Z" fill="${p.edge}" opacity=".18"/>
-      ${trees.map(([x,y,s])=>pine(x,y,s,p.foliage,snow)).join('')}
+      ${expansion?.terrainOrnaments(eq.camp)||''}${trees.map(([x,y,s])=>pine(x,y,s,p.foliage,snow)).join('')}
       ${theme==='pine'?[[120,432,1.8],[1090,520,1.6],[376,264,.9],[990,344,1.15]].map(([x,y,s])=>pine(x,y,s,'#35584a')).join(''):''}
       ${snow?'<g class="camp-world-snowbanks" fill="#d5dfd9" opacity=".85"><path d="M238 495q48-21 87 4-20 23-74 18Z"/><path d="M691 631q71-30 133-18-50 29-133 37Z"/><path d="M861 353q46-21 86 5-35 14-86-5Z"/></g>':''}
       ${theme==='aurora'?'<g class="camp-world-ice-crystals"><path d="m180 479 9-45 15 32-6 24Z" fill="#8db9be"/><path d="m188 487 27-38 6 36-23 6Z" fill="#b4b4d2"/><path d="m977 534 8-37 13 21-3 26Z" fill="#93c3c4"/></g>':''}
@@ -73,12 +73,14 @@
     </g>`;
   }
   function trails(eq) {
+    if(expansion?.has(eq.camptrail,'camptrail'))return expansion.trail(eq.camptrail,true);
     const type = variant(eq,'camptrail'), path = 'M331 396Q422 360 530 432T859 326M330 544Q470 550 566 485T852 531M578 656Q537 571 579 487';
     return `<g data-skin-slots="camptrail" data-camp-part="trail" class="camp-world-trail"><path d="${path}" stroke="#283e42" stroke-width="35" opacity=".16" fill="none" stroke-linecap="round"/><path d="${path}" stroke="${type==='stone'?'#a0aaa0':type==='stars'?'#697a90':'#aca18a'}" stroke-width="25" opacity=".65" fill="none" stroke-linecap="round"/>
       ${type==='stone'?`<path d="${path}" stroke="#c6c5b0" stroke-width="21" fill="none" stroke-dasharray="17 7" stroke-linecap="butt"/>`:type==='stars'?`<path d="${path}" stroke="#c6bbce" stroke-width="2" fill="none" stroke-dasharray="3 17"/>${[[380,385],[475,400],[631,445],[726,399],[800,354],[392,545],[496,517],[713,490],[794,515],[566,578],[577,632]].map(([x,y],i)=>star(x,y,4,'#e0d2ba',`class="camp-world-trail-star" style="--camp-delay:-${i*.4}s"`)).join('')}`:`<path d="${path}" stroke="#c8b99a" stroke-width="2" opacity=".35" fill="none" stroke-dasharray="2 16"/>`}
       <path d="m541 659 39-14 30 11-40 15Z" fill="#b0a38b"/><path d="m545 672 29-10 30 10-30 12Z" fill="#8e8878"/><path d="m550 684 23-8 26 9-24 11Z" fill="#7b7a72"/></g>`;
   }
   function tent(eq) {
+    if(expansion?.has(eq.tent,'tent'))return expansion.campPart(eq.tent);
     const type=variant(eq,'tent');
     let shape;
     if(type==='observatory') shape='<path d="M-92 32c0-81 45-136 106-122 52 10 76 57 76 106L1 60Z" fill="#818ca8"/><path d="M14-90c52 10 76 57 76 106L1 60V-84Z" fill="#566481"/><path d="M-92 32c0-81 45-136 106-122 52 10 76 57 76 106M14-90Q-31-32-20 49M14-90Q53-35 58 33M-84-12l161-8" stroke="#b6bbc7" stroke-width="3"/><path d="m-18 48 0-49q11-29 30-14l18 12v39Z" fill="#263e56"/><circle cx="-52" cy="-8" r="14" fill="#c9bb96"/><circle cx="-52" cy="-8" r="10" fill="#426076"/>';
@@ -90,6 +92,7 @@
     return `<g data-skin-slots="tent" data-camp-part="tent" transform="translate(420 302) scale(.9)"><rect data-camp-hit="tent" x="-125" y="-102" width="250" height="169" rx="12" fill="transparent"/><ellipse cy="48" rx="129" ry="36" fill="#1d3540" opacity=".24"/>${shape}</g>`;
   }
   function marker(eq) {
+    if(expansion?.has(eq.campmark,'campmark'))return expansion.campPart(eq.campmark);
     const type=variant(eq,'campmark');
     const body=type==='moon'?'<path d="M-61 19v-84q64-74 126-3v81" fill="none" stroke="#a6b2b1" stroke-width="9"/><path d="M-61-35q60-47 126 0" fill="none" stroke="#e0d2aa" stroke-width="2"/><path d="M6-83a20 20 0 1 0 12 31A22 22 0 0 1 6-83Z" fill="#e5d7b4"/><path d="M-56-8 0 12 60-13" stroke="#b8bba7" stroke-width="2"/>'+star(-45,-51,5,'#e4d8bb')+star(51,-41,4,'#e4d8bb'):
       type==='chimes'?'<path d="M-65 28v-93M65 12v-86M-75-62 72-82" stroke="#9c967d" stroke-width="7" stroke-linecap="round"/><g class="camp-world-chimes"><path d="m-41-67 0 23m38-29v31m40-37v24" stroke="#d2c2a0" stroke-width="2"/><path d="m-48-45 14-2 1 26-14 2Zm37 4 16-2v36l-16 2Zm40-15 16-2v28l-16 2Z" fill="#9ebab7"/><path d="m-43-14 1 17m38-8 1 18m38-41 1 19" stroke="#c9bb93" stroke-width="2"/><path d="m-48 3 12-2 0 12-12 2Zm38 9 11-2 0 15-11 2Zm38-19 12-2 0 12-12 2Z" fill="#d9c8a5"/></g>':
@@ -101,6 +104,7 @@
     return `<g class="camp-world-flame"><path d="M-5-98c4 24 22 31 20 49 10-7 12-18 10-26 30 40 22 69-24 72-43 2-52-26-35-47-1 11 4 15 9 17-5-22 12-38 20-65Z" fill="${colors[0]}"/><path d="M-4-73c3 18 18 28 15 43 7-3 10-7 11-12 14 27-2 37-23 39-23 1-36-13-24-33 1 9 5 13 10 13-2-18 8-35 11-50Z" fill="${colors[1]}"/><path d="M-1-42c1 11 13 17 10 26 4-1 7-4 7-7 7 12-4 20-18 20-15 0-22-10-13-21 0 7 4 8 7 10-3-11 5-22 7-28Z" fill="${colors[2]}"/></g>`;
   }
   function fire(eq, small=false) {
+    if(expansion?.has(eq.fire,'fire'))return expansion.campFire(eq.fire,small);
     const type=variant(eq,'fire'), color=type==='blue'?'#a0d6d5':type==='star'?'#c8b5e2':'#e7bb89';
     let basin;
     if(type==='copper') basin='<path d="m-35 6-11 21m77-21 12 21" stroke="#8b7568" stroke-width="6"/><path d="M-49-6h98Q46 25 0 25T-49-6Z" fill="#b38e73"/><path d="M0-6h49Q46 25 0 25Z" fill="#846958"/><ellipse cy="-6" rx="49" ry="13" fill="#654f4c" stroke="#dfb68d" stroke-width="4"/>';
@@ -112,6 +116,7 @@
     return `<g data-skin-slots="fire" data-camp-part="fire" class="camp-world-fire"${small?'':' transform="translate(596 467)"'}><ellipse class="camp-world-firelight" cy="18" rx="123" ry="58" fill="${color}" opacity=".09"/><ellipse class="camp-world-firelight" cy="15" rx="84" ry="35" fill="${color}" opacity=".09"/>${basin}<g${fireTransform?` transform="${fireTransform}"`:''}>${flame(type)}</g>${type==='lantern'?'<path d="M0-69V6m-42-39h84" stroke="#aa967a" stroke-width="4"/>':''}${type==='star'?star(0,-106,10,'#f3ddb7','class="camp-world-star"'):''}<g class="camp-world-embers" fill="${color}">${[[-21,-76,2.2],[23,-106,1.7],[-8,-128,1.5],[34,-52,1.8]].map(([x,y,r],i)=>`<circle class="camp-world-ember" cx="${x}" cy="${y}" r="${r}" style="--camp-delay:-${i*.9}s"/>`).join('')}</g>${type==='lantern'?'':`<g class="camp-world-smoke" fill="none" stroke="#c3bbae" stroke-width="3" opacity=".16"><path class="camp-world-smoke-thread" d="M-3-118q-17-16-3-31t-5-30"/><path class="camp-world-smoke-thread" d="M12-135q16-18 5-31" style="--camp-delay:-3s"/></g>`}</g>`;
   }
   function furnishings(eq) {
+    if(expansion?.has(eq.campgear,'campgear'))return expansion.campPart(eq.campgear);
     const type=variant(eq,'campgear');
     let prop;
     if(type==='tea') prop='<path d="M-49-4h98v13h-98Zm12 13v20m74-20v20" fill="#aa9076" stroke="#aa9076" stroke-width="5"/><path d="m-52-7 57-20 50 15L-4 10Z" fill="#cbb492"/><path d="M-11-24q-2-14 12-15t15 13l-1 12q-13 8-27-1Z" fill="#9caf9e"/><path d="m14-27 17-9-4 15-14 4" fill="#a5b5a0"/><path d="M-11-27q-15-9-13 5l12 3" stroke="#bed0b4" stroke-width="4"/><ellipse cx="2" cy="-37" rx="11" ry="4" fill="#d3d4b3"/><circle cx="2" cy="-42" r="3" fill="#ded6b2"/><path d="M-37-13h12v9q-6 4-12 0Zm54 2h12v8q-6 4-12 0Z" fill="#ead3a8"/><path class="camp-world-tea-steam" d="M-31-21q-4-6 0-12m35-14q-4-6 1-11" fill="none" stroke="#e3d4b5" stroke-width="2" opacity=".7"/>';
@@ -122,6 +127,7 @@
     return `<g data-skin-slots="campgear" data-camp-part="furnishing" transform="translate(697 555)"><ellipse cy="22" rx="75" ry="26" fill="#26373f" opacity=".15"/>${prop}</g>`;
   }
   function notice(eq) {
+    if(expansion?.has(eq.chatframe,'chatframe'))return expansion.campPart(eq.chatframe);
     const type=variant(eq,'chatframe');
     const colors={default:['#9c927f','#d4c6a7'],linen:['#a69e8b','#e1d6bc'],wood:['#806b59','#bcab88'],parchment:['#bca17e','#e1caa1'],constellation:['#777992','#b8bad0']}[type];
     return `<g data-skin-slots="chatframe" data-camp-part="notice" transform="translate(452 602)"><path d="M-24 7v24m50-29v20" stroke="#8f8572" stroke-width="5"/><path d="m-40-45 78-9 3 62-80 11Z" fill="${colors[0]}"/><path d="m-32-37 62-8 3 45-64 10Z" fill="${colors[1]}"/>${type==='linen'?'<path d="m-29-34 56-7 2 40-57 9Z" stroke="#a39980" stroke-width="1.5" stroke-dasharray="3 3"/>':type==='wood'?'<path d="m-36-46 3 60m65-69 3 61m-74-48 79-10" stroke="#594f49" stroke-width="3"/>':type==='parchment'?'<path d="m-34-37 61-8 5 7-64 9Zm3 45 64-10-6 8-54 8Z" fill="#f0dab0"/>':type==='constellation'?`<path d="m-23-29 19 8 22-15 5 28" stroke="#6a7396" stroke-width="1.5"/>${star(-23,-29,3,'#f0e0b9')}${star(18,-36,3,'#f0e0b9')}`:''}<path d="m-20-15 33-4m-33 11 41-5m-40 12 25-3" stroke="${type==='constellation'?'#747b9a':'#ad9b7e'}" stroke-width="2" stroke-linecap="round"/></g>`;
@@ -145,6 +151,7 @@
       station('wanderer',849,533,'闻舟 · 旅途手记',library,person('wanderer',-75,-44),interactive,selected);
   }
   function ambience(eq) {
+    if(expansion?.has(eq.campglow,'campglow'))return expansion.effectScene(eq.campglow,'camp');
     const type=variant(eq,'campglow');
     const positions=[[188,290],[245,469],[399,417],[475,192],[729,273],[782,462],[939,473],[1043,325],[466,546],[618,249],[702,626],[940,631],[190,565],[1063,594],[527,369],[814,165]];
     return `<g data-skin-slots="campglow" data-camp-part="ambience" pointer-events="none">${type==='default'?[[523,479],[641,412],[669,505]].map(([x,y],i)=>`<circle class="camp-world-ambient" cx="${x}" cy="${y}" r="1.7" fill="#e7c58d" style="--camp-delay:-${i*1.6}s" opacity=".6"/>`).join(''):positions.map(([x,y],i)=>{
@@ -191,7 +198,7 @@
     </svg>`;
   }
   function entrance(equipment) {
-    const eq=normalize(equipment), p=palettes[variant(eq,'camp')];
+    const eq=normalize(equipment), p=expansion?.campPalette(eq.camp)||palettes[variant(eq,'camp')];
     return `<svg class="camp-world-entrance-art" viewBox="0 0 160 110" width="160" height="110" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none" data-fire="${eq.fire}" data-camp="${eq.camp}"><ellipse cx="80" cy="95" rx="63" ry="10" fill="#111b2c" opacity=".24"/><path d="m14 76 43-22 79 18-31 29-73-8Z" fill="${p.side}"/><path d="m14 70 43-22 79 18-31 29-73-8Z" fill="${p.grass}" stroke="${p.edge}" stroke-width="1.5"/><ellipse cx="78" cy="75" rx="32" ry="14" fill="#a8997d" opacity=".5"/><g transform="translate(79 75) scale(.51)">${fire(eq,true)}</g><path d="m19 79 22 7 13-5-23-7Z" fill="#b5a187"/><path d="m19 79 0 6 22 8 13-6v-6l-13 5Z" fill="#7d7565"/><path d="m105 84 20-8 11 4-20 9Z" fill="#b8a58a"/><path d="m105 84 0 6 11 5 20-9v-6l-20 9Z" fill="#7d7565"/></svg>`;
   }
   // A ground-level hearth, shared by the home island and shop previews.

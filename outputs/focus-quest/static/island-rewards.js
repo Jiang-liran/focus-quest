@@ -35,7 +35,7 @@
   }
   function gift(item,index){
     const art=islands[item.id],main=item.id==='main';
-    const label=`领取${art.name}礼盒：${item.reward.coins}金币和${item.reward.diamonds}钻石`;
+    const label=`领取${art.name}礼盒：${item.reward.coins}金币和${item.reward.diamonds}钻石，另有1张${main?'钻石':'金币'}抽奖券`;
     return `<g class="island-gift${main?' island-gift-main':''}" data-island-gift="${item.id}" data-skin-block="true" role="button" tabindex="0" aria-label="${esc(label)}" aria-disabled="${Boolean(busy)}" ${busy?.id===item.id?'aria-busy="true"':''} style="--gift-color:${art.color};--gift-light:${art.light};--gift-shade:${art.shade};--gift-delay:-${index*.65}s" transform="translate(${art.x} ${art.y})">
       <title>${esc(label)} · 每日可领取一次</title>
       <ellipse class="island-gift-shadow" cy="47" rx="24" ry="7" fill="${art.color}" opacity=".17"/>
@@ -87,7 +87,7 @@
       bridge.acceptReceipt?.(result);
       if(!result.alreadyClaimed){
         if(!document.hidden)bridge.playSound?.(id==='main'?'victory':'delivery',{key:`island-gift:${day}:${id}`});
-        bridge.toast?.(id==='main'?'四科共辉，星礼已收好':`${islands[id].name}岛的礼物已收好`,`+${result.reward.coins} 金币 · +${result.reward.diamonds} 钻石`);
+        bridge.toast?.(id==='main'?'四科共辉，星礼已收好':`${islands[id].name}岛的礼物已收好`,`+${result.reward.coins} 金币 · +${result.reward.diamonds} 钻石${root.FocusLottery?.ticketText?.(result.ticketGrants)||''}`);
       }else bridge.toast?.('这份礼物已经收好','金币和钻石已在行囊里。');
     }catch(error){bridge.toast?.('礼盒还在等你',error.message,true);}
     finally{busy=null;paint();}

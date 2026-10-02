@@ -1,0 +1,169 @@
+/* Purchased cosmetics: only explicit equipment IDs activate these styles. */
+.expansion-pet-breathe{transform-box:fill-box;transform-origin:50% 100%;animation:expansion-breathe 7s ease-in-out infinite}
+.expansion-gentle-float{animation:expansion-float 8s ease-in-out infinite}
+.expansion-particle{animation:expansion-drift 12s ease-in-out infinite alternate;animation-delay:var(--expansion-delay,0s)}
+.expansion-flame{transform-box:fill-box;transform-origin:50% 100%;animation:expansion-flame 3s ease-in-out infinite alternate}
+.expansion-premium-art{animation:expansion-luminous 5s ease-in-out infinite alternate}
+.expansion-premium-sky{animation:expansion-luminous 11s ease-in-out infinite alternate}
+.expansion-premium-flow{animation:expansion-track-glow 6s ease-in-out infinite alternate}
+.expansion-halo{animation:expansion-luminous 6s ease-in-out infinite alternate}
+@keyframes expansion-breathe{50%{transform:scale(1.02,1.035)}}
+@keyframes expansion-float{50%{transform:translateY(-2px)}}
+@keyframes expansion-drift{to{transform:translate(5px,-7px);opacity:.55}}
+@keyframes expansion-flame{to{transform:scale(.97,1.05)}}
+@keyframes expansion-luminous{from{opacity:.66}to{opacity:1}}
+@keyframes expansion-track-glow{from{opacity:.62}to{opacity:1;transform:translateX(2px)}}
+.no-motion .expansion-art *,.no-motion .expansion-premium-sky,.no-motion .expansion-premium-flow,.no-motion .expansion-halo,
+html.focus-runtime-hidden .expansion-art *,html.focus-runtime-hidden .expansion-premium-sky,html.focus-runtime-hidden .expansion-premium-flow,html.focus-runtime-hidden .expansion-halo,
+[hidden] .expansion-art *,[hidden] .expansion-premium-sky,[hidden] .expansion-premium-flow,[hidden] .expansion-halo{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.expansion-art *,.expansion-premium-sky,.expansion-premium-flow,.expansion-halo{animation:none!important;transition:none!important}}
+:root[data-avatar="avatar-raincoat"]{--avatar-coat:#a6c4cc;--avatar-shade:#516f91;--avatar-hat:#a6c4cc;--avatar-hat-shade:#516f91}
+:root[data-avatar="avatar-raincoat"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-raincoat"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-raincoat"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-raincoat"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-baker"]{--avatar-coat:#c2af83;--avatar-shade:#84746a;--avatar-hat:#c2af83;--avatar-hat-shade:#84746a}
+:root[data-avatar="avatar-baker"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-baker"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-baker"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-baker"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-botanist"]{--avatar-coat:#a99ccc;--avatar-shade:#655f91;--avatar-hat:#a99ccc;--avatar-hat-shade:#655f91}
+:root[data-avatar="avatar-botanist"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-botanist"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-botanist"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-botanist"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-fisher"]{--avatar-coat:#d4a585;--avatar-shade:#956f61;--avatar-hat:#d4a585;--avatar-hat-shade:#956f61}
+:root[data-avatar="avatar-fisher"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-fisher"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-fisher"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-fisher"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-beekeeper"]{--avatar-coat:#83bbaa;--avatar-shade:#476e70;--avatar-hat:#83bbaa;--avatar-hat-shade:#476e70}
+:root[data-avatar="avatar-beekeeper"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-beekeeper"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-beekeeper"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-beekeeper"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-knight"]{--avatar-coat:#c292a6;--avatar-shade:#755c82;--avatar-hat:#c292a6;--avatar-hat-shade:#755c82}
+:root[data-avatar="avatar-knight"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-knight"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-knight"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-knight"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-witch"]{--avatar-coat:#a6c4cc;--avatar-shade:#516f91;--avatar-hat:#a6c4cc;--avatar-hat-shade:#516f91}
+:root[data-avatar="avatar-witch"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-witch"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-witch"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-witch"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-avatar="avatar-astronaut"]{--avatar-coat:#c2af83;--avatar-shade:#84746a;--avatar-hat:#c2af83;--avatar-hat-shade:#84746a}
+:root[data-avatar="avatar-astronaut"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-astronaut"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-astronaut"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-astronaut"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-theme="theme-meadow"]{--theme-ground-top:#629481;--theme-ground-bottom:#274750;--theme-rock-top:#274750;--theme-rock-bottom:#243d46;--theme-rock-side:#274750;--theme-leaf-light:#cfdbc1;--theme-leaf-mid:#629481;--theme-leaf-dark:#274750}
+:root[data-theme="theme-meadow"] #ground stop:first-child{stop-color:var(--theme-ground-top)}:root[data-theme="theme-meadow"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}:root[data-theme="theme-meadow"] #rock stop:first-child{stop-color:var(--theme-rock-top)}:root[data-theme="theme-meadow"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}:root[data-theme="theme-meadow"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}:root[data-theme="theme-meadow"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}:root[data-theme="theme-meadow"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}:root[data-theme="theme-meadow"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root[data-theme="theme-autumn"]{--theme-ground-top:#a38e70;--theme-ground-bottom:#514454;--theme-rock-top:#514454;--theme-rock-bottom:#49394b;--theme-rock-side:#514454;--theme-leaf-light:#e8c89c;--theme-leaf-mid:#a38e70;--theme-leaf-dark:#514454}
+:root[data-theme="theme-autumn"] #ground stop:first-child{stop-color:var(--theme-ground-top)}:root[data-theme="theme-autumn"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}:root[data-theme="theme-autumn"] #rock stop:first-child{stop-color:var(--theme-rock-top)}:root[data-theme="theme-autumn"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}:root[data-theme="theme-autumn"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}:root[data-theme="theme-autumn"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}:root[data-theme="theme-autumn"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}:root[data-theme="theme-autumn"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root[data-theme="theme-cloud"]{--theme-ground-top:#849fb1;--theme-ground-bottom:#455c79;--theme-rock-top:#455c79;--theme-rock-bottom:#37465d;--theme-rock-side:#455c79;--theme-leaf-light:#e4e8dc;--theme-leaf-mid:#849fb1;--theme-leaf-dark:#455c79}
+:root[data-theme="theme-cloud"] #ground stop:first-child{stop-color:var(--theme-ground-top)}:root[data-theme="theme-cloud"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}:root[data-theme="theme-cloud"] #rock stop:first-child{stop-color:var(--theme-rock-top)}:root[data-theme="theme-cloud"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}:root[data-theme="theme-cloud"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}:root[data-theme="theme-cloud"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}:root[data-theme="theme-cloud"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}:root[data-theme="theme-cloud"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root[data-theme="theme-violet"]{--theme-ground-top:#827a9c;--theme-ground-bottom:#393850;--theme-rock-top:#393850;--theme-rock-bottom:#34344e;--theme-rock-side:#393850;--theme-leaf-light:#d7b8db;--theme-leaf-mid:#827a9c;--theme-leaf-dark:#393850}
+:root[data-theme="theme-violet"] #ground stop:first-child{stop-color:var(--theme-ground-top)}:root[data-theme="theme-violet"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}:root[data-theme="theme-violet"] #rock stop:first-child{stop-color:var(--theme-rock-top)}:root[data-theme="theme-violet"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}:root[data-theme="theme-violet"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}:root[data-theme="theme-violet"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}:root[data-theme="theme-violet"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}:root[data-theme="theme-violet"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root[data-relic="relic-shell"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-terrarium"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-teapot"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-musicbox"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-book"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-bonsai"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-lighthouse"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-relic="relic-astrolabe"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-avatar="avatar-moonwarden"]{--avatar-coat:#8bc6d0;--avatar-shade:#3e5685;--avatar-hat:#8bc6d0;--avatar-hat-shade:#3e5685}
+:root[data-avatar="avatar-moonwarden"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-moonwarden"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-moonwarden"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-moonwarden"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-theme="theme-cometsea"]{--theme-ground-top:#517f96;--theme-ground-bottom:#293c60;--theme-rock-top:#293c60;--theme-rock-bottom:#1c344d;--theme-rock-side:#293c60;--theme-leaf-light:#acd9e1;--theme-leaf-mid:#517f96;--theme-leaf-dark:#293c60}
+:root[data-theme="theme-cometsea"] #ground stop:first-child{stop-color:var(--theme-ground-top)}:root[data-theme="theme-cometsea"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}:root[data-theme="theme-cometsea"] #rock stop:first-child{stop-color:var(--theme-rock-top)}:root[data-theme="theme-cometsea"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}:root[data-theme="theme-cometsea"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}:root[data-theme="theme-cometsea"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}:root[data-theme="theme-cometsea"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}:root[data-theme="theme-cometsea"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root[data-relic="relic-soulgarden"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-avatar="avatar-stellararchon"]{--avatar-coat:#accaff;--avatar-shade:#59679f;--avatar-hat:#accaff;--avatar-hat-shade:#59679f}
+:root[data-avatar="avatar-stellararchon"] :is(#scene-traveler .traveler-cloak,.opening-traveler .opening-cloak){fill:var(--avatar-coat)}
+:root[data-avatar="avatar-stellararchon"] #scene-traveler .traveler-cloak-shade{fill:var(--avatar-shade)}
+:root[data-avatar="avatar-stellararchon"] :is(#scene-traveler .traveler-hat,.opening-traveler .opening-hat){fill:var(--avatar-hat)}
+:root[data-avatar="avatar-stellararchon"] #scene-traveler .traveler-hat-shade{fill:var(--avatar-hat-shade)}
+:root[data-theme="theme-nebulaverse"]{--theme-ground-top:#787193;--theme-ground-bottom:#383254;--theme-rock-top:#383254;--theme-rock-bottom:#242541;--theme-rock-side:#383254;--theme-leaf-light:#e0c3ee;--theme-leaf-mid:#787193;--theme-leaf-dark:#383254}
+:root[data-theme="theme-nebulaverse"] #ground stop:first-child{stop-color:var(--theme-ground-top)}:root[data-theme="theme-nebulaverse"] #ground stop:last-child{stop-color:var(--theme-ground-bottom)}:root[data-theme="theme-nebulaverse"] #rock stop:first-child{stop-color:var(--theme-rock-top)}:root[data-theme="theme-nebulaverse"] #rock stop:last-child{stop-color:var(--theme-rock-bottom)}:root[data-theme="theme-nebulaverse"] .floating-island>[fill="#252744"]{fill:var(--theme-rock-side)}:root[data-theme="theme-nebulaverse"] .floating-island :is([fill="#53818a"],[fill="#608090"]){fill:var(--theme-leaf-light)}:root[data-theme="theme-nebulaverse"] .floating-island :is([fill="#406273"],[fill="#538086"]){fill:var(--theme-leaf-mid)}:root[data-theme="theme-nebulaverse"] .floating-island :is([fill="#1f4b52"],[fill="#335364"],[fill="#385462"]){fill:var(--theme-leaf-dark)}
+:root[data-relic="relic-cosmosheart"] .crystal-shrine>.crystal{visibility:hidden}
+:root[data-banner="banner-postcard"] :is(.level-pill,.equipped-player-card){border-color:#a99ccc;border-radius:12px;background:repeating-linear-gradient(135deg,#ce9d9817 0 5px,transparent 5px 11px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px #655f9140}
+:root[data-banner="banner-woven"] :is(.level-pill,.equipped-player-card){border-color:#d4a585;border-radius:12px;background:repeating-linear-gradient(90deg,#afbc9720 0 1px,transparent 1px 7px),repeating-linear-gradient(0deg,#afbc9710 0 1px,transparent 1px 7px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px #956f6140}
+:root[data-banner="banner-wave"] :is(.level-pill,.equipped-player-card){border-color:#83bbaa;border-radius:24px;background:radial-gradient(ellipse at 12% 0,#9ecad627,transparent 36%),repeating-linear-gradient(170deg,#89bac416 0 2px,transparent 2px 18px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px #476e7040}
+:root[data-banner="banner-floral"] :is(.level-pill,.equipped-player-card){border-color:#c292a6;border-radius:12px;background:radial-gradient(circle at 2% 2%,#d3aeb13d 0 14px,transparent 15px),radial-gradient(circle at 98% 98%,#a4bda533 0 17px,transparent 18px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px #755c8240}
+:root[data-banner="banner-glass"] :is(.level-pill,.equipped-player-card){border-color:#a6c4cc;border-radius:12px;background:conic-gradient(from 45deg at 1% 1%,#bea0cd33,#8cbfc922,#dbc49822,#bea0cd33),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px #516f9140}
+:root[data-banner="banner-clockwork"] :is(.level-pill,.equipped-player-card){border-color:#c2af83;border-radius:12px;background:radial-gradient(circle at 0 0,transparent 14px,#cab59844 15px 17px,transparent 18px),radial-gradient(circle at 100% 100%,transparent 16px,#b39a7e44 17px 19px,transparent 20px),var(--ui-surface,#191d2b);box-shadow:inset 0 0 0 4px #84746a40}
+:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-postcard"]{--chat-surface:repeating-linear-gradient(135deg,#c7a29910 0 5px,transparent 5px 11px),#343243;--chat-edge:#a6c4cc88;--chat-ink:#ece3d4;--chat-title:#e5ddbd}:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-postcard"] :is(.campfire-line,.campfire-preview-line,.camp-room-dialogue){background:var(--chat-surface);border:2px dashed var(--chat-edge);border-radius:12px;box-shadow:inset 0 0 0 4px #516f9122}
+:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-bamboo"]{--chat-surface:repeating-linear-gradient(90deg,#9fac9020 0 3px,transparent 3px 19px),#293e38;--chat-edge:#c2af8388;--chat-ink:#ece3d4;--chat-title:#eddbb4}:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-bamboo"] :is(.campfire-line,.campfire-preview-line,.camp-room-dialogue){background:var(--chat-surface);border:2px solid var(--chat-edge);border-radius:12px;box-shadow:inset 0 0 0 4px #84746a22}
+:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-quilt"]{--chat-surface:repeating-linear-gradient(45deg,#c4a6b91a 0 2px,transparent 2px 18px),repeating-linear-gradient(-45deg,#c4a6b91a 0 2px,transparent 2px 18px),#383144;--chat-edge:#a99ccc88;--chat-ink:#ece3d4;--chat-title:#e7cef4}:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-quilt"] :is(.campfire-line,.campfire-preview-line,.camp-room-dialogue){background:var(--chat-surface);border:2px dashed var(--chat-edge);border-radius:12px;box-shadow:inset 0 0 0 4px #655f9122}
+:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-cloud"]{--chat-surface:radial-gradient(ellipse at 0 0,#b9d2df30,transparent 48%),#2b3849;--chat-edge:#d4a58588;--chat-ink:#ece3d4;--chat-title:#f2dfa5}:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-cloud"] :is(.campfire-line,.campfire-preview-line,.camp-room-dialogue){background:var(--chat-surface);border:2px solid var(--chat-edge);border-radius:12px;box-shadow:inset 0 0 0 4px #956f6122}
+:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-moon"]{--chat-surface:radial-gradient(circle at 96% 8%,#d7ccbf36 0 16px,transparent 17px),#2c2941;--chat-edge:#83bbaa88;--chat-ink:#ece3d4;--chat-title:#e9d0a1}:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-moon"] :is(.campfire-line,.campfire-preview-line,.camp-room-dialogue){background:var(--chat-surface);border:2px double var(--chat-edge);border-radius:12px;box-shadow:inset 0 0 0 4px #476e7022}
+:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-glass"]{--chat-surface:conic-gradient(from 70deg at 1% 1%,#aebcd133,#bca4cd22,#d2bd9022,#aebcd133),#323142;--chat-edge:#c292a688;--chat-ink:#ece3d4;--chat-title:#f1d5ad}:is(.campfire-card,.campfire-full-preview,.camp-room)[data-chatframe="chatframe-glass"] :is(.campfire-line,.campfire-preview-line,.camp-room-dialogue){background:var(--chat-surface);border:2px double var(--chat-edge);border-radius:12px;box-shadow:inset 0 0 0 4px #755c8222}
+/* Rare collections: independent moving structures, with no JS animation loops. */
+.expansion-floating-district{animation:expansion-district-lift 6s ease-in-out infinite;animation-delay:var(--limited-delay,0s)}
+.expansion-sky-vessel{animation:expansion-vessel-drift 9s ease-in-out infinite}
+.expansion-bridge-current{animation:expansion-bridge-travel 4s linear infinite}
+.expansion-island-orbit{animation:expansion-fringe-breathe 8s ease-in-out infinite}
+.expansion-district-orbit{animation:expansion-orbit-lift 5s ease-in-out infinite}
+.expansion-ribbon-stream{animation:expansion-spectrum-run 12s linear infinite}
+.expansion-track-caravan{animation:expansion-caravan-run 5s linear infinite}
+.expansion-rail-forward{animation:expansion-rail-forward 1.9s linear infinite}
+.expansion-rail-reverse{animation:expansion-rail-backward 2.8s linear infinite}
+.expansion-energy-courier{animation:expansion-courier-run 4s linear infinite}
+.expansion-locomotive-steam{animation:expansion-steam-puff 3s ease-in-out infinite;transform-box:fill-box;transform-origin:100% 100%}
+.expansion-galaxy-leader{animation:expansion-leader-breathe 4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.expansion-leader-orbit{animation:expansion-orbit-lift 3.6s ease-in-out infinite}
+.expansion-cape-wings{animation:expansion-cape-spread 6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.expansion-satellite-orbit,.expansion-crown-orbit{animation:expansion-satellite-roll 10s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.expansion-luminous-wings{animation:expansion-wing-spread 4.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 70%}
+.expansion-luminous-tail{animation:expansion-tail-sway 5s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 0}
+.expansion-bird-halo,.expansion-garden-stars,.expansion-garden-orbit{animation:expansion-bridge-travel 13s linear infinite}
+.expansion-dragon-orbit{animation:expansion-orbit-lift 6s ease-in-out infinite}
+.expansion-dream-canopy{animation:expansion-canopy-sway 7s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 100%}
+.expansion-cosmic-corona{animation:expansion-cosmic-spin 28s linear infinite;transform-box:fill-box;transform-origin:center}
+.expansion-cosmic-orbit-a{animation:expansion-cosmic-wobble 12s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+.expansion-cosmic-orbit-b{animation:expansion-cosmic-wobble 15s ease-in-out infinite reverse;transform-box:fill-box;transform-origin:center}
+.expansion-cosmic-meridian{animation:expansion-fringe-breathe 6s ease-in-out infinite}
+.expansion-comet-belt{animation:expansion-belt-lift 13s ease-in-out infinite}
+.expansion-comet-travellers{animation:expansion-comet-sail 10s ease-in-out infinite}
+.expansion-nebula-wave-a{animation:expansion-nebula-roll 15s ease-in-out infinite}
+.expansion-nebula-wave-b{animation:expansion-nebula-roll 18s ease-in-out infinite reverse}
+.expansion-nebula-orbits{animation:expansion-belt-lift 12s ease-in-out infinite}
+@keyframes expansion-district-lift{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+@keyframes expansion-vessel-drift{0%,100%{transform:translate(-4px,-1px)}50%{transform:translate(5px,-5px)}}
+@keyframes expansion-bridge-travel{to{stroke-dashoffset:-56}}
+@keyframes expansion-fringe-breathe{0%,100%{opacity:.6}50%{opacity:1}}
+@keyframes expansion-orbit-lift{0%,100%{transform:translateY(-2px)}50%{transform:translateY(2px)}}
+@keyframes expansion-spectrum-run{to{transform:translateX(-600px)}}
+@keyframes expansion-caravan-run{to{transform:translateX(30px)}}
+@keyframes expansion-rail-forward{to{stroke-dashoffset:-53}}
+@keyframes expansion-rail-backward{to{stroke-dashoffset:40}}
+@keyframes expansion-courier-run{to{stroke-dashoffset:-180}}
+@keyframes expansion-steam-puff{50%{transform:translateX(-4px) scale(.92,1.08);opacity:.35}}
+@keyframes expansion-leader-breathe{50%{transform:scale(1.015,.98)}}
+@keyframes expansion-cape-spread{50%{transform:scale(1.025,.98)}}
+@keyframes expansion-satellite-roll{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg)}}
+@keyframes expansion-wing-spread{50%{transform:scale(1,.93)}}
+@keyframes expansion-tail-sway{50%{transform:rotate(5deg)}}
+@keyframes expansion-canopy-sway{50%{transform:rotate(2deg)}}
+@keyframes expansion-cosmic-spin{to{transform:rotate(360deg)}}
+@keyframes expansion-cosmic-wobble{0%,100%{transform:rotate(-12deg)}50%{transform:rotate(12deg)}}
+@keyframes expansion-belt-lift{50%{transform:translateY(4px)}}
+@keyframes expansion-comet-sail{0%,100%{transform:translate(-8px,4px)}50%{transform:translate(9px,-5px)}}
+@keyframes expansion-nebula-roll{0%,100%{transform:translate(-5px,0)}50%{transform:translate(5px,4px)}}
+:root:is([data-avatar="avatar-moonwarden"],[data-avatar="avatar-stellararchon"]) #scene-traveler>:not(#equipped-player-regalia){visibility:hidden}
+#equipped-player-regalia{pointer-events:none}
+.quest-hero[data-stage="0"] #equipped-player-regalia .quest-avatar-tier,
+.quest-hero[data-stage="1"] #equipped-player-regalia :is(.quest-avatar-tier-2,.quest-avatar-tier-3,.quest-avatar-tier-4),
+.quest-hero[data-stage="2"] #equipped-player-regalia :is(.quest-avatar-tier-3,.quest-avatar-tier-4),
+.quest-hero[data-stage="3"] #equipped-player-regalia .quest-avatar-tier-4{display:none}
+/* Every new motion class is paused when offscreen or when reduced motion is requested. */
+.no-motion :is(.expansion-limited-island,.expansion-limited-avatar,.expansion-limited-theme) *,
+html.focus-runtime-hidden :is(.expansion-limited-island,.expansion-limited-avatar,.expansion-limited-theme) *,
+[hidden] :is(.expansion-limited-island,.expansion-limited-avatar,.expansion-limited-theme) *,
+.no-motion :is(.expansion-ribbon-stream,.expansion-track-caravan,.expansion-rail-forward,.expansion-rail-reverse,.expansion-energy-courier,.expansion-locomotive-steam,.expansion-galaxy-leader,.expansion-leader-orbit),
+html.focus-runtime-hidden :is(.expansion-ribbon-stream,.expansion-track-caravan,.expansion-rail-forward,.expansion-rail-reverse,.expansion-energy-courier,.expansion-locomotive-steam,.expansion-galaxy-leader,.expansion-leader-orbit),
+[hidden] :is(.expansion-ribbon-stream,.expansion-track-caravan,.expansion-rail-forward,.expansion-rail-reverse,.expansion-energy-courier,.expansion-locomotive-steam,.expansion-galaxy-leader,.expansion-leader-orbit){animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){:is(.expansion-limited-island,.expansion-limited-avatar,.expansion-limited-theme) *,:is(.expansion-ribbon-stream,.expansion-track-caravan,.expansion-rail-forward,.expansion-rail-reverse,.expansion-energy-courier,.expansion-locomotive-steam,.expansion-galaxy-leader,.expansion-leader-orbit){animation:none!important;transition:none!important}}

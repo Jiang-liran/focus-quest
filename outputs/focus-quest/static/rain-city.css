@@ -54,3 +54,11 @@
 @media(max-width:1150px){#city-ambience .ambience-controls{font-size:11px}#city-ambience .ambience-volume [data-ambience-volume-label]{display:none}#city-ambience .ambience-volume input{width:40px}}
 
 @media(max-width:760px){#citadel-view.rain-city .city-header{flex-wrap:wrap}#citadel-view.rain-city .citadel-header-actions{display:flex;width:100%}#citadel-view.rain-city .citadel-header-actions>button{display:none}}
+/* The ticket counter opens into a whole room; the two physical cabinets stay in its entrance. */
+#citadel-view[data-room=arcade][data-lottery=""] .city-room-content{width:clamp(270px,25vw,500px);padding:20px 23px}
+#citadel-view[data-room=arcade][data-lottery=""] .city-room-content h3{font-size:clamp(19px,1.15vw,28px)}
+#citadel-view[data-room=arcade][data-lottery=""] .city-room-content p{font-size:clamp(11px,.73vw,17px)}
+#citadel-view .city-interior-art[hidden]{display:none!important}
+#citadel-view.rain-city[data-lottery=coin] .city-room-content,#citadel-view.rain-city[data-lottery=diamond] .city-room-content{position:relative;inset:auto;width:100%!important;max-width:none!important;height:100%;max-height:none;padding:0;background:transparent;border:0;border-radius:0;backdrop-filter:none;box-shadow:none;overflow:auto}
+#citadel-view[data-lottery=coin] .city-room-vignette,#citadel-view[data-lottery=diamond] .city-room-vignette,#citadel-view[data-lottery=coin] .city-room-sign,#citadel-view[data-lottery=diamond] .city-room-sign{display:none}
+#city-lottery-pane{width:100%;min-height:100%}

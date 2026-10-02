@@ -16,6 +16,8 @@
     portal: ['default', 'moon', 'archive', 'cosmos'],
     island: ['default', 'lanterns', 'garden', 'pavilion', 'supplies', 'banners', 'fountain', 'library', 'observatory', 'arcade', 'palace'],
   };
+  const expansion=typeof module==='object'&&module.exports?require('./shop-expansion.js'):root.FocusShopExpansion;
+  for(const entry of expansion?.entries||[])if(inventory[entry.slot])inventory[entry.slot].push(entry.id.slice(entry.id.indexOf('-')+1));
   const items = new Map(Object.entries(inventory).flatMap(([slot, variants]) => variants.map(variant => [`${slot}-${variant}`, {slot, variant}])));
   const cache = new WeakMap();
   const originalHats = new WeakMap();
@@ -87,6 +89,7 @@
   // Low coastal accents use x174–291 / y220–269; buildings use x363–444 / y56–166.
   // The roadside camp at x303–373 / y205–265, original route, and other mounts stay clear.
   function islandDecoration(itemId) {
+    if(expansion?.has(itemId,'island'))return expansion.islandDecoration(itemId);
     const item=items.get(itemId);if(item?.slot!=='island'||item.variant==='default')return '';
     const stones=points=>points.map(([x,y],index)=>`<path d="m${x-6} ${y} 7-2 7 2-7 3Z" fill="${index%2?'#91939f':'#afb0b5'}" opacity=".7"/>`).join('');
     const lamp=(x,y,short=false)=>`<g transform="translate(${x} ${y})"><ellipse rx="10" ry="3" fill="#dac794" opacity=".13"/><path d="M-4 0H4M0 0v-${short?9:17}" stroke="#9a8a79" stroke-width="2" stroke-linecap="round"/><g transform="translate(0 ${short?8:0})"><path d="M-5-20 0-24l5 4-1 8H-4Z" fill="#b7a786" stroke="#716779" stroke-width="1"/><path d="M-2-19H2v5H-2Z" fill="#f2d9a2"/><g class="shop-portal-glimmer"><ellipse cy="-16" rx="7" ry="7" fill="#eed3a0" opacity=".12"/></g></g></g>`;
@@ -111,12 +114,12 @@
   function islandScene(itemId,equipped={}) {
     if(items.get(itemId)?.slot!=='island')return '';
     const choice=slot=>items.get(equipped?.[slot])?.slot===slot?equipped[slot]:`${slot}-default`;
-    const [sky,ground,rock]=themes[items.get(choice('theme')).variant];
+    const [sky,ground,rock]=expansion?.themePalette(choice('theme'))||themes[items.get(choice('theme')).variant];
     const relic=choice('relic'),portal=choice('portal'),companion=choice('companion');
     const player=(nodeArt||root.QuestArt)?.avatar('player',choice('avatar'))?.replace(/^<svg[^>]*>|<\/svg>$/g,'')||'';
     const roadside=(nodeCampArt||root.FocusCampWorldArt)?.roadside?.(equipped)||'';
-    const crystal=relic==='relic-default'?'<ellipse cx="322" cy="159" rx="39" ry="15" fill="#9d8ac4" opacity=".18"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Zm37 23 38-23v13l-38 23Z" fill="#8879a9"/><path d="m321 60-23 39 23 42 24-42Z" fill="#b9a4e6"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ed"/>':`<g transform="translate(278 62) scale(.88)">${relics[items.get(relic).variant]}</g>`;
-    return `<rect x="38" y="18" width="514" height="307" rx="26" fill="${sky}" opacity=".35"/><ellipse cx="300" cy="319" rx="166" ry="12" fill="#11162a" opacity=".25"/><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="${rock}"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="${ground}" stroke="#77718f" stroke-width="2"/><path d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" fill="none" stroke="#b5a1cc" stroke-width="4" opacity=".6"/>${islandDecoration(itemId)}<g fill="#5c8288"><path d="m156 137-21 33 21 12 20-12Z"/><path d="m216 110-17 32 17 10 17-10Z"/><path d="m435 171-20 34 20 12 20-12Z"/></g>${crystal}${portal==='portal-default'?'':`<g transform="translate(220 123) scale(.57)">${portals[items.get(portal).variant]}</g>`}${companion==='companion-default'?'':`<g transform="translate(362 192) scale(.53)">${companions[items.get(companion).variant]}</g>`}<g transform="translate(151 172) scale(.65)">${player}</g>${roadside}`;
+    const crystal=relic==='relic-default'?'<ellipse cx="322" cy="159" rx="39" ry="15" fill="#9d8ac4" opacity=".18"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Zm37 23 38-23v13l-38 23Z" fill="#8879a9"/><path d="m321 60-23 39 23 42 24-42Z" fill="#b9a4e6"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ed"/>':`<g transform="translate(278 62) scale(.88)">${(expansion?.premium(relic)||expansion?.relic(relic)||relics[items.get(relic).variant])}</g>`;
+    return `<rect x="38" y="18" width="514" height="307" rx="26" fill="${sky}" opacity=".35"/><ellipse cx="300" cy="319" rx="166" ry="12" fill="#11162a" opacity=".25"/><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="${rock}"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="${ground}" stroke="#77718f" stroke-width="2"/><path d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" fill="none" stroke="#b5a1cc" stroke-width="4" opacity=".6"/>${islandDecoration(itemId)}<g fill="#5c8288"><path d="m156 137-21 33 21 12 20-12Z"/><path d="m216 110-17 32 17 10 17-10Z"/><path d="m435 171-20 34 20 12 20-12Z"/></g>${crystal}${portal==='portal-default'?'':`<g transform="translate(220 123) scale(.57)">${(expansion?.portal(portal)||portals[items.get(portal).variant])}</g>`}${companion==='companion-default'?'':`<g transform="translate(362 192) scale(.53)">${(expansion?.premium(companion)||expansion?.companion(companion)||companions[items.get(companion).variant])}</g>`}<g transform="translate(151 172) scale(.65)">${player}</g>${roadside}`;
   }
 
   function islandPreview(itemId,equipped) {
@@ -125,6 +128,7 @@
   }
 
   function preview(itemId) {
+    if(expansion?.has(itemId))return expansion.has(itemId,'bar')?(nodeProgressBars||root.FocusProgressBars)?.preview(itemId)||'':expansion.preview(itemId);
     const interfaceThemes=nodeInterfaceThemes||root.FocusInterfaceThemes;
     if(interfaceThemes?.has(itemId))return interfaceThemes.preview(itemId);
     const item=items.get(itemId);if(!item)return '';
@@ -146,6 +150,7 @@
   }
 
   function themeBackdrop(variant) {
+    if(expansion?.has(`theme-${variant}`,'theme'))return expansion.themeBackdrop(`theme-${variant}`);
     if(variant==='default')return '';
     const accent=themes[variant][3];
     let scene='';
@@ -197,7 +202,7 @@
     ['#scene-traveler .traveler-hat','#scene-traveler .traveler-hat-shade','.opening-traveler .opening-hat'].forEach((selector,index)=>{
       const element=doc.querySelector(selector);if(!element)return;
       if(!originalHats.has(element))originalHats.set(element,element.getAttribute('d'));
-      const shape=shapes[outfit]?.[index]||originalHats.get(element);
+      const shape=shapes[outfit]?.[index]||expansion?.travelerHat(outfit,index)||originalHats.get(element);
       if(shape&&element.getAttribute('d')!==shape)element.setAttribute('d',shape);
     });
   }
@@ -212,6 +217,10 @@
     if('npc' in doc.documentElement.dataset)delete doc.documentElement.dataset.npc;
     for(const [slot,id] of Object.entries(valid))if(doc.documentElement.dataset[slot]!==id)doc.documentElement.dataset[slot]=id;
     dressTravelers(doc,valid.avatar);
+    let regalia=doc.getElementById('equipped-player-regalia');
+    const limitedAvatar=expansion?.item(valid.avatar)?.lotteryOnly===true;
+    if(limitedAvatar)regalia=mount(doc,'equipped-player-regalia','#scene-traveler',true);
+    if(regalia)put(regalia,valid.avatar,limitedAvatar?expansion.avatar(valid.avatar,4).replace(/^<svg[^>]*>|<\/svg>$/g,''):'','translate(142 158) scale(.9)');
     // The keyed mounts survive ordinary state polls and preserve their animation phase.
     const companion=mount(doc,'equipped-companion','.floating-island',true);
     const island=mount(doc,'equipped-island','.floating-island',true);
@@ -219,11 +228,14 @@
     const portal=mount(doc,'equipped-portal','.floating-island',true);
     let backdrop=doc.querySelector('.scene-theme-backdrop');
     if(!backdrop)backdrop=mount(doc,'scene-theme-backdrop','.quest-scene');
-    put(companion,valid.companion,valid.companion==='companion-default'?'':companions[items.get(valid.companion).variant],'translate(362 192) scale(.53)');
+    put(companion,valid.companion,valid.companion==='companion-default'?'':(expansion?.premium(valid.companion)||expansion?.companion(valid.companion)||companions[items.get(valid.companion).variant]),'translate(362 192) scale(.53)');
     put(island,valid.island,islandDecoration(valid.island));
-    put(relic,valid.relic,valid.relic==='relic-default'?'':`<g class="shop-relic-core">${relics[items.get(valid.relic).variant]}</g>`,'translate(278 62) scale(.88)');
-    put(portal,valid.portal,valid.portal==='portal-default'?'':portals[items.get(valid.portal).variant],'translate(220 123) scale(.57)');
+    put(relic,valid.relic,valid.relic==='relic-default'?'':`<g class="shop-relic-core">${(expansion?.premium(valid.relic)||expansion?.relic(valid.relic)||relics[items.get(valid.relic).variant])}</g>`,'translate(278 62) scale(.88)');
+    put(portal,valid.portal,valid.portal==='portal-default'?'':(expansion?.portal(valid.portal)||portals[items.get(valid.portal).variant]),'translate(220 123) scale(.57)');
     put(backdrop,valid.theme,themeBackdrop(items.get(valid.theme).variant));
+    let fx=doc.getElementById('equipped-extra-fx');
+    if(expansion?.has(valid.fx,'fx'))fx=mount(doc,'equipped-extra-fx','.floating-island',true);
+    if(fx)put(fx,valid.fx,expansion?.has(valid.fx,'fx')?expansion.effectScene(valid.fx,'home'):'');
     (nodeProgressBars||root.FocusProgressBars)?.decorate(doc);
     return valid;
   }

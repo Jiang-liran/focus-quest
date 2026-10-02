@@ -124,7 +124,7 @@
       bridge.acceptReceipt?.(result);
       if(!result.alreadyClaimed){
         if(visible())bridge.playSound?.('delivery',{key:`method-reward:${day}:${subjectId}:${tier}`});
-        bridge.toast?.(`${isBonus?'四科研习 · 融会贯通':`${subjects[subjectId].name} · ${tiers[tier].name}`}，奖励已收好`,`+${number(result.reward.coins)} 金币${number(result.reward.diamonds)?` · +${number(result.reward.diamonds)} 钻石`:''}`);
+        bridge.toast?.(`${isBonus?'四科研习 · 融会贯通':`${subjects[subjectId].name} · ${tiers[tier].name}`}，奖励已收好`,`+${number(result.reward.coins)} 金币${number(result.reward.diamonds)?` · +${number(result.reward.diamonds)} 钻石`:''}${root.FocusLottery?.ticketText?.(result.ticketGrants)||''}`);
       }else bridge.toast?.('这份研习奖励已经收好','不重复领取，行囊里的收获已经记下。');
     }catch(error){bridge.toast?.('研习奖励还在这里',error?.message||'暂时未能领取，请稍后再试。',true);}
     finally{busy=null;paint();}

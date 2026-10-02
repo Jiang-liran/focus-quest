@@ -15,7 +15,7 @@
   let bridge={},state=null,equipped={},equipmentStamp=-Infinity,equipmentPreview=null,initialized=false;
   let anchor=null,inertBefore=[];
   let selected=null,streetKey='',roomKey='',contentKey='',zoom=1,panX=0,panY=0,drag=null,suppressClickUntil=0,wheelTimer=null;
-  let teaLine=0,windowMode='rain',rooftopMode='rain',homeView='home';
+  let teaLine=0,windowMode='rain',rooftopMode='rain',homeView='home',lotteryMachine=null;
   const places=()=>root.FocusRainCityArt?.places||fallbackPlaces;
   const place=id=>places().find(p=>p.id===id);
   const isOpen=()=>!!$('citadel-view')&&!$('citadel-view').hidden;
@@ -46,18 +46,18 @@
       return `<span class="city-room-eyebrow">${copy[0]}</span><h3>${copy[1]}</h3>${copy[2]?`<p>${copy[2]}</p>`:''}<div class="city-room-actions">${homeView==='home'?'<button type="button" data-city-action="home-window">到窗边看雨</button><button type="button" class="city-secondary" data-city-action="home-rooftop">上屋顶坐坐</button>':'<button type="button" data-city-action="home-living">回到家里</button>'}${homeView==='rooftop'?`<button type="button" class="city-secondary" data-city-action="sky" aria-pressed="${rooftopMode==='stars'}">${rooftopMode==='stars'?'回到雨夜':'看一眼云隙星光'}</button>`:''}</div><div id="city-home-audio"></div>`;
     }
     if(selected==='atelier')return '<span class="city-room-eyebrow">星织小铺 · 你的私人衣柜</span><h3>留住喜欢的一整套。</h3><div class="city-room-actions"><button type="button" data-skin-open="interface theme bar fx avatar banner companion relic portal camp fire tent campgear campglow chatframe island camptrail campmark">搭配已有外观</button><button type="button" class="city-secondary" data-city-action="shop">逛逛商店 ↗</button></div><div id="city-life-pane"></div>';
-    if(selected==='arcade')return `<span class="city-room-eyebrow">星海游乐场 · 一小段休息</span><h3>熟悉的游戏，都留在这里。</h3><p>扫雷和其他游戏、原来的成绩与奖励都保留着。只想看看街景，也可以随时离开。</p><div class="city-room-actions"><button type="button" data-city-action="arcade">${state.arcade?.active?'继续未结束的游戏':'进入星海游乐场'} ↗</button></div><small class="city-room-note">${Number(state.arcade?.available)||0} 张可用游玩券 · 进入大厅不会消耗游玩券</small>`;
+    if(selected==='arcade')return lotteryMachine?'<div id="city-lottery-pane" aria-label="星海抽奖机"></div>':`<span class="city-room-eyebrow">星海游乐场 · 灯下的小惊喜</span><h3>把学习带来的券，投进一份期待。</h3><p>点亮的两台机器分别收下金币抽奖券和钻石抽奖券。点击机身，就能查看奖池与收藏。</p><div class="city-room-actions"><button type="button" class="city-secondary" data-city-action="arcade">${state.arcade?.active?'继续未结束的游戏':'去游戏区'} ↗</button></div><small class="city-room-note">${Number(state.arcade?.available)||0} 张可用游玩券 · 与抽奖券分别使用</small>`;
     return '<span class="city-room-eyebrow">归途车站 · 灯还亮着</span><h3>下一程，轻装出发。</h3><p>把明天想做的小事装进行囊，今晚就不用一直记着了。</p><div id="city-life-pane"></div><div class="city-room-actions"><button type="button" data-city-action="home">回到群岛</button><button type="button" class="city-secondary" data-city-action="camp">去篝火营地</button></div>';
   }
   function paint(){
     if(!isOpen()||!state||!root.FocusRainCityArt)return;
     const view=$('citadel-view'),eq=visibleEquipment(),inRoom=!!selected;
-    view.dataset.motion=String(motionAllowed());view.dataset.paused=String(!isVisible());view.dataset.room=selected||'street';view.dataset.homeView=selected==='observatory'?homeView:'';
+    view.dataset.motion=String(motionAllowed());view.dataset.paused=String(!isVisible());view.dataset.room=selected||'street';view.dataset.homeView=selected==='observatory'?homeView:'';view.dataset.lottery=lotteryMachine||'';
     $('city-street').hidden=inRoom;$('city-room').hidden=!inRoom;
     if($('city-ambience'))$('city-ambience').hidden=selected==='observatory';
-    setText('citadel-title',selected==='observatory'?(homeView==='panorama'?'窗边夜景':homeView==='rooftop'?'屋顶天台':'我的家'):inRoom?place(selected).name:'星辉城');
+    setText('citadel-title',lotteryMachine?(lotteryMachine==='coin'?'金币抽奖机':'钻石抽奖机'):selected==='observatory'?(homeView==='panorama'?'窗边夜景':homeView==='rooftop'?'屋顶天台':'我的家'):inRoom?place(selected).name:'星辉城');
     setText('citadel-theme',inRoom?'星辉城 / '+place(selected).subtitle:'雨夜里的灯，始终为你亮着');
-    setText('citadel-close',selected==='observatory'&&homeView!=='home'?'← 回到家里':inRoom?'← 返回街道':'← 返回群岛');
+    setText('citadel-close',lotteryMachine?'← 返回游乐场':selected==='observatory'&&homeView!=='home'?'← 回到家里':inRoom?'← 返回街道':'← 返回群岛');
     setText('city-street-caption','沿着雨巷走走 · 点击亮着灯的建筑，进去坐坐');
     const key=JSON.stringify(eq);
     if(!inRoom&&key!==streetKey){
@@ -66,16 +66,18 @@
       $('citadel-scene').innerHTML=root.FocusRainCityArt.scene(state,eq,{interactive:true});
       if(focusSelector)$('citadel-scene').querySelector(focusSelector)?.focus({preventScroll:true});
     }
-    $('city-interior-art').setAttribute('aria-hidden',selected==='observatory'?'false':'true');
+    $('city-interior-art').hidden=!!lotteryMachine;
+    $('city-interior-art').setAttribute('aria-hidden',['observatory','arcade'].includes(selected)&&!lotteryMachine?'false':'true');
     if(inRoom){
       const mode=selected==='tea'?windowMode:selected==='observatory'?(homeView==='rooftop'?rooftopMode:homeView):'rain',key=JSON.stringify([selected,eq,mode]);
-      if(key!==roomKey){roomKey=key;$('city-interior-art').innerHTML=root.FocusRainCityArt.interior(selected,state,eq,{mode,interactive:selected==='observatory'});}
+      if(key!==roomKey){roomKey=key;$('city-interior-art').innerHTML=root.FocusRainCityArt.interior(selected,state,eq,{mode,interactive:['observatory','arcade'].includes(selected)});}
       const html=roomContent();if(html!==contentKey){contentKey=html;
         const action=$('city-room-content').contains(document.activeElement)?document.activeElement?.dataset?.cityAction:null;
-        root.FocusCityLife?.unmount();$('city-room-content').innerHTML=html;
+        root.FocusCityLife?.unmount();root.FocusLottery?.unmount();$('city-room-content').innerHTML=html;
         if(action)$('city-room-content').querySelector(`[data-city-action="${action}"]`)?.focus({preventScroll:true});
       }
-      if(selected==='observatory')root.FocusAmbience?.mount($('city-home-audio'),'home');
+      if(lotteryMachine)root.FocusLottery?.mount(lotteryMachine,$('city-lottery-pane'),state);
+      else if(selected==='observatory')root.FocusAmbience?.mount($('city-home-audio'),'home');
       else root.FocusCityLife?.mount(selected,$('city-life-pane'),state);
     }
   }
@@ -102,30 +104,35 @@
     if(!state||isOpen()||document.querySelector('dialog[open]'))return false;
     root.FocusReturnTrail?.close(false);root.FocusCampfireRoom?.close(false);bridge.leaveExpedition?.();root.FocusQuickSkins?.close(false);
     anchor=from||document.activeElement;inertBefore=Array.from(document.querySelectorAll('body > main')).map(element=>[element,element.inert]);
-    clearCameraGesture();selected=null;zoom=1;panX=panY=0;streetKey=roomKey=contentKey='';
+    clearCameraGesture();selected=null;lotteryMachine=null;zoom=1;panX=panY=0;streetKey=roomKey=contentKey='';
     for(const [element] of inertBefore)element.inert=true;
     $('citadel-view').inert=false;$('citadel-view').hidden=false;document.documentElement.classList.add('has-citadel-view');
     camera();paint();root.FocusAmbience?.mount($('city-ambience'),'city');root.FocusAmbience?.setScene('city');$('citadel-close').focus({preventScroll:true});bridge.onOpen?.();return true;
   }
   function close(restoreFocus=true){
     if(!isOpen())return false;
-    $('citadel-view').inert=true;root.FocusAmbience?.setScene(null);root.FocusCityLife?.unmount();root.FocusQuickSkins?.close(false);clearCameraGesture();equipmentPreview=null;
+    $('citadel-view').inert=true;root.FocusAmbience?.setScene(null);root.FocusCityLife?.unmount();root.FocusLottery?.unmount();root.FocusQuickSkins?.close(false);clearCameraGesture();equipmentPreview=null;
     document.documentElement.classList.remove('has-citadel-view');
     $('citadel-view').hidden=true;$('citadel-view').inert=false;
     for(const [element,previous] of inertBefore)element.inert=previous;
-    inertBefore=[];const from=anchor;anchor=null;selected=null;
+    inertBefore=[];const from=anchor;anchor=null;selected=null;lotteryMachine=null;
     if(restoreFocus&&!focusEntry(from))focusEntry($('citadel-enter'));
     bridge.afterClose?.();return true;
   }
-  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();root.FocusCityLife?.unmount();selected=id;homeView='home';root.FocusAmbience?.setScene(id==='observatory'?'home':'city');roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
+  function openPlace(id){if(!place(id)||!isOpen()||document.querySelector('dialog[open]'))return false;root.FocusQuickSkins?.close(false);clearCameraGesture();root.FocusCityLife?.unmount();root.FocusLottery?.unmount();selected=id;lotteryMachine=null;homeView='home';root.FocusAmbience?.setScene(id==='observatory'?'home':'city');roomKey=contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;}
+  function openMachine(id){
+    if(!['coin','diamond'].includes(id)||selected!=='arcade'||!isOpen()||document.querySelector('dialog[open]'))return false;
+    root.FocusQuickSkins?.close(false);root.FocusLottery?.unmount();lotteryMachine=id;contentKey='';paint();$('citadel-close').focus({preventScroll:true});return true;
+  }
   function setHomeView(next){
     if(selected!=='observatory'||!['home','panorama','rooftop'].includes(next))return false;
     homeView=next;paint();$('citadel-close').focus({preventScroll:true});return true;
   }
   function backToStreet(){
     if(!selected||!isOpen())return false;
+    if(lotteryMachine){const previous=lotteryMachine;root.FocusLottery?.unmount();lotteryMachine=null;contentKey='';paint();focusEntry($('city-interior-art').querySelector(`[data-lottery-machine="${previous}"]`))||focusEntry($('citadel-close'));return true;}
     if(selected==='observatory'&&homeView!=='home')return setHomeView('home');
-    const previous=selected;root.FocusQuickSkins?.close(false);root.FocusAmbience?.setScene('city');root.FocusCityLife?.unmount();selected=null;paint();
+    const previous=selected;root.FocusQuickSkins?.close(false);root.FocusAmbience?.setScene('city');root.FocusCityLife?.unmount();root.FocusLottery?.unmount();selected=null;paint();
     focusEntry($('citadel-scene').querySelector(`[data-city-place="${previous}"]`))||focusEntry($('citadel-close'));return true;
   }
   function action(id){
@@ -159,8 +166,8 @@
     $('citadel-locations').addEventListener('click',event=>{const button=event.target.closest('[data-city-select]');if(button)openPlace(button.dataset.citySelect);});
     $('citadel-scene').addEventListener('click',event=>{if(event.ctrlKey||event.button!==0||Date.now()<suppressClickUntil)return;const trail=event.target.closest('[data-city-trail]');if(trail){openTrail(trail);return;}const node=event.target.closest('[data-city-place]');if(node)openPlace(node.dataset.cityPlace);});
     $('citadel-scene').addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){const trail=event.target.closest('[data-city-trail]');if(trail){event.preventDefault();openTrail(trail);return;}const node=event.target.closest('[data-city-place]');if(node){event.preventDefault();openPlace(node.dataset.cityPlace);}}});
-    $('city-interior-art').addEventListener('click',event=>{if(event.button!==0||event.ctrlKey)return;const node=event.target.closest('[data-home-action]');if(node)action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));});
-    $('city-interior-art').addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key))return;const node=event.target.closest('[data-home-action]');if(node){event.preventDefault();action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));}});
+    $('city-interior-art').addEventListener('click',event=>{if(event.button!==0||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;const machine=event.target.closest('[data-lottery-machine]');if(machine){openMachine(machine.dataset.lotteryMachine);return;}const node=event.target.closest('[data-home-action]');if(node)action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));});
+    $('city-interior-art').addEventListener('keydown',event=>{if(!['Enter',' '].includes(event.key)||event.repeat)return;const machine=event.target.closest('[data-lottery-machine]');if(machine){event.preventDefault();openMachine(machine.dataset.lotteryMachine);return;}const node=event.target.closest('[data-home-action]');if(node){event.preventDefault();action('home-'+(node.dataset.homeAction==='window'?'window':'rooftop'));}});
     $('city-room-content').addEventListener('click',event=>{const button=event.target.closest('[data-city-action]');if(button)action(button.dataset.cityAction);});
     $('citadel-overview').addEventListener('click',()=>{clearCameraGesture();zoom=1;panX=panY=0;camera();});
     for(const [id,delta] of [['citadel-zoom-in',.4],['citadel-zoom-out',-.4]])$(id).addEventListener('click',()=>{clearCameraGesture();zoom=Math.round(Math.max(1,Math.min(2.4,zoom+delta))*10)/10;if(zoom===1)panX=panY=0;camera();});
@@ -184,5 +191,5 @@
       if(first&&(!quick.contains(document.activeElement)||(event.shiftKey&&document.activeElement===first)||(!event.shiftKey&&document.activeElement===last))){event.preventDefault();(event.shiftKey?last:first).focus();}
     },true);
   }
-  root.FocusCitadel={init,render,open,close,isOpen,openPlace,backToStreet,closeInterior:backToStreet,applyEquipment,previewEquipment,preview,acceptProgress};
+  root.FocusCitadel={init,render,open,close,isOpen,openPlace,openMachine,backToStreet,closeInterior:backToStreet,applyEquipment,previewEquipment,preview,acceptProgress};
 })(typeof globalThis!=='undefined'?globalThis:this);
