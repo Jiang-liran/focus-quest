@@ -1,7 +1,7 @@
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory(require('./campfire-art.js'));
-  else root.FocusCampfireShopArt = factory(root.FocusCampfireArt);
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (campfireArt) {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./campfire-art.js'), root);
+  else root.FocusCampfireShopArt = factory(root.FocusCampfireArt, root);
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (campfireArt, root) {
   'use strict';
 
   const catalog = {
@@ -11,9 +11,12 @@
     campgear: ['default', 'tea', 'books', 'picnic', 'music'],
     campglow: ['default', 'fireflies', 'petals', 'snow', 'stardust'],
     chatframe: ['default', 'linen', 'wood', 'parchment', 'constellation'],
+    camptrail: ['default', 'stone', 'stars'],
+    campmark: ['default', 'chimes', 'moon'],
   };
   const slots = Object.keys(catalog);
-  const products = new Map(slots.flatMap(slot => catalog[slot].map(variant => [`${slot}-${variant}`, slot])));
+  const prefix = slot => slot === 'camptrail' ? 'trail' : slot;
+  const products = new Map(slots.flatMap(slot => catalog[slot].map(variant => [`${prefix(slot)}-${variant}`, slot])));
   const star = (x, y, r, fill, attr = '') => `<path ${attr} d="M${x} ${y-r}l${r*.3} ${r*.7} ${r*.7} ${r*.3}-${r*.7} ${r*.3}-${r*.3} ${r*.7}-${r*.3}-${r*.7}-${r*.7}-${r*.3} ${r*.7}-${r*.3}Z" fill="${fill}"/>`;
   const pine = (x, y, s, fill) => `<g transform="translate(${x} ${y}) scale(${s})" fill="${fill}"><path d="M-2-5h4v14h-4Z"/><path d="m0-53 12 19H7l12 20h-9L25 4h-50l15-18h-9l12-20h-5Z"/></g>`;
 
@@ -21,7 +24,7 @@
     const source = equipped && typeof equipped === 'object' && !Array.isArray(equipped) ? equipped : {};
     return Object.fromEntries(slots.map(slot => {
       const id = Object.prototype.hasOwnProperty.call(source, slot) ? source[slot] : null;
-      return [slot, products.get(id) === slot ? id : `${slot}-default`];
+      return [slot, products.get(id) === slot ? id : `${prefix(slot)}-default`];
     }));
   }
 
@@ -251,7 +254,10 @@
     const chosen = normalize(equipped);
     const slot = products.get(itemId);
     if (slot) chosen[slot] = itemId;
-    let svg = scene(chosen);
+    // Resolve at call time: the full camp module may load after the shop bridge.
+    const world = root?.FocusCampWorldArt?.scene?.(chosen, {interactive: false});
+    let svg = typeof world === 'string' && world ? world : scene(chosen);
+    if (world) return svg;
     if (slot === 'chatframe') svg = svg.replace('</svg>', chatSample(chosen.chatframe.slice(10)) + '</svg>');
     return svg.replace('class="campfire-scene-art"', 'class="campfire-scene-art campfire-shop-preview"');
   }

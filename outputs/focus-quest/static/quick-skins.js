@@ -1,10 +1,10 @@
 (function(root){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
-  const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
+  const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe','camptrail','campmark']);
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  let bridge=null,state=null,stamp=-Infinity,preview=null,slots=[],slot=null,busy=false,anchor=null,anchorCampfire=false,menuKey=null,inputMode='pointer';
+  let bridge=null,state=null,stamp=-Infinity,preview=null,slots=[],slot=null,busy=false,anchor=null,anchorCampfire=false,anchorCampPlace=null,menuKey=null,inputMode='pointer';
   const visible=()=>$('quick-skins')&&!$('quick-skins').hidden;
   function paint(){
     if(!state)return;
@@ -75,8 +75,10 @@
         const replacement=citadelPlace&&Array.from($('citadel-scene').querySelectorAll('[data-citadel-place]')).find(el=>el.dataset.citadelPlace===citadelPlace);
         (replacement||$('citadel-close'))?.focus?.({preventScroll:true});
       }else if(anchorCampfire&&root.FocusCampfireRoom?.isOpen()){
-        if(anchor?.isConnected)anchor.focus?.({preventScroll:true});
-        if(!anchor?.isConnected||document.activeElement!==anchor)$('campfire-room-close')?.focus?.({preventScroll:true});
+        const replacement=anchorCampPlace&&Array.from($('campfire-room')?.querySelectorAll('[data-camp-place]')||[]).find(el=>el.dataset.campPlace===anchorCampPlace);
+        const target=replacement||(anchor?.isConnected?anchor:null);
+        target?.focus?.({preventScroll:true});
+        if(!target||document.activeElement!==target)$('campfire-room-close')?.focus?.({preventScroll:true});
       }else if(anchor?.isConnected)anchor.focus?.({preventScroll:true});
     }
   }
@@ -87,7 +89,8 @@
     const targetRect=position.anchor?.getBoundingClientRect?.();
     slots=[...new Set(valid)];slot=slots[0];preview=null;inputMode='pointer';anchor=position.anchor||document.activeElement;menuKey=null;
     // A hover can replace the scene SVG and detach its hotspots before close().
-    anchorCampfire=!!anchor?.closest?.('#advice-card');
+    anchorCampfire=!!anchor?.closest?.('#advice-card,#campfire-room,.camp-world-art');
+    anchorCampPlace=anchor?.closest?.('[data-camp-place]')?.dataset.campPlace||null;
     paint();$('quick-skins').hidden=false;$('quick-skin-status').textContent='移到外观上预览，点击即可换上。';
     list();
     const menu=$('quick-skins'),rect=menu.getBoundingClientRect(),gap=12;

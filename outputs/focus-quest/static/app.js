@@ -593,5 +593,5 @@ globalThis.FocusQuickSkins?.init({api,toast,refresh});
 globalThis.FocusQuests?.init({api,toast,switchView,refresh});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
 globalThis.FocusCitadel?.init({getState:()=>state,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
-globalThis.FocusCampfireRoom?.init({afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
+globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);

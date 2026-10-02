@@ -17,10 +17,11 @@
   <link rel="stylesheet" href="/citadel-art.css">
   <link rel="stylesheet" href="/citadel.css">
 <link rel="stylesheet" href="/expedition-art.css"/><link rel="stylesheet" href="/expedition.css"/>
-  <link rel="stylesheet" href="/campfire-room.css">
+  <link rel="stylesheet" href="/camp-world-art.css">
   <link rel="stylesheet" href="/screen-layout.css">
   <link rel="stylesheet" href="/wide-shell.css">
   <link rel="stylesheet" href="/wide-pages.css">
+  <link rel="stylesheet" href="/campfire-room.css">
 </head>
 <body data-page="today">
   <svg class="svg-defs" aria-hidden="true"><defs>
@@ -136,7 +137,7 @@
       </section>
 
       <nav class="home-shortcuts" aria-label="营地快捷入口">
-        <button type="button" class="campfire-invitation" id="campfire-room-open" aria-haspopup="dialog" aria-controls="campfire-room"><span class="invitation-emblem campfire-door-mark" aria-hidden="true">♨</span><span><strong>回营歇一会儿</strong><small>火还温着，伙伴在等你。</small></span><span class="invitation-link">篝火夜话 ↗</span></button>
+        <button type="button" class="campfire-invitation campfire-world-door" id="campfire-room-open" aria-label="走进篝火营地" aria-controls="campfire-room"><span id="campfire-entrance-art" aria-hidden="true"></span><span><strong>火还温着，回营坐坐。</strong><small>走近篝火，与伙伴相聚 <i aria-hidden="true">→</i></small></span></button>
         <button type="button" class="review-shortcut" data-view="review" aria-label="打开学习复盘"><span class="invitation-emblem"><svg aria-hidden="true"><use href="#i-grid"/></svg></span><span><strong>学习复盘</strong><small>周目标、四科详情与听课做题分析</small></span><span class="invitation-link">查看复盘 ↗</span></button>
       <button class="quest-invitation" aria-label="打开委托广场" data-view="quests"><span class="invitation-emblem">✉</span><span><strong>委托广场</strong><small id="quest-invitation-text">接取四科委托，让每段专注都有新的收获。</small></span><span class="invitation-link">前往广场 ↗</span></button>
       </nav>
@@ -174,14 +175,14 @@
     </div>
     <div id="view-shop" class="view" hidden>
       <section class="shop-welcome"><div class="shop-keeper" id="shop-keeper" aria-hidden="true"></div><div class="shop-words"><span class="eyebrow">THE STARWEAVER’S ATELIER</span><h2>星织的收藏铺</h2><p>「把一路收集的星光，缝进你的下一次出发。」</p><small>用委托奖励兑换外观，购买后永久收藏，可随时换装。</small></div><div class="q-wallet"><span><i class="coin-mark">●</i><b id="shop-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="shop-diamonds">0</b><small>钻石</small></span></div></section>
-      <section class="q-loadout equipped-player-card" data-skin-slots="banner avatar"><div id="player-outfit" class="player-outfit" data-skin-slots="avatar" aria-hidden="true"></div><div class="loadout-heading"><span class="eyebrow">YOUR ADVENTURER</span><h3>我的远征装扮</h3><p id="equipped-summary"></p></div><button class="text-button" data-view="today">到星岛看看 ↗</button><details class="loadout-details"><summary>查看我的搭配 <span>14 个装扮位置 · 含 6 类营地布置</span></summary><div id="equipped-slots" class="equipped-slots"></div></details></section>
+      <section class="q-loadout equipped-player-card" data-skin-slots="banner avatar"><div id="player-outfit" class="player-outfit" data-skin-slots="avatar" aria-hidden="true"></div><div class="loadout-heading"><span class="eyebrow">YOUR ADVENTURER</span><h3>我的远征装扮</h3><p id="equipped-summary"></p></div><button class="text-button" data-view="today">到星岛看看 ↗</button><details class="loadout-details"><summary>查看我的搭配 <span>17 个装扮位置 · 含 8 类营地布置</span></summary><div id="equipped-slots" class="equipped-slots"></div></details></section>
       <section class="shop-exchange" aria-labelledby="exchange-title"><div class="exchange-emblem" aria-hidden="true">◆</div><div class="exchange-intro"><h3 id="exchange-title">星光兑换所</h3><p><b id="exchange-rate">75</b> 金币 <span>→</span> 1 钻石 <small>零散努力，也能汇成星光</small></p></div><div class="exchange-controls"><label for="exchange-amount">兑换钻石</label><input id="exchange-amount" type="number" min="1" max="1000" step="1" value="1" inputmode="numeric"><span class="exchange-cost" id="exchange-cost"></span><button class="secondary-button" id="exchange-open">兑换</button></div><p id="exchange-hint" class="exchange-hint"></p><details class="exchange-history"><summary>兑换手记</summary><div id="exchange-history"></div></details></section>
       <div class="shop-markets" role="group" aria-label="选择商店"><button class="active" data-shop-market="coins" aria-pressed="true"><i class="coin-mark">●</i><span>金币商店<small>日常的小小犒赏</small></span><b id="market-coins-count"></b></button><button data-shop-market="diamonds" aria-pressed="false"><i class="diamond-mark">◆</i><span>钻石商店<small>为下一场远征攒星光</small></span><b id="market-diamonds-count"></b></button><button data-shop-market="owned" aria-pressed="false"><i>✧</i><span>我的收藏<small>换装与初始外观</small></span><b id="market-owned-count"></b></button></div>
       <div class="shop-browser-heading"><p id="shop-market-description"></p><span id="shop-result-count"></span></div>
-      <div class="shop-areas" role="group" aria-label="选择收藏区域"><button type="button" data-shop-area="all" aria-pressed="true" class="active">全部收藏</button><button type="button" data-shop-area="journey" aria-pressed="false">远征装扮</button><button type="button" data-shop-area="camp" aria-pressed="false">篝火营地 <small>6 类布置</small></button><button type="button" id="campfire-shop-return" class="text-button">到篝火旁看看 ↗</button></div>
-      <div class="shop-filter" role="group" aria-label="外观分类"><button class="active" data-shop-filter="all" aria-pressed="true">全部</button><button data-shop-filter="bar" aria-pressed="false">进度条</button><button data-shop-filter="fx" aria-pressed="false">星岛特效</button><button data-shop-filter="avatar" aria-pressed="false">我的时装</button><button data-shop-filter="banner" aria-pressed="false">旅人铭牌</button><button data-shop-filter="theme" aria-pressed="false">星岛环境</button><button data-shop-filter="companion" aria-pressed="false">随行伙伴</button><button data-shop-filter="relic" aria-pressed="false">星岛圣物</button><button data-shop-filter="portal" aria-pressed="false">远征之门</button><button data-shop-filter="island" aria-pressed="false">主岛布置</button><button data-shop-filter="camp" aria-pressed="false">营地风景</button><button data-shop-filter="fire" aria-pressed="false">篝火样式</button><button data-shop-filter="tent" aria-pressed="false">营地帐篷</button><button data-shop-filter="campgear" aria-pressed="false">火边陈设</button><button data-shop-filter="campglow" aria-pressed="false">营地氛围</button><button data-shop-filter="chatframe" aria-pressed="false">对话外观</button></div>
+      <div class="shop-areas" role="group" aria-label="选择收藏区域"><button type="button" data-shop-area="all" aria-pressed="true" class="active">全部收藏</button><button type="button" data-shop-area="journey" aria-pressed="false">远征装扮</button><button type="button" data-shop-area="camp" aria-pressed="false">篝火营地 <small>8 类布置</small></button><button type="button" id="campfire-shop-return" class="text-button">到篝火旁看看 ↗</button></div>
+      <div class="shop-filter" role="group" aria-label="外观分类"><button class="active" data-shop-filter="all" aria-pressed="true">全部</button><button data-shop-filter="bar" aria-pressed="false">进度条</button><button data-shop-filter="fx" aria-pressed="false">星岛特效</button><button data-shop-filter="avatar" aria-pressed="false">我的时装</button><button data-shop-filter="banner" aria-pressed="false">旅人铭牌</button><button data-shop-filter="theme" aria-pressed="false">星岛环境</button><button data-shop-filter="companion" aria-pressed="false">随行伙伴</button><button data-shop-filter="relic" aria-pressed="false">星岛圣物</button><button data-shop-filter="portal" aria-pressed="false">远征之门</button><button data-shop-filter="island" aria-pressed="false">主岛布置</button><button data-shop-filter="camp" aria-pressed="false">营地地貌</button><button data-shop-filter="fire" aria-pressed="false">篝火样式</button><button data-shop-filter="tent" aria-pressed="false">歇脚帐篷</button><button data-shop-filter="campgear" aria-pressed="false">营地陈设</button><button data-shop-filter="campglow" aria-pressed="false">营地氛围</button><button data-shop-filter="chatframe" aria-pressed="false">对话外观</button><button data-shop-filter="camptrail" aria-pressed="false">营地小径</button><button data-shop-filter="campmark" aria-pressed="false">营地地标</button></div>
       <div id="shop-catalog" class="shop-catalog" aria-label="商店商品"></div>
-      <p class="q-shop-note">每类可装备一款，十四类自由搭配。购买后永久收藏；关闭动态光效后保留静态外观。</p>
+      <p class="q-shop-note">每类可装备一款，十七类自由搭配。购买后永久收藏；关闭动态光效后保留静态外观。</p>
     </div>
 
     <footer><span>✧ 专注远征</span><span id="footer-sync">正在连接本地记录…</span><span>让努力有回响。</span></footer>
@@ -210,22 +211,42 @@
   <g class="opening-lanterns"><circle cx="209" cy="174" r="2"/><circle cx="223" cy="124" r="1.7"/><circle cx="316" cy="131" r="2"/><circle cx="329" cy="162" r="1.5"/></g>
 </svg></div><div class="opening-copy"><div id="opening-eyebrow" class="eyebrow"></div><p id="opening-time" class="opening-time"></p><h2 id="opening-title"></h2><p id="opening-body"></p><p id="opening-closing"></p><p id="opening-note"></p><button id="opening-done" class="primary-button">开启今日远征</button></div></dialog>
   <div class="toast-stack" id="toasts" role="status" aria-live="polite"></div>
-  <section id="campfire-room" class="campfire-room" role="dialog" aria-modal="true" aria-labelledby="campfire-heading" hidden>
-    <div class="campfire-room-panel">
-    <header class="campfire-room-bar"><span>远征途中的一盏暖光</span><button type="button" id="campfire-room-close">返回远征 ×</button></header>
-      <section class="campfire-card" id="advice-card" aria-labelledby="campfire-heading">
-        <header class="campfire-heading"><h2 id="campfire-heading">篝火夜话 <span>BY THE CAMPFIRE</span></h2><div class="campfire-header-actions"><p>坐一会儿，听伙伴说说话。</p><button type="button" class="text-button" data-skin-open="camp fire tent campgear campglow chatframe">快速换装</button><button type="button" class="text-button" id="campfire-shop-open">布置营地 ↗</button></div></header>
-        <div class="campfire-body">
-          <div class="campfire-landscape" data-skin-slots="camp fire tent campgear campglow" aria-hidden="true"><div id="campfire-scene"></div><p>风经过树梢，火光落在杯沿。</p></div>
-          <div class="campfire-talk">
-            <div class="campfire-speaker"><div class="campfire-portrait" id="campfire-portrait" aria-hidden="true"></div><div><strong id="campfire-name">阿榆</strong><small id="campfire-role">守火人</small><p id="campfire-description">照看炉火、热茶和一锅慢慢变香的汤。</p></div></div>
-            <div class="campfire-topics" role="group" aria-label="选择聊天话题"><button type="button" data-campfire-topic="relax" aria-pressed="true">歇一会儿</button><button type="button" data-campfire-topic="story" aria-pressed="false">听段见闻</button><button type="button" data-campfire-topic="advice" aria-pressed="false">聊聊学习</button></div>
-            <div class="campfire-line" data-skin-slots="chatframe" tabindex="0" title="右键更换对话外观" id="advice-line" role="status" aria-live="polite" aria-atomic="true"><span id="advice-topic" hidden>歇一会儿</span><strong id="advice-title">火边留了一个位置</strong><p id="advice-text">水快热了，先坐下吧。</p></div>
-            <div class="campfire-talk-footer"><span id="campfire-context">火还温着，慢慢聊就好。</span><button type="button" class="campfire-next" id="advice-next">再聊一句 <span aria-hidden="true">↻</span></button></div>
-          </div>
+  <section id="campfire-room" class="campfire-room" role="region" aria-labelledby="campfire-heading" hidden>
+    <header class="campfire-room-bar">
+      <button type="button" id="campfire-room-close">← 返回远征</button>
+      <div><span>THE QUIET BETWEEN JOURNEYS</span><h2 id="campfire-heading">篝火营地</h2></div>
+      <div class="campfire-header-actions"><button type="button" data-skin-open="camp fire tent campgear campglow chatframe camptrail campmark">更换布置</button><button type="button" id="campfire-shop-open">营地商店 ↗</button></div>
+    </header>
+    <div class="campfire-world-status"><p id="campfire-world-greeting">风经过树梢，火光落在杯沿。</p><span id="campfire-world-record"></span></div>
+    <div class="campfire-world-layout">
+      <div class="campfire-world-map">
+        <div id="campfire-scene" aria-label="篝火营地区域"></div>
+        <div class="campfire-place-caption"><span>此刻停留</span><strong id="campfire-place-name">炉边茶歇</strong><p id="campfire-place-detail">阿榆给你留了一杯热茶。</p></div>
+        <p class="campfire-world-hint">点击场景里的伙伴，走近聊聊 · 右键物件，更换营地布置</p>
+      </div>
+      <aside class="campfire-card" id="advice-card" aria-label="伙伴的对话与工作台">
+        <div class="campfire-talk">
+          <div class="campfire-speaker"><div class="campfire-portrait" id="campfire-portrait" aria-hidden="true"></div><div><strong id="campfire-name">阿榆</strong><small id="campfire-role">守火人</small><p id="campfire-description">照看炉火、热茶和一锅慢慢变香的汤。</p></div></div>
+          <div class="campfire-topics" role="group" aria-label="选择聊天话题"><button type="button" data-campfire-topic="relax" aria-pressed="true">歇一会儿</button><button type="button" data-campfire-topic="story" aria-pressed="false">听段见闻</button><button type="button" data-campfire-topic="advice" aria-pressed="false">聊聊学习</button></div>
+          <div class="campfire-line" data-skin-slots="chatframe" tabindex="0" title="右键更换对话外观" id="advice-line" role="status" aria-live="polite" aria-atomic="true"><span id="advice-topic" hidden>歇一会儿</span><strong id="advice-title">火边留了一个位置</strong><p id="advice-text">水快热了，先坐下吧。</p></div>
+          <div class="campfire-talk-footer"><span id="campfire-context">火还温着，慢慢聊就好。</span><button type="button" class="campfire-next" id="advice-next">再聊一句 <span aria-hidden="true">↻</span></button></div>
         </div>
-        <div class="campfire-characters" id="campfire-characters" role="group" aria-label="选择篝火伙伴"></div>
-      </section>
+        <section class="campfire-duty" data-camp-duty="hearth" aria-label="阿榆的茶歇">
+          <span class="campfire-duty-kicker">HEARTH & TEA</span><h3>让这一盏茶慢慢热</h3><p>抬抬头，松开肩膀。阿榆替你看着时间。</p>
+          <div class="campfire-rest-clock"><strong id="campfire-rest-time">03:00</strong><span id="campfire-rest-status">三分钟，只留给自己。</span></div>
+          <div class="campfire-rest-progress" aria-hidden="true"><i id="campfire-rest-fill"></i></div>
+          <button type="button" class="campfire-duty-action" id="campfire-rest-toggle">泡一盏茶 · 休息3分钟</button><small>休息不会计入学习时长或奖励。</small>
+        </section>
+        <section class="campfire-duty" data-camp-duty="guide" aria-label="栖灯的地图桌" hidden>
+          <span class="campfire-duty-kicker">A MAP FOR YOUR PACE</span><h3>摊开今天的地图</h3><div class="campfire-duty-summary"><strong id="campfire-map-total">—</strong><span id="campfire-map-target"></span></div><p id="campfire-map-copy"></p><button type="button" class="campfire-duty-action" id="campfire-guide-advice">听栖灯说说下一步</button><button type="button" class="campfire-duty-link" data-camp-page="quests">去委托广场接一份任务 ↗</button>
+        </section>
+        <section class="campfire-duty" data-camp-duty="wanderer" aria-label="闻舟的旅途手记" hidden>
+          <span class="campfire-duty-kicker">MOMENTS WORTH KEEPING</span><h3>把走过的路，留在纸上</h3><p id="campfire-memory-summary"></p><ol id="campfire-memory-records" class="campfire-memory-records"></ol><button type="button" class="campfire-duty-link" data-camp-page="history">翻开完整的专注档案 ↗</button>
+        </section>
+        <section class="campfire-duty" data-camp-duty="stargazer" aria-label="望舒的四科星图" hidden>
+          <span class="campfire-duty-kicker">CONSTELLATIONS OF EFFORT</span><h3>今夜，四颗星的亮度</h3><div id="campfire-study-stars" class="campfire-study-stars"></div><p>每颗星按自己的目标发光，超过目标的努力也会留下。</p><button type="button" class="campfire-duty-link" data-camp-page="review">到学习复盘看得更仔细 ↗</button>
+        </section>
+      </aside>
     </div>
   </section>
   <section id="citadel-view" class="citadel-view" role="dialog" aria-modal="true" aria-labelledby="citadel-title" hidden>
@@ -257,6 +278,7 @@
   <script src="/campfire-dialogue.js"></script>
   <script src="/campfire-art.js"></script>
   <script src="/campfire-shop-art.js"></script>
+  <script src="/camp-world-art.js"></script>
   <script src="/campfire.js"></script>
   <script src="/quick-skins.js"></script>
   <script src="/expedition-model.js"></script>

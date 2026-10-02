@@ -4,8 +4,8 @@
   else root.FocusQuests=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
-  const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
+  const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe','camptrail','campmark']);
   const citadelSlots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
   const statuses={locked:'尚未发布',available:'可以接取',active:'进行中',ready:'可以交付',expired:'今日已结束',claimed:'已交付'};
@@ -138,7 +138,7 @@
     });
     for(const m of ['coins','diamonds','owned'])$('market-'+m+'-count').textContent=n(data.catalog.filter(i=>inArea(i)&&(m==='owned'?i.owned:currency(i)===m)).length);
     $('shop-market-description').textContent={coins:'从一抹新绿到一身新装，把今天的努力变成小小的庆祝。',diamonds:'收集更辽阔的风景，遇见新的旅伴。这里的每件收藏，只需钻石。',owned:'这里存放你已拥有的全部外观，也可以随时换回最初的模样。'}[market];
-    if(area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，六个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
+    if(area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     $('shop-result-count').textContent=`${items.length} 件${market==='owned'?'收藏':'商品'}`;
     replace('shop-catalog',items.length?items.map(item=>itemMarkup(item,data.wallet,busy)).join(''):'<div class="shop-empty">星织正在整理货架，请换个分类看看。</div>');
@@ -192,7 +192,7 @@
   }
   function campPreview(item){
     const equipped=window.FocusCampfireShopArt?.normalize({...data.equipped,[item.slot]:item.id})||{};
-    return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
+    return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampWorldArt?.scene(equipped,{interactive:false})||window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
   }
   function itemPreview(item){
     if(campSlots.has(item.slot))return campPreview(item);

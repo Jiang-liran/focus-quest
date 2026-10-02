@@ -1,0 +1,165 @@
+/* The camp is one continuous landscape. Placement transforms stay on SVG parents;
+   motion only touches dedicated child groups, so costumes and NPCs cannot drift. */
+.camp-world-art,
+.camp-world-entrance-art {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  isolation: isolate;
+  stroke: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.camp-world-art .camp-world-avatar {
+  display: block;
+  width: 88px;
+  height: 99px;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  stroke: none;
+}
+.camp-world-art text { pointer-events: none; }
+.camp-world-art [data-camp-station] {
+  cursor: pointer;
+  outline: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.camp-world-station-lift,
+.camp-world-person-motion,
+.camp-world-station-label,
+.camp-world-station-halo,
+.camp-world-station-rim,
+.camp-world-talk-dot {
+  transition: transform .35s ease, opacity .35s ease, stroke .35s ease, fill .35s ease;
+}
+.camp-world-station-label rect { stroke: #cfb690; stroke-width: 1; stroke-opacity: .12; }
+.camp-world-art [data-camp-station]:hover .camp-world-station-lift,
+.camp-world-art [data-camp-station]:focus-visible .camp-world-station-lift { transform: translateY(-4px); }
+.camp-world-art [data-camp-station]:hover .camp-world-station-halo,
+.camp-world-art [data-camp-station]:focus-visible .camp-world-station-halo { opacity: .09; }
+.camp-world-art [data-camp-station]:hover .camp-world-station-rim,
+.camp-world-art [data-camp-station]:focus-visible .camp-world-station-rim { opacity: .5; }
+.camp-world-art [data-camp-station]:hover .camp-world-talk-dot,
+.camp-world-art [data-camp-station]:focus-visible .camp-world-talk-dot,
+.camp-world-art [data-camp-station][data-selected="true"] .camp-world-talk-dot { opacity: 1; }
+.camp-world-art [data-camp-station][data-selected="true"] .camp-world-station-halo { opacity: .13; }
+.camp-world-art [data-camp-station][data-selected="true"] .camp-world-station-rim { opacity: .85; }
+.camp-world-art [data-camp-station][data-selected="true"] .camp-world-station-label rect,
+.camp-world-art [data-camp-station]:focus-visible .camp-world-station-label rect { fill: #3b4246; stroke-opacity: .9; }
+.camp-world-art [data-camp-station]:focus-visible .camp-world-station-rim { stroke-width: 3; }
+.camp-world-art [data-camp-station]:hover .camp-world-person-motion,
+.camp-world-art [data-camp-station]:focus-visible .camp-world-person-motion {
+  transform-box: fill-box;
+  transform-origin: 50% 95%;
+  animation: camp-world-greeting 2.8s ease-in-out infinite;
+}
+.camp-world-art[data-interactive="false"] [data-camp-station] { pointer-events: none; cursor: default; }
+.camp-world-flame {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: camp-world-flame 2.1s ease-in-out infinite alternate;
+}
+.camp-world-firelight { animation: camp-world-warmth 4.1s ease-in-out infinite alternate; }
+.camp-world-lantern-glow { animation: camp-world-warmth 5.5s ease-in-out infinite alternate; }
+.camp-world-ember {
+  animation: camp-world-ember 4s ease-out infinite;
+  animation-delay: var(--camp-delay, 0s);
+}
+.camp-world-smoke-thread {
+  animation: camp-world-smoke 7s ease-out infinite;
+  animation-delay: var(--camp-delay, 0s);
+}
+.camp-world-star,
+.camp-world-trail-star {
+  animation: camp-world-star 5s ease-in-out infinite alternate;
+  animation-delay: var(--camp-delay, 0s);
+}
+.camp-world-ripple { animation: camp-world-water 12s linear infinite; }
+.camp-world-aurora { animation: camp-world-aurora 12s ease-in-out infinite alternate; }
+.camp-world-chimes {
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  animation: camp-world-chimes 7s ease-in-out infinite;
+}
+.camp-world-tea-steam { animation: camp-world-steam 4s ease-out infinite; }
+.camp-world-music-note { animation: camp-world-note 5s ease-in-out infinite; }
+.camp-world-ambient {
+  animation: camp-world-drift 8s ease-in-out infinite;
+  animation-delay: var(--camp-delay, 0s);
+}
+.camp-world-ambient-fireflies { animation-name: camp-world-firefly; animation-duration: 7s; }
+.camp-world-ambient-petals,
+.camp-world-ambient-snow { animation-name: camp-world-falling; animation-duration: 11s; }
+.camp-world-ambient-stardust { animation-name: camp-world-stardust; animation-duration: 9s; }
+@keyframes camp-world-flame {
+  0% { transform: scale(.96, .96) skewX(-2deg); }
+  45% { transform: scale(1.02, 1.06) skewX(1deg); }
+  100% { transform: scale(.98, 1.02) skewX(-1deg); }
+}
+@keyframes camp-world-warmth { from { opacity: .07; } to { opacity: .17; } }
+@keyframes camp-world-ember {
+  0% { transform: translate(0, 10px); opacity: 0; }
+  20% { opacity: .9; }
+  80% { opacity: .5; }
+  100% { transform: translate(10px, -35px); opacity: 0; }
+}
+@keyframes camp-world-smoke {
+  0% { transform: translate(-3px, 12px); opacity: 0; }
+  35% { opacity: .8; }
+  100% { transform: translate(9px, -25px); opacity: 0; }
+}
+@keyframes camp-world-star { from { opacity: .35; } to { opacity: .9; } }
+@keyframes camp-world-water { to { stroke-dashoffset: -114; } }
+@keyframes camp-world-aurora { from { opacity: .6; } to { opacity: 1; } }
+@keyframes camp-world-chimes { 0%,100% { transform: rotate(-1.8deg); } 50% { transform: rotate(1.8deg); } }
+@keyframes camp-world-steam {
+  0% { transform: translateY(3px); opacity: 0; }
+  35% { opacity: .7; }
+  100% { transform: translate(3px, -9px); opacity: 0; }
+}
+@keyframes camp-world-note { 0%,100% { transform: translateY(0); opacity: .2; } 50% { transform: translate(2px, -7px); opacity: .7; } }
+@keyframes camp-world-greeting { 0%,100% { transform: rotate(0); } 30%,65% { transform: rotate(-2deg) translateY(-1px); } }
+@keyframes camp-world-drift { 0%,100% { transform: translate(0,0); opacity: .4; } 50% { transform: translate(4px,-9px); opacity: .8; } }
+@keyframes camp-world-firefly { 0%,100% { transform: translate(0,0); opacity: .15; } 45% { transform: translate(8px,-12px); opacity: .85; } 75% { transform: translate(-3px,-6px); opacity: .5; } }
+@keyframes camp-world-falling { 0% { transform: translate(-7px,-18px); opacity: 0; } 20%,75% { opacity: .6; } 100% { transform: translate(11px,26px); opacity: 0; } }
+@keyframes camp-world-stardust { 0%,100% { transform: translate(0,2px); opacity: .25; } 50% { transform: translate(0,-8px); opacity: .85; } }
+.no-motion .camp-world-art *,
+.no-motion .camp-world-entrance-art *,
+.camp-world-art.no-motion *,
+.camp-world-entrance-art.no-motion * { animation: none !important; transition: none !important; }
+.no-motion .camp-world-station-lift,
+.no-motion .camp-world-person-motion,
+.camp-world-art.no-motion .camp-world-station-lift,
+.camp-world-art.no-motion .camp-world-person-motion { transform: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .camp-world-art *, .camp-world-entrance-art * { animation: none !important; transition: none !important; }
+  .camp-world-station-lift, .camp-world-person-motion { transform: none !important; }
+}
+#campfire-room-open:hover .camp-world-entrance-art .camp-world-flame,
+#campfire-room-open:focus-visible .camp-world-entrance-art .camp-world-flame { animation-duration: 1.35s; }
+#campfire-room-open:hover .camp-world-entrance-art .camp-world-firelight,
+#campfire-room-open:focus-visible .camp-world-entrance-art .camp-world-firelight { animation-duration: 2s; }
+.camp-world-art .camp-world-player-avatar {
+  display: block;
+  width: 50px;
+  height: 56.25px;
+  max-width: none;
+  max-height: none;
+  overflow: visible;
+  stroke: none;
+}
+.camp-world-player {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  transition: transform 600ms cubic-bezier(.22,.68,.24,1);
+}
+.camp-world-art[data-interactive="false"] .camp-world-player { transition: none; }
+.no-motion .camp-world-player,
+.camp-world-art.no-motion .camp-world-player { transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .camp-world-player { transition: none !important; }
+}
