@@ -1,0 +1,45 @@
+/* A full neighboring page: subdued rain, illuminated windows, rooms to enter. */
+#citadel-view.rain-city{--city-ink:#d0e0e6;--city-muted:#89a4b1;--city-line:#a1c8d324;--city-light:#9ec2cd;display:flex;flex-direction:column;gap:0;overflow:hidden;padding:clamp(18px,2vw,36px) clamp(22px,2.7vw,54px) 15px;background:radial-gradient(ellipse at 55% 0,#162e4166,transparent 70%),#0b1521;color:var(--city-ink)}
+#citadel-view.rain-city .city-header{position:static;flex-shrink:0;width:100%;max-width:none;margin:0;padding:0 0 16px;gap:22px;border-bottom:1px solid var(--city-line);background:transparent}
+#citadel-view.rain-city .citadel-heading>span{font-size:clamp(8px,.52vw,11px);letter-spacing:.2em;color:#7497a7}
+#citadel-view.rain-city .citadel-heading h2{font-size:clamp(24px,1.55vw,37px);line-height:1.4;margin:3px 0;letter-spacing:.14em;color:#d0e2e8}
+#citadel-view.rain-city .citadel-heading>small{font-size:clamp(11px,.74vw,17px);letter-spacing:.05em;color:var(--city-muted)}
+#citadel-view.rain-city button{color:var(--city-ink);border-color:var(--city-line);background:#c9e7ee05}
+#citadel-view.rain-city button:hover{background:#b6dee910;border-color:#badfe653}
+#citadel-view.rain-city button:focus-visible{outline:2px solid #a0ceda;outline-offset:4px}
+#citadel-view.rain-city .citadel-header button{font-size:clamp(11px,.7vw,16px);padding:10px 13px}
+#citadel-view.rain-city .city-street{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px}
+#citadel-view.rain-city .city-street[hidden],#citadel-view.rain-city .city-room[hidden]{display:none!important}
+.city-street-topline{display:flex;justify-content:space-between;align-items:center;flex-shrink:0;gap:20px;padding-top:12px;font-size:clamp(10px,.72vw,16px);color:var(--city-muted)}
+.city-street-topline p{margin:0;font-size:inherit;line-height:1.5}.city-weather{display:flex;align-items:center;gap:8px;white-space:nowrap}.city-weather i{width:5px;height:5px;border-radius:50%;background:#95c4d1;box-shadow:0 0 9px #93c9de50}
+#citadel-view.rain-city .city-street-stage{flex:1;min-height:120px;width:100%;height:auto;aspect-ratio:auto;margin:0;overflow:hidden;border-radius:16px;border:1px solid #afcfdb1a;background:radial-gradient(ellipse at center,#122433,#0a1723);touch-action:pan-y}
+#citadel-view.rain-city .citadel-camera{height:100%;width:100%}#citadel-view.rain-city .citadel-scene{height:100%;width:100%}
+#citadel-view.rain-city .citadel-scene>svg,#citadel-view.rain-city .city-interior-art>svg{display:block;width:100%;height:100%;overflow:hidden;stroke:none}
+#citadel-view.rain-city .citadel-stage.wheeling .citadel-camera,#citadel-view.rain-city .citadel-stage.dragging .citadel-camera{transition:none}
+.city-street-corner{position:absolute;left:24px;top:20px;pointer-events:none;display:flex;flex-direction:column;gap:6px;color:#9bb8c6}.city-street-corner>span{font-size:clamp(9px,.64vw,14px);letter-spacing:.28em;opacity:.6}.city-street-corner>small{font-size:clamp(10px,.73vw,16px);opacity:.75}
+#citadel-view.rain-city .citadel-map-controls{bottom:16px;left:18px;background:#0b1728df;border-color:#a3cbdc28;border-radius:10px;backdrop-filter:blur(8px)}
+#citadel-view.rain-city .citadel-map-controls span{font-size:clamp(10px,.65vw,15px);width:40px;color:#99b7c7}#citadel-view.rain-city .citadel-map-controls button{font-size:clamp(11px,.73vw,16px)}
+#citadel-view.rain-city .city-locations{flex-shrink:0;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px}
+#citadel-view.rain-city .city-locations button{position:relative;display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:5px;align-items:center;text-align:left;padding:13px 12px;border-radius:10px;min-width:0;background:#14263458;border:1px solid #8bb9ce1c}
+#citadel-view.rain-city .city-locations .city-address{font-size:clamp(9px,.6vw,14px);font-variant-numeric:tabular-nums;color:#638692;grid-row:1/3;align-self:start;padding-top:3px}
+#citadel-view.rain-city .city-locations strong{font-size:clamp(12px,.87vw,20px);font-weight:500;letter-spacing:.035em;color:#c3d7df;white-space:nowrap}
+#citadel-view.rain-city .city-locations small{font-size:clamp(9px,.62vw,14px);color:#819eac;grid-column:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:1}
+#citadel-view.rain-city .city-locations .city-visit{position:absolute;right:10px;top:9px;color:#819eac;font-size:clamp(10px,.65vw,15px);opacity:0;transition:opacity .2s}
+#citadel-view.rain-city .city-locations button:hover{background:#1b36487a;border-color:#acd3e448}.city-locations button:hover .city-visit{opacity:1!important}
+.city-hint{text-align:center;font-size:clamp(9px,.58vw,13px);margin:0;color:#667f91;letter-spacing:.04em;flex-shrink:0}
+#citadel-view.rain-city .city-room{position:relative;flex:1;min-height:0;margin-top:18px;overflow:hidden;border:1px solid #9ec3d022;border-radius:17px;background:#0d1928;isolation:isolate}
+.city-interior-art{position:absolute;inset:0;width:100%;height:100%}.city-room-vignette{position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#07121c48,transparent 70%),linear-gradient(0deg,#0a172de6,transparent 50%)}
+#citadel-view.rain-city .city-room-content{position:absolute;left:clamp(24px,3.2vw,68px);bottom:clamp(22px,3.2vh,46px);width:clamp(350px,32vw,650px);max-width:calc(100% - 48px);max-height:calc(100% - 40px);overflow:auto;padding:24px 27px;border:1px solid #91b1c128;border-radius:16px;background:linear-gradient(135deg,#102236e8,#142337bd);backdrop-filter:blur(12px);box-shadow:0 16px 55px #0002;color:#c4d7e2;scrollbar-width:thin}
+.city-room-eyebrow{font-size:clamp(10px,.65vw,14px);letter-spacing:.1em;color:#8dadbe}.city-room-content h3{font-size:clamp(21px,1.4vw,32px);font-weight:500;letter-spacing:.04em;line-height:1.6;margin:10px 0 12px;color:#deeaef}.city-room-content p{font-size:clamp(12px,.82vw,19px);line-height:1.9;margin:0 0 18px;color:#a7bfcd}.city-room-content .city-tea-line{min-height:3.8em}
+.city-room-actions{display:flex;flex-wrap:wrap;gap:9px}.city-room-actions button{font-size:clamp(12px,.8vw,18px);border:1px solid #9fc8d64a!important;border-radius:8px;padding:10px 14px;background:#8fb7c318!important}.city-room-actions button.city-secondary{background:#9bb6c505!important;color:#a5becc!important}.city-room-note{display:block;font-size:clamp(10px,.65vw,14px);color:#8aa5b7;margin-top:12px;line-height:1.6}
+.city-room-sign{position:absolute;right:24px;top:20px;font-size:clamp(8px,.56vw,13px);letter-spacing:.17em;pointer-events:none;color:#a8c4d4aa}
+.city-book-records{list-style:none;padding:0;margin:0 0 16px}.city-book-records li{display:flex;justify-content:space-between;gap:14px;border-bottom:1px solid #b2d3dd16;padding:8px 0;font-size:clamp(12px,.8vw,18px);line-height:1.5}.city-book-records li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:#c3d7e1}.city-book-records li b{white-space:nowrap;font-weight:400;color:#97b6c6}
+.rain-city-preview .rain-city-art{width:100%;height:auto;display:block;aspect-ratio:5/3;stroke:none}.rain-city-preview>div{background:#132535;color:#c2dae6}.rain-city-preview>div span{color:#8dacbe}
+#citadel-view.rain-city[data-paused=true] *,#citadel-view.rain-city[hidden] *{animation-play-state:paused!important}
+#citadel-view.rain-city[data-motion=false] *,html.no-motion #citadel-view.rain-city *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){#citadel-view.rain-city *, .rain-city-preview *{animation:none!important;transition:none!important}}
+@media(max-height:760px){#citadel-view.rain-city{padding-top:14px;padding-bottom:10px}.city-street-topline{padding-top:8px}#citadel-view.rain-city .city-header{padding-bottom:10px}.city-street-corner{top:13px}#citadel-view.rain-city .city-street{gap:8px}#citadel-view.rain-city .city-locations button{padding:10px 9px;column-gap:7px}#citadel-view.rain-city .city-room-content{padding:18px 22px;bottom:20px}.city-room-content h3{margin:6px 0 8px}.city-room-content p{margin-bottom:12px}}
+@media(max-width:1150px){#citadel-view.rain-city{padding-inline:20px}#citadel-view.rain-city .city-locations .city-address{display:none}#citadel-view.rain-city .city-locations button{grid-template-columns:1fr;row-gap:4px}#citadel-view.rain-city .city-locations small{grid-column:1}.city-street-topline{font-size:10px}.city-street-topline p{max-width:65%;text-align:right}#citadel-view.rain-city .city-header{gap:14px}.city-room-content{width:370px!important}}
+@media(max-width:760px){#citadel-view.rain-city .city-locations{grid-template-columns:repeat(3,minmax(0,1fr))}#citadel-view.rain-city .citadel-header-actions{display:none}.city-street-corner{display:none}.city-room-content{left:18px!important;bottom:18px!important;max-width:calc(100% - 36px)!important}.city-room-sign{display:none}}
+
+#citadel-view.rain-city .city-locations button::after{content:none}

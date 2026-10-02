@@ -31,6 +31,9 @@
   <link rel="stylesheet" href="/minesweeper.css">
   <link rel="stylesheet" href="/interface-themes.css">
   <link rel="stylesheet" href="/island-rewards.css">
+  <link rel="stylesheet" href="/rain-city-art.css">
+  <link rel="stylesheet" href="/rain-city.css">
+  <link rel="stylesheet" href="/city-entry.css">
   <link rel="stylesheet" href="/performance.css">
 </head>
 <body data-page="today">
@@ -59,7 +62,7 @@
       <button class="nav-item" data-view="review"><svg><use href="#i-grid"/></svg>学习复盘</button>
       <button class="nav-item" data-view="shop"><svg><use href="#i-star"/></svg>星织商店</button>
       <button class="nav-item" data-view="history"><svg><use href="#i-history"/></svg>专注档案</button>
-      <button class="nav-item" data-view="achievements"><svg><use href="#i-compass"/></svg>星海游乐场</button>
+      <button class="nav-item" data-view="city"><svg><use href="#i-moon"/></svg>星辉城</button>
     </nav>
     <div class="side-note"><div class="small-orbit">✦</div><p>每一段专注，<br>都在让未来更近一点。</p><span>不必完美，持续向前。</span></div>
     <div class="sidebar-bottom">
@@ -74,7 +77,7 @@
     <header class="topbar"><div class="breadcrumb">我的营地 <span>/</span> <b id="page-crumb">今日远征</b></div><div class="topbar-right"><span class="live-clock" id="clock"></span><button class="date-button" id="date-button" title="选择日期"></button><input type="date" id="date-picker" aria-label="查看日期"><button class="today-shortcut" id="header-today" aria-label="回到今天" title="快速回到今天">回到今天</button><button class="icon-button" id="refresh" title="立即同步" aria-label="立即同步">↻</button></div></header>
     <div id="error-banner" class="error-banner" hidden></div>
     <aside id="calendar-pending" class="calendar-pending" aria-label="手机记录等待入账" aria-live="polite" hidden></aside>
-    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill arcade-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div id="arcade-pill-icon" class="arcade-pill-icon" aria-hidden="true"></div><div class="arcade-pill-copy"><span>星海游乐场 · 休憩时光</span><strong id="arcade-pill-title">远方有些好玩的事。</strong><small id="arcade-pill-status">正在查看今日游玩机会…</small><div class="arcade-pill-bottom"><small id="arcade-pill-meta"></small><button type="button" class="text-button" id="arcade-open" aria-controls="view-achievements">去群岛玩 ↗</button></div></div></div></section>
+    <section class="greeting"><div><div class="eyebrow" id="greeting-eyebrow">YOUR NEXT CHAPTER</div><h1 id="page-title">今天，也向前一点。</h1><p id="page-subtitle">把每一段专注，变成看得见的成长。</p></div><div class="level-pill arcade-pill city-pill" data-skin-slots="banner" tabindex="0" title="右键更换旅人铭牌"><div id="city-pill-icon" class="arcade-pill-icon" aria-hidden="true"></div><div class="arcade-pill-copy"><span>星辉城 · 雨夜街巷</span><strong id="city-pill-title">灯还亮着，进城坐坐。</strong><small id="city-pill-status">书屋、茶馆和屋顶，都为你留着位置。</small><div class="arcade-pill-bottom"><small id="city-pill-meta">没有待办，随时散步。</small><button type="button" class="text-button" id="city-open" aria-controls="citadel-view">走进星辉城 ↗</button></div></div></div></section>
 
     <div id="view-today" class="view">
 
@@ -147,7 +150,7 @@
             <div class="expedition-inspector-kicker"><span id="expedition-detail-kicker">沿途见闻</span><button type="button" id="expedition-overview" class="text-button">返回群岛总览</button></div>
             <h3 id="expedition-detail-title">启程的微光</h3><p id="expedition-detail-copy">今天的每段专注，都会在这里留下痕迹。</p>
             <p id="expedition-next" class="expedition-next"></p>
-            <button type="button" id="expedition-discover-toggle" class="expedition-discover-toggle" aria-controls="view-achievements">打开游乐场 <span id="expedition-discovery-count">1 / 7</span> ↗</button>
+            <button type="button" id="expedition-discover-toggle" class="expedition-discover-toggle" aria-controls="citadel-view">雨夜散步 <span id="expedition-discovery-count">星辉城</span> ↗</button>
           </section>
           <section class="expedition-log" aria-label="远征回放">
             <div class="expedition-log-heading"><div><span>YOUR JOURNEY, FRAME BY FRAME</span><h3>把努力，再看一遍。</h3></div><button type="button" id="expedition-replay" class="secondary-button">回放这一天 ▷</button></div>
@@ -179,6 +182,7 @@
 
     <div id="view-history" class="view" hidden><div class="stats-row" id="history-stats"></div><section class="panel"><div class="section-heading"><h2>已完成的专注</h2><div class="record-actions"><button class="text-button" id="prev-day">← 前一天</button><button class="text-button" id="go-today">回到今天</button><button class="text-button" id="next-day">后一天 →</button><button class="secondary-button" id="trash-open">回收站</button><a href="/api/export" class="secondary-button" id="export">导出全部 CSV</a></div></div><p class="muted archive-note" id="archive-note"></p><div class="record-table-wrap"><table><thead><tr><th>任务</th><th>科目</th><th>学习方式</th><th>完成时间</th><th>专注时长</th><th>操作</th></tr></thead><tbody id="history-records"></tbody></table></div><p class="muted archive-note">来源中删除的记录会在同步确认后移到回收站。这里的「移除」只影响专注远征，可在回收站恢复。</p></section></div>
     <div id="view-achievements" class="view" hidden>
+      <div class="arcade-city-breadcrumb"><button type="button" id="arcade-city-return">← 回到星辉城</button><span>雨巷东街 · 星海游乐场</span></div>
       <section id="arcade-root" aria-label="星海游乐场"><p class="muted">正在打开游戏大厅…</p></section>
       <details class="arcade-archive"><summary>沿途足迹与远征勋章</summary><div class="stats-row" id="achievement-stats"></div><div id="badges" class="badge-grid"></div><p class="muted archive-note">阶段与均衡勋章跟随所选日期；累计勋章来自全部存档。</p></details>
     </div>
@@ -267,23 +271,27 @@
       </aside>
     </div>
   </section>
-  <section id="citadel-view" class="citadel-view" role="region" aria-labelledby="citadel-title" hidden>
-    <header class="citadel-header"><button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button><div class="citadel-heading"><span>星海群岛 / INNER WORLD</span><h2 id="citadel-title">星辉城 <small id="citadel-theme">晨雾星岛</small></h2></div><div class="citadel-header-actions"><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">前往商店 ↗</button></div></header>
-    <div class="citadel-status"><p id="citadel-mode"></p><strong id="citadel-summary"></strong></div>
-    <div class="citadel-layout">
-      <div class="citadel-map-column">
-        <div class="citadel-map-frame" data-scene-frame>
-        <div data-scene-ratio="1.666666667" class="citadel-stage" id="citadel-stage" data-skin-slots="theme fx companion relic portal avatar">
-          <div id="citadel-camera" class="citadel-camera"><div id="citadel-scene" class="citadel-scene"></div></div>
-          <div class="citadel-map-controls"><button type="button" id="citadel-overview">全景</button><button type="button" id="citadel-zoom-out" aria-label="缩小星辉城">−</button><span id="citadel-zoom">100%</span><button type="button" id="citadel-zoom-in" aria-label="放大星辉城">＋</button></div>
-        </div>
-        </div>
-        <div class="citadel-route-readout"><div id="citadel-awakening" class="citadel-awakening" role="status" aria-live="polite" hidden><span id="citadel-awakening-copy"></span><strong id="citadel-awakening-title"></strong></div><div class="citadel-route-text"><span>顺时针远征</span><strong id="citadel-route-value">0%</strong><p id="citadel-route-copy"></p></div><div id="citadel-route-total" class="citadel-route-total" role="progressbar" aria-label="星辉城行进进度" aria-valuemin="0" aria-valuemax="100"><i id="citadel-route-fill"></i><b style="left:25%"></b><b style="left:50%"></b><b style="left:75%"></b></div></div>
-        <nav id="citadel-locations" class="citadel-locations" aria-label="星辉城区域"></nav>
-        <div class="citadel-preview-row"><button type="button" id="citadel-demo" aria-pressed="false">演示完整旅程 ▷</button><button type="button" id="citadel-preview-toggle" aria-pressed="false">预览城市生长</button><div id="citadel-preview-controls" hidden><input type="range" id="citadel-preview-range" min="0" max="100" step="1" value="0" aria-label="预览星辉城学习进度"><b id="citadel-preview-value">0%</b></div></div>
-        <p class="citadel-map-hint">滚轮缩放 · 拖动探索 · 点击建筑探访 · 右键更换外观</p>
+  <section id="citadel-view" class="citadel-view rain-city" role="region" aria-labelledby="citadel-title" hidden>
+    <header class="citadel-header city-header">
+      <button type="button" id="citadel-close" class="citadel-back">← 返回群岛</button>
+      <div class="citadel-heading"><span>A QUIET CORNER OF THE NIGHT</span><h2 id="citadel-title">星辉城</h2><small id="citadel-theme">雨夜里的灯，始终为你亮着</small></div>
+      <div class="citadel-header-actions"><button type="button" data-skin-open="theme fx relic portal companion avatar">更换外观</button><button type="button" id="citadel-shop">星织小铺 ↗</button></div>
+    </header>
+    <div id="city-street" class="city-street">
+      <div class="city-street-topline"><span class="city-weather"><i aria-hidden="true"></i>雨夜 · 静谧街区</span><p id="city-street-caption">沿着雨巷走走 · 点击亮着灯的建筑，进去坐坐</p></div>
+      <div class="citadel-stage city-street-stage" id="citadel-stage" data-skin-slots="theme fx companion relic portal avatar">
+        <div id="citadel-camera" class="citadel-camera"><div id="citadel-scene" class="citadel-scene"></div></div>
+        <div class="city-street-corner"><span>STARLIGHT CITY</span><small>不必赶路，随处都可以停留。</small></div>
+        <div class="citadel-map-controls"><button type="button" id="citadel-overview">全景</button><button type="button" id="citadel-zoom-out" aria-label="缩小星辉城">−</button><span id="citadel-zoom">100%</span><button type="button" id="citadel-zoom-in" aria-label="放大星辉城">＋</button></div>
       </div>
-      <aside class="citadel-inspector" aria-labelledby="citadel-place-name"><span class="citadel-eyebrow">A PLACE BUILT BY YOUR EFFORT</span><span id="citadel-place-state" class="citadel-place-state"></span><h3 id="citadel-place-name">圣物广场</h3><p id="citadel-place-copy"></p><div id="citadel-place-data" class="citadel-place-data"></div><p id="citadel-place-progress" class="citadel-place-progress"></p><button type="button" id="citadel-interact" class="citadel-interact">唤起星庭共鸣</button><button type="button" id="citadel-replay" class="citadel-replay" hidden>回放这一天 ▷</button><p id="citadel-feedback" class="citadel-feedback" role="status" aria-live="polite"></p><small class="citadel-aside-note">设施随所选日期的学习进度苏醒。<br>外观收藏在每一天的城市中都可使用。</small></aside>
+      <nav id="citadel-locations" class="citadel-locations city-locations" aria-label="星辉城街区"></nav>
+      <p class="city-hint">点击建筑入内 · 滚轮缩放街景 · 放大后拖动探索 · 右键搭配外观</p>
+    </div>
+    <div id="city-room" class="city-room" hidden>
+      <div id="city-interior-art" class="city-interior-art" aria-hidden="true"></div>
+      <div class="city-room-vignette" aria-hidden="true"></div>
+      <section id="city-room-content" class="city-room-content" aria-label="室内互动"></section>
+      <span class="city-room-sign">STARLIGHT CITY / STAY A LITTLE</span>
     </div>
   </section>
   <script src="/audio.js"></script>
@@ -307,8 +315,7 @@
   <script src="/expedition-art.js"></script>
   <script src="/island-rewards.js"></script>
   <script src="/expedition.js"></script>
-  <script src="/citadel-route.js"></script>
-  <script src="/citadel-art.js"></script>
+  <script src="/rain-city-art.js"></script>
   <script src="/citadel.js"></script>
   <script src="/campfire-room.js"></script>
   <script src="/horizontal-navigation.js"></script>

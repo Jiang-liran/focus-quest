@@ -68,12 +68,12 @@
   }
   function close(restoreFocus=true){
     const wasVisible=visible();
-    const citadelPlace=anchor?.closest?.('[data-citadel-place]')?.dataset.citadelPlace;
+    const citadelPlace=anchor?.closest?.('[data-city-place],[data-citadel-place]')?.dataset.cityPlace||anchor?.closest?.('[data-citadel-place]')?.dataset.citadelPlace;
     const citadelArt=!!anchor?.closest?.('.citadel-art');
     $('quick-skins').hidden=true;preview=null;menuKey=null;paint();
     if(wasVisible&&restoreFocus){
       if(citadelArt&&root.FocusCitadel?.isOpen()){
-        const replacement=citadelPlace&&Array.from($('citadel-scene').querySelectorAll('[data-citadel-place]')).find(el=>el.dataset.citadelPlace===citadelPlace);
+        const replacement=citadelPlace&&Array.from($('citadel-view').querySelectorAll('[data-city-place],[data-citadel-place]')).find(el=>(el.dataset.cityPlace===citadelPlace||el.dataset.citadelPlace===citadelPlace)&&!el.closest('[hidden]'));
         (replacement||$('citadel-close'))?.focus?.({preventScroll:true});
       }else if(anchorCampfire&&root.FocusCampfireRoom?.isOpen()){
         const replacement=anchorCampPlace&&Array.from($('campfire-room')?.querySelectorAll('[data-camp-place]')||[]).find(el=>el.dataset.campPlace===anchorCampPlace);

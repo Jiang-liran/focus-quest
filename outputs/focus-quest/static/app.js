@@ -147,7 +147,17 @@ function render() {
   globalThis.FocusQuests?.render(s.quests);
   globalThis.FocusExpedition?.render(s,{quiet:quietGoals});
   globalThis.FocusCitadel?.render(s);
+  renderCityEntry();
   maybeDailyOpening();
+}
+
+let cityEntryKey='';
+function renderCityEntry(){
+  const host=$('city-pill-icon'),art=globalThis.FocusRainCityArt;
+  if(!host||!art?.thumbnail)return;
+  const eq=state?.quests?.equipped||{},key=JSON.stringify(eq);
+  if(cityEntryKey===key)return;
+  cityEntryKey=key;host.innerHTML=art.thumbnail(eq);
 }
 
 function noteOpeningArrival() {
@@ -252,8 +262,8 @@ function updateViewTitle() {
     $('page-subtitle').textContent='每一件收藏，都来自你认真走过的时间。';
     $('greeting-eyebrow').textContent='EARNED THROUGH FOCUS';
   }else{
-    $('page-title').textContent='去远方，玩一小会儿。';
-    $('page-subtitle').textContent='穿过怪潮，让武器觉醒；也可以在小岛间轻松玩一局。';
+    $('page-title').textContent='星海游乐场';
+    $('page-subtitle').textContent='星辉城里的游戏小馆。熟悉的游戏和记录，都留在这里。';
     $('greeting-eyebrow').textContent='THE STARLIGHT ARCADE';
   }
 }
@@ -396,7 +406,18 @@ function renderAchievements() {
   $('badges').innerHTML=state.badges.map((b,i)=>`<article class="badge-card ${b.earned?'':'locked'}"><div class="badge-icon">${symbols[i%symbols.length]}</div><h3>${esc(b.name)}</h3><p>${esc(b.description)}</p><span class="badge-status">${b.earned?'✦ 已点亮':'待解锁'}</span></article>`).join('');
 }
 
+function setNavSelection(view){
+  const selected=view==='achievements'?'city':view;
+  document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===selected);el.setAttribute('aria-current',el.dataset.view===selected?'page':'false');});
+}
+function openCity(anchor){
+  if(!state||globalThis.FocusGoals?.required())return false;
+  if(currentView!=='today')switchView('today');
+  stopScenePreview();globalThis.FocusExpedition?.leave();
+  return globalThis.FocusCitadel?.open(anchor||$('city-open'));
+}
 function switchView(view) {
+  if(view==='city'){openCity(document.querySelector('[data-view="city"]'));return;}
   if(!viewNames[view] || globalThis.FocusGoals?.required())return;
   if(currentView==='review' && view!=='review')globalThis.FocusReviewHeatmap?.onLeave?.();
   globalThis.FocusQuickSkins?.close(false);
@@ -405,7 +426,7 @@ function switchView(view) {
   if(view!=='today'){stopScenePreview();globalThis.FocusExpedition?.leave();}
   currentView=view;document.body.dataset.page=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
-  document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===view);el.setAttribute('aria-current',el.dataset.view===view?'page':'false');});
+  setNavSelection(view);
   updateViewTitle();window.scrollTo({top:0,behavior:'auto'});
   if(view==='review')globalThis.FocusReviewHeatmap?.onEnter();
   if(view==='achievements')globalThis.FocusArcade?.enter?.();else{globalThis.FocusArcade?.leave();setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);}
@@ -609,7 +630,9 @@ globalThis.FocusIslandRewards?.init({api,toast,refresh,playSound,unlock:ensureAu
   globalThis.FocusQuests?.render(state.quests);
 }});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'});
-globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0),openShop:()=>switchView('shop'),replayDay:()=>globalThis.FocusExpedition?.startReplay()});
+globalThis.FocusCitadel?.init({getState:()=>state,playSound,leaveExpedition:()=>{stopScenePreview();globalThis.FocusExpedition?.stop();},onOpen:()=>setNavSelection('city'),afterClose:()=>{setNavSelection(currentView);setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);},openShop:()=>switchView('shop'),openReview:()=>switchView('review'),openArcade:()=>globalThis.FocusArcade?.open(),openCamp:()=>{switchView('today');globalThis.FocusCampfireRoom?.open($('campfire-room-open'));}});
+$('city-open')?.addEventListener('click',event=>openCity(event.currentTarget));
+$('arcade-city-return')?.addEventListener('click',()=>openCity($('citadel-enter')));
 globalThis.FocusHorizontalNavigation?.init({canNavigate:()=>Boolean(state)&&currentView==='today'&&!globalThis.FocusGoals?.required(),beforeOpen:()=>{stopScenePreview();globalThis.FocusExpedition?.leave();}});
 globalThis.FocusCampfireRoom?.init({openPage:switchView,afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 globalThis.FocusArcade?.init({api,toast,refresh,playSound,openPage:switchView,isVisible:()=>currentView==='achievements'});

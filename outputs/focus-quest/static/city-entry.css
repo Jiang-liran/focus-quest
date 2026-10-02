@@ -1,0 +1,10 @@
+.city-pill #city-pill-icon{width:84px;flex-shrink:0;align-self:stretch;display:flex;align-items:center;justify-content:center}
+.city-pill #city-pill-icon>svg{display:block;width:100%;height:auto;stroke:none;fill:none}
+.city-pill #city-open{font-size:11px;white-space:nowrap}
+.arcade-city-breadcrumb{display:flex;align-items:center;gap:18px;margin:0 0 20px;color:var(--text-muted,#929cb0);font-size:12px}
+.arcade-city-breadcrumb button{font:inherit;color:var(--text-primary,#ccd3df);background:var(--surface,#192132);border:1px solid var(--border,#8797af44);border-radius:9px;padding:9px 14px;cursor:pointer}
+.arcade-city-breadcrumb button:hover{border-color:var(--accent,#9eb8c9)}
+.arcade-city-breadcrumb button:focus-visible{outline:2px solid var(--accent,#9eb8c9);outline-offset:3px}
+@media(min-width:1500px) and (min-height:850px){.city-pill #city-pill-icon{width:108px}.city-pill #city-open{font-size:13px}.arcade-city-breadcrumb{font-size:15px}}
+@media(min-width:2200px) and (min-height:1050px){.city-pill #city-pill-icon{width:122px}.city-pill #city-open{font-size:15px}.arcade-city-breadcrumb{font-size:18px}}
+@media(max-width:699px){.arcade-city-breadcrumb{align-items:flex-start;flex-direction:column;gap:10px}}

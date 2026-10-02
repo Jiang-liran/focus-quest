@@ -77,6 +77,7 @@
   }
   function formatTime(seconds){return `${Math.floor(seconds/60)}:${String(seconds%60).padStart(2,'0')}`;}
   function header(){
+    if(!$('arcade-pill-title'))return;
     const v=activeVenue(),active=data?.active;
     put('arcade-pill-icon',scene(v?.id||selected,true));
     if($('arcade-pill-title'))$('arcade-pill-title').textContent=active?`继续 · ${v?.name||'群岛探险'}`:v?.type==='minesweeper'?v.name:`${v?.name||'晨雾营地'} · ${sceneNames[v?.type]||'雾中寻路'}`;

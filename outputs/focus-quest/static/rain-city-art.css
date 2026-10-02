@@ -1,0 +1,30 @@
+/* The rainy city keeps its own quiet palette; global icon strokes must not outline the artwork. */
+.rain-city-art,.rain-city-thumbnail{display:block;width:100%;height:auto;stroke:none;fill:none;isolation:isolate}
+.rain-city-art{overflow:hidden;border-radius:inherit}
+.rain-city-art text{font-family:inherit;pointer-events:none;user-select:none}
+.rain-city-art .rain-city-place-interactive{cursor:pointer;outline:none}
+.rain-city-art .rain-city-hit{pointer-events:all}
+.rain-city-art .rain-city-focus{opacity:0;pointer-events:none;transition:opacity .2s ease}
+.rain-city-art .rain-city-building{transition:filter .25s ease}
+.rain-city-art .rain-city-place-sign{pointer-events:none;transition:transform .25s ease}
+.rain-city-art .rain-city-place-interactive:hover .rain-city-building,.rain-city-art .rain-city-place-interactive:focus-visible .rain-city-building{filter:brightness(1.18)}
+.rain-city-art .rain-city-place-interactive:hover .rain-city-place-sign,.rain-city-art .rain-city-place-interactive:focus-visible .rain-city-place-sign{transform:translateY(-3px)}
+.rain-city-art .rain-city-place-interactive:focus-visible .rain-city-focus,.rain-city-art .rain-city-place.is-selected .rain-city-focus{opacity:.8}
+.rain-city-art .rain-city-rain-layer{fill:none;stroke:#aac3d5;stroke-width:1;stroke-linecap:round;animation:rain-city-rain-fall 1.7s linear infinite}
+.rain-city-art .rain-city-rain-1{opacity:.55;animation-duration:2.6s;animation-delay:-1s}
+.rain-city-art .rain-city-reflections{animation:rain-city-river-glow 7s ease-in-out infinite alternate}
+.rain-city-art .rain-city-steam{animation:rain-city-tea-steam 5s ease-in-out infinite}
+.rain-city-art .rain-city-equipment{filter:saturate(.68) brightness(.84)}
+.rain-city-art .rain-city-traveler{filter:saturate(.74) brightness(.9)}
+/* Purchased decorative artwork can contain its own animation; the city uses only its geometry. */
+.rain-city-art .rain-city-equipment *,.rain-city-art .rain-city-traveler *{animation:none!important}
+.rain-city-art .rain-city-equipped-fx{opacity:.7}
+@keyframes rain-city-rain-fall{from{transform:translate(0,-24px)}to{transform:translate(-10px,20px)}}
+@keyframes rain-city-river-glow{from{opacity:.65}to{opacity:1}}
+@keyframes rain-city-tea-steam{0%,100%{opacity:.18;transform:translateY(1px)}50%{opacity:.36;transform:translateY(-5px)}}
+#citadel-view.rain-city[data-motion=false] .rain-city-art *,#citadel-view.rain-city[data-paused=true] .rain-city-art *,#citadel-view.rain-city[hidden] .rain-city-art *{animation:none!important;transition:none!important}
+@media(prefers-reduced-motion:reduce){.rain-city-art *{animation:none!important;transition:none!important}}
+.rain-city-art{pointer-events:auto}
+.rain-city-art .rain-city-place-interactive{pointer-events:auto}
+.rain-city-art .rain-city-equipment,.rain-city-art .rain-city-traveler{pointer-events:visiblePainted}
+#city-street[hidden] .rain-city-art *,#city-room[hidden] .rain-city-art *,[hidden] .rain-city-preview .rain-city-art *,dialog:not([open]) .rain-city-art *{animation:none!important;transition:none!important}

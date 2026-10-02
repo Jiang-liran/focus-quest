@@ -12,13 +12,13 @@
     {id: 'english', name: '英语', landmark: '译风港', description: '码头铺上木板，载着不同语言的信笺在风中轻轻翻动。'}
   ];
   const DISCOVERIES = [
-    {id: 'mist-camp', name: '晨雾营地', threshold: 0, narrative: '营地外的小径藏着星石和岔路。带上提灯，探开迷雾，再带着收获找到出口。'},
-    {id: 'glow-shore', name: '萤石浅滩', threshold: 10, narrative: '花、水、树林与奇石等待落位。在浅滩上拼一座小花园，巧妙相邻的景物会彼此呼应。'},
-    {id: 'chime-bridge', name: '风铃木桥', threshold: 25, narrative: '风铃的另一边是一条更曲折的寻宝路。绕过险地，决定要多拿一枚星石，还是早点归来。'},
-    {id: 'mirror-gallery', name: '镜湖回廊', threshold: 40, narrative: '湖面的镜阵等待转动。让光穿过沿途星标，再照亮对岸的晶灯。'},
-    {id: 'cloud-library', name: '云根花庭', threshold: 60, narrative: '树根之间留着一方空地。用花木和水景规划邻接，把有限的布置变成繁盛的庭院。'},
-    {id: 'orbit-terrace', name: '星轨高台', threshold: 80, narrative: '高台上的镜片折转星光。辨清路径与干扰，把散落的光重新送入星轨。'},
-    {id: 'home-beacon', name: '归光灯塔', threshold: 100, narrative: '灯塔照着最后一段探险。带够星石抵达出口，或多走一条岔路，挑战更好的收获。'}
+    {id: 'mist-camp', name: '晨雾营地', threshold: 0, narrative: '雾里的营地亮起一盏灯。地图摊在桌上，这一页可以慢慢写。'},
+    {id: 'glow-shore', name: '萤石浅滩', threshold: 10, narrative: '浅滩上的石头映着一点微光。水慢慢流过，今天的脚步也留下了痕迹。'},
+    {id: 'chime-bridge', name: '风铃木桥', threshold: 25, narrative: '木桥连起两岸，檐下挂着一串风铃。走到这里，已经可以看见来时的路。'},
+    {id: 'mirror-gallery', name: '镜湖回廊', threshold: 40, narrative: '回廊靠着湖边，灯影在水面轻轻摇晃。累了就停一会儿，路一直都在。'},
+    {id: 'cloud-library', name: '云根花庭', threshold: 60, narrative: '老树下留着一张长椅，落叶夹在翻开的书页里。这里很安静，适合稍作停留。'},
+    {id: 'orbit-terrace', name: '星轨高台', threshold: 80, narrative: '从高台望过去，远处的窗灯一盏盏亮着。你走过的每一段，都在身后连成了光。'},
+    {id: 'home-beacon', name: '归光灯塔', threshold: 100, narrative: '归途的灯已经亮起。今天的努力有了自己的形状，回城坐坐，也是旅程的一部分。'}
   ];
   const IDS = new Set(SUBJECTS.map(subject => subject.id));
   const MAX = Number.MAX_SAFE_INTEGER;

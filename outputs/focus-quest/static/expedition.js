@@ -89,13 +89,12 @@
     const subject=m.subjects.find(s=>s.id===selected);
     const entry=m.discoveries.find(d=>d.id===discovery&&d.unlocked)||m.currentDiscovery;
     $('expedition-overview').hidden=!subject&&!discovery;
-    $('expedition-detail-kicker').textContent=subject?`${subject.name} · ${subject.complete?'设施已建成':'建设中的岛屿'}`:`第 ${entry.index+1} 处路标 · 星海游乐场`;
+    $('expedition-detail-kicker').textContent=subject?`${subject.name} · ${subject.complete?'设施已建成':'建设中的岛屿'}`:`第 ${entry.index+1} 处路标 · 沿途见闻`;
     $('expedition-detail-title').textContent=subject?subject.landmark:entry.name;
     $('expedition-detail-copy').textContent=subject?`${subject.description} ${subject.complete?'今日的灯已点亮，额外积累也会留在星光里。':subject.minutes?'每一段完成的专注，都在为这里添上新的细节。':'第一段专注结束后，这里的建设就会开始。'}`:entry.narrative;
     $('expedition-next').textContent=subject?(subject.goalSet?`${duration(subject.minutes)} / ${duration(subject.target)} · ${percent(subject.percent)}%${subject.complete?' · 可以安心欣赏，也可以继续自由探索':` · 建成还需 ${duration(subject.remainingMinutes)}`}`:'请在设置中为这科安排目标。'):m.nextDiscovery?`下一处 · ${m.nextDiscovery.name}，再积累 ${duration(m.nextDiscovery.remainingMinutes)} 就能看见。`:m.complete?'这一天的见闻已完整。归光之后，休息也属于旅程。':'先设定目标，让远方有一个方向。';
-    const gameTypes=new Set((latest?.arcade?.venues||[]).map(v=>v.type).filter(Boolean));
-    $('expedition-discovery-count').textContent=gameTypes.size?`${gameTypes.size} 类玩法 · 自由选择`:'多种玩法 · 自由选择';
-    replace('expedition-discoveries',m.discoveries.map(d=>`<button type="button" class="expedition-discovery ${d.unlocked?'unlocked':'locked'}" data-expedition-discovery="${esc(d.id)}" ${d.unlocked?'':'disabled'} aria-pressed="${entry.id===d.id&&!subject}"><span class="discovery-stamp" aria-hidden="true"><svg viewBox="0 0 64 48"><path d="M8 39 23 15l12 17 9-24 13 31Z"/><circle cx="46" cy="12" r="5"/><path d="M8 43h49M21 39l5-9 8 9"/></svg><i>${String(d.index+1).padStart(2,'0')}</i></span><strong>${esc(d.name)}</strong><small>${d.unlocked?'去这里玩一局':`主线 ${d.threshold}% 后显现`}</small></button>`).join(''));
+    $('expedition-discovery-count').textContent='星辉城 · 随时走走';
+    replace('expedition-discoveries',m.discoveries.map(d=>`<button type="button" class="expedition-discovery ${d.unlocked?'unlocked':'locked'}" data-expedition-discovery="${esc(d.id)}" ${d.unlocked?'':'disabled'} aria-pressed="${entry.id===d.id&&!subject}"><span class="discovery-stamp" aria-hidden="true"><svg viewBox="0 0 64 48"><path d="M8 39 23 15l12 17 9-24 13 31Z"/><circle cx="46" cy="12" r="5"/><path d="M8 43h49M21 39l5-9 8 9"/></svg><i>${String(d.index+1).padStart(2,'0')}</i></span><strong>${esc(d.name)}</strong><small>${d.unlocked?'到城里歇一会儿':`主线 ${d.threshold}% 后显现`}</small></button>`).join(''));
   }
   function frameCopy(frame){
     if(frame.type==='start')return frame.baseline?`较早记录已计入起点 · ${duration(frame.minutes)}，从可读取的记录继续回顾。`:'从第一束微光开始，看看这一天如何展开。';
@@ -182,11 +181,11 @@
     $('expedition-scrub').addEventListener('input',event=>{if(mode!=='replay')return;const value=Number(event.target.value)||0;playing=false;cancelTimer();index=Math.max(0,Math.min(replay.frames.length-1,Math.round(value)));paint();});
     $('expedition-immerse').addEventListener('click',()=>immerse(!immersive));
     $('expedition-overview').addEventListener('click',()=>{selected=null;discovery=null;paint();});
-    $('expedition-discover-toggle').addEventListener('click',()=>{if(root.FocusArcade){const m=model();root.FocusArcade.open(discovery||m.currentDiscovery.id);return;}const panel=$('expedition-discoveries');panel.hidden=!panel.hidden;$('expedition-discover-toggle').setAttribute('aria-expanded',String(!panel.hidden));});
+    $('expedition-discover-toggle').addEventListener('click',()=>{if(root.FocusCitadel){root.FocusCitadel.open($('expedition-discover-toggle'));return;}const panel=$('expedition-discoveries');panel.hidden=!panel.hidden;$('expedition-discover-toggle').setAttribute('aria-expanded',String(!panel.hidden));});
     $('quest-hero').addEventListener('click',event=>{
       const subject=event.target.closest('[data-expedition-subject]'),entry=event.target.closest('[data-expedition-discovery]'),frame=event.target.closest('[data-expedition-frame]');
       if(subject&&model().subjects.some(s=>s.id===subject.dataset.expeditionSubject)){selected=subject.dataset.expeditionSubject;discovery=null;paint();}
-      else if(entry&&model().discoveries.some(d=>d.id===entry.dataset.expeditionDiscovery&&d.unlocked)){if(root.FocusArcade){root.FocusArcade.open(entry.dataset.expeditionDiscovery);return;}discovery=entry.dataset.expeditionDiscovery;selected=null;paint();}
+      else if(entry&&model().discoveries.some(d=>d.id===entry.dataset.expeditionDiscovery&&d.unlocked)){if(root.FocusCitadel){root.FocusCitadel.open(entry);return;}discovery=entry.dataset.expeditionDiscovery;selected=null;paint();}
       else if(frame){
         const target=Number(frame.dataset.expeditionFrame)||0;
         if(mode==='replay'){playing=false;cancelTimer();index=Math.max(0,Math.min(replay.frames.length-1,target));paint();}
