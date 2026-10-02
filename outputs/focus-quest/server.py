@@ -209,6 +209,10 @@ GOAL_HISTORY_WEEKLY_META = "goalHistory:weeklySuggestion:v1"
 GOAL_HISTORY_DEFAULTS_META = "goalHistory:dailyDefaults:v1"
 DAILY_GOAL_CHANGE_LIMIT = 2
 REVERSE_EXCHANGE_DAILY_LIMIT = 5
+METHOD_REWARD_TIERS = {
+    "practice": {"name": "落笔试锋", "coins": 20, "diamonds": 0},
+    "mastery": {"name": "学以致用", "coins": 40, "diamonds": 1},
+}
 CITY_LIFE_LIMITS = {"notes": 200, "storedNotes": 1000, "outfits": 8, "storedOutfits": 64}
 CITY_NOTE_TYPES = {"note", "question", "quote", "plan"}
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
@@ -667,6 +671,13 @@ class FocusStore:
                 coins INTEGER NOT NULL, diamonds INTEGER NOT NULL, claimed_ms INTEGER NOT NULL,
                 PRIMARY KEY(day,island),
                 CHECK(island IN ('math','cs','politics','english','main'))
+            );
+            CREATE TABLE IF NOT EXISTS method_reward_claims (
+                day TEXT NOT NULL, subject TEXT NOT NULL, tier TEXT NOT NULL,
+                coins INTEGER NOT NULL, diamonds INTEGER NOT NULL, claimed_ms INTEGER NOT NULL,
+                PRIMARY KEY(day,subject,tier),
+                CHECK(subject IN ('math','cs','politics','english')),
+                CHECK(tier IN ('practice','mastery'))
             );
             CREATE TABLE IF NOT EXISTS shop_purchases (
                 item_id TEXT PRIMARY KEY, purchased_ms INTEGER NOT NULL
@@ -1168,6 +1179,88 @@ class FocusStore:
                 self._bump_revision()
             return {"islandRewards": self.island_rewards_state(day, current), "wallet": self._wallet(),
                     "reward": reward, "alreadyClaimed": bool(existing), "island": island, "day": day}
+
+    def method_rewards_state(self, selected_day=None, now=None, records=None):
+        """Observe completed active study; method gifts never allocate its time.
+
+        Ingestion already canonicalizes records across desktop/calendar sources.
+        Counting canonical active rows also lets corrected mappings or deleted
+        records change eligibility while preserving a previously issued receipt.
+        """
+        with self.lock:
+            current = quest_clock(now)
+            today = current.date().isoformat()
+            day = selected_day if selected_day is not None else today
+            parse_day(day)
+            now_ms = int(current.timestamp()*1000)
+            if records is None:
+                records = self.db.execute("""SELECT r.* FROM records r WHERE r.day=?
+                    AND r.end_ms<=? AND NOT EXISTS (SELECT 1 FROM record_lifecycle l
+                        WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""", (day, now_ms)).fetchall()
+            totals = {sid: {activity: [] for activity in ("lecture", "practice", "other")}
+                      for sid in SUBJECT_IDS}
+            for row in records:
+                if row["day"] != day or row["end_ms"] > now_ms:
+                    continue
+                subject = classify(row["name"], self.settings["mapping"])
+                if subject in totals:
+                    activity = classify_activity(row["name"], self.settings["activityMapping"])
+                    totals[subject][activity].append(row["minutes"])
+            claims = {(row["subject"], row["tier"]): row for row in self.db.execute(
+                "SELECT * FROM method_reward_claims WHERE day=?", (day,))}
+            subjects = []
+            for sid, name, color in SUBJECTS:
+                amounts = {activity: math.fsum(values) for activity, values in totals[sid].items()}
+                lecture, practice = amounts["lecture"], amounts["practice"]
+                eligible = {"practice": day <= today and practice >= 20,
+                            "mastery": day <= today and ((lecture >= 20 and practice >= 30) or practice >= 60)}
+                rewards = []
+                for tier, definition in METHOD_REWARD_TIERS.items():
+                    claim = claims.get((sid, tier))
+                    rewards.append({"id": tier, "name": definition["name"], "eligible": eligible[tier],
+                                    "available": day == today and eligible[tier] and claim is None,
+                                    "claimed": claim is not None,
+                                    "claimedAt": iso_ms(claim["claimed_ms"]) if claim is not None else None,
+                                    "reward": {"coins": definition["coins"], "diamonds": definition["diamonds"]}})
+                subjects.append({"id": sid, "name": name, "color": color,
+                                 **{activity: round(value, 4) for activity, value in amounts.items()},
+                                 "rewards": rewards})
+            return {"day": day, "today": today, "isToday": day == today, "subjects": subjects,
+                    "availableCount": sum(reward["available"] for subject in subjects for reward in subject["rewards"]),
+                    "claimedCount": len(claims),
+                    "claimedTotals": {key: sum(claim[key] for claim in claims.values()) for key in ("coins", "diamonds")},
+                    "dailyCap": {"coins": 240, "diamonds": 4}}
+
+    def claim_method_reward(self, day, subject, tier, now=None):
+        parse_day(day)
+        if not isinstance(subject, str) or subject not in SUBJECT_IDS:
+            raise ValueError("请选择数学、408、政治或英语的学习方式奖励")
+        if not isinstance(tier, str) or tier not in METHOD_REWARD_TIERS:
+            raise ValueError("请选择落笔试锋或学以致用奖励")
+        with self._quest_transaction():
+            # The queued request is checked after the write lock, including midnight.
+            current = quest_clock(now)
+            if day != current.date().isoformat():
+                raise ValueError("日期已变化，请回到今天领取；学习方式奖励仅限当天领取")
+            existing = self.db.execute("SELECT 1 FROM method_reward_claims WHERE day=? AND subject=? AND tier=?",
+                                       (day, subject, tier)).fetchone()
+            reward = {"coins": 0, "diamonds": 0}
+            if not existing:
+                state = self.method_rewards_state(day, current)
+                row = next(item for item in state["subjects"] if item["id"] == subject)
+                item = next(item for item in row["rewards"] if item["id"] == tier)
+                if not item["available"]:
+                    raise ValueError("这份心意还在准备，完成对应的听课与做题安排后再来吧")
+                reward = item["reward"]
+                created_ms = int(current.timestamp()*1000)
+                self.db.execute("INSERT INTO method_reward_claims VALUES (?,?,?,?,?,?)",
+                                (day, subject, tier, reward["coins"], reward["diamonds"], created_ms))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                (f"method-gift:{day}:{subject}:{tier}", reward["coins"], reward["diamonds"], created_ms))
+                self._bump_revision()
+            return {"day": day, "subject": subject, "tier": tier, "reward": reward,
+                    "wallet": self._wallet(), "methodRewards": self.method_rewards_state(day, current),
+                    "alreadyClaimed": bool(existing), "now": current.isoformat()}
 
     def _goal_mystery_epochs(self, current):
         """Insert midnight resets into the temporal projection, including days
@@ -3544,6 +3637,7 @@ class FocusStore:
                     "subjects": subjects, "records": serialized, "week": week, "weekly": weekly,
                     "goals": self.goals_state(now), "selectedGoal": selected_goal, "heatmapRevision": self.revision,
                     "islandRewards": self.island_rewards_state(selected_day, now, daily),
+                    "methodRewards": self.method_rewards_state(selected_day, now, daily),
                     "activities": activity_summary(selected_day, daily, settings, minutes, target, now, advice),
                     "activityTypes": [{"id": aid, "name": name} for aid, name in ACTIVITY_TYPES],
                     "taskActivities": {name: classify_activity(name, settings["activityMapping"])
@@ -3719,7 +3813,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                 "/api/city-life/outfit": store.city_life_outfit,
                                 "/api/city-life/outfit-apply": store.city_life_outfit_apply,
                                 "/api/city-life/outfit-archive": store.city_life_outfit_archive}
-                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
+                if path not in ("/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -3746,6 +3840,10 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != {"day", "island"}:
                         raise ValueError("请仅提供页面日期与岛屿；礼盒资格与奖励由服务器决定")
                     self._send(200, store.claim_island_reward(payload["day"], payload["island"]))
+                elif path == "/api/method-rewards/claim":
+                    if url.query or set(payload) != {"day", "subject", "tier"}:
+                        raise ValueError("请仅提供页面日期、科目与奖励档位；资格和金额由服务器决定")
+                    self._send(200, store.claim_method_reward(payload["day"], payload["subject"], payload["tier"]))
                 elif path in arcade_actions:
                     fields, action = arcade_actions[path]
                     if url.query or set(payload) != set(fields):

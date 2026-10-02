@@ -16,3 +16,15 @@
 #view-review .bottom-grid>.panel{min-width:0}
 @media(max-width:1000px){.home-shortcuts .invitation-link{font-size:0}.home-shortcuts .invitation-link:after{content:'↗';font-size:14px}.home-shortcuts>button{padding:13px;gap:9px}}
 @media(max-width:699px){.home-shortcuts{grid-template-columns:1fr;gap:8px;margin:13px 0 18px}.home-shortcuts>button{padding:11px 12px}.home-shortcuts strong{font-size:10px}.home-shortcuts small{font-size:8px}.home-shortcuts .invitation-emblem{width:25px;font-size:17px}.home-shortcuts .invitation-link{font-size:8px}.home-shortcuts .invitation-link:after{content:none}}
+
+/* A compact path from commissions to the method rewards, without another home card. */
+.method-invitation{display:flex;align-items:center;gap:16px;width:100%;margin:0 0 22px;padding:18px 22px;border:1px solid var(--ui-line,#333547);border-radius:var(--ui-radius,14px);background:var(--ui-surface,#1b2030);color:var(--ui-ink,#dfdfed);font:inherit;text-align:left;cursor:pointer}
+.method-invitation:hover{background:var(--ui-surface-raised,#222a38);border-color:var(--ui-accent,#aac6ba)}
+.method-invitation:focus-visible{outline:2px solid var(--ui-accent,#aac6ba);outline-offset:4px}
+.method-invitation-mark{font-size:28px;color:var(--ui-accent,#aac6ba)}
+.method-invitation>span:nth-child(2){display:grid;gap:6px;flex:1;min-width:0}
+.method-invitation strong{font-size:15px;font-weight:600}.method-invitation small{font-size:12px;color:var(--ui-muted,#a4aabc);line-height:1.6}
+.method-invitation-link{font-size:12px;color:var(--ui-accent,#aac6ba);white-space:nowrap}
+#method-rewards{scroll-margin-top:90px}#method-rewards:focus{outline:none}
+@media(min-width:1800px){.method-invitation{padding:22px 28px}.method-invitation strong{font-size:20px}.method-invitation small,.method-invitation-link{font-size:16px}}
+@media(max-width:700px){.method-invitation{flex-wrap:wrap;gap:10px}.method-invitation-link{margin-left:auto}}

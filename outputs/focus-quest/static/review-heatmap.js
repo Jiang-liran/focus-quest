@@ -179,12 +179,12 @@
       const next=fingerprint(currentState);if(lastFingerprint!==null&&next!==lastFingerprint){version++;}lastFingerprint=next;
       if(lastDate!==currentState.date){lastDate=currentState.date;anchor=currentState.date;selected=currentState.date;requestSerial++;}
       if(!anchor)anchor=currentState.today;
-      if(visible())load();
+      if(visible())return load();
     }
     return {
       init(options={}){bridge=options;mount=root.document.getElementById('review-heatmap');if(!mount)return;if(mount.dataset.heatmapBound!=='true'){mount.addEventListener('click',click);mount.dataset.heatmapBound='true';}header();},
       render,
-      onEnter(){render(bridge.getState?.()||currentState);},
+      onEnter(){return render(bridge.getState?.()||currentState);},
       onLeave(){requestSerial++;},
     };
   }

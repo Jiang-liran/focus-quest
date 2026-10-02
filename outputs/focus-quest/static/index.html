@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="/campfire-shop.css">
   <link rel="stylesheet" href="/quick-skins.css">
   <link rel="stylesheet" href="/review.css">
+  <link rel="stylesheet" href="/method-rewards.css">
   <link rel="stylesheet" href="/goals.css">
   <link rel="stylesheet" href="/review-heatmap.css">
   <link rel="stylesheet" href="/citadel-art.css">
@@ -182,6 +183,7 @@
 
       <section id="goal-keeper" aria-label="司衡的目标航图"></section>
       <section id="review-heatmap" aria-label="学习热力图"></section>
+      <section id="method-rewards" aria-label="砚青的知行研习所" tabindex="-1"></section>
       <section class="panel activity-panel" aria-labelledby="activity-heading"><div class="section-heading"><h2 id="activity-heading">听课与做题 <span>LEARN & PRACTICE</span></h2><button class="text-button" id="activity-settings">调整学习方式 ↗</button></div><div class="activity-summary" id="activity-summary"></div><div class="activity-table-heading" aria-hidden="true"><span>科目</span><span>听课时长</span><span>做题时长</span><span>节奏观察</span></div><div id="activity-rows"></div><div class="activity-overview" id="activity-overview"></div><p class="activity-rule">按所选日期统计 · 单科听课满 60 分钟、做题不足听课一半时给出提醒，仅供安排节奏参考。</p></section>
       <div class="bottom-grid"><section class="panel weekly-panel"><div class="section-heading"><h2><b id="week-chart-title">本周足迹</b> <span>MON — SUN</span></h2><span class="muted" id="weekly-total"></span></div><div class="week-navigation"><button class="week-arrow" id="prev-week" aria-label="上一周" title="上一周">‹</button><div><span id="week-chart-range"></span><button class="text-button" id="week-reset" hidden>回到本周</button></div><button class="week-arrow" id="next-week" aria-label="下一周" title="下一周">›</button></div><div class="week-chart" id="week-chart"></div><div class="chart-footer"><span><i></i>每日专注时长</span><span>走慢一点也没关系，脚印会留下。</span></div></section><section class="panel recent-panel"><div class="section-heading"><h2>最近的收获</h2><button class="text-button" id="all-records">全部记录 ↗</button></div><div id="recent-records" class="records-list"></div></section></div>
     </div>
@@ -195,6 +197,7 @@
 
     <div id="view-quests" class="view" hidden>
       <div class="q-topline"><div><span class="eyebrow">OPEN COMMISSIONS</span><p id="quest-today-label">全天自由委托</p></div><div class="q-wallet" aria-label="委托钱包"><span><i class="coin-mark">●</i><b id="quest-coins">0</b><small>金币</small></span><span><i class="diamond-mark">◆</i><b id="quest-diamonds">0</b><small>钻石</small></span><button class="text-button" data-view="shop">去商店 ↗</button></div></div>
+      <button type="button" id="method-rewards-open" class="method-invitation" aria-controls="method-rewards"><span class="method-invitation-mark" aria-hidden="true">✎</span><span><strong>知行研习所 · 研习导师砚青</strong><small id="method-invitation-text">把听到的方法落在纸上，也有额外收获。</small></span><span class="method-invitation-link">查看研习奖励 ↗</span></button>
       <div id="quest-board" class="quest-board"></div>
       <section id="mystery-quest" class="mystery-quest" aria-labelledby="mystery-name" hidden></section>
       <details class="q-rules"><summary>持续委托与奖励规则 <span>基础奖励始终相同，推荐时段另有首轮加赠</span></summary><div><p>数学、政治、408、英语都能全天接取，也可同时接取。每科只需手动接取一次，从接取后开始持续累计；交付后继续有效，跨天保留进度。听课、做题和其他有效专注均计入。</p><p><strong>普通委托基础奖励：</strong>数学、408 首次目标为 60 分钟，政治、英语为 30 分钟。首次达标后，每有效分钟奖励 2 金币，每完整一倍目标奖励 2 钻石；之后有新增金币即可再次交付。基础奖励没有时段限制、每日交付次数限制或奖励上限，18:00 后继续学习也照常累计。</p><p>基础金币和钻石的未满部分跨次保留。例如数学先学 90 分钟，基础奖励为 180 金币与 2 钻石；再学 30 分钟，再领 60 金币与 2 钻石。分次交付与一次交付的基础总奖励相同。</p><p><strong>晨光首轮：</strong>每天 00:00–12:00，数学累计 60 分钟额外获得 60 金币与 1 钻石，政治累计 30 分钟额外获得 30 金币与 1 钻石。<strong>午后首轮：</strong>每天 12:00–18:00，408 累计 60 分钟额外获得 60 金币与 1 钻石，英语累计 30 分钟额外获得 30 金币与 1 钻石。</p><p>首轮只计接取后、对应学习窗口内的有效专注，每天每科一次；从更新当天开始，今天接取后的学习一并计入；此前日期不补发新加成。加赠是基础奖励之外的一份小收获，其他时段的基础奖励始终相同。</p><p>奖励按学习发生的时段判断，不按交付时间判断。已达成的首轮会为你保留，不用赶着交付；晚些交付、次日再来，或手机记录稍后同步，都可以补领。未在窗口内达标也不影响基础奖励。</p><p>交付时按已同步的有效记录结算；稍后到达的手机记录仍能补入下一次交付。未完成、休息或跨天都不会扣除奖励。达成拾星的开启条件后，新增四科专注改由神秘委托结算，不再重复推进普通委托。已结算记录不会重复发奖，删改记录也不回扣已入袋的奖励。</p></div></details>
@@ -313,6 +316,8 @@
   <script src="/shop-art.js"></script>
   <script src="/mystery-art.js"></script>
   <script src="/mystery.js"></script>
+  <script src="/method-rewards-art.js"></script>
+  <script src="/method-rewards.js"></script>
   <script src="/quests.js"></script>
   <script src="/campfire-dialogue.js"></script>
   <script src="/campfire-art.js"></script>
