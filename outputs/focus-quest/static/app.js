@@ -152,7 +152,7 @@ function render() {
   $('source-dot').classList.toggle('connected',s.sync.connected&&(!phone?.enabled||phone.connected));
   $('footer-sync').textContent=`本地存档 ${number(s.allTime.records,0)} 条 · ${phone?.enabled?(phone.connected?'手机日历自动同步中':'手机同步待恢复'):s.sync.connected?'每 '+s.sync.pollSeconds+' 秒自动捕获':'同步待恢复'}`;
   renderCalendarPending();
-  renderHero();renderAdvice();renderWeek();renderActivities();renderRecords();renderAchievements();updateViewTitle();
+  renderHero();renderAdvice();renderWeek();renderRecords();renderAchievements();updateViewTitle();
   if($('source-dialog').open)renderSource();
   if($('trash-dialog').open)renderTrash();
   globalThis.FocusQuests?.render(s.quests);
@@ -371,15 +371,6 @@ function renderWeek() {
   $('prev-week').disabled=weekChartLoading;$('next-week').disabled=weekChartLoading;$('week-reset').disabled=weekChartLoading;
   const max=Math.max(...chart.days.flatMap(d=>[d.minutes,d.target||0]),1);
   $('week-chart').innerHTML=chart.days.map(d=>`<button class="chart-column ${d.date===state.date?'today':''} ${d.date>state.today?'future':''}" data-date="${d.date}" title="${d.date}：${duration(d.minutes)}${d.target?` · ${d.targetEstimated?'参考目标':'当日目标'} ${duration(d.target)}`:''}" aria-label="查看${d.date}，学习${duration(d.minutes)}${d.target?`，${d.targetEstimated?'参考目标':'当日目标'}${duration(d.target)}`:''}"><span class="chart-value">${d.minutes?hours(d.minutes)+'h':'—'}</span><span class="chart-bar-track"><i class="chart-bar" style="height:${Math.max(2,d.minutes/max*100)}%"></i></span><span class="chart-day">${d.date===state.today?'今天':new Date(d.date+'T12:00:00').toLocaleDateString('zh-CN',{weekday:'short'})}</span></button>`).join('');
-}
-
-function renderActivities() {
-  if(!changedView('activities',state.activities))return;
-  const a=state.activities;
-  $('activity-summary').innerHTML=Object.entries(activityNames).map(([id,label])=>`<div class="activity-total ${id}"><span><i></i>${label}</span><strong>${durationHTML(a.totals[id])}</strong></div>`).join('');
-  $('activity-rows').innerHTML=a.subjects.map(s=>`<article class="activity-row" aria-label="${esc(s.name)}学习方式统计"><div class="activity-subject"><span class="subject-icon" style="--subject-color:${meta(s.id).color}">${icon(meta(s.id).icon)}</span><div><strong>${esc(s.name)}</strong><small>${s.other?`另有 ${duration(s.other)}复习 / 其他`:`累计 ${duration(s.minutes)}`}</small></div></div><div class="activity-time lecture" role="group" aria-label="听课时长"><span>听课</span><strong>${duration(s.lecture)}</strong></div><div class="activity-time practice" role="group" aria-label="做题时长"><span>做题</span><strong>${duration(s.practice)}</strong></div><div class="activity-insight ${s.advice.tone}"><strong>${esc(s.advice.title)}</strong><p>${esc(s.advice.text)}</p></div></article>`).join('');
-  $('activity-overview').textContent=a.advice.text;
-  $('activity-overview').hidden=a.totals.other===0;
 }
 
 function renderRecords() {
@@ -617,7 +608,6 @@ $('opening-preview').addEventListener('click',previewOpening);
 $('opening-close').addEventListener('click',()=>$('opening-dialog').close());
 $('opening-done').addEventListener('click',()=>$('opening-dialog').close());
 $('method-rewards-open')?.addEventListener('click',openMethodRewards);
-$('activity-settings').addEventListener('click',()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});});
 $('settings-form').addEventListener('submit',saveSettings);
 document.querySelectorAll('.close-dialog').forEach(el=>el.addEventListener('click',()=>el.closest('dialog').close()));
 $('source-open').addEventListener('click',()=>{if(state){renderSource();$('source-dialog').showModal();}});
