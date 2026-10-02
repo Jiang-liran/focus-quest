@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="/quests.css">
   <link rel="stylesheet" href="/cosmetics.css">
   <link rel="stylesheet" href="/shop-art.css">
+  <link rel="stylesheet" href="/campfire.css">
 </head>
 <body>
   <svg class="svg-defs" aria-hidden="true"><defs>
@@ -98,7 +99,19 @@
       </section>
 
       <section class="subjects-section"><div class="section-heading"><h2>四科战线 <span>SUBJECT QUESTS</span></h2><button class="text-button" id="targets-edit">调整目标 <span>↗</span></button></div><div class="subject-grid" id="subjects"></div></section>
-      <section class="advice-card npc-card" id="advice-card" aria-label="营地向导对话"><div class="npc-avatar" aria-hidden="true"><svg viewBox="0 0 40 44"><path d="M15 30h10c3 3 5 7 6 12H9c1-5 3-9 6-12Z" fill="#869baa"/><path d="M20 31h5c3 3 5 7 6 11H20Z" fill="#73889c"/><path d="m15 31 5 5 5-5" fill="#b8a3ce"/><circle cx="20" cy="35" r="1.2" fill="#e1c793"/><circle cx="11.8" cy="25" r="1.6" fill="#c7ac9e"/><circle cx="28.2" cy="25" r="1.6" fill="#c7ac9e"/><ellipse cx="20" cy="24" rx="8.4" ry="8.7" fill="#ddcbbb"/><path d="M8.4 20.2 18.2 3.7Q20 .6 21.8 3.7l9.8 16.5Z" fill="#bb9eda"/><path d="M20 2.2v18h11.6L21.8 3.7Q21 2.3 20 2.2Z" fill="#9175b2"/><path d="M10 17.5q10-2.3 20 0l1.6 2.7H8.4Z" fill="#8269a6"/><ellipse cx="20" cy="20.5" rx="16" ry="2.7" fill="#bb9eda" stroke="#d6b9ef" stroke-width="1.2"/><path d="m19.5 10 .8 1.8 1.9.7-1.9.7-.8 1.8-.7-1.8-1.9-.7 1.9-.7Z" fill="#e7d7f6"/><circle cx="17" cy="25.7" r=".9" fill="#4f4b63"/><circle cx="23" cy="25.7" r=".9" fill="#4f4b63"/><path d="M18 29.4q2 1.5 4 0" fill="none" stroke="#a27e7e" stroke-width="1" stroke-linecap="round"/><path d="M34 31v11" stroke="#bdad8f" stroke-width="2" stroke-linecap="round"/><path d="m34 25 2.5 4-2.5 4-2.5-4Z" fill="#dbcbfa"/></svg></div><div class="npc-dialogue"><div class="npc-name">营地向导 <span id="advice-topic">旅途中的小建议</span></div><div id="advice-line" role="status" aria-live="polite" aria-atomic="true"><strong id="advice-title">旅途中的小建议</strong><p id="advice-text">先专注眼前的一小步。</p></div></div><button class="npc-next" id="advice-next" aria-label="再聊一句">再聊一句 <span aria-hidden="true">↻</span></button></section>
+      <section class="campfire-card" id="advice-card" aria-labelledby="campfire-heading">
+        <header class="campfire-heading"><h2 id="campfire-heading">篝火夜话 <span>BY THE CAMPFIRE</span></h2><p>坐一会儿，听伙伴说说话。</p></header>
+        <div class="campfire-body">
+          <div class="campfire-landscape" aria-hidden="true"><div id="campfire-scene"></div><p>风经过树梢，火光落在杯沿。</p></div>
+          <div class="campfire-talk">
+            <div class="campfire-speaker"><div class="campfire-portrait" id="campfire-portrait" aria-hidden="true"></div><div><strong id="campfire-name">阿榆</strong><small id="campfire-role">守火人</small><p id="campfire-description">照看炉火、热茶和一锅慢慢变香的汤。</p></div></div>
+            <div class="campfire-topics" role="group" aria-label="选择聊天话题"><button type="button" data-campfire-topic="relax" aria-pressed="true">歇一会儿</button><button type="button" data-campfire-topic="story" aria-pressed="false">听段见闻</button><button type="button" data-campfire-topic="advice" aria-pressed="false">聊聊学习</button></div>
+            <div class="campfire-line" id="advice-line" role="status" aria-live="polite" aria-atomic="true"><span id="advice-topic" hidden>歇一会儿</span><strong id="advice-title">火边留了一个位置</strong><p id="advice-text">水快热了，先坐下吧。</p></div>
+            <div class="campfire-talk-footer"><span id="campfire-context">火还温着，慢慢聊就好。</span><button type="button" class="campfire-next" id="advice-next">再聊一句 <span aria-hidden="true">↻</span></button></div>
+          </div>
+        </div>
+        <div class="campfire-characters" id="campfire-characters" role="group" aria-label="选择篝火伙伴"></div>
+      </section>
       <section class="panel activity-panel" aria-labelledby="activity-heading"><div class="section-heading"><h2 id="activity-heading">听课与做题 <span>LEARN & PRACTICE</span></h2><button class="text-button" id="activity-settings">调整学习方式 ↗</button></div><div class="activity-summary" id="activity-summary"></div><div class="activity-table-heading" aria-hidden="true"><span>科目</span><span>听课时长</span><span>做题时长</span><span>节奏观察</span></div><div id="activity-rows"></div><div class="activity-overview" id="activity-overview"></div><p class="activity-rule">按所选日期统计 · 单科听课满 60 分钟、做题不足听课一半时给出提醒，仅供安排节奏参考。</p></section>
       <div class="bottom-grid"><section class="panel weekly-panel"><div class="section-heading"><h2><b id="week-chart-title">本周足迹</b> <span>MON — SUN</span></h2><span class="muted" id="weekly-total"></span></div><div class="week-navigation"><button class="week-arrow" id="prev-week" aria-label="上一周" title="上一周">‹</button><div><span id="week-chart-range"></span><button class="text-button" id="week-reset" hidden>回到本周</button></div><button class="week-arrow" id="next-week" aria-label="下一周" title="下一周">›</button></div><div class="week-chart" id="week-chart"></div><div class="chart-footer"><span><i></i>每日专注时长</span><span>走慢一点也没关系，脚印会留下。</span></div></section><section class="panel recent-panel"><div class="section-heading"><h2>最近的收获</h2><button class="text-button" id="all-records">全部记录 ↗</button></div><div id="recent-records" class="records-list"></div></section></div>
     </div>
@@ -164,5 +177,8 @@
   <script src="/quest-art.js"></script>
   <script src="/shop-art.js"></script>
   <script src="/quests.js"></script>
+  <script src="/campfire-dialogue.js"></script>
+  <script src="/campfire-art.js"></script>
+  <script src="/campfire.js"></script>
   <script src="/app.js"></script>
 </body></html>

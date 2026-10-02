@@ -22,7 +22,6 @@ const levelRanks = [
 function levelRank(level) { return levelRanks.find(rank=>level>=rank.min && level<=rank.max)||levelRanks[0]; }
 let state = null, currentView = 'today', selectedDate = null, inFlight = false, requestSequence = 0;
 let baselineReady = false, seenRecords = new Set(), audioContext = null;
-let activeDialogue = null, dialogueDate = null;
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 let recordMutationBusy = false;
 let scenePreviewPercent = null, subjectRenderKey = null, sceneSubjectKey = null;
@@ -285,36 +284,20 @@ function renderSubjects() {
   $('subjects').innerHTML=state.subjects.map(s=>{const m=meta(s.id),over=s.minutes>=s.target;return `<article class="subject-card ${over?'over':''}" style="--subject-color:${m.color};--subject-energy:${Math.min(1,s.minutes/s.target)}"><div class="subject-head"><span class="subject-icon">${icon(m.icon)}</span><h3>${esc(s.name)}</h3><span class="subject-badge">${over?'✦ 已达成':s.minutes>0?'推进中':'等待启程'}</span></div><div class="subject-sigil">${FocusSubjectArt.markup(s.id)}</div><div class="subject-numbers"><strong>${durationHTML(s.minutes)}</strong><span>/ ${hours(s.target)} 小时</span></div><div class="subject-progress" role="progressbar" aria-label="${esc(s.name)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,s.percent)}" aria-valuetext="${pct(s.percent)}"><i style="width:${Math.min(100,s.percent)}%"></i></div><div class="subject-bottom"><span>${s.minutes>s.target?'超额 '+duration(s.minutes-s.target):s.minutes===s.target?'目标达成，收获满满':s.minutes>0?'还差 '+duration(s.target-s.minutes):m.subtitle}</span><strong>${pct(s.percent)}</strong></div></article>`;}).join('');
 }
 
-function renderAdvice() {
-  const lines=FocusAdvice.buildLines(state);
-  if(dialogueDate!==state.date){activeDialogue=null;dialogueDate=state.date;}
-  // Polling refreshes facts in the chosen line, but never randomly replaces it.
-  activeDialogue=lines.find(line=>line.id===activeDialogue?.id)||lines[0];
-  if(!activeDialogue)return;
-  $('advice-card').hidden=false;
-  for(const [id,value] of [['advice-topic',activeDialogue.topic],['advice-title',activeDialogue.title],['advice-text',activeDialogue.text]]){
-    if($(id).textContent!==value)$(id).textContent=value;
-  }
-  $('advice-card').dataset.tone=activeDialogue.tone;
-}
+function renderAdvice() { FocusCampfire.render(state); }
 
 async function requestAdvice(reveal=false) {
-  if($('advice-next').disabled)return;
-  $('advice-request').disabled=true;$('advice-next').disabled=true;
+  if($('advice-request').disabled)return;
+  $('advice-request').disabled=true;
   try {
     const fresh=await refresh(true,true);
     if(!fresh)throw new Error('暂时无法取得最新记录，请稍后再试。');
-    const lines=FocusAdvice.buildLines(fresh);
-    activeDialogue=FocusAdvice.pickLine(lines,activeDialogue?.id);
-    dialogueDate=fresh.date;
-    renderAdvice();
+    FocusCampfire.suggest(fresh);
     if(currentView!=='today')switchView('today');
-    if(reveal)$('advice-card').scrollIntoView({block:'center',behavior:fresh.settings.motion?'smooth':'auto'});
-    if(fresh.settings.motion && !window.matchMedia('(prefers-reduced-motion: reduce)').matches){
-      $('advice-line').animate([{opacity:0,transform:'translateY(4px)'},{opacity:1,transform:'translateY(0)'}],{duration:220,easing:'ease-out'});
-    }
+    const motion=fresh.settings.motion&&!window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(reveal)$('advice-card').scrollIntoView({block:'center',behavior:motion?'smooth':'auto'});
   }catch(error){toast('向导暂时没有读到新记录',error.message,true);}
-  finally{$('advice-request').disabled=false;$('advice-next').disabled=false;}
+  finally{$('advice-request').disabled=false;}
 }
 
 function renderWeek() {
@@ -547,7 +530,6 @@ $('trash-open').addEventListener('click',()=>{if(state){renderTrash();$('trash-d
 $('history-records').addEventListener('click',event=>{const button=event.target.closest('[data-trash-record]');if(button)changeRecord(button.dataset.trashRecord,'trash');});
 $('trash-records').addEventListener('click',event=>{const button=event.target.closest('[data-restore-record]');if(button)changeRecord(button.dataset.restoreRecord,'restore');});
 $('advice-request').addEventListener('click',()=>requestAdvice(true));
-$('advice-next').addEventListener('click',()=>requestAdvice(false));
 $('settings-open').addEventListener('click',showSettings);$('targets-edit').addEventListener('click',showSettings);
 $('opening-preview').addEventListener('click',previewOpening);
 $('opening-close').addEventListener('click',()=>$('opening-dialog').close());
