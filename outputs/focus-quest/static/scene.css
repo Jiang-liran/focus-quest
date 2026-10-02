@@ -1,0 +1,71 @@
+/* The scene follows completed minutes continuously; milestones add emphasis. */
+.quest-hero{--energy:.12;--mist:.7;--path-offset:100;--crystal-scale:.8;--crystal-glow:2px;--orbit-opacity:.12;--star-opacity:.2;--scene-color:#bda4f6;padding-bottom:20px;transition:border-color 1.2s,background 1.2s}
+.quest-hero::after{box-shadow:inset 0 0 100px color-mix(in srgb,var(--scene-color) calc(var(--energy)*12%),transparent);transition:box-shadow 1.2s}
+.quest-scene{min-height:325px;margin-bottom:22px}
+.island-art{height:320px;overflow:visible;filter:brightness(var(--scene-brightness,.8));transition:filter 1.2s}
+.scene-halo,.quest-hero[data-stage="4"] .scene-halo{width:290px;height:290px;top:10px;background:radial-gradient(closest-side,color-mix(in srgb,var(--scene-color) 24%,transparent),transparent);opacity:var(--energy);transform:scale(var(--halo-scale,.9));transition:opacity 1.2s,transform 1.2s}
+.scene-halo::before{border-color:color-mix(in srgb,var(--scene-color) 28%,transparent)}
+.sky-orbit circle{fill:none;stroke:#b49adf;stroke-width:1;opacity:.12}
+.sky-orbit #sky-energy{stroke:var(--scene-color);stroke-width:2;stroke-linecap:round;opacity:var(--orbit-opacity);stroke-dashoffset:var(--path-offset);filter:drop-shadow(0 0 5px var(--scene-color));transition:stroke-dashoffset 1.3s ease,opacity 1.3s}
+.quest-hero[data-stage] .scene-path-lit{stroke:var(--scene-color);stroke-width:4;stroke-dasharray:100;stroke-dashoffset:var(--path-offset);stroke-linecap:round;opacity:.95;filter:drop-shadow(0 0 5px var(--scene-color));transition:stroke-dashoffset 1.3s ease,stroke 1.3s}
+.quest-hero[data-stage] .light-beam{opacity:var(--energy);transition:opacity 1.3s}
+.quest-hero[data-stage] .crystal{filter:drop-shadow(0 0 var(--crystal-glow) var(--scene-color));transition:filter 1.3s;animation-duration:var(--crystal-tempo,5s)}
+.crystal-shrine{transform:scale(var(--crystal-scale));transform-origin:322px 175px;transition:transform 1.3s}
+.scene-readout{position:absolute;top:5px;right:22px;z-index:3;display:flex;gap:8px;align-items:center;font-size:9px;letter-spacing:1px;color:#9284a9}
+.scene-readout strong{font-size:13px;font-variant-numeric:tabular-nums;color:var(--scene-color);font-weight:500}
+.quest-hero[data-preview="true"] .scene-readout{color:#e6c798;border:1px solid #e5c1883b;border-radius:6px;background:#1e1c2d;padding:6px 9px}
+.scene-mist{position:absolute;z-index:2;inset:30px -5px 39px;pointer-events:none;opacity:var(--mist);background:radial-gradient(ellipse at 22% 65%,#9096b988,transparent 51%),radial-gradient(ellipse at 74% 37%,#a9a0cb55,transparent 50%);filter:blur(13px);transition:opacity 1.4s;animation:mist-drift 12s ease-in-out infinite alternate}
+.quest-scene .stars{opacity:var(--star-opacity);transition:opacity 1.3s}
+.quest-hero[data-stage] .island-sparkles{opacity:var(--star-opacity);animation:none;transition:opacity 1.3s}
+.path-beacon circle:first-child{fill:#171b33;stroke:#605979;stroke-width:1;transition:fill 1s,stroke 1s}
+.path-beacon circle:last-child{fill:#665c86;transition:fill 1s,filter 1s}
+.path-beacon.lit circle:first-child{fill:#252440;stroke:var(--scene-color)}
+.path-beacon.lit circle:last-child{fill:var(--scene-color);filter:drop-shadow(0 0 6px var(--scene-color))}
+#scene-traveler{transition:transform 1.3s ease;filter:drop-shadow(0 0 3px #d4b8ff55)}
+.scene-subjects{position:absolute;bottom:10px;z-index:3;display:flex;gap:14px;left:0;right:0;justify-content:center}
+.scene-sigil{display:flex;align-items:center;gap:5px;color:#8886a5;font-size:9px}
+.scene-sigil svg{width:29px;height:29px;overflow:visible;stroke:none}
+.scene-sigil .sigil-track{fill:#141727;stroke:#71678240;stroke-width:1.4}
+.scene-sigil .sigil-charge{fill:none;stroke:var(--subject-color);stroke-width:1.8;stroke-linecap:round;transition:stroke-dashoffset 1.2s;transform:rotate(-90deg);transform-origin:16px 16px}
+.scene-sigil text{fill:var(--subject-color);stroke:none;text-anchor:middle;font-size:10px;font-family:inherit;opacity:.65}
+.scene-sigil.complete{color:var(--subject-color)}
+.scene-sigil.complete .sigil-charge{filter:drop-shadow(0 0 5px var(--subject-color))}
+.scene-sigil.complete text{opacity:1}
+.scene-caption{bottom:-12px;font-size:8px;letter-spacing:.4px;color:#9684b0}
+.effects-preview{position:relative;z-index:3;border-top:1px solid #ad91ce24;margin:12px 0 5px;padding:12px 0 0;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:9px 20px;align-items:center}
+.preview-heading{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:12px;font-size:11px;color:#baa7d3}
+.preview-heading strong{font-weight:500}.preview-heading b{color:#ead4ff;font-variant-numeric:tabular-nums;margin-left:9px}
+#preview-progress{width:100%;margin:2px 0 0;accent-color:#c4a1f3;height:6px;cursor:ew-resize}
+.preview-stages{grid-column:1;display:flex;justify-content:space-between;gap:10px}
+.preview-stages button{font-size:10px;color:#a794c1;border:1px solid #b390df20;border-radius:6px;padding:6px 11px}
+.preview-stages button.active{background:#b390df20;color:#e1caff;border-color:#c79afa66}
+.preview-subjects{grid-column:2;grid-row:2/span 2;display:grid;grid-template-columns:repeat(4,auto);gap:6px;align-items:center}
+.preview-subjects span{grid-column:1/-1;font-size:10px;color:#9286a4}
+.preview-subjects button{font-size:10px;border:1px solid #76608e55;border-radius:6px;padding:6px 13px;color:#d2bedf}
+.preview-subjects button:hover,.preview-stages button:hover{background:#b69ddd20}
+.effects-preview>p{grid-column:1/-1;font-size:9px;color:#80758f;line-height:1.7}
+.subject-card .subject-sigil{position:absolute;right:14px;top:47px;opacity:calc(.18 + var(--subject-energy)*.7);width:52px;height:44px;pointer-events:none;transition:opacity 1s}
+.subject-card .subject-numbers{position:relative;z-index:1}
+.subject-card .subject-numbers strong{font-size:21px}
+.subject-card .subject-numbers>span{margin-right:34px}
+.subject-card.over .subject-sigil{opacity:.85}
+.subject-card.over{box-shadow:inset 0 0 28px color-mix(in srgb,var(--subject-color) 5%,transparent)}
+.subject-card.over .subject-progress{box-shadow:0 0 12px color-mix(in srgb,var(--subject-color) 30%,transparent)}
+.subject-card.over .subject-progress i{background:linear-gradient(90deg,var(--subject-color),#e8e1ff,var(--subject-color));background-size:220% 100%;animation:subject-shimmer 5s ease-in-out infinite}
+#celebration-dialog{--reward-color:#d4b3f4;border-color:color-mix(in srgb,var(--reward-color) 45%,#302437);background:radial-gradient(ellipse at 50% 15%,color-mix(in srgb,var(--reward-color) 12%,transparent),transparent 65%),#211d32}
+.celebration-art{position:relative;z-index:1;min-height:132px;margin:0 auto 10px;display:grid;place-items:center}
+.celebration-art::before{content:'';position:absolute;width:140px;height:140px;border:1px solid color-mix(in srgb,var(--reward-color) 25%,transparent);border-radius:50%;box-shadow:0 0 45px color-mix(in srgb,var(--reward-color) 10%,transparent);animation:reward-orbit 5s ease-in-out infinite}
+.celebration-art .celebration-gem{margin:0;color:var(--reward-color);text-shadow:0 0 30px color-mix(in srgb,var(--reward-color) 65%,transparent)}
+#celebration-dialog .reward-pill{color:var(--reward-color);border-color:color-mix(in srgb,var(--reward-color) 27%,transparent);background:color-mix(in srgb,var(--reward-color) 7%,transparent)}
+#celebration-dialog .confetti i{background:var(--reward-color)}
+#celebration-dialog .confetti i:nth-child(3n){background:#f1e0bc}
+@keyframes mist-drift{from{transform:translateX(-10px)}to{transform:translateX(12px)}}
+@keyframes subject-shimmer{0%,100%{background-position:0 50%}50%{background-position:100% 50%}}
+@keyframes reward-orbit{0%,100%{transform:scale(.9);opacity:.5}50%{transform:scale(1.12);opacity:1}}
+@media(min-width:1500px){.island-art{height:345px}.quest-scene{min-height:350px}.scene-caption{bottom:-12px}}
+@media(max-width:1170px){.quest-scene{min-height:295px}.island-art{height:285px}.scene-subjects{gap:8px}.scene-sigil{gap:3px;font-size:8px}.subject-card .subject-sigil{width:39px;height:33px;right:7px;top:47px}.subject-card .subject-numbers strong{font-size:19px}.subject-card .subject-numbers>span{margin-right:15px}}
+@media(max-width:980px){.subject-card .subject-sigil{width:51px;height:43px;right:17px}.subject-card .subject-numbers strong{font-size:21px}}
+@media(max-width:699px){.quest-scene{min-height:285px;margin-bottom:24px}.island-art{height:280px}.preview-stages{gap:4px}.preview-stages button{padding:6px 5px;font-size:8px}.preview-subjects{gap:6px}.preview-subjects button{padding:6px 9px}.scene-readout{top:0}.subject-card .subject-sigil{width:39px;height:33px;right:6px;top:45px}.subject-card .subject-numbers strong{font-size:18px}.subject-card .subject-numbers>span{margin-right:12px}}
+@media(max-width:980px){.effects-preview{grid-template-columns:1fr}.preview-subjects{grid-column:1;grid-row:auto;display:flex;flex-wrap:wrap}.preview-subjects span{margin-right:8px}}
+.no-motion .scene-mist,.no-motion .subject-card.over .subject-progress i,.no-motion .celebration-art::before{animation:none!important}
+@media(prefers-reduced-motion:reduce){.scene-mist,.subject-card.over .subject-progress i,.celebration-art::before{animation:none!important}}

@@ -1,0 +1,24 @@
+{
+  "build": 8,
+  "version": "1.5",
+  "tag": "v1.5",
+  "recovery_type": "exact released runtime source; recovered commit, not original development commit",
+  "source_location": "work/backups/before-v1.6-app.zip",
+  "source_kind": "app-zip",
+  "runtime_source_digest_sha256": "c94f479fdd1de5176989b8e97a48a97ecb4d0db6c029f699a5a16552267fd451",
+  "runtime_source_files_sha256": {
+    "server.py": "ae1247e9742e8bed1887ba7c47e7afdbe189db9eba08d5b491be3ee7724de68b",
+    "static/index.html": "9decac26a3330b006fa396eb570e4ae4baecec350937af907f210d0534ecd0a5",
+    "static/effects.js": "d8e433e59f0ba906b19ff44be3303c1b80d76e9a550187ab66d3cd4d5a651091",
+    "static/subject-art.js": "23f172b10276f7d7a300bd68a6b061d3cb36e3fc76d92b0bd435c0229849c6bc",
+    "static/advice.js": "66d59cdbc984510d008c3ca58f6ca4024ef174018eb30ad86d41cab7e1912be6",
+    "static/style.css": "63c5b2a47498f762a70592394a3940e8f8157581b6f819c32975bccfdb17509a",
+    "static/scene.css": "7bef05b3dfb8e29b2d63f15376c7d25f5c4e68c80a7063fa298ae81c0a1734ff",
+    "static/app.js": "2ea234fd862e747b60f4f940e0d72a94275ce60ce40a515cdf686fa370752bed",
+    "static/subject-art.css": "08ea168f0690cd399543e5d2bcffc08d160868c71856e7caab87fd3334fd6b09"
+  },
+  "native_executable_sha256": "5843df5c1f3909f0264166374406b0ed2170dcb744b243a0656a194aed881088",
+  "info_plist_sha256": "c4bf21d96a32ac0332a30055dd95c0496dee7d2711a926ce148c454035d618d4",
+  "native_swift_source_available": false,
+  "original_zip_sha256": "c55eca6931b8a188c9550dfe769ac9f12190d37d343406cadc858d7ef68540b6"
+}

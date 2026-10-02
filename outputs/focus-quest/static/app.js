@@ -18,6 +18,9 @@ let baselineReady = false, seenRecords = new Set(), audioContext = null;
 let activeDialogue = null, dialogueDate = null;
 let weekChartState = null, weekChartRequest = 0, weekChartLoading = false;
 let recordMutationBusy = false;
+let scenePreviewPercent = null, subjectRenderKey = null, sceneSubjectKey = null;
+let claimedEffects = null, celebrationQueue = [];
+const subjectRewards = {math:['几何星图，已点亮。','思路一步步连起来，数学的今日目标已经完成。'],cs:['核心电路，已连通。','知识节点连接成网，408 的今日目标已经完成。'],politics:['信念旗帜，已升起。','一点一滴的理解，汇成了政治的今日成果。'],english:['语言之书，已展开。','每一次积累都在生长，英语的今日目标已经完成。']};
 
 function esc(value) { return String(value ?? '').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function icon(name) { return `<svg aria-hidden="true"><use href="#i-${name}"/></svg>`; }
@@ -75,7 +78,8 @@ async function refresh(force=false, quietRewards=false) {
 
 function checkNewRecords(next, quietRewards=false) {
   const recent=next.latestRecords || next.records;
-  if(!baselineReady){recent.forEach(r=>seenRecords.add(r.id));baselineReady=true;return;}
+  if(!baselineReady){recent.forEach(r=>seenRecords.add(r.id));baselineReady=true;seedEffectClaims(next);return;}
+  if(state && state.date!==next.date)seedEffectClaims(next);
   const incoming=recent.filter(r=>!seenRecords.has(r.id));
   recent.forEach(r=>seenRecords.add(r.id));
   if(!incoming.length)return;
@@ -83,14 +87,15 @@ function checkNewRecords(next, quietRewards=false) {
   const fresh=incoming.filter(r=>Date.now()-new Date(r.end).getTime()<10*60*1000 && new Date(r.end).getTime()<=Date.now()+60000);
   if(!fresh.length)return;
   const gained=fresh.reduce((sum,r)=>sum+r.minutes,0);
-  const oldStage=state && state.date===next.date ? stageOf(state.totals.percent) : 0;
-  const newStage=stageOf(next.totals.percent);
-  if(!quietRewards && state && next.date===next.today && state.date===next.date && newStage>oldStage){
-    showCelebration({title:stageTitles[newStage],body:`${fresh.length===1?fresh[0].name:`${fresh.length} 段专注`}已入账，今日推进至 ${pct(next.totals.percent)}。`,reward:`+${number(gained)} XP · ${stageNames[newStage]}`,preview:false,stage:newStage});
-  } else {
+  const unlocked=quietRewards?[]:FocusEffects.unlocks(state,next,fresh,effectClaims());
+  unlocked.forEach(event=>rememberEffect(event));
+  if(unlocked.length && next.settings.motion){
+    celebrationQueue.push(...unlocked.map(event=>celebrationFor(event)));
+    setTimeout(playNextCelebration,0);
+  } else if(!quietRewards) {
     toast(`✦ ${fresh.length===1?fresh[0].name:`${fresh.length} 个专注任务`} · 自动交任务`, `+${duration(gained)} · +${number(gained)} XP${state && next.totals.level>state.totals.level?` · 升至 Lv. ${next.totals.level}`:''}`);
   }
-  if(next.settings.sound)playChime();
+  if(!quietRewards && next.settings.sound)playChime();
 }
 
 function render() {
@@ -149,8 +154,7 @@ function updateViewTitle() {
 }
 
 function renderHero() {
-  const t=state.totals, stage=stageOf(t.percent);
-  $('quest-hero').dataset.stage=stage;
+  const t=state.totals, stage=stageOf(t.minutes/t.target*100);
   $('stage-tag').textContent=t.percent>100?'自由探索 · 已通关':stageNames[stage];
   $('hero-heading').textContent=stageTitles[stage];
   $('hero-message').textContent=t.percent>100?'额外的积累也已记下，现在可以安心休息。':stageMessages[stage];
@@ -161,10 +165,53 @@ function renderHero() {
   $('total-bar').style.width=Math.min(100,t.percent)+'%';
   const progress=document.querySelector('.total-progress');
   progress.setAttribute('aria-valuenow',Math.min(100,t.percent));progress.setAttribute('aria-valuetext',pct(t.percent));
+  renderScene(scenePreviewPercent??(t.minutes/t.target*100));
+}
+
+function renderScene(percent) {
+  const hero=$('quest-hero'),visual=FocusEffects.scene(percent),p=visual.progress;
+  hero.dataset.stage=visual.stage;hero.dataset.preview=scenePreviewPercent!==null?'true':'false';
+  const vars={'--energy':visual.glow,'--mist':visual.mistOpacity,'--path-offset':visual.pathOffset,
+    '--crystal-scale':.72+p*.28,'--crystal-glow':(2+p*17)+'px','--crystal-tempo':(5-p*2)+'s',
+    '--orbit-opacity':.1+p*.85,'--star-opacity':.12+p*.88,'--scene-brightness':.68+p*.45,'--halo-scale':.75+p*.4};
+  for(const [key,value] of Object.entries(vars))hero.style.setProperty(key,value);
+  // Color warms smoothly from moonlight to gold as the island wakes up.
+  const rgb=[156+Math.round(p*79),171+Math.round(p*28),235-Math.round(p*80)];
+  hero.style.setProperty('--scene-color',`rgb(${rgb.join(',')})`);
+  $('scene-energy').textContent=pct(percent);$('scene-mode').textContent=scenePreviewPercent!==null?'动画预览':'星岛能量';
+  const path=$('journey-path'),length=path.getTotalLength(),point=path.getPointAtLength(length*p);
+  $('scene-traveler').style.transform=`translate(${point.x-171}px,${point.y-220}px)`;
+  document.querySelectorAll('[data-checkpoint]').forEach(beacon=>{
+    const checkpoint=Number(beacon.dataset.checkpoint),at=path.getPointAtLength(length*checkpoint/100);
+    beacon.setAttribute('transform',`translate(${at.x} ${at.y})`);beacon.classList.toggle('lit',percent>=checkpoint);
+  });
+  const captions=['迷雾正在散去，每一步都会留下光。','引路之光已亮起，继续向星岛深处。','晶核苏醒了，你已经走过一半。','星环正在共鸣，终点就在前方。','星岛已被点亮，今天的努力值得庆祝。'];
+  $('scene-caption').textContent='✦ '+captions[visual.stage];
+  const subjects=state.subjects.filter(s=>subjectsMeta[s.id]),key=JSON.stringify(subjects.map(s=>[s.id,s.minutes,s.target]));
+  if(sceneSubjectKey!==key){
+    sceneSubjectKey=key;
+    const glyph={math:'∑',cs:'{}',politics:'★',english:'Aa'};
+    $('scene-subjects').innerHTML=subjects.map(s=>{const p=Math.min(1,s.minutes/s.target);return `<span class="scene-sigil ${p>=1?'complete':''}" style="--subject-color:${meta(s.id).color}"><svg viewBox="0 0 32 32"><circle class="sigil-track" cx="16" cy="16" r="13"/><circle class="sigil-charge" cx="16" cy="16" r="13" pathLength="100" stroke-dasharray="100" stroke-dashoffset="${100*(1-p)}"/><text x="16" y="20">${glyph[s.id]||'✦'}</text></svg>${esc(s.name)}</span>`;}).join('');
+  }
+}
+
+function previewScene(percent) {
+  if(!state)return;
+  scenePreviewPercent=Math.round(Math.min(100,Math.max(0,Number(percent)||0)));
+  $('effects-preview').hidden=false;$('preview-effects').setAttribute('aria-expanded','true');
+  $('preview-progress').value=scenePreviewPercent;$('preview-percent').textContent=pct(scenePreviewPercent);
+  document.querySelectorAll('[data-preview-progress]').forEach(b=>b.classList.toggle('active',Number(b.dataset.previewProgress)===scenePreviewPercent));
+  renderScene(scenePreviewPercent);
+}
+function stopScenePreview() {
+  if(scenePreviewPercent===null)return;
+  scenePreviewPercent=null;$('effects-preview').hidden=true;$('preview-effects').setAttribute('aria-expanded','false');
+  if(state)renderScene(state.totals.minutes/state.totals.target*100);
 }
 
 function renderSubjects() {
-  $('subjects').innerHTML=state.subjects.map(s=>{const m=meta(s.id),over=s.minutes>=s.target;return `<article class="subject-card ${over?'over':''}" style="--subject-color:${m.color}"><div class="subject-head"><span class="subject-icon">${icon(m.icon)}</span><h3>${esc(s.name)}</h3><span class="subject-badge">${over?'✦ 已达成':s.minutes>0?'推进中':'等待启程'}</span></div><div class="subject-numbers"><strong>${durationHTML(s.minutes)}</strong><span>/ ${hours(s.target)} 小时</span></div><div class="subject-progress" role="progressbar" aria-label="${esc(s.name)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,s.percent)}" aria-valuetext="${pct(s.percent)}"><i style="width:${Math.min(100,s.percent)}%"></i></div><div class="subject-bottom"><span>${s.minutes>s.target?'超额 '+duration(s.minutes-s.target):s.minutes===s.target?'目标达成，收获满满':s.minutes>0?'还差 '+duration(s.target-s.minutes):m.subtitle}</span><strong>${pct(s.percent)}</strong></div></article>`;}).join('');
+  const key=JSON.stringify(state.subjects);if(subjectRenderKey===key)return;subjectRenderKey=key;
+  $('subjects').innerHTML=state.subjects.map(s=>{const m=meta(s.id),over=s.minutes>=s.target;return `<article class="subject-card ${over?'over':''}" style="--subject-color:${m.color};--subject-energy:${Math.min(1,s.minutes/s.target)}"><div class="subject-head"><span class="subject-icon">${icon(m.icon)}</span><h3>${esc(s.name)}</h3><span class="subject-badge">${over?'✦ 已达成':s.minutes>0?'推进中':'等待启程'}</span></div><div class="subject-sigil">${FocusSubjectArt.markup(s.id)}</div><div class="subject-numbers"><strong>${durationHTML(s.minutes)}</strong><span>/ ${hours(s.target)} 小时</span></div><div class="subject-progress" role="progressbar" aria-label="${esc(s.name)}进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,s.percent)}" aria-valuetext="${pct(s.percent)}"><i style="width:${Math.min(100,s.percent)}%"></i></div><div class="subject-bottom"><span>${s.minutes>s.target?'超额 '+duration(s.minutes-s.target):s.minutes===s.target?'目标达成，收获满满':s.minutes>0?'还差 '+duration(s.target-s.minutes):m.subtitle}</span><strong>${pct(s.percent)}</strong></div></article>`;}).join('');
 }
 
 function renderAdvice() {
@@ -268,6 +315,7 @@ function renderAchievements() {
 
 function switchView(view) {
   if(!viewNames[view])return;
+  if(view!=='today')stopScenePreview();
   currentView=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
   document.querySelectorAll('[data-view]').forEach(el=>{el.classList.toggle('active',el.dataset.view===view);el.setAttribute('aria-current',el.dataset.view===view?'page':'false');});
@@ -301,6 +349,7 @@ async function saveSettings(event) {
   $('save-settings').disabled=true;$('settings-error').hidden=true;
   try {
     await api('/api/settings',{targets,mapping,activityMapping,weeklyTarget:Math.round(Number($('weekly-target-input').value)*60),motion:$('motion-input').checked,sound:$('sound-input').checked});
+    if(!$('motion-input').checked)celebrationQueue=[];
     if($('sound-input').checked) { ensureAudio(); }
     $('settings-dialog').close();await refresh(true);toast('远征设置已保存','接下来的进度会按新目标计算。');
   } catch(error){$('settings-error').textContent=error.message;$('settings-error').hidden=false;}
@@ -342,12 +391,46 @@ function toast(title,detail='',isError=false) {
   $('toasts').append(el);while($('toasts').children.length>3)$('toasts').firstChild.remove();
   setTimeout(()=>{el.classList.add('fade');setTimeout(()=>el.remove(),450);},5500);
 }
-function showCelebration({title,body,reward,preview=false,stage=4}) {
-  $('celebration-kicker').textContent=preview?'EFFECT PREVIEW · 特效预览':stage===4?'DAILY QUEST COMPLETE':'NEW MILESTONE UNLOCKED';
+function effectClaims() {
+  if(claimedEffects===null){
+    try{const saved=JSON.parse(localStorage.getItem('focus-quest-effects-v1')||'[]');claimedEffects=new Set(Array.isArray(saved)?saved.filter(k=>typeof k==='string').slice(-200):[]);}catch(_){claimedEffects=new Set();}
+  }
+  return claimedEffects;
+}
+function rememberEffect(event) {
+  const claims=effectClaims();claims.add(event.key);
+  if(event.type==='daily')for(let stage=1;stage<event.stage;stage++)claims.add(event.key.replace(/:\d+$/,':'+stage));
+  try{localStorage.setItem('focus-quest-effects-v1',JSON.stringify([...claims].slice(-200)));}catch(_){}
+}
+function seedEffectClaims(next) {
+  if(next.date!==next.today)return;
+  for(const s of next.subjects||[])if(s.target>0 && s.minutes>=s.target)rememberEffect({key:`subject:${next.date}:${s.id}:${s.target}`,type:'subject'});
+  const stage=stageOf(next.totals.minutes/next.totals.target*100);
+  if(stage)rememberEffect({key:`daily:${next.date}:${next.totals.target}:${stage}`,type:'daily',stage});
+}
+function celebrationFor(event,preview=false) {
+  if(event.type==='subject'){
+    const [title,body]=subjectRewards[event.id];
+    return {title,body,reward:`${event.name||meta(event.id).name} · ${hours(event.target)} 小时目标达成`,subject:event.id,preview};
+  }
+  return {title:stageTitles[event.stage],body:['','引路石被点亮了。每一段专注，都在把迷雾推远。','水晶正在苏醒，星岛已经记下你走过的一半路程。','星环与水晶开始共鸣。你已完成今日目标的四分之三。','四周的光汇聚到星岛。今天已经做得足够好了。'][event.stage],reward:`每日主线 ${event.stage*25}% · ${stageNames[event.stage]}`,stage:event.stage,preview};
+}
+function playNextCelebration() {
+  if(state?.settings.motion===false){celebrationQueue=[];return;}
+  if(!celebrationQueue.length || document.querySelector('dialog[open]'))return;
+  showCelebration(celebrationQueue.shift());
+}
+function showCelebration({title,body,reward,preview=false,stage=4,subject=null}) {
+  const dialog=$('celebration-dialog');
+  dialog.dataset.kind=subject||'daily';dialog.dataset.preview=String(preview);
+  const color=subject?meta(subject).color:['#bda4f6','#83c7b0','#b9a0ee','#cfb3ee','#eac58b'][stage];
+  dialog.style.setProperty('--reward-color',color);dialog.style.setProperty('--subject-color',color);
+  $('celebration-art').innerHTML=subject?`<div class="subject-sigil">${FocusSubjectArt.markup(subject)}</div>`:`<div class="celebration-gem">${['✧','✧','❖','✦','✦'][stage]}</div>`;
+  $('celebration-kicker').textContent=preview?'EFFECT PREVIEW · 特效预览':subject?`${meta(subject).name} · SUBJECT QUEST COMPLETE`:stage===4?'DAILY QUEST COMPLETE':'NEW MILESTONE UNLOCKED';
   $('celebration-title').textContent=title;$('celebration-body').textContent=body;
   $('celebration-reward').textContent=reward;
   $('celebration-note').textContent=preview?'这是特效预览，不会增加学习时长、经验或记录。':'这段努力，已经计入你的成长。';
-  $('celebration-done').textContent=preview?'期待真正通关的那一刻':'收下这份成就';
+  $('celebration-done').textContent=preview?'返回预览':celebrationQueue.length?'收下成就，查看下一份':'收下这份成就';
   $('confetti').innerHTML=Array.from({length:30},(_,i)=>`<i style="left:${(i*37)%100}%;animation-delay:${-(i%13)*.29}s;animation-duration:${2.6+(i%7)*.2}s"></i>`).join('');
   if(!$('celebration-dialog').open)$('celebration-dialog').showModal();
 }
@@ -356,7 +439,7 @@ function playChime() {
   try{ensureAudio();if(!audioContext)return;[523.25,659.25,783.99].forEach((hz,i)=>{const osc=audioContext.createOscillator(),gain=audioContext.createGain(),at=audioContext.currentTime+i*.10;osc.type='sine';osc.frequency.value=hz;gain.gain.setValueAtTime(0,at);gain.gain.linearRampToValueAtTime(.035,at+.02);gain.gain.exponentialRampToValueAtTime(.0001,at+.55);osc.connect(gain);gain.connect(audioContext.destination);osc.start(at);osc.stop(at+.6);});}catch(_){}
 }
 
-function chooseDate(value) { weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
+function chooseDate(value) { stopScenePreview();weekChartRequest++;weekChartState=null;weekChartLoading=false;selectedDate=value===localDay()?null:value;refresh(true); }
 async function browseWeek(date) {
   const request=++weekChartRequest;
   weekChartLoading=true;renderWeek();
@@ -394,8 +477,18 @@ $('week-chart').addEventListener('click',e=>{const b=e.target.closest('[data-dat
 $('prev-week').addEventListener('click',()=>stepWeek(-1));$('next-week').addEventListener('click',()=>stepWeek(1));$('week-reset').addEventListener('click',()=>{if(state)browseWeek(state.today);});
 $('prev-day').addEventListener('click',()=>stepDate(-1));$('next-day').addEventListener('click',()=>stepDate(1));$('go-today').addEventListener('click',()=>chooseDate(localDay()));
 $('header-today').addEventListener('click',()=>{$('date-picker').classList.remove('visible');chooseDate(state?.today||localDay());});
-$('preview-effects').addEventListener('click',()=>{showCelebration({title:'今日远征，圆满通关。',body:'目标达成时，浮空岛将被点亮，属于你的庆祝也会出现。',reward:'✦ 今日主线 100% · 成就达成',preview:true});if(state?.settings.sound)playChime();});
-document.querySelector('.celebration-close').addEventListener('click',()=>$('celebration-dialog').close());$('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());
+$('preview-effects').addEventListener('click',()=>{if(scenePreviewPercent!==null)stopScenePreview();else if(state)previewScene(state.totals.minutes/state.totals.target*100);});
+$('preview-progress').addEventListener('input',event=>previewScene(event.target.value));
+$('preview-stop').addEventListener('click',stopScenePreview);
+document.querySelectorAll('[data-preview-progress]').forEach(button=>button.addEventListener('click',()=>previewScene(button.dataset.previewProgress)));
+document.querySelectorAll('[data-preview-subject]').forEach(button=>button.addEventListener('click',()=>{
+  const id=button.dataset.previewSubject,subject=state?.subjects.find(s=>s.id===id);if(!subject)return;
+  showCelebration(celebrationFor({type:'subject',...subject},true));if(state.settings.sound)playChime();
+}));
+document.querySelector('.celebration-close').addEventListener('click',()=>{celebrationQueue=[];$('celebration-dialog').close();});
+$('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());
+$('celebration-dialog').addEventListener('cancel',()=>{celebrationQueue=[];});
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(playNextCelebration,0)));
 document.addEventListener('click',()=>{if(state?.settings.sound)ensureAudio();},{once:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refresh();});
 function tickClock(){ $('clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',hour12:false}); }

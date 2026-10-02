@@ -1,0 +1,118 @@
+/* A static miniature until its subject is complete; the same art scales for rewards. */
+.subject-sigil {
+  width: 60px;
+  height: 50px;
+  flex: 0 0 auto;
+  color: var(--subject-color, #a59cde);
+  pointer-events: none;
+  isolation: isolate;
+}
+.subject-sigil .sigil-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.subject-sigil .sigil-shadow { fill: #080b14; stroke: none; opacity: .45; }
+.subject-sigil .sigil-plinth { fill: #24233b; stroke-opacity: .2; }
+.subject-sigil .sigil-plinth-edge { stroke-opacity: .2; stroke-width: .7; }
+.subject-sigil .sigil-aura { fill: currentColor; fill-opacity: .035; stroke: none; }
+.subject-sigil .sigil-sparkles { opacity: .35; stroke-width: 1.2; }
+.subject-sigil .sigil-spark-d { fill: currentColor; stroke: none; }
+.subject-sigil .sigil-orbit { stroke-opacity: .3; stroke-width: 1; }
+.subject-sigil .sigil-satellite { fill: #202a31; stroke-width: 1.2; }
+.subject-sigil .sigil-satellite-small { fill: currentColor; stroke: none; }
+.subject-sigil .sigil-facet { fill: currentColor; fill-opacity: .08; stroke-opacity: .85; }
+.subject-sigil .sigil-face-light { fill: currentColor; fill-opacity: .13; stroke: none; }
+.subject-sigil .sigil-line { stroke-opacity: .48; stroke-width: .9; }
+.subject-sigil .sigil-math-nodes { fill: #182b2b; stroke-width: 1.2; }
+.subject-sigil .sigil-core-star { fill: currentColor; stroke: none; }
+.subject-sigil .sigil-circuit-lines { stroke-opacity: .4; stroke-width: 1.5; }
+.subject-sigil .sigil-circuit-lines circle { fill: #26243b; }
+.subject-sigil .sigil-circuit-current { opacity: 0; stroke-width: 2; stroke-dasharray: 3 22; }
+.subject-sigil .sigil-chip-shell { fill: #2c2945; stroke-opacity: .85; }
+.subject-sigil .sigil-chip-inset { fill: currentColor; fill-opacity: .09; stroke-opacity: .4; stroke-width: .8; }
+.subject-sigil .sigil-chip-pins { stroke-width: 2; stroke-opacity: .7; }
+.subject-sigil .sigil-chip-bolt { fill: currentColor; stroke: none; }
+.subject-sigil .sigil-chip-dot { fill: currentColor; stroke: none; opacity: .65; }
+.subject-sigil .sigil-laurel { stroke-opacity: .45; stroke-width: 1.5; }
+.subject-sigil .sigil-flag-pole { stroke-width: 2; }
+.subject-sigil .sigil-pole-cap { fill: currentColor; stroke: none; }
+.subject-sigil .sigil-flag-cloth { fill: currentColor; fill-opacity: .17; stroke-opacity: .9; }
+.subject-sigil .sigil-flag-fold { stroke-opacity: .23; stroke-width: .8; }
+.subject-sigil .sigil-flag-star { fill: currentColor; stroke: none; }
+.subject-sigil .sigil-medal-ribbon { fill: #3d3240; stroke-opacity: .4; stroke-width: 1; }
+.subject-sigil .sigil-medal-shell { fill: #342c32; stroke-opacity: .85; }
+.subject-sigil .sigil-medal-ring { stroke-opacity: .3; stroke-width: .7; }
+.subject-sigil .sigil-medal-star { fill: currentColor; fill-opacity: .85; stroke: none; }
+.subject-sigil .sigil-book-cover { fill: #253444; stroke-opacity: .6; }
+.subject-sigil .sigil-book-paper { fill: #202d40; stroke-opacity: .9; }
+.subject-sigil .sigil-book-spine { stroke-opacity: .7; }
+.subject-sigil .sigil-book-lines { stroke-opacity: .5; stroke-width: 1; }
+.subject-sigil .sigil-turn-page { opacity: 0; }
+.subject-sigil .sigil-turn-paper { fill: #2b3c50; stroke-opacity: .75; stroke-width: 1; }
+.subject-sigil .sigil-turn-lines { stroke-opacity: .35; stroke-width: .8; }
+.subject-sigil .sigil-book-ribbon { fill: currentColor; fill-opacity: .65; stroke: #202d40; stroke-width: .7; }
+.subject-sigil .sigil-letter { fill: currentColor; stroke: none; font-family: Georgia, 'Times New Roman', serif; font-style: italic; }
+.subject-sigil .sigil-letter-a { font-size: 16px; opacity: .85; }
+.subject-sigil .sigil-letter-b { font-size: 12px; opacity: .65; }
+.subject-sigil .sigil-letter-trail { stroke-opacity: .3; stroke-width: .8; stroke-dasharray: 1 3; }
+.subject-sigil .sigil-book-star { fill: currentColor; fill-opacity: .7; stroke: none; }
+
+.celebration-art .subject-sigil {
+  width: 160px;
+  height: 134px;
+  margin: 8px auto 20px;
+}
+.celebration-art .subject-sigil .sigil-svg { filter: drop-shadow(0 0 15px color-mix(in srgb, currentColor 20%, transparent)); }
+:is(.over, .celebration-art) .subject-sigil .sigil-aura { fill-opacity: .07; }
+:is(.over, .celebration-art) .subject-sigil .sigil-sparkles { opacity: .75; }
+:is(.over, .celebration-art) .subject-sigil .sigil-spark { animation: sigil-twinkle 5s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-spark-b { animation-delay: -2s; }
+:is(.over, .celebration-art) .subject-sigil .sigil-spark-c { animation-delay: -3.5s; }
+:is(.over, .celebration-art) .subject-sigil .sigil-spark-d { animation-delay: -1s; }
+:is(.over, .celebration-art) .subject-sigil .sigil-math-orbit { transform-origin: 60px 47px; animation: sigil-orbit 18s linear infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-core-star { animation: sigil-glow 5s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-math-nodes { fill: currentColor; fill-opacity: .65; }
+:is(.over, .celebration-art) .subject-sigil .sigil-circuit-current { opacity: .8; animation: sigil-current 5s linear infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-chip-bolt { animation: sigil-glow 4.5s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-chip-inset { fill-opacity: .16; }
+:is(.over, .celebration-art) .subject-sigil .sigil-flag { transform-origin: 45px 40px; animation: sigil-flag-wave 5s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-medal-star { animation: sigil-glow 5s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-turn-page { transform-origin: 60px 60px; animation: sigil-page-turn 7s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-letter-a { animation: sigil-letter-rise 6s ease-in-out infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-letter-b { animation: sigil-letter-rise 6s ease-in-out -2.5s infinite; }
+:is(.over, .celebration-art) .subject-sigil .sigil-book-star { animation: sigil-glow 5s ease-in-out -1s infinite; }
+.celebration-art .subject-sigil .sigil-math-geometry,
+.celebration-art .subject-sigil .sigil-chip,
+.celebration-art .subject-sigil .sigil-medal,
+.celebration-art .subject-sigil .sigil-book { animation: sigil-float 4.5s ease-in-out infinite; }
+.celebration-art .subject-sigil .sigil-circuit-current { animation-duration: 3s; }
+.celebration-art .subject-sigil .sigil-math-orbit { animation-duration: 12s; }
+.celebration-art .subject-sigil .sigil-turn-page { animation-duration: 4.5s; }
+
+@keyframes sigil-twinkle { 0%, 100% { opacity: .45; } 50% { opacity: 1; } }
+@keyframes sigil-orbit { to { transform: rotate(360deg); } }
+@keyframes sigil-current { to { stroke-dashoffset: -50; } }
+@keyframes sigil-glow { 0%, 100% { opacity: .65; } 50% { opacity: 1; filter: drop-shadow(0 0 3px currentColor); } }
+@keyframes sigil-flag-wave { 0%, 100% { transform: scaleX(1) skewY(0); } 50% { transform: scaleX(.94) skewY(-2deg); } }
+@keyframes sigil-letter-rise { 0%, 100% { transform: translateY(1px); opacity: .65; } 50% { transform: translateY(-3px); opacity: 1; } }
+@keyframes sigil-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
+@keyframes sigil-page-turn {
+  0%, 15%, 85%, 100% { opacity: 0; transform: scaleX(1); }
+  25% { opacity: .9; transform: scaleX(1); }
+  49% { opacity: .9; transform: scaleX(.08); }
+  70% { opacity: .6; transform: scaleX(-1); }
+  80% { opacity: 0; transform: scaleX(-1); }
+}
+
+.no-motion .subject-sigil *,
+.subject-sigil.no-motion * { animation: none !important; transition: none !important; }
+@media (prefers-reduced-motion: reduce) {
+  .subject-sigil * { animation: none !important; transition: none !important; }
+}
