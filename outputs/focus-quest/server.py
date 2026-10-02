@@ -399,6 +399,11 @@ class FocusStore:
             CREATE TABLE IF NOT EXISTS record_lifecycle (
                 record_id TEXT PRIMARY KEY, deleted_at TEXT, reason TEXT, manual_action TEXT
             );
+            CREATE TABLE IF NOT EXISTS record_merges (
+                removed_id TEXT PRIMARY KEY, canonical_id TEXT NOT NULL,
+                merged_at TEXT NOT NULL, original_records TEXT NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS records_match ON records(source,name,start_ms);
             CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT NOT NULL);
         """)
         # Upgrade old archives without changing record IDs or dropping history.
@@ -417,6 +422,11 @@ class FocusStore:
                 with self.db:
                     self._set_meta("settings", json.dumps(self.settings, ensure_ascii=False, allow_nan=False))
         self.revision = int(self._meta("revision") or 0)
+        # Repair duplicates saved by older versions even when either source is
+        # currently unavailable. Original rows remain in the merge journal.
+        with self.db:
+            if self._reconcile_sources():
+                self._bump_revision()
         self.sync = {"connected": False, "sourcePath": str(self.source), "lastCheck": None,
                      "lastImport": self._meta("lastImport"), "error": None,
                      "importedCount": self._active_count(),
@@ -522,22 +532,12 @@ class FocusStore:
         raise last_error
 
     def _upsert_record(self, record):
-        """Keep one archive row across sources, and retain its original reward ID."""
+        """Update exact source identities; fuzzy matching happens after the batch."""
         source, source_key = record[7], record[1] if record[7] == "calendar" else record[0]
         alias = self.db.execute("SELECT record_id FROM record_aliases WHERE source=? AND source_key=?",
                                 (source, source_key)).fetchone()
         record_id = alias[0] if alias else record[0]
         previous = self.db.execute("SELECT * FROM records WHERE id=?", (record_id,)).fetchone()
-        if previous is None:
-            other_source = "calendar" if source == "tomatodo" else "tomatodo"
-            candidates = self.db.execute("""SELECT r.* FROM records r
-                WHERE r.source=? AND r.name=? AND ABS(r.start_ms-?)<=5000
-                  AND ABS(r.end_ms-?)<=5000 AND ABS(r.minutes-?)<=0.05
-                  AND NOT EXISTS (SELECT 1 FROM record_aliases a
-                                  WHERE a.record_id=r.id AND a.source=?)""",
-                (other_source, record[2], record[4], record[5], record[3], source)).fetchall()
-            if len(candidates) == 1:
-                previous, record_id = candidates[0], candidates[0]["id"]
         self.db.execute("INSERT OR IGNORE INTO record_aliases VALUES (?,?,?)", (source, source_key, record_id))
         self.db.execute("INSERT OR IGNORE INTO source_presence(source,source_key) VALUES (?,?)", (source, source_key))
         # A matching desktop record includes Tomato's measured focus minutes,
@@ -553,6 +553,80 @@ class FocusStore:
             end_ms=excluded.end_ms, day=excluded.day, source=excluded.source""", record)
         return 1
 
+    def _upsert_records(self, records):
+        # Compare the committed result, not intermediate inserts, so a calendar
+        # echo is neither a new reward nor a revision on every repeated poll.
+        query = """SELECT r.*,l.deleted_at,l.reason,l.manual_action FROM records r
+                   LEFT JOIN record_lifecycle l ON l.record_id=r.id"""
+        before = {row[0]: tuple(row) for row in self.db.execute(query)}
+        for record in records:
+            self._upsert_record(record)
+        self._reconcile_sources()
+        after = {row[0]: tuple(row) for row in self.db.execute(query)}
+        return sum(before.get(key) != after.get(key) for key in before.keys() | after.keys())
+
+    def _reconcile_sources(self):
+        """Match only mutually unique cross-source sessions, preserving first ID.
+
+        Calendar elapsed seconds are not measured focus minutes: pauses and
+        Tomato's whole-minute precision make duration equality inappropriate.
+        Both endpoints must still agree within five seconds and overlap.
+        Build all candidates before merging to avoid order-dependent guesses.
+        """
+        pairs = self.db.execute("""SELECT d.id AS desktop_id,c.id AS calendar_id
+            FROM records d JOIN records c ON c.source='calendar' AND c.name=d.name
+                AND c.start_ms BETWEEN d.start_ms-5000 AND d.start_ms+5000
+                AND ABS(c.end_ms-d.end_ms)<=5000
+                AND MAX(c.start_ms,d.start_ms)<MIN(c.end_ms,d.end_ms)
+            WHERE d.source='tomatodo'
+                AND NOT EXISTS (SELECT 1 FROM record_aliases a
+                    WHERE a.record_id=d.id AND a.source='calendar')
+                AND NOT EXISTS (SELECT 1 FROM record_aliases a
+                    WHERE a.record_id=c.id AND a.source='tomatodo')""").fetchall()
+        candidates = {}
+        for pair in pairs:
+            desktop_id, calendar_id = pair
+            candidates.setdefault(desktop_id, []).append(calendar_id)
+            candidates.setdefault(calendar_id, []).append(desktop_id)
+        merged = 0
+        for desktop_id, calendar_id in pairs:
+            if len(candidates[desktop_id]) != 1 or len(candidates[calendar_id]) != 1:
+                continue
+            rows = self.db.execute("SELECT rowid AS arrival_order,* FROM records WHERE id IN (?,?) ORDER BY rowid",
+                                   (desktop_id, calendar_id)).fetchall()
+            lifecycle = self.db.execute("SELECT * FROM record_lifecycle WHERE record_id IN (?,?)",
+                                        (desktop_id, calendar_id)).fetchall()
+            manual = [row for row in lifecycle if row['manual_action'] in ('delete', 'keep')]
+            if len({row['manual_action'] for row in manual}) > 1:
+                # Conflicting explicit actions need a human choice, not a guess.
+                continue
+            survivor, removed = rows
+            desktop = next(row for row in rows if row['source'] == 'tomatodo')
+            journal = json.dumps({'records': [dict(row) for row in rows],
+                                  'lifecycle': [dict(row) for row in lifecycle]}, ensure_ascii=False)
+            self.db.execute("INSERT INTO record_merges VALUES (?,?,?,?)",
+                            (removed['id'], survivor['id'], now_iso(), journal))
+            self.db.execute("UPDATE record_aliases SET record_id=? WHERE record_id=?",
+                            (survivor['id'], removed['id']))
+            # Keep source_presence unchanged: each source retains its own
+            # confirmed presence/absence and last-observed snapshot.
+            active = self.db.execute("""SELECT 1 FROM record_aliases a JOIN source_presence p
+                ON a.source=p.source AND a.source_key=p.source_key
+                WHERE a.record_id=? AND p.active=1 LIMIT 1""", (survivor['id'],)).fetchone()
+            if manual:
+                deleted_at, reason, action = (manual[0][key] for key in ('deleted_at', 'reason', 'manual_action'))
+            else:
+                deleted_at = None if active else next((row['deleted_at'] for row in lifecycle if row['deleted_at']), now_iso())
+                reason, action = ('source_missing' if deleted_at else None), None
+            self.db.execute("DELETE FROM record_lifecycle WHERE record_id IN (?,?)", (desktop_id, calendar_id))
+            self.db.execute("INSERT INTO record_lifecycle VALUES (?,?,?,?)", (survivor['id'], deleted_at, reason, action))
+            self.db.execute("UPDATE records SET source_id=?,name=?,minutes=?,start_ms=?,end_ms=?,day=?,source=? WHERE id=?",
+                            tuple(desktop[key] for key in ('source_id', 'name', 'minutes', 'start_ms', 'end_ms', 'day', 'source'))
+                            + (survivor['id'],))
+            self.db.execute("DELETE FROM records WHERE id=?", (removed['id'],))
+            merged += 1
+        return merged
+
     def import_source(self):
         with self.lock:
             self.sync["lastCheck"] = now_iso()
@@ -561,8 +635,7 @@ class FocusStore:
                 records = [normalized for item in source_records if (normalized := normalize_record(item))]
                 changed = 0
                 with self.db:
-                    for record in records:
-                        changed += self._upsert_record(record)
+                    changed += self._upsert_records(records)
                     # Zero-minute/incomplete source rows still prove presence.
                     # Any unidentifiable row makes absence detection unsafe.
                     seen = set()
@@ -721,8 +794,7 @@ class FocusStore:
                             and range_start <= row["start_ms"] < row["end_ms"] <= min(range_end, generated_ms))
                 changed = 0
                 with self.db:
-                    for record in unique.values():
-                        changed += self._upsert_record(record)
+                    changed += self._upsert_records(unique.values())
                     if healthy and not stale:
                         changed += self._observe_source("calendar", {item[1] for item in observed}, str(generated_ms), covered)
                     else:
@@ -785,6 +857,9 @@ class FocusStore:
         if not isinstance(record_id, str) or not record_id or len(record_id) > 5000:
             raise ValueError("记录标识无效")
         with self.lock, self.db:
+            redirected = self.db.execute("SELECT canonical_id FROM record_merges WHERE removed_id=?", (record_id,)).fetchone()
+            if redirected:
+                record_id = redirected[0]
             if not self.db.execute("SELECT 1 FROM records WHERE id=?", (record_id,)).fetchone():
                 raise ValueError("找不到这条学习记录")
             # Explicit restoration pins this local copy, even if both source
