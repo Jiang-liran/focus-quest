@@ -65,3 +65,11 @@
 /* Static art remains fully visible when motion is disabled. */
 .no-motion :is(.shop-gentle-float,.shop-pet-breathe,.shop-orbit-slow,.shop-portal-glimmer,.shop-sand-fall,.shop-meteor-preview,.shop-aurora-veil),.no-motion #equipped-relic .shop-relic-core{animation:none!important;transition:none!important}
 @media(prefers-reduced-motion:reduce){:is(.shop-gentle-float,.shop-pet-breathe,.shop-orbit-slow,.shop-portal-glimmer,.shop-sand-fall,.shop-meteor-preview,.shop-aurora-veil),#equipped-relic .shop-relic-core{animation:none!important;transition:none!important}}
+
+/* Purchased homepage-only scenery. Its free default mounts no artwork. */
+#equipped-island{pointer-events:visiblePainted}
+#quest-action-dialog.island-item-dialog{width:min(690px,94vw);max-width:690px}
+#quest-action-dialog.island-item-dialog #quest-action-art{height:auto;min-height:0;margin:12px 0 18px;overflow:hidden}
+.island-full-preview{width:100%;border:1px solid #9993ae30;border-radius:14px;background:#1b2132;overflow:hidden}
+.island-full-preview .shop-island-art{display:block;width:100%;height:auto;stroke:none}
+.island-full-preview p{margin:0;padding:10px 14px;color:#b9b4c4;font-size:11px;text-align:center;background:#ffffff04}

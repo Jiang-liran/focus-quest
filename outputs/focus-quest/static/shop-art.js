@@ -14,6 +14,7 @@
     companion: ['default', 'fox', 'owl', 'whale', 'dragon'],
     relic: ['default', 'lotus', 'orrery', 'hourglass'],
     portal: ['default', 'moon', 'archive', 'cosmos'],
+    island: ['default', 'lanterns', 'garden', 'pavilion'],
   };
   const items = new Map(Object.entries(inventory).flatMap(([slot, variants]) => variants.map(variant => [`${slot}-${variant}`, {slot, variant}])));
   const cache = new WeakMap();
@@ -92,6 +93,36 @@
     return `<rect x="12" y="12" width="136" height="87" rx="15" fill="${sky}"/><circle cx="115" cy="28" r="10" fill="${accent}" opacity=".4"/>${ornament}<path d="m25 64 36-23 42 3 34 21-30 23-32 8-30-12Z" fill="${rock}"/><path d="m25 62 36-23 42 3 34 21-30 14-32 8-30-10Z" fill="${ground}"/><path d="M45 66q15-11 27 0t38-5" fill="none" stroke="${accent}" stroke-width="2.5" opacity=".7"/><path d="m87 30 9 14-9 16-9-16Z" fill="${accent}"/><path d="m87 30 1 14-10 0Z" fill="#e8e1ed" opacity=".6"/>${sparkle(43,24,2,accent)}`;
   }
 
+  // Absolute coordinates on the existing 590 × 350 homepage island. The
+  // default is deliberately empty; all additions stay behind its original
+  // path, traveler, shrine and equipment mounts.
+  function islandDecoration(itemId) {
+    const item=items.get(itemId);if(item?.slot!=='island'||item.variant==='default')return '';
+    const stones=(points)=>points.map(([x,y],index)=>`<path d="m${x-7} ${y} 8-3 8 3-7 4Z" fill="${index%2?'#91939f':'#afb0b5'}" opacity=".75"/>`).join('');
+    const lamp=(x,y)=>`<g transform="translate(${x} ${y})"><ellipse rx="12" ry="4" fill="#dac794" opacity=".16"/><path d="M-5 0H5M0 0v-17" stroke="#9a8a79" stroke-width="2" stroke-linecap="round"/><path d="M-5-20 0-24l5 4-1 8H-4Z" fill="#b7a786" stroke="#716779" stroke-width="1"/><path d="M-2-19H2v5H-2Z" fill="#f2d9a2"/><ellipse cy="-16" rx="8" ry="8" fill="#eed3a0" opacity=".12"/></g>`;
+    const flowers=(x,y,color)=>`<g transform="translate(${x} ${y})"><ellipse rx="20" ry="6" fill="#517b75" opacity=".65"/><path d="M-11 1q-8-12-12-7 3 9 12 7m18 1q9-12 15-7-3 8-15 7M-3 1v-10m13 11v-10" fill="#7caa93" stroke="#749986" stroke-width="1.2"/><g fill="${color}"><circle cx="-3" cy="-10" r="3"/><circle cx="-6" cy="-8" r="2.5"/><circle cx="0" cy="-8" r="2.5"/><circle cx="10" cy="-9" r="3"/></g><circle cx="-3" cy="-8" r="1.2" fill="#e6d4a8"/></g>`;
+    let content='';
+    if(item.variant==='lanterns')content=stones([[202,246],[222,251],[245,254],[285,257],[307,254],[328,250]])+lamp(181,239)+lamp(265,258)+lamp(350,247);
+    if(item.variant==='garden')content=stones([[231,251],[259,255],[317,249]])+`<path d="m198 238 6-9 14 2 9 10-16 5Z" fill="#9099a0"/><path d="m199 238 7-6 12 2 5 5-12 4Z" fill="#769587"/>`+flowers(188,241,'#d6b7c5')+flowers(285,255,'#d9d0a7')+flowers(391,146,'#bdc7dd');
+    if(item.variant==='pavilion')content=`<g transform="translate(394 149)"><ellipse cy="9" rx="30" ry="9" fill="#222b43" opacity=".3"/><path d="m-23 5 21-8 25 8-21 9Z" fill="#a99c88"/><path d="m-23 5v4l25 9 21-9V5L2 14Z" fill="#756e76"/><path d="M-17 6v-28m33 28v-28M-3 1v-31" stroke="#b5a189" stroke-width="3"/><path d="M-29-21-3-42 29-21 1-10Z" fill="#889bab"/><path d="M-3-42 1-10l28-11Z" fill="#637d8d"/><path d="M-29-21 1-10l28-11" fill="none" stroke="#c1bca6" stroke-width="2"/><path d="M-12 4 1 9 14 4M-9-1 3 3 15-2" fill="none" stroke="#b9a68c" stroke-width="3" stroke-linecap="round"/><path d="M20 5v-10m-5 1 13-6" stroke="#cfbda0" stroke-width="2"/><path d="m23-13 7-3 3 5-7 4Z" fill="#b6c4cd"/></g>`+stones([[375,160],[366,169]]);
+    return `<g class="island-decoration" data-island-decoration="${itemId}" fill="none" stroke="none">${content}</g>`;
+  }
+
+  function islandScene(itemId,equipped={}) {
+    if(items.get(itemId)?.slot!=='island')return '';
+    const choice=slot=>items.get(equipped?.[slot])?.slot===slot?equipped[slot]:`${slot}-default`;
+    const [sky,ground,rock]=themes[items.get(choice('theme')).variant];
+    const relic=choice('relic'),portal=choice('portal'),companion=choice('companion');
+    const player=(nodeArt||root.QuestArt)?.avatar('player',choice('avatar'))?.replace(/^<svg[^>]*>|<\/svg>$/g,'')||'';
+    const crystal=relic==='relic-default'?'<ellipse cx="322" cy="159" rx="39" ry="15" fill="#9d8ac4" opacity=".18"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Zm37 23 38-23v13l-38 23Z" fill="#8879a9"/><path d="m321 60-23 39 23 42 24-42Z" fill="#b9a4e6"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ed"/>':`<g transform="translate(278 62) scale(.88)">${relics[items.get(relic).variant]}</g>`;
+    return `<rect x="38" y="18" width="514" height="307" rx="26" fill="${sky}" opacity=".35"/><ellipse cx="300" cy="319" rx="166" ry="12" fill="#11162a" opacity=".25"/><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="${rock}"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="${ground}" stroke="#77718f" stroke-width="2"/><path d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" fill="none" stroke="#b5a1cc" stroke-width="4" opacity=".6"/>${islandDecoration(itemId)}<g fill="#5c8288"><path d="m156 137-21 33 21 12 20-12Z"/><path d="m216 110-17 32 17 10 17-10Z"/><path d="m435 171-20 34 20 12 20-12Z"/></g>${crystal}${portal==='portal-default'?'':`<g transform="translate(220 123) scale(.57)">${portals[items.get(portal).variant]}</g>`}${companion==='companion-default'?'':`<g transform="translate(362 192) scale(.53)">${companions[items.get(companion).variant]}</g>`}<g transform="translate(151 172) scale(.65)">${player}</g>`;
+  }
+
+  function islandPreview(itemId,equipped) {
+    const content=islandScene(itemId,equipped);if(!content)return '';
+    return `<svg class="shop-island-art" viewBox="0 0 590 350" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none">${content}</svg>`;
+  }
+
   function preview(itemId) {
     const item=items.get(itemId);if(!item)return '';
     const {slot,variant}=item;
@@ -105,6 +136,7 @@
     else if(slot==='fx')content=fxPreview(variant);
     else if(slot==='banner')content=bannerPreview(variant);
     else if(slot==='theme')content=themePreview(variant);
+    else if(slot==='island')content=`<g transform="translate(-3 5) scale(.28)">${islandScene(itemId)}</g>`;
     else content=`<g transform="translate(30 5)">${({companion:companions,relic:relics,portal:portals})[slot][variant]}</g>`;
     return `<svg class="shop-art-svg" viewBox="0 0 160 112" aria-hidden="true" focusable="false" data-art="${itemId}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${content}</svg>`;
   }
@@ -126,7 +158,8 @@
     element=svg?doc.createElementNS('http://www.w3.org/2000/svg','g'):doc.createElement('div');
     element.id=id;element.setAttribute('aria-hidden','true');
     if(!svg)element.className='scene-theme-backdrop';
-    if(svg)parent.appendChild(element);else parent.insertBefore(element,parent.firstChild||null);
+    if(svg&&id==='equipped-island')parent.insertBefore(element,parent.querySelector?.('.crystal-shrine')||null);
+    else if(svg)parent.appendChild(element);else parent.insertBefore(element,parent.firstChild||null);
     return element;
   }
   function put(element,id,markup,transform){
@@ -177,16 +210,18 @@
     dressTravelers(doc,valid.avatar);
     // The keyed mounts survive ordinary state polls and preserve their animation phase.
     const companion=mount(doc,'equipped-companion','.floating-island',true);
+    const island=mount(doc,'equipped-island','.floating-island',true);
     const relic=mount(doc,'equipped-relic','.floating-island',true);
     const portal=mount(doc,'equipped-portal','.floating-island',true);
     let backdrop=doc.querySelector('.scene-theme-backdrop');
     if(!backdrop)backdrop=mount(doc,'scene-theme-backdrop','.quest-scene');
     put(companion,valid.companion,valid.companion==='companion-default'?'':companions[items.get(valid.companion).variant],'translate(362 192) scale(.53)');
+    put(island,valid.island,islandDecoration(valid.island));
     put(relic,valid.relic,valid.relic==='relic-default'?'':`<g class="shop-relic-core">${relics[items.get(valid.relic).variant]}</g>`,'translate(278 62) scale(.88)');
     put(portal,valid.portal,valid.portal==='portal-default'?'':portals[items.get(valid.portal).variant],'translate(220 123) scale(.57)');
     put(backdrop,valid.theme,themeBackdrop(items.get(valid.theme).variant));
     return valid;
   }
 
-  return {preview,apply};
+  return {preview,apply,islandDecoration,islandPreview};
 });

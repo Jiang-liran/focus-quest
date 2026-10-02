@@ -4,7 +4,7 @@
   else root.FocusQuests=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
   const citadelSlots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
@@ -165,6 +165,7 @@
   function dialog(title,eyebrow,art,body,label,cancel='再想一想'){
     $('quest-action-dialog').classList.toggle('campfire-item-dialog',art.includes('campfire-full-preview'));
     $('quest-action-dialog').classList.toggle('citadel-item-dialog',art.includes('citadel-full-preview'));
+    $('quest-action-dialog').classList.toggle('island-item-dialog',art.includes('island-full-preview'));
     $('quest-action-title').textContent=title;$('quest-action-eyebrow').textContent=eyebrow;
     $('quest-action-art').innerHTML=art;$('quest-action-body').innerHTML=body;
     $('quest-action-error').hidden=true;$('quest-action-confirm').textContent=label;
@@ -195,6 +196,7 @@
   }
   function itemPreview(item){
     if(campSlots.has(item.slot))return campPreview(item);
+    if(item.slot==='island'&&window.ShopArt?.islandPreview)return `<div class="island-full-preview">${window.ShopArt.islandPreview(item.id,data.equipped)}<p>首页主岛布置 · 保留其余当前搭配</p></div>`;
     if(citadelSlots.has(item.slot)){
       const scene=window.FocusCitadel?.preview?.(item.id,{...data.equipped});
       if(typeof scene==='string'&&scene)return scene;

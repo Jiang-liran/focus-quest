@@ -5,7 +5,7 @@
   const slots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const places=[
     {id:'dock',name:'启程码头',icon:'⚑',threshold:0,x:230,y:565,action:'让纸舟启航',copy:'小船载着今天的第一束光靠岸。每完成一段专注，都会在这座城里留下航迹。'},
-    {id:'core',name:'圣物广场',icon:'◇',threshold:0,x:595,y:425,action:'唤起星庭共鸣',copy:'四科星印各自充能，达标后点亮。岛前的星辉引擎汇集每日进度；每走过四分之一，层叠圣坛周围便展开一重装置，托起中央圣物的光芒。'},
+    {id:'core',name:'圣物广场',icon:'◇',threshold:0,x:595,y:425,action:'唤起星庭共鸣',copy:'四科星印各自充能，达标后点亮。岛前的星辉引擎汇集每日进度；圆台与阶梯从灰石逐渐镶上刻纹、宝石与金边，完整圆环始终守护中央圣物。'},
     {id:'workshop',name:'流光工坊',icon:'⚙',threshold:.25,x:245,y:326,action:'连通流光阵',copy:'完成四分之一的旅程，工坊开始运转。四科的努力各自点亮一条回路，汇聚到城中。'},
     {id:'archive',name:'星页书库',icon:'▤',threshold:.5,x:600,y:178,action:'翻开光之书',copy:'走过一半，书库里的灯亮了。这里收藏这一天真正完成过的学习，随时可以回看。'},
     {id:'observatory',name:'天穹观测台',icon:'✧',threshold:.75,x:950,y:330,action:'转动星盘',copy:'完成四分之三，观测台开始寻找远处的星。每一门达到目标的科目，都会成为一枚明亮星标。'},
@@ -243,7 +243,7 @@
     const latest=bridge.getState?.()||state, item=(latest?.quests?.catalog||[]).find(item=>item.id===itemId&&slots.has(item.slot));
     if(!item||!root.FocusCitadelArt||!root.FocusExpeditionModel)return '';
     const model=root.FocusExpeditionModel.preview(latest,100),eq={...(base||latest.quests.equipped),[item.slot]:item.id};
-    return `<div class="citadel-full-preview">${root.FocusCitadelArt.scene(model,eq,{interactive:false})}<div><strong>星辉城 · 完整觉醒预览</strong><span>${esc(item.name)} · 保留其余当前装备</span></div></div><p class="citadel-preview-note">展示完成后的造型，装备后跟随真实学习进度生长。</p>`;
+    return `<div class="citadel-full-preview">${root.FocusCitadelArt.scene(model,eq,{interactive:false})}<div><strong>星辉城 · 完整觉醒预览</strong><span>${esc(item.name)} · 保留其余当前装备</span></div></div><p class="citadel-preview-note">展示当日目标完成后的造型；旅人服装在 25%、50%、75%、100% 四站逐步获得装饰，装备后随真实进度成长。</p>`;
   }
   function init(callbacks={}){
     bridge=callbacks;if(initialized)return;initialized=true;

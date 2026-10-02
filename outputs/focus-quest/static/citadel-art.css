@@ -107,6 +107,9 @@
 .citadel-art .citadel-subject-flow{animation:citadel-sanctum-flow 8s linear infinite}
 .citadel-art [data-core-conduit] .citadel-subject-flow{animation-duration:calc(12s - var(--subject-energy,0) * 6s)}
 .citadel-art .citadel-heart-charge,.citadel-art .citadel-arch-charge{filter:drop-shadow(0 0 3px #e5d9c066)}
+.citadel-art .citadel-plaza-metal{transition:fill .6s ease}
+.citadel-art .citadel-plaza-edge{transition:stroke .6s ease}
+.citadel-art .citadel-plaza-halo{filter:drop-shadow(0 0 3px #e5d9c088);animation:citadel-glimmer 6s ease-in-out infinite}
 .citadel-art .citadel-heart-rotor{transform-box:view-box;transform-origin:0 0;animation:citadel-orbit 32s linear infinite}
 .citadel-art .citadel-heart-engine[data-core-stage="0"] .citadel-heart-rotor{animation-duration:64s}
 .citadel-art .citadel-heart-gem{animation:citadel-glimmer 5s ease-in-out infinite;filter:drop-shadow(0 0 4px #dfdac088)}

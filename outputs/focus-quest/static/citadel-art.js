@@ -167,7 +167,7 @@
 
   function player(equipment,p,state) {
     const quest=nodeQuest||root.QuestArt;
-    const avatar=quest&&typeof quest.avatar==='function'?strip(quest.avatar('player',equipment.avatar)):`<path d="M19 62 32 27 45 62Z" fill="${p.roof}"/><circle cx="32" cy="26" r="9" fill="#e0c4ae"/>`;
+    const avatar=quest&&typeof quest.avatar==='function'?strip(quest.avatar('player',equipment.avatar,state.stage)):`<path d="M19 62 32 27 45 62Z" fill="${p.roof}"/><circle cx="32" cy="26" r="9" fill="#e0c4ae"/>`;
     const {position,direction}=state.route;
     return `<g data-skin-slots="avatar" data-citadel-equipment="${equipment.avatar}" class="citadel-player citadel-route-traveler" transform="translate(${n(position.x)} ${n(position.y)})"><ellipse cy="1" rx="15" ry="5" fill="#10213b" opacity=".45"/><g class="citadel-route-facing" transform="scale(${direction} 1)"><g class="citadel-route-walk"><path class="citadel-step-foot citadel-step-left" d="M-9 0h7" stroke="${p.trim}" stroke-width="3" stroke-linecap="round"/><path class="citadel-step-foot citadel-step-right" d="M3 0h7" stroke="${p.trim}" stroke-width="3" stroke-linecap="round"/><g transform="translate(-22 -49) scale(.69)">${avatar}</g></g></g></g>`;
   }
@@ -218,6 +218,29 @@
     </g>`;
   }
 
+  function metalColor(stone,gold,progress) {
+    const amount=Math.pow(progress,1.65);
+    const parts=[1,3,5].map(i=>Math.round(parseInt(stone.slice(i,i+2),16)*(1-amount)+parseInt(gold.slice(i,i+2),16)*amount).toString(16).padStart(2,'0'));
+    return '#'+parts.join('');
+  }
+
+  function plaza(state,p) {
+    const metal=metalColor(p.shade,p.trim,state.progress),edge=metalColor(p.roofShade,p.light,state.progress);
+    const tier=(level,art)=>`<g class="citadel-plaza-finery" data-plaza-tier="${level}" display="${state.stage>=level?'inline':'none'}">${art}</g>`;
+    return `<g class="citadel-plaza-rings" data-plaza-stage="${state.stage}">
+      <ellipse cy="-6" rx="85" ry="39" fill="${p.roofShade}"/><path d="M-84-18v11c0 23 168 23 168 0v-11" fill="${p.shade}"/>
+      <ellipse cy="-18" rx="85" ry="37" fill="${p.top}"/><ellipse cy="-21" rx="73" ry="31" fill="${p.top}"/><path d="M-67-32v12c0 22 134 22 134 0v-12" fill="${p.roofShade}"/>
+      <ellipse class="citadel-plaza-metal" cy="-32" rx="67" ry="28" fill="${metal}"/><ellipse cy="-33" rx="59" ry="23" fill="${p.top}"/>
+      <path class="citadel-plaza-metal" d="M-34-8 0 5 34-8v7L0 12-34-1Zm-5 14L0 21 39 6v7L0 28-39 13Zm-5 15L0 38 44 21v7L0 46-44 28Z" fill="${metal}"/>
+      <path d="M-34-1 0 12 34-1M-39 13 0 28 39 13M-44 28 0 46 44 28" fill="none" stroke="${p.roofShade}" stroke-width="3"/>
+      <ellipse cy="-21" rx="77" ry="32" class="citadel-plaza-charge" fill="none" stroke="${edge}" stroke-width="1.7" opacity="${n(.1+state.progress*.7)}"/>
+      ${tier(1,`<ellipse class="citadel-plaza-edge" cy="-32" rx="66" ry="27" fill="none" stroke="${edge}" stroke-width="1"/><path class="citadel-plaza-edge" d="M-32-6 0 7 32-6" fill="none" stroke="${edge}" stroke-width="1"/>`)}
+      ${tier(2,`<ellipse cy="-33" rx="55" ry="21" fill="none" stroke="${p.trim}" stroke-width="1" stroke-dasharray="2 6"/><path d="M-37 8 0 23 37 8M-26 13-21 11m47 2-5-2" fill="none" stroke="${p.trim}" stroke-width="1.2"/>`)}
+      ${tier(3,`<path d="M-42 23 0 40 42 23M-68-7q68 26 136 0" fill="none" stroke="${p.trim}" stroke-width="1.5"/>${[-1,1].map(side=>`<g transform="translate(${side*67} -12)"><path d="M0-6 5 0 0 6-5 0Z" fill="${p.water}" stroke="${p.trim}" stroke-width="1"/></g>`).join('')}`)}
+      ${tier(4,`<ellipse class="citadel-plaza-halo" cy="-21" rx="82" ry="35" fill="none" stroke="${p.light}" stroke-width="1.3"/><path d="M-78-9q78 31 156 0M-40 30-27 30-19 36M40 30H27l-8 6" fill="none" stroke="${p.trim}" stroke-width="1.1"/>${star(0,39,4,p.light)}${[-52,-26,26,52].map(x=>star(x,-18+Math.sqrt(1-x*x/(67*67))*22,2.2,p.light)).join('')}`)}
+    </g>`;
+  }
+
   function core(p,power,theme,equipment,state) {
     return `<g class="citadel-sanctum">
       <path class="citadel-canal-bed" d="M-171-2q25 38 74 28t97 28 97-28 74-28" fill="none" stroke="${p.rock}" stroke-width="16"/>
@@ -228,11 +251,7 @@
       ${[-1,1].map(side=>`<path d="M${side*98}-28h${-side*13}v-31h${side*13}Z" fill="${p.wall}"/><path d="M${side*102}-30h${-side*20}v7h${side*20}Z" fill="${p.trim}"/>`).join('')}
       <path d="M0-143 12-132 0-121-12-132Z" fill="${p.trim}"/><path d="M0-139 7-132 0-125-7-132Z" fill="${p.water}"/></g>
       ${coreEnergy(state,p)}${subjectConduits(state,p)}${subjectShrines(state,p,true)}
-      <g class="citadel-plaza-rings"><ellipse cy="-6" rx="85" ry="39" fill="${p.roofShade}"/><path d="M-84-18v11c0 23 168 23 168 0v-11" fill="${p.shade}"/>
-      <ellipse cy="-18" rx="85" ry="37" fill="${p.edge}"/><ellipse cy="-21" rx="73" ry="31" fill="${p.top}"/><path d="M-67-32v12c0 22 134 22 134 0v-12" fill="${p.roofShade}"/><ellipse cy="-32" rx="67" ry="28" fill="${p.trim}"/><ellipse cy="-33" rx="59" ry="23" fill="${p.top}"/>
-      <path d="M-34-8 0 5 34-8v7L0 12-34-1Zm-5 14L0 21 39 6v7L0 28-39 13Zm-5 15L0 38 44 21v7L0 46-44 28Z" fill="${p.trim}"/><path d="M-34-1 0 12 34-1M-39 13 0 28 39 13M-44 28 0 46 44 28" fill="none" stroke="${p.shade}" stroke-width="3"/>
-      <ellipse cy="-33" rx="55" ry="21" fill="none" stroke="${p.trim}" stroke-width="1" stroke-dasharray="2 6"/>
-      <ellipse cy="-21" rx="77" ry="32" class="citadel-plaza-charge" pathLength="100" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="100 100" stroke-dashoffset="${n(100*(1-power))}" opacity="${n(.2+power*.6)}"/></g>
+      ${plaza(state,p)}
       <g class="citadel-relic-power" style="--citadel-relic-glow:${n(.08+power*.62)};--citadel-relic-scale:${n(.88+power*.12)}"><ellipse cy="-39" rx="51" ry="18" fill="${p.light}" opacity="${n(.025+power*.07)}"/>${previewArt(equipment.relic,0,-33,1.33,'relic')}</g>
       ${subjectShrines(state,p,false)}${lamp(-166,26,power,p)}${lamp(164,26,power,p)}
       ${coreEngine(state,p)}
@@ -390,7 +409,15 @@
     }
     const power=.25+state.progress*.75,relic=svgElement.querySelector('.citadel-relic-power');
     if(relic){relic.style.setProperty('--citadel-relic-glow',n(.08+power*.62));relic.style.setProperty('--citadel-relic-scale',n(.88+power*.12));}
-    attr(svgElement.querySelector('.citadel-plaza-charge'),'stroke-dashoffset',n(100*(1-power)));attr(svgElement.querySelector('.citadel-plaza-charge'),'opacity',n(.2+power*.6));
+    const theme=svgElement.getAttribute('data-citadel-theme'),p=Object.prototype.hasOwnProperty.call(palettes,theme)?palettes[theme]:palettes.default;
+    const metal=metalColor(p.shade,p.trim,state.progress),edge=metalColor(p.roofShade,p.light,state.progress);
+    attr(svgElement.querySelector('.citadel-plaza-rings'),'data-plaza-stage',state.stage);
+    all('.citadel-plaza-metal').forEach(el=>attr(el,'fill',metal));
+    all('.citadel-plaza-edge').forEach(el=>attr(el,'stroke',edge));
+    all('.citadel-plaza-finery').forEach(el=>attr(el,'display',state.stage>=Number(el.getAttribute('data-plaza-tier'))?'inline':'none'));
+    attr(svgElement.querySelector('.citadel-plaza-charge'),'stroke',edge);attr(svgElement.querySelector('.citadel-plaza-charge'),'opacity',n(.1+state.progress*.7));
+    attr(svgElement.querySelector('.quest-player-growth'),'data-avatar-stage',state.stage);
+    all('[data-avatar-tier]').forEach(el=>attr(el,'display',state.stage>=Number(el.getAttribute('data-avatar-tier'))?'inline':'none'));
     return route;
   }
 

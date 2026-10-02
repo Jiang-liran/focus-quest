@@ -115,12 +115,54 @@
       <circle cx="54" cy="59" r="2.6" fill="#e4c7ad"/>`;
   }
 
-  function avatar(role, outfit = 'default') {
+  function playerGrowth(p, outfit, stage) {
+    const ink=p.trim, light=p.hat, shadow=p.shade;
+    const motifs={
+      'avatar-default': `<path d="M24 49 28 54 24 59 20 54Z" fill="${ink}"/><path d="m24 51 2 3-2 3-2-3Z" fill="${shadow}"/>`,
+      'avatar-ranger': `<path d="M20 56q-2-8 9-8 1 9-9 8Z" fill="${ink}"/><path d="m20 57 7-7m-4 3v-3m1 2h3" fill="none" stroke="${shadow}" stroke-width=".9"/>`,
+      'avatar-voyager': `<circle cx="24" cy="54" r="5" fill="${shadow}" stroke="${ink}" stroke-width="1.2"/><path d="m24 49 2 5-2 5-2-5Z" fill="${ink}"/><path d="M19 54h10" stroke="${ink}" stroke-width=".7"/>`,
+      'avatar-alchemist': `<path d="M22 49h4v4l3 4q-5 4-10 0l3-4Z" fill="${ink}"/><path d="M21 56h6" stroke="${shadow}" stroke-width="1.4"/><circle cx="24" cy="52" r=".8" fill="${shadow}"/>`,
+      'avatar-star': star(24,54,5,ink)+`<circle cx="24" cy="54" r="1.5" fill="${shadow}"/><circle cx="19" cy="49" r="1" fill="${ink}"/>`,
+      'avatar-royal': `<path d="M19 50q5-3 10 0v6l-5 5-5-5Z" fill="${ink}"/><path d="m21 52 1 3 2-4 2 4 1-3v5h-6Z" fill="${shadow}"/>`,
+    };
+    // Side panels sit outside the original coat; collars stay below the face.
+    const cloaks={
+      'avatar-default': `<path d="M18 46 11 50 5 67 16 70 23 57Zm28 0 7 4 6 17-11 3-7-13Z" fill="${shadow}" stroke="${ink}" stroke-width="1.1"/><path d="m11 51 5 16 5-13m32-3-5 16-5-13" fill="none" stroke="${light}" stroke-width="1.5"/><path d="m17 46 7 2-5 5-7-2Zm30 0-7 2 5 5 7-2Z" fill="${ink}"/>`,
+      'avatar-ranger': `<path d="M17 46 10 49 5 59 10 59 5 65 14 64 11 70 23 58Zm30 0 7 3 5 10-5 0 5 6-9-1 3 6-12-12Z" fill="${shadow}" stroke="${ink}" stroke-width="1"/><path d="M14 50 11 62m39-12 3 12M18 47l-3 7-4-2m35-5 3 7 4-2" fill="none" stroke="${light}" stroke-width="1.5"/><path d="m17 47 6 2-5 5-4-2Zm30 0-6 2 5 5 4-2Z" fill="${ink}"/>`,
+      'avatar-voyager': `<path d="M17 47 10 52 7 69 15 65 20 70 24 57Zm30 0 7 5 3 17-8-4-5 5-4-13Z" fill="${shadow}" stroke="${ink}" stroke-width="1.2"/><path d="m12 54 4 8m36-8-4 8" stroke="${light}" stroke-width="2"/><path d="m16 46 8 3-3 5-9-3Zm32 0-8 3 3 5 9-3Z" fill="${ink}"/><path d="m14 50-1 5m4-4-1 5m34-6 1 5m-4-4 1 5" stroke="${ink}" stroke-width="1.3"/>`,
+      'avatar-alchemist': `<path d="M17 47 10 51 6 64 12 70 22 58Zm30 0 7 4 4 13-6 6-10-12Z" fill="${shadow}" stroke="${ink}" stroke-width="1.1"/><path d="m11 54 7 2-7 6 5 3m37-11-7 2 7 6-5 3" fill="none" stroke="${ink}" stroke-width="1"/><path d="m18 46 6 4-6 3-6-2Zm28 0-6 4 6 3 6-2Z" fill="${light}" stroke="${ink}" stroke-width="1"/><circle cx="11" cy="65" r="1.4" fill="${ink}"/><circle cx="53" cy="65" r="1.4" fill="${ink}"/>`,
+      'avatar-star': `<path d="M18 46 8 49 4 65 12 61 14 70 24 55Zm28 0 10 3 4 16-8-4-2 9-10-15Z" fill="${shadow}" stroke="${ink}" stroke-width="1.1"/><path d="m10 53 3 6 5-3m36-3-3 6-5-3" fill="none" stroke="${light}" stroke-width="1.4"/>${star(13,56,2.2,ink)}${star(51,56,2.2,ink)}<path d="m18 46 6 3-5 4-7-3Zm28 0-6 3 5 4 7-3Z" fill="${ink}"/>`,
+      'avatar-royal': `<path d="M16 47 10 52 5 68q9 3 17-9Zm32 0 6 5 5 16q-9 3-17-9Z" fill="${shadow}" stroke="${ink}" stroke-width="1.6"/><path d="M11 56 9 65l7-3m37-6 2 9-7-3" fill="none" stroke="${ink}" stroke-width="1.1"/><path d="m15 46 10 3-4 6-10-4Zm34 0-10 3 4 6 10-4Z" fill="#eee4d5" stroke="${ink}" stroke-width="1"/><path d="m16 49 1 2m4-1 1 2m26-3-1 2m-4-1-1 2" stroke="${shadow}" stroke-width="1.2"/>`,
+    };
+    const tools={
+      'avatar-default': `<path d="M9 44v25" stroke="${ink}" stroke-width="2.2"/><path d="M9 30 15 38 9 46 3 38Z" fill="${light}" stroke="${ink}" stroke-width="1.2"/><path d="m9 32 0 11 4-5Z" fill="${shadow}"/><path d="M5 48h8m-8 3h8" stroke="${light}" stroke-width="1.3"/><circle cx="9" cy="59" r="2.5" fill="#e4c7ad"/>`,
+      'avatar-ranger': `<path d="M9 33q-12 17 0 35" fill="none" stroke="${ink}" stroke-width="2.5"/><path d="M9 33v35M7 52h11" fill="none" stroke="${light}" stroke-width="1"/><path d="m19 52-4-3v6Z" fill="${ink}"/><path d="M8 34q-5-7-3-10 7 2 3 10Z" fill="${light}"/><circle cx="9" cy="57" r="2.5" fill="#e4c7ad"/>`,
+      'avatar-voyager': `<path d="m5 43 6-3 10 21-6 3Z" fill="${shadow}" stroke="${ink}" stroke-width="1.3"/><path d="m4 42 8-4 3 6-8 4Zm9 17 9-4 2 5-9 4Z" fill="${ink}"/><path d="m9 46 5 10" stroke="${light}" stroke-width="1.2"/><path d="M6 66q6-4 13 0" fill="none" stroke="${ink}" stroke-width="1"/><circle cx="16" cy="56" r="2.6" fill="#e4c7ad"/>`,
+      'avatar-alchemist': `<path d="M4 46q7-4 14 0v17q-7-4-14 0Z" fill="${ink}" stroke="${shadow}" stroke-width="1"/><path d="M6 47q5-2 10 0v12q-5-2-10 0Z" fill="#ede8ce"/><path d="M11 47v12m-3-8h2m2 3h2" stroke="${shadow}" stroke-width=".8"/><path d="m11 35 4 5-4 5-4-5Z" fill="${light}" stroke="${ink}" stroke-width="1"/><circle cx="11" cy="40" r="1.2" fill="${ink}"/><circle cx="15" cy="61" r="2.2" fill="#e4c7ad"/>`,
+      'avatar-star': `<path d="M10 49v20" stroke="${ink}" stroke-width="2"/><circle cx="10" cy="41" r="7" fill="${shadow}" stroke="${ink}" stroke-width="1.3"/><ellipse cx="10" cy="41" rx="9" ry="3" fill="none" stroke="${light}" stroke-width="1.1" transform="rotate(-25 10 41)"/>${star(10,41,4.8,ink)}<circle cx="10" cy="59" r="2.4" fill="#e4c7ad"/>`,
+      'avatar-royal': `<path d="M9 32 13 39 10 57H8L5 39Z" fill="#e4e1e5" stroke="${ink}" stroke-width="1"/><path d="M9 34v22" stroke="${light}" stroke-width="1.2"/><path d="M3 57h12M9 57v11" stroke="${ink}" stroke-width="2.5" stroke-linecap="round"/><circle cx="9" cy="68" r="2.3" fill="${light}"/><circle cx="9" cy="62" r="2.2" fill="#e4c7ad"/>`,
+    };
+    const crowns={
+      'avatar-default': `<path d="m14 22-4-9 10 6-2 6Zm36 0 4-9-10 6 2 6Z" fill="${ink}"/><path d="m13 17 5 5m33-5-5 5" stroke="${light}" stroke-width="1"/>${star(32,12,4,ink)}${star(6,20,2.2,light)}${star(58,20,2.2,light)}`,
+      'avatar-ranger': `<path d="M18 20 13 13m3 4-1-8m32 11 5-7m-3 4 1-8" fill="none" stroke="${ink}" stroke-width="1.5" stroke-linecap="round"/><path d="M17 17q-10 0-7-7 8 0 7 7Zm2-5q-6-5-1-9 6 3 1 9Zm28 5q10 0 7-7-8 0-7 7Zm-2-5q6-5 1-9-6 3-1 9Z" fill="${light}" stroke="${ink}" stroke-width=".7"/><path d="m27 15 5-3 5 3-5 3Z" fill="${ink}"/>`,
+      'avatar-voyager': `<path d="M16 24q-10-8-4-17 10 5 4 17Zm32 0q10-8 4-17-10 5-4 17Z" fill="${ink}"/><path d="m13 11 3 11m35-11-3 11" stroke="${shadow}" stroke-width="1"/><path d="m25 20 7-3 7 3-7 3Z" fill="${ink}"/><path d="M27 13h10m-5-4v8" stroke="${ink}" stroke-width="1.2"/>${star(7,28,2,light)}${star(57,28,2,light)}`,
+      'avatar-alchemist': `<path d="M15 20 10 13 15 9 20 13Zm34 0 5-7-5-4-5 4Z" fill="${light}" stroke="${ink}" stroke-width="1"/><path d="M15 12v5m34-5v5" stroke="${ink}" stroke-width="1.5"/><circle cx="32" cy="14" r="5" fill="${shadow}" stroke="${ink}" stroke-width="1.1"/><path d="m32 10 3 4-3 4-3-4Z" fill="${ink}"/><circle cx="7" cy="26" r="2" fill="${ink}"/><circle cx="57" cy="26" r="2" fill="${ink}"/>`,
+      'avatar-star': `<path d="M13 21 11 14 20 16m31 5 2-7-9 2M23 10l9-4 9 4" fill="none" stroke="${ink}" stroke-width="1.3" stroke-linejoin="round"/>${star(12,15,3,ink)}${star(52,15,3,ink)}${star(32,7,3.5,ink)}<circle cx="24" cy="11" r="1.6" fill="${light}"/><circle cx="40" cy="11" r="1.6" fill="${light}"/>${star(5,28,2,light)}${star(59,28,2,light)}`,
+      'avatar-royal': `<path d="M17 23 9 17l2-6 7 7m29 5 8-6-2-6-7 7" fill="${ink}" stroke="${light}" stroke-width="1"/><path d="m20 22 5-4m14 0 5 4" stroke="${ink}" stroke-width="2"/><path d="m32 8 3 5-3 4-3-4Z" fill="#f5e7bd"/><circle cx="21" cy="24" r="1.8" fill="#e3b1b7"/><circle cx="43" cy="24" r="1.8" fill="#b7cfe3"/>${star(6,28,2,ink)}${star(58,28,2,ink)}`,
+    };
+    return [motifs[outfit],cloaks[outfit],tools[outfit],crowns[outfit]].map((geometry,index)=>
+      `<g class="quest-avatar-tier quest-avatar-tier-${index+1}" data-avatar-tier="${index+1}" display="${stage>index?'inline':'none'}">${geometry}</g>`).join('');
+  }
+
+  function avatar(role, outfit = 'default', stage = 0) {
     role = roles.has(role) ? role : 'guide';
     // NPCs keep their individual character designs, including for old saves.
     outfit = role === 'player' ? (playerOutfits.has(outfit) ? outfit : 'avatar-default') : 'npc-default';
     const palette = {...palettes[role], ...(palettes[outfit] || {})};
-    return `<svg class="quest-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-role="${role}" data-outfit="${outfit}"${role === 'player' ? ' data-skin-slots="avatar"' : ''} xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${robe(palette, outfit)}${face(palette)}${hat(role, palette, outfit)}${prop(role, palette, outfit)}</svg>`;
+    const base=`${robe(palette, outfit)}${face(palette)}${hat(role, palette, outfit)}${prop(role, palette, outfit)}`;
+    stage=typeof stage==='number'&&Number.isFinite(stage)?Math.max(0,Math.min(4,Math.floor(stage))):0;
+    const artwork=role==='player'?`<g class="quest-player-growth" data-avatar-stage="${stage}">${base}${playerGrowth(palette,outfit,stage)}</g>`:base;
+    return `<svg class="quest-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-role="${role}" data-outfit="${outfit}"${role === 'player' ? ' data-skin-slots="avatar"' : ''} xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${artwork}</svg>`;
   }
 
   return {avatar};

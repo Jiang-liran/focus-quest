@@ -156,3 +156,76 @@
   .citadel-inspector h3 {font-size:21px;margin:10px 0}.citadel-place-data {margin:12px 0;padding:12px 0}
   .citadel-place-data>strong {font-size:20px}.citadel-interact {margin-top:12px;padding:10px}
 }
+
+/* Reading panels grow with the available screen, without enlarging the map's artwork. */
+@media (min-width:1400px) and (min-height:850px) {
+  .expedition-hero,.expedition-hero.expedition-immersive {
+    --notes-width:280px;
+    --notes-font:13px;
+    grid-template-columns:minmax(0,1fr) var(--notes-width);
+  }
+  .expedition-deck {
+    font-size:var(--notes-font);padding-left:18px;gap:1.05em;justify-content:flex-start;
+    overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;
+  }
+  .expedition-inspector {margin-top:auto;flex-shrink:0}
+  .expedition-log {margin-bottom:auto;flex-shrink:0;padding-top:1em}
+  .expedition-inspector-kicker {font-size:.82em;line-height:1.5;gap:.6em;flex-wrap:wrap}
+  .expedition-inspector-kicker button {font-size:1em;line-height:1.5;padding:3px 0}
+  .expedition-deck h3 {font-size:1.55em;line-height:1.35;margin:.4em 0}
+  #expedition-detail-copy {font-size:1em;line-height:1.65;color:#b6b3c9;overflow-wrap:anywhere}
+  .expedition-next {font-size:.88em;line-height:1.65;margin-top:.6em;color:#a0abc2;overflow-wrap:anywhere}
+  .expedition-discover-toggle {font-size:.92em;line-height:1.35;padding:.6em .75em;margin-top:.85em;gap:.55em;flex-wrap:wrap}
+  .expedition-log-heading {gap:.65em;flex-wrap:wrap}
+  .expedition-log-heading h3 {font-size:1.13em;line-height:1.4;margin:0;white-space:normal}
+  .expedition-log-heading>button {font-size:.88em;line-height:1.35;padding:.65em .75em}
+  #expedition-log-summary {font-size:.88em;line-height:1.65;margin:.65em 0;color:#a2abc1;overflow-wrap:anywhere}
+  .expedition-trail {gap:.4em}
+  .expedition-trail button {padding:.55em .2em;gap:.3em}
+  .expedition-trail strong {font-size:.85em;line-height:1.35}
+  .expedition-trail small {font-size:.72em;line-height:1.4}
+  .expedition-hero .hero-content>.expedition-replay-controls {right:calc(var(--notes-width) + 36px)}
+  .expedition-immersive .hero-content>.expedition-replay-controls {right:calc(var(--notes-width) + 42px)}
+
+  .citadel-layout {
+    --inspector-width:320px;
+    --inspector-font:13px;
+    grid-template-columns:minmax(0,1fr) var(--inspector-width);
+  }
+  .citadel-inspector {font-size:var(--inspector-font);padding:20px;overflow-x:hidden;overflow-y:auto}
+  .citadel-eyebrow {font-size:.68em;line-height:1.65;letter-spacing:.12em}
+  .citadel-place-state {font-size:.82em;line-height:1.4;margin-top:1.25em;padding:.35em .65em}
+  .citadel-inspector h3 {font-size:1.8em;line-height:1.35;margin:.5em 0}
+  .citadel-inspector>p {font-size:1em;line-height:1.65;color:#b5bdd0;overflow-wrap:anywhere}
+  .citadel-place-data {margin:1.2em 0;padding:1em 0}
+  .citadel-place-data>strong {font-size:1.85em;line-height:1.25;overflow-wrap:anywhere}
+  .citadel-place-data>strong small {font-size:.46em;line-height:1.5;margin-top:.5em}
+  .citadel-place-data p {font-size:.93em;line-height:1.6;margin-top:.8em;color:#a5b1c9;overflow-wrap:anywhere}
+  .citadel-meter {height:.32em;margin-top:1.1em}
+  .citadel-subject-list>div {font-size:.95em;line-height:1.5;gap:.65em;margin:.75em 0}
+  .citadel-subject-list span {width:2.4em;flex-shrink:0}
+  .citadel-subject-list strong {font-size:1em;width:4.6em;flex-shrink:0}
+  .citadel-subject-list i {min-width:30px;height:.32em}
+  .citadel-records {max-height:min(32dvh,24em);overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+  .citadel-records li {font-size:.95em;line-height:1.5;gap:.8em;margin:.75em 0}
+  .citadel-records span {min-width:0;overflow-wrap:anywhere}
+  .citadel-records b {font-size:.92em;line-height:1.5;max-width:46%;text-align:right}
+  .citadel-inspector>.citadel-place-progress {font-size:.9em;line-height:1.65}
+  .citadel-interact,.citadel-replay {font-size:.96em;line-height:1.4;padding:.75em;margin-top:.85em}
+  .citadel-inspector>.citadel-feedback {font-size:.88em;line-height:1.6;margin-top:.75em}
+  .citadel-aside-note {font-size:.78em;line-height:1.65;margin-top:.9em;color:#97a4bd}
+}
+
+@media (min-width:1600px) and (min-height:950px) {
+  .expedition-hero,.expedition-hero.expedition-immersive {
+    --notes-width:clamp(336px,21vw,460px);
+    --notes-font:clamp(15px,min(.94vw,1.68vh),20px);
+  }
+  .expedition-deck {padding-left:clamp(22px,1.5vw,34px);gap:1.2em}
+  .citadel-layout {
+    --inspector-width:clamp(370px,23vw,500px);
+    --inspector-font:clamp(15px,min(.94vw,1.68vh),20px);
+    gap:clamp(24px,1.6vw,36px);
+  }
+  .citadel-inspector {padding:clamp(24px,1.5vw,34px)}
+}

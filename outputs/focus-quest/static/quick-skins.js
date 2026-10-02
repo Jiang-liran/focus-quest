@@ -1,6 +1,6 @@
 (function(root){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地风景',fire:'篝火样式',tent:'营地帐篷',campgear:'火边陈设',campglow:'营地氛围',chatframe:'对话外观'};
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe']);
   const $=id=>document.getElementById(id);
   const esc=value=>String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
