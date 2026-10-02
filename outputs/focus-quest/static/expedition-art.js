@@ -135,5 +135,46 @@
     return `<svg class="expedition-world-art" viewBox="0 0 1000 540" xmlns="http://www.w3.org/2000/svg" role="group" aria-label="四科远征群岛" data-world-stage="${normalized.stage}" data-world-progress="${n(normalized.progress)}" fill="none" stroke="none"><title>四科远征群岛：每一段专注，都会点亮一处新的风景</title>${horizon(normalized.progress)}${normalized.subjects.map(bridge).join('')}${normalized.subjects.map(island).join('')}</svg>`;
   }
 
-  return {world};
+  // A celebration made of light, layered over the existing islands and their owned decorations.
+  // Keep this SVG independent of minutes so normal syncs do not restart its ambient animation.
+  function resonance(model) {
+    if (!model || model.resonance?.active !== true) return '';
+    const colors = ['#9bd6be', '#b7bdf7', '#efc4ae', '#a6dfe8'];
+    const currents = [
+      {id:'math', x:235, y:181, bx:337, by:184, path:'M337 184C389 132 447 151 520 230'},
+      {id:'cs', x:770, y:179, bx:668, by:182, path:'M668 182C622 132 571 153 520 230'},
+      {id:'politics', x:230, y:406, bx:332, by:399, path:'M332 399C394 402 449 326 520 230'},
+      {id:'english', x:775, y:407, bx:673, by:400, path:'M673 400C615 402 573 323 520 230'},
+    ];
+    const skyStars = [[147,145,3],[359,68,4],[648,71,3],[856,156,4],[871,359,3],[634,473,4],[376,472,3],[138,355,4],[403,129,2],[630,136,2],[426,386,2],[610,387,2]];
+    const streams = currents.map((c,i) => `<g class="fq-resonance-channel" data-resonance-subject="${c.id}" style="--resonance-color:${colors[i]};--resonance-order:${i}">
+      <g class="fq-resonance-beacon"><ellipse cx="${c.x}" cy="${c.y+8}" rx="114" ry="39" fill="none" stroke="${colors[i]}" stroke-width="1.5" opacity=".48"/><ellipse cx="${c.x}" cy="${c.y+8}" rx="120" ry="43" fill="none" stroke="${colors[i]}" stroke-width=".6" stroke-dasharray="2 15" opacity=".38"/>
+        <g transform="translate(${c.bx} ${c.by})"><circle class="fq-resonance-beacon-pulse" r="14" fill="${colors[i]}" opacity=".1"/><circle r="7" fill="#232c46" stroke="${colors[i]}" stroke-width="1.2"/>${star(0,0,4,colors[i])}</g></g>
+      <g class="fq-resonance-stream"><path d="${c.path}" pathLength="100" fill="none" stroke="${colors[i]}" stroke-width="10" opacity=".045"/><path d="${c.path}" pathLength="100" class="fq-resonance-current-line" fill="none" stroke="${colors[i]}" stroke-width="1.3" opacity=".56"/><path d="${c.path}" pathLength="100" class="fq-resonance-current-light" fill="none" stroke="${colors[i]}" stroke-width="3" stroke-linecap="round" stroke-dasharray="1.2 31" opacity=".9"/></g>
+    </g>`).join('');
+    return `<svg class="expedition-resonance-art" viewBox="0 0 1000 540" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none">
+      <defs>
+        <linearGradient id="fq-resonance-spectrum" x1="0%" y1="0%" x2="100%" y2="65%"><stop stop-color="#9bd6be"/><stop offset=".34" stop-color="#b7bdf7"/><stop offset=".67" stop-color="#efc4ae"/><stop offset="1" stop-color="#a6dfe8"/></linearGradient>
+        <linearGradient id="fq-resonance-aurora" x1="0%" y1="0%" x2="100%" y2="0%"><stop stop-color="#9bd6be" stop-opacity="0"/><stop offset=".24" stop-color="#9bd6be"/><stop offset=".5" stop-color="#b7bdf7"/><stop offset=".75" stop-color="#efc4ae"/><stop offset="1" stop-color="#a6dfe8" stop-opacity="0"/></linearGradient>
+        <radialGradient id="fq-resonance-heart"><stop stop-color="#f5e6be" stop-opacity=".19"/><stop offset=".38" stop-color="#cfc4f4" stop-opacity=".085"/><stop offset="1" stop-color="#b7bdf7" stop-opacity="0"/></radialGradient>
+      </defs>
+      <g class="fq-resonance-sky">
+        <path class="fq-resonance-aurora fq-resonance-aurora-one" d="M163 146C328 25 411 164 530 92S733 64 859 153" fill="none" stroke="url(#fq-resonance-aurora)" stroke-width="26" opacity=".07"/>
+        <path class="fq-resonance-aurora fq-resonance-aurora-two" d="M168 147C328 26 413 163 530 92S733 67 854 152" fill="none" stroke="url(#fq-resonance-aurora)" stroke-width="3" opacity=".36"/>
+        <ellipse cx="503" cy="280" rx="374" ry="196" fill="none" stroke="url(#fq-resonance-spectrum)" stroke-width="1.1" opacity=".4"/>
+        <ellipse class="fq-resonance-orbit" cx="503" cy="280" rx="382" ry="202" pathLength="360" fill="none" stroke="url(#fq-resonance-spectrum)" stroke-width="1.8" stroke-linecap="round" stroke-dasharray="1 25 1 63" opacity=".7"/>
+        ${skyStars.map(([x,y,r],i)=>star(x,y,r,colors[i%4],`class="fq-resonance-sky-star" style="--resonance-twinkle:-${i*.7}s"`)).join('')}
+      </g>
+      ${streams}
+      <g class="fq-resonance-heart" transform="translate(520 230)">
+        <ellipse class="fq-resonance-heart-light" rx="100" ry="115" fill="url(#fq-resonance-heart)"/>
+        <g class="fq-resonance-heart-orbits"><ellipse cy="-2" rx="50" ry="20" transform="rotate(-23)" fill="none" stroke="url(#fq-resonance-spectrum)" stroke-width="1.4" stroke-dasharray="30 7 2 7" opacity=".7"/><ellipse cy="-2" rx="56" ry="23" transform="rotate(23)" fill="none" stroke="url(#fq-resonance-spectrum)" stroke-width=".7" opacity=".4"/></g>
+        <g class="fq-resonance-crown"><path d="M-31-58-19-71-8-62 0-79 8-62 19-71 31-58" fill="none" stroke="#eddfb8" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round" opacity=".8"/>${star(0,-87,5,'#f5e7c3')}<path d="M-14-53h28" stroke="#eddfb8" stroke-width=".8" opacity=".4"/></g>
+        ${[-1,1].map(side=>`<g class="fq-resonance-heart-spark" style="--resonance-twinkle:${side<0?'-1s':'-3s'}">${star(side*55,-20,4,side<0?colors[0]:colors[3])}${star(side*41,34,2.5,side<0?colors[2]:colors[1])}</g>`).join('')}
+        <g class="fq-resonance-burst"><ellipse class="fq-resonance-ripple fq-resonance-ripple-one" rx="52" ry="29" fill="none" stroke="#f1dfb8" stroke-width="1.5"/><ellipse class="fq-resonance-ripple fq-resonance-ripple-two" rx="52" ry="29" fill="none" stroke="url(#fq-resonance-spectrum)" stroke-width="1"/>${Array.from({length:12},(_,i)=>`<g transform="rotate(${i*30})"><path class="fq-resonance-ray" d="M0-46V-68" stroke="${colors[i%4]}" stroke-width="2" stroke-linecap="round"/></g>`).join('')}</g>
+      </g>
+    </svg>`;
+  }
+
+  return {world, resonance};
 });

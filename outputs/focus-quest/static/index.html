@@ -78,7 +78,7 @@
           <div class="preview-heading"><strong>成长动画预览 <b id="preview-percent">0%</b></strong><button class="text-button" id="preview-stop">结束预览 ×</button></div>
           <input id="preview-progress" type="range" min="0" max="100" step="1" value="0" aria-label="预览每日进度"/>
           <div class="preview-stages"><button data-preview-progress="0">启程</button><button data-preview-progress="25">25% · 引路</button><button data-preview-progress="50">50% · 苏醒</button><button data-preview-progress="75">75% · 共鸣</button><button data-preview-progress="100">100% · 通关</button></div>
-          <div class="preview-subjects"><span>科目达标动画</span><button data-preview-subject="math">数学</button><button data-preview-subject="cs">408</button><button data-preview-subject="politics">政治</button><button data-preview-subject="english">英语</button></div>
+          <div class="preview-subjects"><span>科目达标动画</span><button data-preview-subject="math">数学</button><button data-preview-subject="cs">408</button><button data-preview-subject="politics">政治</button><button data-preview-subject="english">英语</button><button id="preview-resonance">✦ 四科全部达成</button></div>
           <p>仅预览动画，学习记录不变。关闭后回到真实进度。</p>
         </div>
         <div class="hero-content">
@@ -86,6 +86,7 @@
           <div class="expedition-map-frame" data-scene-frame>
           <div data-scene-ratio="1.851851852" class="expedition-canvas" id="expedition-canvas" aria-label="学习驱动的星海群岛">
             <div class="expedition-world" id="expedition-world"></div>
+            <div class="expedition-resonance" id="expedition-resonance" aria-hidden="true"></div>
             <div class="expedition-map-heading"><span>THE ISLES OF YOUR EFFORT</span><strong id="expedition-map-title">雾中的群岛，正等待第一束光。</strong></div>
             <div class="expedition-scene-state" id="expedition-scene-state" role="status" hidden></div>
           <div class="quest-scene" data-skin-slots="island theme fx companion relic portal avatar">

@@ -78,6 +78,7 @@
     return {date, today, isToday: Boolean(date && date === today), isHistorical: Boolean(date && today && date < today),
       minutes, target, percent, progress, goalSet: target > 0, complete: target > 0 && minutes >= target,
       stage: Math.min(4, Math.floor(progress * 4)), discoveryIndex, subjects,
+      resonance: {active: subjects.every(subject => subject.complete), completed: subjects.filter(subject => subject.complete).length, total: SUBJECTS.length},
       otherMinutes: Math.max(0, minutes - sum(subjects.map(subject => subject.minutes))),
       discoveries, currentDiscovery, nextDiscovery, title: currentDiscovery.name, narrative: currentDiscovery.narrative,
       afterglow: {active: excess > 0, minutes: excess, intensity: target ? Math.min(1, excess / target) : 0,

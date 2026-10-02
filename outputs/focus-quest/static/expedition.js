@@ -12,6 +12,7 @@
   const glyph={math:'∑',cs:'⌘',politics:'✦',english:'Aa'};
   let bridge=null,latest=null,mode='live',previewPercent=null,replay=null,index=0,playing=false,timer=null,generation=0;
   let selected=null,discovery=null,immersive=false,arrivalTimer=null,arrivalGeneration=0;
+  let resonanceKey=null,resonanceTimer=null,resonanceGeneration=0,resonancePending=false;
   const cache=new Map();
   function replace(id,html){
     if(cache.get(id)===html)return;
@@ -28,10 +29,10 @@
     return mode==='replay'?replay?.frames[index]?.model:mode==='preview'?modelApi().preview(latest,previewPercent):null;
   }
   function model(){return visualModel()||modelApi().build(latest);}
-  function stop(shouldPaint=true){cancelTimer();mode='live';playing=false;replay=null;index=0;previewPercent=null;if(shouldPaint&&latest)paint();}
+  function stop(shouldPaint=true){cancelTimer();clearResonance();resonancePending=false;mode='live';playing=false;replay=null;index=0;previewPercent=null;if(shouldPaint&&latest)paint();}
   function render(next){
     if(!bridge||!next)return;
-    if(latest&&next.date!==latest.date){stop(false);selected=null;discovery=null;clearArrival();}
+    if(latest&&next.date!==latest.date){stop(false);selected=null;discovery=null;clearArrival();resonanceKey=null;}
     latest=next;
     if(reduced()&&playing){playing=false;cancelTimer();}
     paint();
@@ -40,16 +41,44 @@
     if(!latest)return;
     stop(false);
     if(percent!==null){mode='preview';previewPercent=Math.max(0,Number(percent)||0);}
+    resonanceKey=null;
     paint();
   }
+  function clearResonance(){
+    resonanceGeneration++;if(resonanceTimer!==null)root.clearTimeout(resonanceTimer);resonanceTimer=null;
+    $('expedition-canvas').classList.remove('resonance-arriving');
+  }
+  function resonance(m){
+    const active=m.resonance.active,canvas=$('expedition-canvas');
+    const key=`${m.date}:${mode}:${active}`,changed=key!==resonanceKey;resonanceKey=key;
+    canvas.dataset.resonance=String(active);$('quest-hero').dataset.resonance=String(active);
+    // The overlay is independent of live minutes: polling and over-completion
+    // never replace its SVG or restart its ambient animation.
+    replace('expedition-resonance',root.FocusExpeditionArt.resonance?.(m)||'');
+    if(!active||reduced()||document.hidden||bridge.isHome?.()===false){clearResonance();resonancePending=false;return;}
+    if(changed)resonancePending=true;
+    if(document.querySelector('dialog[open]')){deferResonance();return;}
+    if(!resonancePending)return;
+    clearResonance();
+    resonancePending=false;
+    // Explicit preview presses can replay the entrance without changing study.
+    void canvas.offsetWidth;canvas.classList.add('resonance-arriving');
+    const token=resonanceGeneration;
+    resonanceTimer=root.setTimeout(()=>{if(token===resonanceGeneration)clearResonance();},5600);
+  }
+  function deferResonance(){
+    if($('expedition-canvas').classList.contains('resonance-arriving'))resonancePending=true;
+    clearResonance();
+  }
+  function resumeResonance(){if(resonancePending&&latest)paint();}
   function sceneDescription(m){
     const done=m.subjects.filter(s=>s.complete).length;
     const picked=m.subjects.find(s=>s.id===selected),note=$('expedition-map-note');
     note.hidden=!picked;
     note.textContent=picked?`${picked.name} · ${picked.landmark}\n${duration(picked.minutes)} / ${duration(picked.target)} · ${percent(picked.percent)}%`:'';
-    $('expedition-world-count').textContent=`四科共鸣 ${done} / 4`;
-    $('expedition-map-title').textContent=m.complete?'归途的灯塔，已为你点亮。':m.minutes?`此刻抵达 · ${m.currentDiscovery.name}`:'雾中的群岛，正等待第一束光。';
-    $('expedition-map-caption').textContent=m.afterglow.active?`余晖星痕 · 超额 ${duration(m.afterglow.minutes)}，也已留下光。`:'点击岛屿探访 · 学习让建筑生长，星桥逐渐亮起';
+    $('expedition-world-count').textContent=m.resonance.active?'✦ 四曜共鸣 · 4 / 4':`四科共鸣 ${done} / 4`;
+    $('expedition-map-title').textContent=m.resonance.active?'四座星岛，此刻同辉。':m.complete?'归途的灯塔，已为你点亮。':m.minutes?`此刻抵达 · ${m.currentDiscovery.name}`:'雾中的群岛，正等待第一束光。';
+    $('expedition-map-caption').textContent=m.resonance.active?'四科目标全部达成 · 每一份努力，都在这片星空交汇':m.afterglow.active?`余晖星痕 · 超额 ${duration(m.afterglow.minutes)}，也已留下光。`:'点击岛屿探访 · 学习让建筑生长，星桥逐渐亮起';
     const state=$('expedition-scene-state');state.hidden=mode==='live';
     state.textContent=mode==='preview'?`成长演示 · ${percent(m.percent)}% · 不改变记录`:`远征回放 · ${percent(m.percent)}% · ${playing?'播放中':'已暂停'} · 不改变记录`;
   }
@@ -98,7 +127,7 @@
       replace('expedition-world',root.FocusExpeditionArt.world(m));cache.set('world',key);
     }
     replace('expedition-subjects',m.subjects.map(s=>`<button type="button" data-expedition-subject="${s.id}" aria-pressed="${selected===s.id}" class="${s.complete?'complete':''}" style="--isle-color:${{math:'#99d8c1',cs:'#b5aceb',politics:'#e3c295',english:'#a0cfe5'}[s.id]}"><i aria-hidden="true">${glyph[s.id]}</i><span><strong>${s.name} <small>${s.landmark}</small></strong><em>${s.complete?'星桥已共鸣':s.minutes?'设施建设中':'等待第一束光'}</em></span><b>${percent(s.percent)}%</b></button>`).join(''));
-    sceneDescription(m);detail(m);replayUI();
+    resonance(m);sceneDescription(m);detail(m);replayUI();
     bridge.renderHero();
   }
   function schedule(){
@@ -138,7 +167,7 @@
     if(next.settings?.motion!==false&&!root.matchMedia?.('(prefers-reduced-motion: reduce)').matches)$('expedition-canvas').classList.add('receiving-focus');
     arrivalTimer=root.setTimeout(()=>{if(token===arrivalGeneration)clearArrival();},5500);
   }
-  function leave(){stop();immerse(false);clearArrival();}
+  function leave(){stop();immerse(false);clearArrival();clearResonance();resonancePending=false;}
   function init(callbacks){
     if(bridge)return;bridge=callbacks;
     $('expedition-replay').addEventListener('click',()=>startReplay());
@@ -163,8 +192,8 @@
       const target=event.target.closest('[data-expedition-subject]');if(target&&['Enter',' '].includes(event.key)){event.preventDefault();selected=target.dataset.expeditionSubject;discovery=null;paint();}
     });
     document.addEventListener('keydown',event=>{if(event.defaultPrevented||event.key!=='Escape'||document.querySelector('dialog[open]'))return;if(immersive){immerse(false);event.preventDefault();}else if(mode==='replay'){stop();event.preventDefault();}});
-    document.addEventListener('visibilitychange',()=>{if(document.hidden&&playing)pause();});
+    document.addEventListener('visibilitychange',()=>{if(document.hidden){if(playing)pause();clearResonance();resonancePending=false;}});
     root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(reduced())pause();else if(latest)paint();});
   }
-  root.FocusExpedition={init,render,preview,visualModel,startReplay,stop,pause,leave,noteArrival};
+  root.FocusExpedition={init,render,preview,visualModel,startReplay,stop,pause,leave,noteArrival,deferResonance,resumeResonance};
 })(typeof globalThis!=='undefined'?globalThis:this);

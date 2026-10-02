@@ -16,6 +16,12 @@
 .expedition-canvas{position:relative;aspect-ratio:1000/540;margin:13px -12px 0;min-width:0;background:radial-gradient(ellipse at 50% 50%,var(--theme-halo,#6c78b918),transparent 56%);border-radius:20px;isolation:isolate}
 .expedition-canvas:after{content:'';position:absolute;inset:12%;border-radius:50%;pointer-events:none;opacity:0;box-shadow:inset 0 0 75px #d4c49c40;z-index:-1}
 .expedition-world{position:absolute;inset:0}
+.expedition-resonance{position:absolute;inset:0;z-index:2;pointer-events:none}
+.expedition-canvas[data-resonance="true"] .expedition-map-heading,.expedition-canvas[data-resonance="true"] .expedition-map-footer{z-index:3}
+.expedition-canvas[data-resonance="true"] .expedition-map-heading>strong{color:#f5dfb5;text-shadow:0 0 18px #efd1a955}
+.expedition-canvas[data-resonance="true"] #expedition-world-count{color:#f5dfb5;border:1px solid #e6cc9c66;border-radius:20px;padding:3px 10px;background:#292a40d9;box-shadow:0 0 20px #dac99a12}
+.quest-hero[data-resonance="true"] .expedition-subjects>button.complete{border-color:color-mix(in srgb,var(--isle-color) 55%,transparent);box-shadow:inset 0 0 20px color-mix(in srgb,var(--isle-color) 8%,transparent)}
+#preview-resonance{grid-column:1/-1;white-space:nowrap;color:#f2d7a5;border-color:#dec18a66;background:#b6995020}
 .expedition-map-heading{position:absolute;left:22px;top:19px;display:grid;gap:9px;pointer-events:none}
 .expedition-map-heading>span{font-size:8px;letter-spacing:2px;color:#8b8fac}
 .expedition-map-heading>strong{font-size:11px;font-weight:450;color:#c4c3d7}

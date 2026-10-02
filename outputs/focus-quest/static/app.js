@@ -498,6 +498,7 @@ function showCelebration({title,body,reward,preview=false,stage=4,subject=null})
   $('celebration-done').textContent=preview?'返回预览':celebrationQueue.length?'收下成就，查看下一份':'收下这份成就';
   $('confetti').innerHTML=Array.from({length:30},(_,i)=>`<i style="left:${(i*37)%100}%;animation-delay:${-(i%13)*.29}s;animation-duration:${2.6+(i%7)*.2}s"></i>`).join('');
   if(!$('celebration-dialog').open)$('celebration-dialog').showModal();
+  globalThis.FocusExpedition?.deferResonance?.();
 }
 function ensureAudio() { return globalThis.FocusAudio?.unlock(); }
 function playSound(cue,options) { try{return globalThis.FocusAudio?.play(cue,options)||false;}catch(_){return false;} }
@@ -558,6 +559,7 @@ $('header-today').addEventListener('click',()=>{$('date-picker').classList.remov
 $('preview-effects').addEventListener('click',()=>{if(scenePreviewPercent!==null)stopScenePreview();else if(state)previewScene(state.totals.minutes/state.totals.target*100);});
 $('preview-progress').addEventListener('input',event=>previewScene(event.target.value));
 $('preview-stop').addEventListener('click',stopScenePreview);
+$('preview-resonance').addEventListener('click',()=>previewScene(100));
 document.querySelectorAll('[data-preview-progress]').forEach(button=>button.addEventListener('click',()=>previewScene(button.dataset.previewProgress)));
 document.querySelectorAll('[data-preview-subject]').forEach(button=>button.addEventListener('click',()=>{
   const id=button.dataset.previewSubject,subject=state?.subjects.find(s=>s.id===id);if(!subject)return;
@@ -566,7 +568,7 @@ document.querySelectorAll('[data-preview-subject]').forEach(button=>button.addEv
 document.querySelector('.celebration-close').addEventListener('click',()=>{celebrationQueue=[];$('celebration-dialog').close();});
 $('celebration-done').addEventListener('click',()=>$('celebration-dialog').close());
 $('celebration-dialog').addEventListener('cancel',()=>{celebrationQueue=[];});
-document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)));
+document.querySelectorAll('dialog').forEach(dialog=>dialog.addEventListener('close',()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();globalThis.FocusExpedition?.resumeResonance?.();},0)));
 for(const gesture of ['pointerdown','keydown'])document.addEventListener(gesture,event=>{if(!event.repeat&&state?.settings.sound)ensureAudio();},{capture:true});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){noteOpeningArrival();refresh();}});
 window.addEventListener('focus',noteOpeningArrival);
