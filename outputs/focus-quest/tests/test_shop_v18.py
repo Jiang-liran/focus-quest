@@ -213,8 +213,8 @@ class ShopV18Tests(unittest.TestCase):
         catalog = self.store.quest_state(NOW)["catalog"]
         paid = [item for item in catalog if item["currency"] != "free" and not item.get("lotteryOnly", False)]
         defaults = [item for item in catalog if item["currency"] == "free"]
-        self.assertEqual(len(paid), 86+len(server.shop_expansion.SHOP_CATALOG_EXTRA)-len(server.shop_expansion.SHOP_LOTTERY_ONLY_IDS))
-        self.assertEqual(len(defaults), 18)
+        self.assertEqual(len(paid), 102+len(server.shop_expansion.SHOP_CATALOG_EXTRA)-len(server.shop_expansion.SHOP_LOTTERY_ONLY_IDS))
+        self.assertEqual(len(defaults), 28)
         total_coins = sum(item["coins"] for item in paid)
         total_diamonds = sum(item["diamonds"] for item in paid)
         # Leave a recognizable remainder so every exact debit can be checked.
@@ -283,7 +283,7 @@ class ShopV18Tests(unittest.TestCase):
         self.assertEqual(state["wallet"], {"coins": 3490, "diamonds": 13})
         self.assertEqual(state["equipped"]["bar"], "bar-comet")
         self.assertEqual(state["equipped"]["fx"], "fx-meteor")
-        self.assertEqual(len(state["equipped"]), 18)
+        self.assertEqual(len(state["equipped"]), 24)
         self.assertTrue(all(item["owned"] for item in state["catalog"] if item["id"] in server.LEGACY_SHOP_ITEM_IDS))
         refunds = [tuple(row) for row in self.store.db.execute("SELECT * FROM wallet_ledger WHERE reference LIKE 'pricing:v18:%' ORDER BY reference")]
         self.assertEqual(len(refunds), 8)

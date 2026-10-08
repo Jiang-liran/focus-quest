@@ -176,7 +176,7 @@
     if(model())rememberRoundReceipt({day:model().day,methodRewards:model()});
     if(model())for(const subject of rows())for(const tier of Object.keys(tiers))if(rewardFor(subject,tier)?.claimed)remember(claimKey(model().day,subject.id,tier));
     if(model()?.completionBonus?.claimed){remember(claimKey(model().day,'all','completion'));rememberBonusTickets(model().day,model().completionBonus);}
-    paint();
+    paint();root.FocusRewardHub?.update();
   }
   async function claim(subjectId,tier){
     const isBonus=subjectId==='all'&&tier==='completion';
@@ -196,7 +196,7 @@
         bridge.toast?.(`${isBonus?'四科研习 · 融会贯通':`${subjects[subjectId].name} · ${tiers[tier].name}`}，奖励已收好`,`+${number(result.reward.coins)} 金币${number(result.reward.diamonds)?` · +${number(result.reward.diamonds)} 钻石`:''}${root.FocusLottery?.ticketText?.(result.ticketGrants)||''}`);
       }else bridge.toast?.('这份研习奖励已经收好','不重复领取，行囊里的收获已经记下。');
     }catch(error){bridge.toast?.('研习奖励还在这里',error?.message||'暂时未能领取，请稍后再试。',true);}
-    finally{busy=null;paint();}
+    finally{busy=null;paint();root.FocusRewardHub?.update();}
     try{await bridge.refresh?.(true);}catch{/* A later poll cannot undo a valid receipt. */}
   }
   function init(callbacks={}){
@@ -214,5 +214,9 @@
     // These are native buttons: Enter and Space supply their normal click behavior.
     paint();
   }
-  root.FocusMethodRewards={init,render};
+  function summary(){
+    const count=rows().reduce((sum,subject)=>sum+['practice','mastery'].filter(tier=>available(subject,tier)).length,0)+Number(bonusAvailable());
+    return {count,text:count?`${count} 份研习奖励可领取`:current()?'落笔与听练，按自己的节奏积累':'回到今天查看研习奖励'};
+  }
+  root.FocusMethodRewards={init,render,summary};
 })(typeof globalThis!=='undefined'?globalThis:this);

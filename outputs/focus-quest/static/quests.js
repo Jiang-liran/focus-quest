@@ -4,7 +4,7 @@
   else root.FocusQuests=api;
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
-  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',interface:'界面主题',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
+  const names={bar:'进度条',fx:'星岛特效',avatar:'我的时装',banner:'旅人铭牌',theme:'星岛环境',interface:'界面主题',companion:'随行伙伴',relic:'星岛圣物',portal:'远征之门',island:'主岛布置',archipelago:'四岛套装',campusmath:'数学建筑',campuscs:'408建筑',campuspolitics:'政治建筑',campusenglish:'英语建筑',homeland:'主岛建筑',camp:'营地地貌',fire:'篝火样式',tent:'歇脚帐篷',campgear:'营地陈设',campglow:'营地氛围',chatframe:'对话外观',camptrail:'营地小径',campmark:'营地地标'};
   const campSlots=new Set(['camp','fire','tent','campgear','campglow','chatframe','camptrail','campmark']);
   const citadelSlots=new Set(['theme','fx','avatar','companion','relic','portal']);
   const subjectNames={math:'数学',politics:'政治',cs:'408',english:'英语'};
@@ -91,7 +91,7 @@
     const advertised=q.status==='available'||first&&q.status!=='ready'?q.baseReward:reward;
     const rewardLabel=q.status==='available'||first&&q.status!=='ready'?'首次达标基础奖励':'本次可交付收获';
     const note=(q.status==='available'?'接取后开始累计，四科可同时接取。听课、做题均计入。':q.status==='ready'?'交付后继续累计；未满的金币与钻石进度会保留。':first?'先完成首次目标，再交付收获。跨天保留进度，按自己的节奏完成。':'首次目标已完成，新增专注继续产生奖励，有新收获就能再次交付。')+roundTicketHint(q);
-    return `<article class="q-task continuous ${esc(q.status)}" data-subject="${esc(q.subject)}"><div class="q-task-heading"><h3>${esc(q.name)}</h3><span class="q-status">${esc(statuses[q.status]||'待同步')}</span></div><p class="q-progress-caption">${first?'首次目标与钻石进度':'下一份钻石进度'} · 每满 ${n(q.target)} 分钟得 2 钻石</p><div class="q-numbers"><strong>${n(progress)}<small>分钟</small></strong><span>/ ${n(q.target)} 分钟</span><b>${n(shownPercent)}%</b></div><div class="q-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${esc(q.name)}钻石进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,shownPercent)}" aria-valuetext="${n(shownPercent)}%"><i style="width:${Math.min(100,shownPercent)}%"></i></div><div class="q-study-account"><span>待交付专注 <b>${n(q.minutes)} 分钟</b></span><span>今日已交付 <b>${n(q.todaySettledMinutes)} 分钟</b></span></div><div class="q-reward"><small>${rewardLabel}</small>${money(advertised?.coins||0,advertised?.diamonds||0)}</div>${firstRoundMarkup(q)}<p class="q-task-note">${note}</p><button class="${action.action==='submit'?'primary-button':'secondary-button'} q-task-button" ${action.action?`data-quest-action="${action.action}" data-subject="${esc(q.subject)}"`:''} ${!action.action||disabled?'disabled':''}>${esc(action.label)}</button></article>`;
+    return `<article class="q-task continuous ${esc(q.status)}" data-subject="${esc(q.subject)}"><div class="q-task-heading"><h3>${esc(q.name)}</h3><span class="q-status">${esc(statuses[q.status]||'待同步')}</span></div><div class="q-task-main"><p class="q-progress-caption">${first?'首次目标与钻石进度':'下一份钻石进度'} · 每满 ${n(q.target)} 分钟得 2 钻石</p><div class="q-numbers"><strong>${n(progress)}<small>分钟</small></strong><span>/ ${n(q.target)} 分钟</span><b>${n(shownPercent)}%</b></div><div class="q-progress" data-skin-slots="bar" tabindex="0" title="右键更换进度条外观" role="progressbar" aria-label="${esc(q.name)}钻石进度" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${Math.min(100,shownPercent)}" aria-valuetext="${n(shownPercent)}%"><i style="width:${Math.min(100,shownPercent)}%"></i></div><div class="q-study-account"><span>待交付专注 <b>${n(q.minutes)} 分钟</b></span><span>今日已交付 <b>${n(q.todaySettledMinutes)} 分钟</b></span></div><div class="q-reward"><small>${rewardLabel}</small>${money(advertised?.coins||0,advertised?.diamonds||0)}</div></div>${firstRoundMarkup(q)}<p class="q-task-note">${note}</p><button class="${action.action==='submit'?'primary-button':'secondary-button'} q-task-button" ${action.action?`data-quest-action="${action.action}" data-subject="${esc(q.subject)}"`:''} ${!action.action||disabled?'disabled':''}>${esc(action.label)}</button></article>`;
   }
   function taskMarkup(q,disabled=false){
     if(q.continuous)return continuousTaskMarkup(q,disabled);
@@ -106,7 +106,7 @@
   function swatch(item){
     if(campSlots.has(item.slot))return `<div class="cosmetic-swatch campfire-swatch" data-item="${esc(item.id)}">${window.FocusCampfireShopArt?.preview(item.id,data?.equipped)||''}</div>`;
     if(item.slot==='avatar')return `<div class="cosmetic-swatch outfit-swatch" data-item="${esc(item.id)}">${avatar('player',item.id)}</div>`;
-    const art=window.ShopArt?.preview(item.id)||'';
+    const art=window.ShopArt?.preview(item.id,data?.equipped)||'';
     return `<div class="cosmetic-swatch ${art?'shop-art-swatch':''}" data-item="${esc(item.id)}">${art}</div>`;
   }
   function itemMarkup(item,wallet,disabled=false){
@@ -144,7 +144,7 @@
       const quote=continuous?(period==='morning'?'「思路有它自己的节奏。想推演或思辨时，我一直在这里。」':'「带着问题出发，循着理解前行。每个时刻，都能写下新的进展。」'):m.quote;
       const pairTickets=continuous&&tasks.some(q=>q.bonus?.enabled&&ticketReward(q.bonus.lotteryTickets)!==null)?`<span>同日${period==='morning'?'数学、政治':'408、英语'}首轮领齐 · 1 张钻石抽奖券</span>`:'';
       const schedule=continuous?`<span><i></i>全天可接 · 基础奖励始终相同</span><span class="${recommended?'q-recommended':''}">${recommended?'此刻推荐':'常练时段：'+(period==='morning'?'上午':'下午')} · 首轮额外加赠</span>${pairTickets}`:`<span><i></i>${m.hours} 学习窗口</span><span>${m.grace} 交付截止</span>`;
-      return `<section class="q-mentor ${period}"><header class="q-mentor-header"><div class="q-portrait">${avatar(period)}</div><div><span class="q-mentor-role">${esc(m.title)} · ${m.subjects}</span><h2>${m.name}<small>${continuous?'按你的节奏，随时启程':period==='morning'?'守住晨光里的秩序':'沿着午后的光前行'}</small></h2><p>${quote}</p></div></header><div class="q-schedule">${schedule}</div><div class="q-task-grid">${tasks.map(q=>taskMarkup(q,busy)).join('')}</div></section>`;
+      return `<section class="q-mentor ${period}" data-reward-period="${period}"><header class="q-mentor-header"><div class="q-portrait">${avatar(period)}</div><div><span class="q-mentor-role">${esc(m.title)} · ${m.subjects}</span><h2>${m.name}<small>${continuous?'按你的节奏，随时启程':period==='morning'?'守住晨光里的秩序':'沿着午后的光前行'}</small></h2><p>${quote}</p></div></header><div class="q-schedule">${schedule}</div><div class="q-task-grid">${tasks.map(q=>taskMarkup(q,busy)).join('')}</div></section>`;
     }).join(''));
     replace('shop-keeper',avatar('shop'));
     replace('player-outfit',avatar('player',data.equipped.avatar));
@@ -158,7 +158,10 @@
     replace('quest-history',data.history.length?data.history.map(historyMarkup).join(''):'<div class="q-empty"><span>✧</span><p>第一份委托，等你亲手交付。</p><small>完成后，金币、钻石和这次努力会一起记在这里。</small></div>');
     window.FocusQuickSkins?.render(data);
     window.FocusMystery?.render(data);
+    window.FocusEveningRewards?.render(data);
+    window.FocusEarlyStart?.render(data);
     window.FocusProgressBars?.decorate(document);
+    window.FocusRewardHub?.renderQuests(data);
   }
   function renderShop(){
     const inArea=i=>area==='all'||(area==='interface'?i.slot==='interface':area==='camp'?campSlots.has(i.slot):i.slot!=='interface'&&!campSlots.has(i.slot));
@@ -181,6 +184,7 @@
     if(market!=='limited'&&area==='camp')$('shop-market-description').textContent=market==='owned'?'已拥有的营地布置，八个位置可以独立搭配，初始款随时可换回。':market==='coins'?'先添一张茶桌，再挑一顶帐篷。小小的金币收藏，让篝火旁更像自己的营地。':'湖畔、雪岭与极光，还有特别的星火。每件收藏只需钻石，购买后永久拥有。';
     if(market!=='limited'&&(area==='interface'||filter==='interface'))$('shop-market-description').textContent='从配色到边框、纹理与按钮，给整间书房换一种气质。界面主题独立装备，你已有的星岛环境、装饰和特效照常搭配。';
     if(market!=='limited'&&filter==='island')$('shop-market-description').textContent='主岛布置是一整套主题：从左前书箱、花箱与矮灯，到后侧精巧建筑。购买后收进收藏，装备一套会替换当前整套；多次购买不会自动叠加，也可随时换回素岛原貌。';
+    if(filter.startsWith('campus'))$('shop-market-description').textContent='每座学岛单独换装：保留本科特色配色与学习进度，其他三岛保持当前搭配。可免费恢复本科初旅原貌，也可选择随整套主题。';
     const items=marketItems.filter(i=>filter==='all'||i.slot===filter);
     shopPageCount=Math.max(1,Math.ceil(items.length/SHOP_PAGE_SIZE));
     shopPage=Math.max(0,Math.min(shopPage,shopPageCount-1));
@@ -290,9 +294,11 @@
     return `<div class="campfire-full-preview" data-chatframe="${esc(equipped.chatframe||'chatframe-default')}"><div class="campfire-preview-scene">${window.FocusCampWorldArt?.scene(equipped,{interactive:false})||window.FocusCampfireShopArt?.scene(equipped)||''}</div><div class="campfire-preview-line"><span>阿榆 · 守火人</span><p>水快热了，坐一会儿吧。今晚的故事，可以慢慢说。</p></div></div>`;
   }
   function itemPreview(item){
+    if(item.slot.startsWith('campus')&&window.ShopArt?.subjectIslandPreview)return `<div class="island-full-preview">${window.ShopArt.subjectIslandPreview(item.id,true,data.equipped)}<p>${esc(names[item.slot])} · 仅更换本科岛屿，其他三岛、学习进度与礼盒保留</p></div>`;
     if(item.slot==='bar'&&window.FocusProgressBars?.has(item.id))return window.FocusProgressBars.fullPreview(item.id);
     if(item.slot==='interface'&&window.FocusInterfaceThemes)return window.FocusInterfaceThemes.fullPreview(item.id,data.equipped,window.ShopArt);
     if(campSlots.has(item.slot))return campPreview(item);
+    if(['archipelago','homeland'].includes(item.slot)&&window.FocusIslandArchitecture)return `<div class="island-full-preview">${item.slot==='homeland'?window.ShopArt.islandPreview(data.equipped?.island||'island-default',{...data.equipped,homeland:item.id}):window.ShopArt.archipelagoPreview(item.id,true)}<p>${item.slot==='archipelago'?'四座学岛整体建筑 · 只更换外观，学科进度与礼盒照常保留':'整座主岛建筑 · 与现有主岛布置、伙伴、圣物和篝火共同使用'}</p></div>`;
     if(item.slot==='island'&&window.ShopArt?.islandPreview)return `<div class="island-full-preview">${window.ShopArt.islandPreview(item.id,data.equipped)}<p>首页主岛整套布置 · 替换当前布置，保留其余装备与篝火入口</p></div>`;
     if(citadelSlots.has(item.slot)){
       const scene=window.FocusCitadel?.preview?.(item.id,{...data.equipped});
@@ -317,7 +323,7 @@
     if(action==='equip'){perform({action,id});return;}
     if(action==='buy'&&(item.lotteryOnly||item.owned||data.wallet.coins<item.coins||data.wallet.diamonds<item.diamonds))return;
     intent=action==='buy'?{action,id}:null;
-    const placement=item.slot==='island'?'<p>一套布置包含配套的前景与建筑；装备时整套替换，多套收藏不会自动叠加。素岛原貌随时可免费恢复。</p>':'';
+    const placement=item.slot.startsWith('campus')?'<p>本科独立换装会优先于四岛套装。选择免费「初旅原貌」可单独恢复最初设计；选择「随整套主题」重新沿用四岛套装。</p>':['archipelago','homeland'].includes(item.slot)?'<p>四岛套装、单岛建筑与主岛建筑可以分别搭配。单岛选择优先于四岛套装，免费「随整套主题」可重新沿用整套设计。</p>':item.slot==='island'?'<p>一套布置包含配套的前景与建筑；装备时整套替换，多套收藏不会自动叠加。素岛原貌随时可免费恢复。</p>':'';
     dialog(item.name,action==='buy'?'ADD TO YOUR COLLECTION':item.slot==='interface'?'A DIFFERENT ATMOSPHERE':campSlots.has(item.slot)?'BY YOUR CAMPFIRE':citadelSlots.has(item.slot)?'IN YOUR STARLIGHT CITADEL':'WARDROBE PREVIEW',itemPreview(item),`<p>${esc(item.description)}</p>${placement}<div class="q-action-reward">${price(item)}</div><p>${action==='buy'?`购买后永久拥有。购买后可从商店装备，${esc(names[item.slot])}一次使用一款。`:'外观预览，不花费货币，不改变当前装备。'}</p>${action==='buy'?`<p class="q-fineprint">购买后余额：${n(data.wallet.coins-item.coins)} 金币 · ${n(data.wallet.diamonds-item.diamonds)} 钻石</p>`:''}`,action==='buy'?'确认购买':null,'返回商店');
   }
   async function perform(job){

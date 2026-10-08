@@ -58,9 +58,9 @@ class QuestTests(unittest.TestCase):
     def test_schedule_accept_boundaries_and_defaults(self):
         early = self.store.quest_state(at(0))
         self.assertEqual(early["wallet"], {"coins": 0, "diamonds": 0})
-        self.assertEqual(len(early["catalog"]), 104+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
-        self.assertEqual(sum(item["owned"] for item in early["catalog"]), 18)
-        self.assertEqual(sum(item["equipped"] for item in early["catalog"]), 18)
+        self.assertEqual(len(early["catalog"]), 130+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
+        self.assertEqual(sum(item["owned"] for item in early["catalog"]), 28)
+        self.assertEqual(sum(item["equipped"] for item in early["catalog"]), 24)
         self.assertEqual(self.quest("math", at(0))["status"], "available")
         self.assertEqual(self.quest("cs", at(11, 59, 59))["status"], "available")
         self.store.accept_quest("math", at(11, 59, 59, microsecond=999000))

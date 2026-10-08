@@ -40,6 +40,56 @@
 @keyframes pet-head{0%,34%,70%,100%{transform:rotate(0)}43%,55%{transform:rotate(-4deg)}62%{transform:rotate(2deg)}}
 @keyframes pet-blink{0%,43%,47%,100%{transform:scaleY(1)}45%{transform:scaleY(.12)}}
 @keyframes pet-greet{0%,100%{transform:translateY(0) rotate(0)}24%{transform:translateY(-8px) rotate(-5deg)}50%{transform:translateY(-2px) rotate(4deg)}74%{transform:translateY(-5px) rotate(-2deg)}}
+/* A navigation step activates a gait; idle/shop artwork keeps its old timing. */
+.pet-life-heading{transform-origin:50px 50px;transform-box:view-box;transition:transform .22s ease}
+.pet-life[data-pet-facing] .pet-life-heading{transform:scaleX(calc(var(--pet-native-facing,1)*var(--pet-facing,1)))}
+.pet-life[data-pet-facing=left]{--pet-facing:-1}
+.pet-life[data-pet-facing=right]{--pet-facing:1}
+.pet-life[data-pet-moving=true]{--pet-step:.72s}
+.pet-life[data-pet-moving=true] .pet-life-motion{transform-box:view-box;transform-origin:50px 87px;animation:pet-walk-weight var(--pet-step) linear infinite}
+.pet-life[data-pet-moving=true] :is(.shop-pet-breathe,.expansion-pet-breathe,.collection-v2-breathe,.scv3c-breathe,.lca-bob,.lca-whale-swim,.lcv3c-lion-breathe,.lcv3d-fox-breathe,.collection-v2-wing){animation:none;transform:none}
+.pet-life[data-pet-moving=true] :is(.pet-life-leg-left,.pet-life-leg-right){transform-box:view-box;animation:pet-step var(--pet-step) linear infinite}
+.pet-life[data-pet-moving=true] .pet-life-leg-right{animation-delay:calc(var(--pet-step)*-.5)}
+.pet-life[data-pet-moving=true] .pet-life-tail{animation:pet-travel-tail .9s ease-in-out infinite}
+.pet-life[data-pet-moving=true] :is(.pet-life-wing-left,.pet-life-wing-right,.pet-life-wings){transform-box:view-box;animation:pet-flight-wing .55s ease-in-out infinite}
+.pet-life[data-pet-moving=true] .pet-life-wings{animation-name:pet-flight-pair}
+.pet-life[data-pet-moving=true] .pet-life-wing-left{animation-name:pet-flight-wing-left}
+.pet-life[data-pet-moving=true] :is(.pet-life-fin,.pet-life-fin-back){animation:pet-paddle .85s ease-in-out infinite}
+.pet-life[data-pet-moving=true] .pet-life-fin-back{animation-delay:-.425s}
+.pet-life[data-pet-moving=true] .pet-life-tentacles{animation:pet-tentacle-pulse 1.2s ease-in-out infinite}
+.pet-life[data-pet-moving=true] .pet-life-gills{animation:pet-gill-flow 1.1s ease-in-out infinite}
+.pet-life[data-pet-moving=true] .pet-life-spine{animation:pet-spine-wave 1.9s ease-in-out infinite}
+.pet-life[data-pet-moving=true] .pet-life-perch{opacity:0}
+.pet-life[data-pet-moving=true][data-pet-gait=hop]{--pet-step:.9s}
+.pet-life[data-pet-moving=true][data-pet-gait=hop] .pet-life-motion{animation-name:pet-hop-travel}
+.pet-life[data-pet-moving=true][data-pet-gait=hop] :is(.pet-life-leg-left,.pet-life-leg-right){animation-name:pet-hop-kick;animation-delay:0s}
+.pet-life[data-pet-moving=true][data-pet-gait=fly] .pet-life-motion{animation:pet-flight-weight 1.1s ease-in-out infinite;transform-origin:50px 50px}
+.pet-life[data-pet-moving=true][data-pet-gait=swim] .pet-life-motion{animation:pet-swim-travel 1.7s ease-in-out infinite;transform-origin:50px 55px}
+.pet-life[data-pet-moving=true][data-pet-gait=swim] :is(.pet-life-wing-left,.pet-life-wing-right){animation-duration:1.35s}
+.pet-life[data-pet-moving=true][data-pet-gait=crawl]{--pet-step:1.7s}
+.pet-life[data-pet-moving=true][data-pet-gait=crawl] .pet-life-motion{animation:pet-crawl-weight var(--pet-step) ease-in-out infinite}
+.pet-life[data-pet-moving=true][data-pet-gait=slither] .pet-life-motion{animation:pet-slither-travel 1.9s ease-in-out infinite}
+.pet-life[data-pet-moving=true][data-companion-life=companion-penguin] .pet-life-motion,.pet-life[data-pet-moving=true][data-companion-life=companion-puffin] .pet-life-motion,.pet-life[data-pet-moving=true][data-companion-life=companion-duckling] .pet-life-motion{animation-name:pet-waddle}
+.pet-life[data-pet-moving=true][data-pet-gait=walk] :is(.pet-life-wing-left,.pet-life-wing-right){animation-duration:var(--pet-step)}
+.pet-life[data-pet-moving=true]:is(:hover,:focus-visible) *{animation-play-state:paused}
+@keyframes pet-step{0%,100%{transform:translate(4px,0) rotate(-12deg)}38%{transform:translate(-4px,0) rotate(12deg)}58%{transform:translate(-3px,-4px) rotate(18deg)}80%{transform:translate(3px,-5px) rotate(-10deg)}}
+@keyframes pet-walk-weight{0%,50%,100%{transform:translateY(0) rotate(-1deg)}25%,75%{transform:translateY(-2px) rotate(1deg)}}
+@keyframes pet-waddle{0%,100%{transform:translateY(-1px) rotate(-5deg)}25%,75%{transform:translateY(1px) rotate(0)}50%{transform:translateY(-1px) rotate(5deg)}}
+@keyframes pet-hop-travel{0%,100%{transform:scale(1.035,.965)}18%{transform:translateY(2px) scale(1.08,.9)}36%{transform:translateY(-5px) scale(.95,1.08)}55%{transform:translateY(-10px) scale(.99,1.02)}76%{transform:translateY(-4px) scale(1)}88%{transform:translateY(1px) scale(1.07,.92)}}
+@keyframes pet-hop-kick{0%,100%{transform:translateY(0) rotate(0)}18%{transform:translate(2px,-1px) rotate(7deg)}36%{transform:translate(-4px,3px) rotate(-20deg)}60%{transform:translate(-2px,-4px) rotate(12deg)}85%{transform:translate(3px,0) rotate(-5deg)}}
+@keyframes pet-flight-wing{0%,100%{transform:rotate(-12deg) scaleX(.88)}50%{transform:rotate(18deg) scaleX(1.08)}}
+@keyframes pet-flight-wing-left{0%,100%{transform:rotate(12deg) scaleX(.88)}50%{transform:rotate(-18deg) scaleX(1.08)}}
+@keyframes pet-flight-pair{0%,100%{transform:scale(.72,1.06)}50%{transform:scale(1.07,.94)}}
+@keyframes pet-flight-weight{0%,100%{transform:translateY(-4px) rotate(-1deg)}50%{transform:translateY(-9px) rotate(2deg)}}
+@keyframes pet-travel-tail{0%,100%{transform:rotate(-10deg)}50%{transform:rotate(12deg)}}
+@keyframes pet-paddle{0%,100%{transform:rotate(-18deg) scaleY(.95)}50%{transform:rotate(22deg) scaleY(1.08)}}
+@keyframes pet-swim-travel{0%,100%{transform:translateY(0) rotate(-3deg) scaleX(.985)}50%{transform:translateY(-4px) rotate(3deg) scaleX(1.02)}}
+@keyframes pet-tentacle-pulse{0%,100%{transform:skewX(-7deg) scaleY(.91)}50%{transform:skewX(7deg) scaleY(1.08)}}
+@keyframes pet-gill-flow{0%,100%{transform:scaleX(.94)}50%{transform:scaleX(1.045)}}
+@keyframes pet-crawl-weight{0%,100%{transform:translateY(0) scaleX(1.015)}50%{transform:translateY(-1px) scaleX(.985)}}
+@keyframes pet-spine-wave{0%,100%{transform:skewX(-4deg) scaleX(.97)}50%{transform:skewX(4deg) scaleX(1.025)}}
+@keyframes pet-slither-travel{0%,100%{transform:translateY(-1px) rotate(-2deg)}50%{transform:translateY(2px) rotate(2deg)}}
+.pet-life[data-pet-paused="true"] *{animation-play-state:paused!important}
 .no-motion .pet-life *,html.focus-runtime-hidden .pet-life *,[hidden] .pet-life *{animation:none!important;transition:none!important}
 .no-motion .pet-life-motion,html.focus-runtime-hidden .pet-life-motion,[hidden] .pet-life-motion{transform:none!important}
 @media(prefers-reduced-motion:reduce){.pet-life *{animation:none!important;transition:none!important}.pet-life-motion{transform:none!important}}

@@ -1,0 +1,35 @@
+.early-start-panel{padding:18px 22px;margin:0 0 20px;border:1px solid var(--ui-line,#8fa9bb38);border-radius:14px;background:linear-gradient(110deg,color-mix(in srgb,var(--ui-accent,#b4cbb9) 8%,transparent),transparent),var(--ui-surface,#202737);color:var(--ui-ink,#dee1eb)}
+.early-start-header{display:flex;justify-content:space-between;gap:12px;align-items:center;font-size:12px}.early-start-header>span{font-weight:600}.early-start-header small{color:var(--ui-muted,#a3aabd);font-size:10px}
+.early-start-tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:13px 0}.early-start-tier{display:flex;flex-wrap:wrap;gap:7px 12px;align-items:center;padding:12px;border:1px solid var(--ui-line,#91a5be32);border-radius:9px;background:color-mix(in srgb,var(--ui-accent,#b5c7d9) 4%,transparent);font-size:11px}.early-start-tier>b{flex-basis:100%;font-size:11px;font-weight:500}.early-start-tier span{display:inline-flex;align-items:center;gap:4px;white-space:nowrap}.early-start-tier .currency-icon{width:15px;height:15px}.early-start-tier.is-awarded{border-color:var(--ui-accent,#add1b7);background:color-mix(in srgb,var(--ui-accent,#aaceb8) 12%,transparent)}
+.early-start-rule,.early-start-status{font-size:10px;line-height:1.9;color:var(--ui-muted,#a3aabd);margin:6px 0 0}.early-start-status{color:var(--ui-ink,#d2d9e3)}
+.early-start-tickets{display:flex;flex-basis:100%;flex-wrap:wrap;gap:4px 7px;font-size:10px}.early-start-tickets span{padding:3px 5px;border-radius:4px;background:color-mix(in srgb,var(--ui-accent,#afc2de) 8%,transparent);color:var(--ui-ink,#d2d9e3)}
+#opening-early-start{text-align:left;padding:14px;margin:19px 0 0;background:#c9dce009;border:1px solid #bacddd26;border-radius:12px;color:#e0e4ed}#opening-early-start .early-start-header{font-size:12px}#opening-early-start .early-start-header small{font-size:9px}#opening-early-start .early-start-tier{padding:9px;gap:6px;font-size:10px;background:#bfcfe007;border-color:#a6bfd527}#opening-early-start .early-start-tier>b{font-size:10px}#opening-early-start .early-start-rule{color:#aeb7c7}#opening-early-start .early-start-status{color:var(--opening-ink,#ccd9da)}
+@media(max-width:699px){.early-start-panel{padding:14px}.early-start-header{flex-wrap:wrap;gap:5px}.early-start-tiers{gap:6px}.early-start-tier{padding:9px;font-size:10px}.early-start-tier span{flex-basis:100%}}
+#opening-early-start .early-start-tier{align-content:flex-start}#opening-early-start .early-start-tickets{font-size:9px;gap:4px}#opening-early-start .early-start-tickets span{padding:2px 3px}
+@media(max-height:800px){#opening-dialog .opening-scene{height:100px}#opening-dialog .opening-copy{padding-bottom:20px}#opening-early-start{margin-top:14px}#opening-closing{margin-top:10px}#opening-note{margin-top:10px}}
+
+#early-start-notice-dialog{width:min(540px,calc(100% - 36px));max-height:calc(100dvh - 48px);padding:24px 30px 26px;border:1px solid var(--ui-line,#6f668346);border-radius:var(--ui-radius,20px);background:radial-gradient(ellipse at 50% 0,color-mix(in srgb,var(--ui-warning,#ebc68a) 8%,transparent),transparent 60%),var(--ui-surface,#1b2030);color:var(--ui-ink,#e2e5ee);text-align:center;box-shadow:0 18px 65px var(--ui-shadow,#0004);overflow:auto}
+#early-start-notice-dialog::backdrop{background:color-mix(in srgb,var(--ui-bg,#0d1320) 65%,transparent)}
+#early-start-notice-dialog[open]{animation:early-start-arrive .28s ease-out}
+#early-start-notice-dialog .early-start-arrival-close{position:absolute;right:13px;top:12px;color:var(--ui-muted,#a4aec1)}
+.early-start-arrival-art{height:98px;color:var(--ui-warning,#e4c68f);margin:0 auto 10px}
+.early-start-arrival-art svg{width:180px;height:98px;stroke:none}
+#early-start-notice-dialog .eyebrow{color:var(--ui-muted,#a4aec1);font-size:9px;letter-spacing:1.6px}
+#early-start-notice-title{font-family:var(--ui-heading-font,inherit);font-size:24px;line-height:1.5;margin:10px 0 8px;color:var(--ui-ink,#e2e5ee)}
+.early-start-arrival-copy{font-size:12px;line-height:1.8;color:var(--ui-muted,#a4aec1)}
+.early-start-arrival-copy strong{color:var(--ui-ink,#e2e5ee);font-weight:600;font-variant-numeric:tabular-nums}
+.early-start-arrival-tier{display:inline-block;font-size:10px;line-height:1.8;margin:10px 0 0;padding:4px 10px;border-radius:20px;background:color-mix(in srgb,var(--ui-warning,#e4c68f) 7%,transparent);color:var(--ui-warning,#e4c68f);border:1px solid color-mix(in srgb,var(--ui-warning,#e4c68f) 22%,transparent)}
+.early-start-arrival-rewards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:20px 0 16px;text-align:left}
+.early-start-arrival-reward{display:flex;gap:12px;align-items:center;border:1px solid var(--ui-line,#92a4c128);border-radius:12px;padding:12px 16px;background:color-mix(in srgb,var(--ui-accent,#a99ad3) 4%,transparent);min-width:0}
+.early-start-arrival-reward.coin{color:var(--ui-coin,#e3bf76)}.early-start-arrival-reward.diamond{color:var(--ui-diamond,#b9b2ed)}
+.early-start-arrival-reward>.currency-icon{display:inline-flex;width:42px;height:34px;flex:0 0 42px;font-size:34px}
+.early-start-arrival-reward .early-start-ticket-icon{width:42px;height:34px;stroke:none;flex:none}
+.early-start-arrival-reward>div{min-width:0}.early-start-arrival-reward span{display:block;font-size:10px;color:var(--ui-muted,#a4aec1);line-height:1.8}
+.early-start-arrival-reward strong{display:block;font-size:24px;line-height:1.5;font-weight:550;font-variant-numeric:tabular-nums}.early-start-arrival-reward strong small{font-size:11px;font-weight:400}
+.early-start-arrival-reward>div>small{display:block;font-size:9px;line-height:1.8;color:var(--ui-muted,#a4aec1)}
+.early-start-arrival-note{font-size:10px;line-height:1.9;color:var(--ui-muted,#a4aec1);margin-bottom:17px;text-wrap:pretty}
+#early-start-notice-dialog>.primary-button{width:100%;padding:12px;font-size:12px}
+@keyframes early-start-arrive{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.no-motion #early-start-notice-dialog[open]{animation:none}
+@media(prefers-reduced-motion:reduce){#early-start-notice-dialog[open]{animation:none}}
+@media(max-width:480px){#early-start-notice-dialog{padding:20px 18px}.early-start-arrival-reward{padding:11px 10px;gap:8px}#early-start-notice-title{font-size:21px}}

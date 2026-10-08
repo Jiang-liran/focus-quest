@@ -5,7 +5,7 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeExpansion) {
   'use strict';
 
-  const roles = new Set(['morning', 'afternoon', 'shop', 'player', 'guide']);
+  const roles = new Set(['morning', 'afternoon', 'shop', 'player', 'guide', 'evening']);
   const playerOutfits = new Set(['avatar-default', 'avatar-ranger', 'avatar-voyager', 'avatar-alchemist', 'avatar-star', 'avatar-royal']);
   const palettes = {
     morning: {coat: '#67978b', shade: '#426f69', hat: '#8fb7a1', hatShade: '#5f8979', trim: '#edd3a1', hair: '#746458'},
@@ -154,8 +154,40 @@
       `<g class="quest-avatar-tier quest-avatar-tier-${index+1}" data-avatar-tier="${index+1}" display="${stage>index?'inline':'none'}">${geometry}</g>`).join('');
   }
 
+  function eveningAvatar() {
+    // A waist-up portrait matches the other mentors; 栖灯 keeps the wizard silhouette.
+    const art = `<ellipse cx="32" cy="68" rx="24" ry="3" fill="#101828" opacity=".3"/>
+      <path d="M24 43h16q9 4 12 25H12q3-21 12-25Z" fill="#658d91"/>
+      <path d="M33 44h7q9 4 12 24H33Z" fill="#426772"/>
+      ${face({hair:'#635b52'})}
+      <path d="M21 29q1-12 12-12 10 0 11 12l-6-4-5 3-2-5-6 6Z" fill="#635b52"/>
+      <path d="M17 25q0-16 15-16t15 16Z" fill="#7faaa5"/>
+      <path d="M32 9q15 0 15 16H32Z" fill="#597f81"/>
+      <path d="M19 24q13-4 26 0v5q-13-4-26 0Z" fill="#a9c5b4"/>
+      <path d="M23 24v3m5-4v3m5-4v3m5-3v3m4-2v3" stroke="#6f9590" stroke-width="1" stroke-linecap="round"/>
+      <path d="M24 46q8 3 16 0l-1 5q-7 3-14 0Z" fill="#e1bd86"/>
+      <path d="m30 51 7 1 1 11h-7Z" fill="#cc9e6d"/>
+      <path d="M32 59h5m-5 2h5" stroke="#f0d3a0" stroke-width="1"/>
+      <path d="m20 48-6 4 3 9 6-2Z" fill="#7c9e9b"/>
+      <path d="m42 48 7 3 2 5-6 2-5-5Z" fill="#597f81"/>
+      <path d="m12 52 10-2 3 13-11 2Z" fill="#e5d3aa"/>
+      <path d="m12 52 2 13 2-.4-2-13Z" fill="#aa9675"/>
+      <path d="m16 55 4-.7m-3.5 3 4-.7" stroke="#a49172" stroke-width="1" stroke-linecap="round"/>
+      <circle cx="23" cy="58" r="2.7" fill="#e4c7ad"/>
+      <ellipse cx="52" cy="60" rx="10" ry="10" fill="#e8bd79" opacity=".1"/>
+      <path d="M48 53v-3q4-5 8 0v3" fill="none" stroke="#c3a77b" stroke-width="1.6" stroke-linecap="round"/>
+      <circle cx="48" cy="51" r="2.5" fill="#e4c7ad"/>
+      <path d="m47 53 5-3 5 3v2H47Z" fill="#bc9968"/>
+      <rect x="46" y="55" width="12" height="11" rx="1.8" fill="#9f825e"/>
+      <rect x="48" y="57" width="8" height="7" rx=".6" fill="#efcf91"/>
+      <path d="M52 57v7" stroke="#f9e2b1" stroke-width="1.4"/>
+      <path d="M46 66h12" stroke="#c4a16c" stroke-width="1.6" stroke-linecap="round"/>`;
+    return `<svg class="quest-avatar-art" viewBox="0 0 64 72" width="64" height="72" aria-hidden="true" focusable="false" data-role="evening" data-outfit="npc-default" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${art}</svg>`;
+  }
+
   function avatar(role, outfit = 'default', stage = 0) {
     role = roles.has(role) ? role : 'guide';
+    if (role === 'evening') return eveningAvatar();
     const expansion = nodeExpansion || root.FocusShopExpansion;
     if (role === 'player' && expansion?.has(outfit, 'avatar')) return expansion.avatar(outfit, stage);
     // NPCs keep their individual character designs, including for old saves.

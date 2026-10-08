@@ -1,0 +1,74 @@
+.reward-hub{--rh-ink:var(--ui-ink,#e2daec);--rh-muted:var(--ui-muted,#a5a0b7);--rh-line:var(--ui-line,#5c5770);--rh-surface:var(--ui-surface,#1c2232);--rh-accent:var(--ui-accent,#bdabd9)}
+.reward-hub-heading{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:0 0 18px}.reward-hub-heading h2{color:var(--rh-ink);font-size:20px;font-family:var(--ui-heading-font,inherit);margin:0 0 8px}.reward-hub-heading p{font-size:11px;color:var(--rh-muted);line-height:1.7;margin:0}.reward-hub-status{font-size:11px;line-height:1.7;color:var(--rh-muted);max-width:240px;text-align:right}.reward-hub-status.has-rewards{color:var(--rh-accent);font-weight:600}
+.reward-npcs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.reward-npc{min-width:0;text-align:left;padding:18px;border:1px solid color-mix(in srgb,var(--rh-line) 55%,transparent);border-radius:var(--ui-radius,14px);color:var(--rh-ink);background:var(--rh-surface);box-shadow:var(--ui-panel-shadow,0 8px 20px #090b1410);transition:border-color .18s,background .18s;display:flex;flex-direction:column;cursor:pointer}.reward-npc:hover{border-color:var(--rh-accent);background:color-mix(in srgb,var(--rh-surface) 94%,var(--rh-accent))}.reward-npc:focus-visible{outline:2px solid var(--rh-accent);outline-offset:3px}.reward-npc.is-ready{border-color:color-mix(in srgb,var(--rh-accent) 78%,var(--rh-line));box-shadow:inset 0 3px 0 var(--rh-accent),var(--ui-panel-shadow,0 8px 20px #090b1410)}
+.reward-npc-top{display:flex;gap:8px;justify-content:space-between;align-items:center}.reward-npc-role{font-size:10px;color:var(--rh-muted)}.reward-npc-badge{font-size:10px;color:var(--rh-muted);border:1px solid color-mix(in srgb,var(--rh-line) 45%,transparent);border-radius:20px;padding:4px 8px;white-space:nowrap}.reward-npc-badge.ready{color:var(--ui-button-ink,#262332);background:var(--rh-accent);border-color:var(--rh-accent);font-weight:600}.reward-npc-main{display:flex;gap:15px;align-items:center;margin:12px 0}.reward-npc-portrait{display:grid;place-items:center;width:77px;height:78px;flex:none;background:radial-gradient(ellipse,color-mix(in srgb,var(--rh-accent) 10%,transparent),transparent 70%)}.reward-npc-portrait svg{display:block!important;width:72px!important;height:78px!important;max-width:100%!important;max-height:100%!important;stroke:none!important}.reward-npc-main strong{font-size:23px;font-weight:550;display:block;line-height:1.3}.reward-npc-title{font-size:11px;display:block;color:var(--rh-accent);margin-top:7px}.reward-npc-intro{display:block;font-size:11px;color:var(--rh-muted);line-height:1.8;min-height:40px;flex:1}.reward-npc-bottom{display:flex;justify-content:space-between;gap:8px;margin-top:14px;padding-top:11px;border-top:1px solid color-mix(in srgb,var(--rh-line) 35%,transparent);font-size:10px;color:var(--rh-muted);line-height:1.6}.is-ready .reward-npc-bottom{color:var(--rh-accent)}
+.reward-detail-heading{position:sticky;top:0;z-index:8;display:flex;gap:18px;align-items:center;padding:12px 0 17px;margin-bottom:18px;background:var(--ui-bg,#111722);border-bottom:1px solid var(--ui-line,#4e485f)}.reward-detail-heading h2{font-size:21px;color:var(--ui-ink,#e2daec);margin:0 0 5px;outline-offset:4px}.reward-detail-heading p{font-size:11px;color:var(--ui-muted,#a5a0b7);line-height:1.7;margin:0}.reward-detail-heading button{white-space:nowrap}.reward-detail .quest-board{grid-template-columns:1fr}.reward-detail .q-task-grid{gap:18px}.reward-detail .q-mentor-header p{max-width:none}.reward-detail .q-task{padding:20px}.reward-detail .q-task-note{min-height:0}.reward-detail [hidden],.reward-npcs[hidden],.reward-hub[hidden],.reward-detail[hidden],#quest-ledger-details[hidden]{display:none!important}.reward-detail .eve-panel,.reward-detail .mystery-quest{margin-top:0}
+#quest-ledger-details{margin-top:22px;border-top:1px solid var(--ui-line,#4e485f);padding-top:15px;color:var(--ui-muted,#a5a0b7);font-size:11px}#quest-ledger-details>summary{cursor:pointer;line-height:1.8}#quest-ledger-details .q-ledger{margin-top:16px}.reward-island-intro{display:flex;align-items:center;gap:20px;padding:22px;background:var(--ui-surface,#1c2232);border:1px solid var(--ui-line,#4e485f);border-radius:var(--ui-radius,14px);margin-bottom:18px}.reward-island-intro svg{width:68px;height:76px;stroke:none;flex:none}.reward-island-intro p{font-size:12px;color:var(--ui-muted,#a5a0b7);line-height:1.9}.reward-island-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:15px}.reward-island-card{padding:20px;border:1px solid var(--ui-line,#4e485f);background:var(--ui-surface,#1c2232);border-radius:var(--ui-radius,14px);color:var(--ui-ink,#e2daec)}.reward-island-card.is-ready{border-color:var(--ui-accent,#bdabd9)}.reward-island-card h3{font-size:15px;margin-bottom:10px}.reward-island-card p{font-size:11px;line-height:1.9;color:var(--ui-muted,#a5a0b7);margin-bottom:12px}.reward-island-card button{margin-top:16px;width:100%;font-size:11px}.reward-island-currency{display:flex;gap:12px;align-items:center;font-size:12px;flex-wrap:wrap}.reward-island-currency span{display:inline-flex;align-items:center;gap:5px}.reward-island-currency svg{width:16px;height:16px}.mystery-stored-gifts{border-top:1px solid var(--ui-line,#4e485f);margin:20px 0;padding-top:16px}.mystery-stored-gifts h4{font-size:13px;margin-bottom:8px}.mystery-stored-gifts p{font-size:11px;line-height:1.8;color:var(--ui-muted,#a5a0b7)}.mystery-stored-gifts>div{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid color-mix(in srgb,var(--ui-line,#4e485f) 40%,transparent);font-size:11px}.mystery-stored-gifts small{display:block;margin-top:5px;color:var(--ui-muted,#a5a0b7)}.mystery-stored-gifts button{font-size:11px;white-space:nowrap}
+.mystery-stored-gifts{grid-column:1/-1}
+/* A mentor now owns the whole detail page, including on the wide desktop shell. */
+#reward-detail #quest-board{grid-template-columns:minmax(0,1fr);gap:0}
+#reward-detail #quest-board .q-task-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:20px;padding:0 24px 24px}
+#reward-detail #quest-board .q-task{display:flex;flex-direction:column;padding:24px;min-width:0}
+#reward-detail #quest-board .q-task-main{min-width:0}
+#reward-detail #quest-board .q-task-heading{flex-direction:row;flex-wrap:wrap;align-items:baseline;gap:8px 16px;margin-bottom:16px}
+#reward-detail #quest-board .q-task-heading h3{font-size:clamp(16px,1vw,22px);line-height:1.6}
+#reward-detail #quest-board .q-status{font-size:12px}
+#reward-detail #quest-board .q-progress-caption{font-size:12px;line-height:1.8;margin:0;color:var(--ui-muted,#92a0b4)}
+#reward-detail #quest-board .q-numbers{margin-top:15px;gap:6px}
+#reward-detail #quest-board .q-numbers strong{font-size:clamp(30px,1.9vw,42px)}
+#reward-detail #quest-board .q-numbers strong small,#reward-detail #quest-board .q-numbers>span{font-size:11px}
+#reward-detail #quest-board .q-numbers>b{font-size:13px}
+#reward-detail #quest-board .q-progress{margin:16px 0 18px}
+#reward-detail #quest-board .q-study-account{font-size:12px;gap:10px;margin-bottom:15px;padding-bottom:15px}
+#reward-detail #quest-board .q-reward>small{font-size:11px;margin-bottom:8px}
+#reward-detail #quest-board .q-money{font-size:16px;flex-wrap:wrap}
+#reward-detail #quest-board .q-money small{font-size:11px}
+#reward-detail #quest-board .q-first-round{padding:18px;margin:20px 0 0;min-width:0}
+#reward-detail #quest-board .q-first-round-heading{gap:8px;flex-wrap:wrap}
+#reward-detail #quest-board .q-first-round-heading strong{font-size:14px}
+#reward-detail #quest-board .q-first-round-heading>span,#reward-detail #quest-board .q-first-round-window,#reward-detail #quest-board .q-first-round-amount,#reward-detail #quest-board .q-first-round>p{font-size:11px;line-height:1.9}
+#reward-detail #quest-board .q-first-round-window,#reward-detail #quest-board .q-first-round-amount{gap:8px;flex-wrap:wrap}
+#reward-detail #quest-board .q-task-note{font-size:12px;line-height:1.85;min-height:0;margin:18px 0}
+#reward-detail #quest-board .q-task-button{font-size:13px;padding:12px 16px;margin-top:auto;min-height:44px}
+#reward-detail .reward-commission-support{display:grid;grid-template-columns:minmax(0,1fr);gap:20px;margin-top:20px}
+#reward-detail:not([data-person=morning]):not([data-person=afternoon]) .reward-commission-support{display:none}
+#reward-detail .reward-commission-support>.q-round-progress,#reward-detail .reward-commission-support>.early-start-panel{margin:0;min-width:0}
+#reward-detail .reward-commission-support>.q-round-progress{flex-wrap:wrap;gap:16px}
+#reward-detail .reward-commission-support .q-round-status{justify-items:start}
+#reward-detail .reward-commission-support .early-start-rule{line-height:1.9}
+#reward-detail #quest-early-start .early-start-header{font-size:14px}
+#reward-detail #quest-early-start .early-start-header small{font-size:11px}
+#reward-detail #quest-early-start .early-start-tier,#reward-detail #quest-early-start .early-start-tier>b{font-size:12px}
+#reward-detail #quest-early-start .early-start-rule,#reward-detail #quest-early-start .early-start-status{font-size:12px}
+body[data-page=quests]:has(#reward-detail[data-person=morning]:not([hidden]),#reward-detail[data-person=afternoon]:not([hidden])) .greeting{display:none}
+@media(min-width:1100px){
+  #reward-detail #quest-board .q-mentor{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr)}
+  #reward-detail #quest-board .q-mentor-header{padding:24px;min-width:0}
+  #reward-detail #quest-board .q-mentor-role{font-size:11px}
+  #reward-detail #quest-board .q-mentor-header h2 small,#reward-detail #quest-board .q-mentor-header p{font-size:12px;line-height:1.9}
+  #reward-detail #quest-board .q-schedule{display:grid;align-content:center;gap:9px;margin:24px 24px 24px 0;padding:0 0 0 24px;border-top:0;border-left:1px solid var(--ui-line,#7b91a523);font-size:12px;line-height:1.8}
+  #reward-detail #quest-board .q-task-grid{grid-column:1/-1}
+  #reward-detail[data-person=morning] .reward-commission-support{grid-template-columns:minmax(0,1fr) minmax(0,1.8fr)}
+}
+@media(min-width:1600px){
+  #reward-detail #quest-board .q-task.continuous{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto 1fr auto;gap:0 24px;align-content:start}
+  #reward-detail #quest-board .continuous>.q-task-heading,#reward-detail #quest-board .continuous>.q-task-note,#reward-detail #quest-board .continuous>.q-task-button{grid-column:1/-1}
+  #reward-detail #quest-board .continuous>.q-first-round{margin:0;align-self:start}
+  #reward-detail #quest-board .continuous>.q-task-button{align-self:end}
+}
+@media(max-width:1099px){
+  #reward-detail #quest-board .q-task-grid{gap:14px;padding:0 18px 18px}
+  #reward-detail #quest-board .q-task{padding:18px}
+  #reward-detail #quest-board .q-schedule{flex-wrap:wrap;gap:8px 16px;line-height:1.8;font-size:10px}
+  #reward-detail #quest-board .q-mentor-header p{font-size:11px}
+}
+@media(max-width:760px){
+  #reward-detail #quest-board .q-task-grid{grid-template-columns:minmax(0,1fr);gap:14px;padding:0 14px 14px}
+  #reward-detail .reward-commission-support{gap:14px;margin-top:14px}
+  #reward-detail #quest-board .q-task-heading h3{font-size:17px}
+  #reward-detail #quest-board .q-task-note{font-size:11px}
+}
+@media(min-width:761px){body[data-page=quests] .greeting{padding:16px 0}body[data-page=quests] .greeting .city-pill{display:none}body[data-page=quests] .greeting h1{font-size:24px;margin-top:7px}body[data-page=quests] .greeting p{font-size:11px;margin-top:7px}body[data-page=quests] .q-topline{margin-bottom:12px}body[data-page=quests] .q-topline p{margin-top:4px}.reward-hub-heading{margin-bottom:12px}.reward-hub-heading h2{font-size:18px;margin-bottom:5px}.reward-npc{padding:14px}.reward-npc-main{margin:7px 0;gap:12px}.reward-npc-portrait{height:62px;width:66px}.reward-npc-portrait svg{height:62px!important;width:61px!important}.reward-npc-main strong{font-size:22px}.reward-npc-intro{min-height:36px;font-size:10px}.reward-npc-bottom{margin-top:9px;padding-top:9px}.reward-npcs{gap:12px}}
+@media(max-width:1000px){.reward-npc{padding:15px}.reward-npc-main{gap:10px}.reward-npc-portrait{width:62px}.reward-npc-main strong{font-size:21px}}
+@media(max-width:760px){.reward-npcs,.reward-island-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.reward-hub-heading{align-items:flex-start}.reward-detail-heading{align-items:flex-start;gap:12px}.reward-detail-heading h2{font-size:18px}.reward-detail-heading p{font-size:10px}}
+@media(max-width:470px){.reward-npcs,.reward-island-grid{grid-template-columns:1fr}.reward-npc-intro{min-height:0}.reward-hub-heading{display:block}.reward-hub-status{margin-top:12px;max-width:none;text-align:left}.reward-npc-main{margin:8px 0}.reward-detail .q-task-grid{grid-template-columns:1fr}.reward-detail-heading{flex-wrap:wrap}}

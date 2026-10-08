@@ -37,7 +37,8 @@ test('world exposes four accessible subject regions with distinct buildings and 
   assert.match(island(svg, 'politics'), /class="expedition-book-leaves"/);
   assert.match(island(svg, 'english'), /class="expedition-windmill"/);
   assert.match(island(svg, 'english'), /class="expedition-port-boat"/);
-  assert.doesNotMatch(svg, /data-skin-slots|\bid=|class="island-art"|equipped-(companion|relic|portal)/);
+  assert.equal((svg.match(/data-skin-slots="campus[a-z]+ archipelago"/g) || []).length, 4);
+  assert.doesNotMatch(svg, /\bid=|class="island-art"|equipped-(companion|relic|portal)/);
 });
 
 test('construction changes at every quarter and also continuously between quarter boundaries', () => {
@@ -95,7 +96,7 @@ test('fallbacks, missing subjects, extreme values and malicious fields cannot cr
   const samples = [null, undefined, [], malicious, {progress: NaN, stage: Infinity}, {progress: -1, stage: -9}, {progress: 9, stage: 90}, {subjects: {}}, {subjects: [null, {id: malicious}, {id:'math', progress: NaN, percent: Infinity}]}, {subjects: [{id:'cs', progress: .5, name: malicious, percent: malicious}]}];
   for (const sample of samples) {
     const svg = world(sample);
-    assert.doesNotMatch(svg, /NaN|Infinity|undefined|<script|<foreignObject|\bon\w+=|href=|url\(|data-skin-slots/);
+    assert.doesNotMatch(svg, /NaN|Infinity|undefined|<script|<foreignObject|\bon\w+=|href=|url\(/);
     assert.equal((svg.match(/data-expedition-subject=/g) || []).length, 4);
     assert.ok(svg.endsWith('</svg>'));
   }
@@ -128,7 +129,7 @@ test('subject hit regions do not overlap the central island reserved rectangle',
 
 test('browser UMD loads without document, timers, randomness or network and matches CommonJS', () => {
   const context = vm.createContext({});
-  vm.runInContext(fs.readFileSync(require.resolve('../static/expedition-art.js'), 'utf8'), context);
+  for(const name of ['subject-island-styles','island-architecture','expedition-art'])vm.runInContext(fs.readFileSync(require.resolve(`../static/${name}.js`), 'utf8'), context);
   assert.equal(typeof context.FocusExpeditionArt.world, 'function');
   assert.equal(context.FocusExpeditionArt.world(model(.5)), world(model(.5)));
 });

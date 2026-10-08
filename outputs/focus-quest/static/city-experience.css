@@ -1,0 +1,32 @@
+/* The room is the destination. Tools dock beside it only when invited. */
+#citadel-view.rain-city .city-room{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;gap:0;overflow:hidden;background:#172c3b}
+#citadel-view.rain-city .city-room .city-interior-art{position:relative;inset:auto;grid-column:1;grid-row:1;width:100%;height:100%;min-width:0;min-height:220px}
+#citadel-view.rain-city .city-room .city-room-content{position:relative;inset:auto!important;grid-column:2;grid-row:1/3;align-self:stretch;margin:0;padding:23px;width:auto!important;max-width:none!important;height:auto;max-height:none;min-width:0;overflow:auto;background:#172b3b;border:0;border-left:1px solid #9dbfcb30;border-radius:0;backdrop-filter:none;box-shadow:none}
+#citadel-view.rain-city .city-room-content[hidden],#citadel-view.rain-city .city-room-welcome[hidden],#city-talk[hidden],#city-home-audio[hidden]{display:none!important}
+#citadel-view.rain-city:not([data-service=""]) .city-room{grid-template-columns:minmax(0,1fr) clamp(300px,29vw,470px)}
+#citadel-view.rain-city .city-room-content h3{font-size:clamp(19px,1.25vw,27px);line-height:1.45;margin-block:12px}
+#citadel-view.rain-city .city-room-content p{font-size:clamp(12px,.82vw,17px);line-height:1.8}
+#citadel-view.rain-city .city-room-content .city-service-close{display:block;margin:0 0 24px auto;padding:7px 10px;font-size:12px;border:1px solid var(--city-line);border-radius:7px;background:#a8cbc509;color:#b7cfce}
+.city-room-welcome{grid-row:2;grid-column:1;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:16px 23px;background:#112534;border-top:1px solid #adc8c522;z-index:1}
+.city-room-welcome>div:first-child{min-width:0}.city-welcome-eyebrow{display:block;font-size:clamp(10px,.62vw,13px);letter-spacing:.12em;color:#a2c0bb;line-height:1.6}.city-room-welcome strong{display:block;margin:3px 0 5px;font-size:clamp(16px,1.04vw,24px);font-weight:550;color:#d7e3d8;letter-spacing:.03em}.city-room-welcome small{font-size:clamp(11px,.7vw,16px);line-height:1.65;color:#93adb9}
+.city-welcome-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;flex-shrink:0;max-width:45%}.city-welcome-actions button,.city-wardrobe-shortcut{font-size:clamp(11px,.72vw,16px);padding:9px 12px;border-radius:8px;border:1px solid #a8c5c52b;white-space:nowrap}
+.city-workstation{cursor:pointer;outline:none}.city-workstation-outline{opacity:0;transition:opacity .2s}.city-workstation:hover .city-workstation-outline,.city-workstation:focus-visible .city-workstation-outline,.city-workstation[aria-pressed=true] .city-workstation-outline{opacity:.6}.city-workstation-label{transition:filter .2s}.city-workstation:hover .city-workstation-label,.city-workstation:focus-visible .city-workstation-label{filter:brightness(1.2)}
+#city-talk{position:absolute;z-index:8;right:clamp(24px,2.5vw,54px);bottom:24px;display:grid;grid-template-columns:78px minmax(0,1fr);gap:14px;width:min(490px,calc(100% - 48px));padding:23px;background:#193342f5;border:1px solid #a9c7c757;border-radius:17px;box-shadow:0 12px 35px #06162266;color:#d9e4dd}
+.city-talk-portrait{align-self:center;background:#bdcfb910;border-radius:50%}.city-talk-portrait>svg{display:block;width:100%;height:auto}.city-talk-body{min-width:0}.city-talk h3{font-size:21px;margin:3px 0 10px;font-weight:550;letter-spacing:.08em}.city-talk p{font-size:clamp(13px,.83vw,18px);line-height:1.85;margin:0 0 15px;min-height:3.7em;color:#cededb}.city-talk-actions{display:flex;gap:8px;flex-wrap:wrap}.city-talk-actions button{border:1px solid #a8c5c540;border-radius:7px;padding:7px 10px;font-size:12px}.city-talk-actions button:first-child{background:#a8c5c515!important;color:#e2e5c8!important}
+#city-home-audio .ambience-controls{margin:0;padding:5px 9px;max-width:370px;font-size:12px}#city-home-audio .ambience-controls button{font-size:11px;padding:5px 8px}#city-home-audio .ambience-status{display:none}#city-home-audio .has-message .ambience-status{display:block}#city-home-audio .ambience-volume input{width:48px}
+#citadel-view[data-home-warm=false] .rain-city-home-warmth{opacity:.32}
+#citadel-view[data-home-warm=false] .city-workstation[data-city-workstation=home-light] .city-workstation-label circle{fill:#8ab7d4}
+#citadel-view.rain-city[data-lottery=coin] .city-room,#citadel-view.rain-city[data-lottery=diamond] .city-room{display:block;background:#0d1928}
+#citadel-view.rain-city[data-lottery=coin] .city-room .city-room-content,#citadel-view.rain-city[data-lottery=diamond] .city-room .city-room-content{display:block;grid-column:auto;grid-row:auto;width:100%!important;height:100%;padding:0;background:transparent;border:0}
+@media(max-width:1100px){
+ #citadel-view.rain-city .city-room-welcome{padding:12px 16px;gap:12px}.city-welcome-actions{max-width:48%}.city-room-welcome small{font-size:11px}.city-room-welcome strong{font-size:16px}
+ #citadel-view.rain-city:not([data-service=""]) .city-room{grid-template-columns:minmax(0,1fr) 305px}
+ #citadel-view.rain-city .city-room .city-room-content{padding:17px}.city-room-content .city-life-form-row{flex-wrap:wrap}
+}
+@media(max-width:800px){
+ #citadel-view.rain-city .city-room{overflow:auto;grid-template-rows:minmax(280px,1fr) auto}
+ #citadel-view.rain-city:not([data-service=""]) .city-room{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(260px,45vh) auto auto}
+ #citadel-view.rain-city .city-room .city-room-content{grid-column:1;grid-row:3;max-height:55vh;border-left:0;border-top:1px solid #9dbfcb30}
+ .city-room-welcome{flex-wrap:wrap}.city-welcome-actions{max-width:none;justify-content:flex-start}#city-talk{grid-template-columns:55px minmax(0,1fr);padding:16px;bottom:16px}.city-talk p{font-size:13px}
+}
+@media(max-height:760px){.city-room-welcome{padding-block:10px}.city-room-welcome strong{font-size:16px}.city-room-welcome small{font-size:11px}.city-welcome-actions button{padding:7px 9px}#city-talk{bottom:15px;padding:16px}.city-talk p{font-size:13px;min-height:0}.city-talk h3{font-size:18px}}

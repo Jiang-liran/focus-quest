@@ -11,6 +11,7 @@ assert.ok(appFunctions.includes('async function maybeDailyOpening('));
 assert.ok(appFunctions.includes('async function previewOpening('));
 const openingCopy = fs.readFileSync(require.resolve('../static/opening.js'), 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
+const earlyCopy=fs.readFileSync(require.resolve('../static/early-start.js'),'utf8');
 
 function harness() {
   let now = Date.parse('2026-09-23T08:15:00');
@@ -66,6 +67,45 @@ function harness() {
   return {run, element, document, requests, pending, respond, opening, toasts,
     advance(milliseconds) { now += milliseconds; }};
 }
+
+function earlyReceipt(h){
+  h.run(earlyCopy);
+  h.run(`state.quests={earlyStart:{day:localDay(),status:'awarded',firstStart:localDay()+'T07:30:00+08:00',tier:8,reward:{coins:90,diamonds:2},lotteryTickets:{coinTickets:1,diamondTickets:1}}}`);
+}
+test('morning arrival follows the welcome and is acknowledged independently of achievement effects',async()=>{
+  const h=harness();earlyReceipt(h);h.run('render()');
+  assert.equal(h.element('early-start-notice-dialog').shown,0);
+  h.respond('/api/opening/claim',h.opening());await flush();
+  assert.equal(h.element('opening-dialog').shown,1);assert.equal(h.element('early-start-notice-dialog').shown,0);
+  h.element('opening-dialog').close();h.run('maybeDailyOpening()');
+  assert.equal(h.element('early-start-notice-dialog').shown,1);assert.match(h.element('early-start-notice-content').innerHTML,/金币抽奖券/);
+  h.element('early-start-notice-dialog').close();h.run('render();noteOpeningArrival();playNextCelebration()');
+  assert.equal(h.element('early-start-notice-dialog').shown,1);assert.equal(h.requests.length,1);
+});
+test('first focus payment is noticed on any page, including when motion is disabled',async()=>{
+  const h=harness();h.run('render()');h.respond('/api/opening/claim',h.opening({show:false}));await flush();
+  earlyReceipt(h);h.run("state.settings.motion=false;currentView='review';render()");
+  assert.equal(h.element('early-start-notice-dialog').shown,1);
+});
+test('weekly confirmation, hidden apps, games and room scenes defer rather than consume the receipt',()=>{
+  const h=harness();earlyReceipt(h);h.run('openingPending=false');
+  for(const blocked of ["FocusGoals={required:()=>true}","FocusRuntime={isVisible:()=>false}","currentView='achievements'","FocusCitadel={isOpen:()=>true}","FocusCampfireRoom={isOpen:()=>true}","FocusReturnTrail={isOpen:()=>true}"]){
+    h.run("FocusGoals=FocusRuntime=FocusCitadel=FocusCampfireRoom=FocusReturnTrail=undefined;currentView='today';"+blocked+";FocusEarlyStart.observe(state);maybeEarlyStartNotice()");
+    assert.equal(h.element('early-start-notice-dialog').shown,0,blocked);assert.ok(h.run('FocusEarlyStart.pendingNotice()'));
+  }
+  h.run('FocusReturnTrail=undefined;maybeEarlyStartNotice()');assert.equal(h.element('early-start-notice-dialog').shown,1);
+});
+test('a failed welcome request does not withhold the already paid morning reward during retry backoff',async()=>{
+  const h=harness();earlyReceipt(h);h.run('render()');h.pending.shift().reject(Error('offline'));await flush();
+  assert.equal(h.element('early-start-notice-dialog').shown,1);assert.equal(h.requests.length,1);
+});
+test('waking across midnight does not show yesterday’s unread receipt before the new state loads',()=>{
+  const h=harness();earlyReceipt(h);h.run('openingPending=false;FocusEarlyStart.observe(state)');
+  h.advance(24*60*60*1000);h.run('maybeEarlyStartNotice()');
+  assert.equal(h.element('early-start-notice-dialog').shown,0);
+  h.run("state.today=localDay();state.quests.earlyStart={day:localDay(),status:'waiting'};render()");
+  assert.equal(h.element('early-start-notice-dialog').shown,0);
+});
 
 test('first render claims once and repeat renders/focus cannot repeat the daily dialog', async () => {
   const h = harness();

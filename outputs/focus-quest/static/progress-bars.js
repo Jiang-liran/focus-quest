@@ -15,6 +15,13 @@
   const cache=new WeakMap();let serial=0;
   const expansion=typeof module==='object'&&module.exports?require('./shop-expansion.js'):root.FocusShopExpansion;
   for(const entry of expansion?.entries||[])if(entry.slot==='bar')designs[entry.id]=expansion.barDesign(entry.id);
+  const motionLevels=Object.freeze(Object.fromEntries(Object.keys(designs).map(id=>{
+    const entry=expansion?.item?.(id),legacy={
+      'bar-default':'still','bar-mint':'soft','bar-aurora':'soft','bar-comet':'lively','bar-tide':'lively',
+      'bar-prism':'vivid','bar-koi':'vivid','bar-fox':'vivid','bar-whale':'vivid','bar-dragon':'vivid'
+    };
+    return [id,entry?(entry.lotteryOnly?'limited':entry.diamonds>=12?'vivid':entry.diamonds>0||entry.coins>=300?'lively':'soft'):legacy[id]||'soft'];
+  })));
   const classes=['total-progress','subject-progress','weekly-progress','q-progress','q-first-round-progress'];
   const selector=classes.map(name=>`.${name}[data-skin-slots~="bar"]`).join(',');
   const has=id=>typeof id==='string'&&Object.prototype.hasOwnProperty.call(designs,id);
@@ -22,7 +29,7 @@
   const prefix=()=>`fq-progress-${++serial}`;
   const svgOpen=(cls,viewBox,extra='')=>`<svg class="${cls}" viewBox="${viewBox}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none" style="stroke:none;fill:none" ${extra}>`;
   function star(x,y,r,color,extra=''){return `<path d="M${x} ${y-r}l${r*.24} ${r*.76} ${r*.76} ${r*.24}-${r*.76} ${r*.24}-${r*.24} ${r*.76}-${r*.24}-${r*.76}-${r*.76}-${r*.24} ${r*.76}-${r*.24}Z" fill="${color}" ${extra}/>`;}
-  function figure(id){
+  function rawFigure(id){
     if(expansion?.has(id,'bar'))return expansion.barFigure(id);
     switch(id){
       case 'bar-mint':return '<path d="M45 43Q37 25 42 9" fill="none" stroke="#b5e89c" stroke-width="3" stroke-linecap="round"/><path d="M41 25Q18 29 15 11q24-3 26 14Z" fill="#69b98a"/><path d="M41 21Q45 1 65 4q-1 22-24 17Z" fill="#c0ed9c"/><path d="m20 15 20 11m6-9 13-8" stroke="#e1f6b8" stroke-width="1.4" opacity=".75"/>';
@@ -37,13 +44,40 @@
       default:return '<path d="M60 10 68 24 60 38 52 24Z" fill="#e6dbfa"/><path d="M60 17v14" stroke="#8176ad" stroke-width="2"/>';
     }
   }
+  function figure(id){
+    let art=rawFigure(id),extra='';
+    // These older figures predate articulated artwork. Add joints to their
+    // existing geometry; the actual leader remains anchored to real progress.
+    const part=(start,name)=>{art=art.replace(start,start.replace(/^(<\w+)/,`$1 class="${name}"`));};
+    if(id==='bar-railway'){
+      extra=[27,60].map(x=>`<g transform="translate(${x} 37)"><g class="pb-train-wheel"><path d="M-4 0h8M0-4v8" stroke="#dce4cf" stroke-width="1.2" opacity=".75"/></g></g>`).join('');
+    }
+    if(id==='bar-cat')part('<path d="M28 33','pb-cat-tail');
+    if(id==='bar-honey'){part('<ellipse cx="36"','pb-bee-wing pb-bee-wing-back');part('<ellipse cx="57"','pb-bee-wing');}
+    if(id==='bar-lantern')part('<rect x="37"','pb-lantern-core');
+    if(id==='bar-jellyfish'){
+      part('<path d="M18 24','pb-jelly-bell');
+      for(const x of [27,40,53,66])part(`<path d="M${x} 27`,'pb-jelly-thread');
+    }
+    if(id==='bar-phoenix')part('<path d="M42 26','pb-phoenix-wings');
+    if(id==='bar-music'){
+      part('<path d="M43 13','pb-music-dancer');
+      extra='<g class="pb-music-note"><path d="M13 16V7l7 2v8" stroke="#f7e5b3" stroke-width="1.4"/><ellipse cx="11" cy="17" rx="3" ry="2" fill="#f7e5b3"/></g><g class="pb-music-note pb-music-note-late"><path d="M70 16V5l5 2" stroke="#bddcdb" stroke-width="1.3"/><ellipse cx="68" cy="17" rx="3" ry="2" fill="#bddcdb"/></g>';
+    }
+    if(id==='bar-airship')extra='<path d="M64 34h8" stroke="#d7e7d9" stroke-width="1.4"/><g transform="translate(73 34)"><g class="pb-airship-propeller"><path d="M0-8Q5-7 1 0q4 7-1 8-5-1-1-8-4-7 1-8Z" fill="#ddebdc"/></g></g>';
+    if(id==='bar-teacups')extra='<g class="pb-cup-steam"><path d="M29 13q-5-6 0-11m13 11q5-6 0-11" stroke="#edf0dc" stroke-width="1.6" stroke-linecap="round"/></g>';
+    if(id==='bar-needlework')part('<path d="M51 36','pb-sewing-needle');
+    if(id==='bar-crystalvine')extra=[[27,7],[50,15],[66,23]].map(([x,y],i)=>`<g class="pb-crystal-glint" style="--pb-delay:${-i*1.3}s">${star(x,y,4.1,'#f0ffea')}</g>`).join('');
+    if(id==='bar-prismcurrent')extra='<g class="pb-crystal-reflection"><path d="m23 13 14 11 11-13m-34 19 24-6 19 14" stroke="#f4fdff" stroke-width="1.7" opacity=".85"/><path d="m52 15 14 9-10 8" stroke="#d8adff" stroke-width="1.3"/></g>';
+    return `<g class="pb-figure-motion" data-pb-figure="${id}" data-pb-motion="${motionLevels[id]}">${art}${extra}</g>`;
+  }
   function prismRibbon(uid){
     // A small, alpha-faded halo gives the light a coloured reflection without blur filters.
     const rgb=`${uid}-rgb`,fade=`${uid}-aura-fade`,mask=`${uid}-aura-mask`,glass=`${uid}-glass`,clip=`${uid}-glass-clip`;
     const beams=[['rose','#ff6cdd',155,102,'a'],['ice','#66ebff',435,133,'b']];
     return `<defs><linearGradient id="${rgb}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat"><stop stop-color="#ff2057"/><stop offset=".16" stop-color="#ff961d"/><stop offset=".32" stop-color="#f1ff22"/><stop offset=".49" stop-color="#23f389"/><stop offset=".66" stop-color="#19c9ff"/><stop offset=".82" stop-color="#8242ff"/><stop offset="1" stop-color="#ff2057"/></linearGradient><linearGradient id="${fade}" gradientUnits="userSpaceOnUse" x1="0" y1="-12" x2="0" y2="36"><stop stop-color="white" stop-opacity="0"/><stop offset=".28" stop-color="white" stop-opacity=".24"/><stop offset=".5" stop-color="white" stop-opacity=".62"/><stop offset=".72" stop-color="white" stop-opacity=".24"/><stop offset="1" stop-color="white" stop-opacity="0"/></linearGradient><mask id="${mask}" maskUnits="userSpaceOnUse" x="0" y="-12" width="600" height="48"><rect y="-12" width="600" height="48" fill="url(#${fade})"/></mask><linearGradient id="${glass}" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#050619" stop-opacity=".52"/><stop offset=".24" stop-color="#061126" stop-opacity=".04"/><stop offset=".46" stop-color="#020717" stop-opacity=".02"/><stop offset="1" stop-color="#020512" stop-opacity=".73"/></linearGradient>${beams.map(([name,color])=>`<radialGradient id="${uid}-${name}"><stop stop-color="#ffffff" stop-opacity=".97"/><stop offset=".14" stop-color="#ffffff" stop-opacity=".84"/><stop offset=".36" stop-color="${color}" stop-opacity=".66"/><stop offset="1" stop-color="${color}" stop-opacity="0"/></radialGradient>`).join('')}<clipPath id="${clip}"><rect width="600" height="24" rx="10"/></clipPath></defs><g class="pb-prism-aura" mask="url(#${mask})"><g class="pb-rgb-flow"><rect x="-600" y="-12" width="1800" height="48" fill="url(#${rgb})"/></g></g><g clip-path="url(#${clip})"><rect width="600" height="24" fill="#090f22"/><g class="pb-rgb-flow"><rect x="-600" width="1800" height="24" fill="url(#${rgb})" opacity=".94"/></g><rect width="600" height="24" fill="url(#${glass})"/>${beams.map(([name,color,x,r,kind])=>`<g class="pb-prism-beam pb-prism-beam-${kind}">${[-600,0,600].map(offset=>`<ellipse cx="${x+offset}" cy="12" rx="${r}" ry="15" fill="url(#${uid}-${name})"/><ellipse cx="${x+offset}" cy="12" rx="${r*.78}" ry="1.2" fill="url(#${uid}-${name})"/>`).join('')}</g>`).join('')}<g class="pb-prism-filament"><path d="M-600 14Q-450 3-300 12T0 14Q150 3 300 12T600 14Q750 3 900 12T1200 14" fill="none" stroke="#ebffff" stroke-width="1.25" opacity=".62"/><path d="M-600 17Q-450 20-300 14T0 17Q150 20 300 14T600 17Q750 20 900 14T1200 17" fill="none" stroke="#fff2ff" stroke-width=".8" opacity=".34"/></g><path d="M0 3.5H600" stroke="#ecf7ff" stroke-width="1" opacity=".53"/><path d="M0 22.5H600" stroke="#88b9ff" stroke-width=".8" opacity=".35"/><ellipse cx="598" cy="12" rx="5" ry="10" fill="#eaffff" opacity=".64"/></g>`;
   }
-  function ribbon(id,uid){
+  function rawRibbon(id,uid){
     if(expansion?.has(id,'bar'))return expansion.barRibbon(id,uid);
     if(id==='bar-prism')return prismRibbon(uid);
     const d=designs[id],gradient=`${uid}-fill`;let detail='';
@@ -58,6 +92,19 @@
     if(id==='bar-dragon')detail='<g class="pb-cloud-flow"><path d="M-90 8q35-13 70 0t70 0 70 0 70 0 70 0 70 0 70 0 70 0 70 0 70 0M-90 18q40-10 80 0t80 0 80 0 80 0 80 0 80 0 80 0 80 0 80 0" stroke="#e8e1c8" stroke-width="1.3" fill="none" opacity=".8"/></g>'+[34,133,232,331,430,529].map((x,i)=>`<path d="m${x} ${i%2?9:14} 7-5 7 5-7 4Z" fill="#ebc3a8"/><path d="m${x+7} ${i%2?9:14} 13 4" stroke="#cce1db" stroke-width=".8" fill="none"/>`).join('');
     return `${defs}<rect width="600" height="24" fill="url(#${gradient})"/>${detail}`;
   }
+  function ribbon(id,uid){
+    const color=designs[id].colors[1];let extra='',art=rawRibbon(id,uid);
+    if(id==='bar-prismcurrent'){
+      const gradient=`${uid}-collection`;
+      art=art.replace(`<linearGradient id="${gradient}">`,`<linearGradient id="${gradient}" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="600" y2="0" spreadMethod="repeat">`)
+        .replace(/<rect x="0" y="0" width="600" height="24"[^>]*\/>/,`<g class="pb-prism-current-spectrum"><rect x="-600" width="1800" height="24" fill="url(#${gradient})"/></g>`);
+    }
+    if(['bar-honey','bar-hummingbird'].includes(id))extra=`<g class="pb-pollen-drift"><path d="M0 6h600M0 19h600" stroke="${color}" stroke-width="2" stroke-linecap="round" stroke-dasharray="1 41 2 29" opacity=".8"/></g>`;
+    if(['bar-teacups','bar-cocoamelt'].includes(id))extra=`<path class="pb-tea-surface" d="M0 8q25 8 50 0t50 0 50 0 50 0 50 0 50 0 50 0 50 0 50 0 50 0 50 0 50 0" stroke="${color}" stroke-width="1.5" fill="none" opacity=".7"/>`;
+    if(id==='bar-crystalvine')extra=`<path class="pb-vine-dew" d="M0 16q35-13 70-3t70-1 70 1 70-1 70 1 70-1 70 1 110-1" stroke="#e5ffe7" stroke-width="2.2" stroke-linecap="round" stroke-dasharray="2 39 1 28" fill="none"/>`;
+    if(['bar-solarfleet','bar-prismcurrent'].includes(id))extra=`<path class="pb-solar-courier" d="M0 5h600M0 19h600" stroke="${id==='bar-prismcurrent'?'#e6f9ff':'#fff0b5'}" stroke-width="1.9" stroke-linecap="round" stroke-dasharray="18 172 5 65" opacity=".86"/>`;
+    return `<g class="pb-theme-ribbon" data-pb-ribbon="${id}" data-pb-motion="${motionLevels[id]}">${art}${extra}</g>`;
+  }
   function layerMarkup(id){const uid=prefix();return `<span class="pb-ribbon" aria-hidden="true">${svgOpen('pb-ribbon-svg','0 0 600 24','preserveAspectRatio="none"')}${ribbon(id,uid)}</svg></span><span class="pb-leader" aria-hidden="true">${svgOpen('pb-leader-svg','0 0 80 48')}${figure(id)}</svg></span>`;}
   function decorate(scope){
     scope=scope||root.document;if(!scope)return 0;
@@ -71,7 +118,7 @@
       if(!entry||entry.fill!==fill||entry.skin!==id||entry.compact!==compact||entry.layer.parentNode!==fill){
         if(entry?.layer?.parentNode)entry.layer.remove();
         const layer=doc.createElement('span');layer.className='pb-art';layer.setAttribute('aria-hidden','true');layer.innerHTML=layerMarkup(id);fill.appendChild(layer);
-        bar.classList.add('pb-enhanced');bar.dataset.pbSkin=id;bar.dataset.pbCompact=String(compact);
+        bar.classList.add('pb-enhanced');bar.dataset.pbSkin=id;bar.dataset.pbCompact=String(compact);bar.dataset.pbMotion=motionLevels[id];
         entry={fill,skin:id,compact,layer,empty:null,progress:null};cache.set(bar,entry);changed++;
       }
       const empty=value<=0;if(entry.empty!==empty){bar.dataset.pbEmpty=String(empty);entry.empty=empty;}

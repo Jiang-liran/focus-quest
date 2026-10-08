@@ -1,0 +1,127 @@
+/* Finish the interface material at component boundaries. These rules opt into
+   purchased interfaces only. Scene SVGs, collected art, progress skins and
+   game boards retain their own palettes and geometry. */
+
+/* The island selector sits outside the painted map. It must read as ordinary
+   navigation on light paper, rather than inherit pastel scene lettering. */
+:root[data-interface]:not([data-interface="interface-default"]) .expedition-subjects strong {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .expedition-subjects :is(strong small,em) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"])[data-interface-tone="light"] .expedition-subjects>button :is(b,i) {color:color-mix(in srgb,var(--isle-color) 15%,var(--ui-ink))}
+:root[data-interface]:not([data-interface="interface-default"])[data-interface-tone="light"] .expedition-subjects>button>i {background:var(--ui-soft);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .expedition-subjects .complete em {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) .home-shortcuts>button :is(.invitation-emblem,.invitation-link) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .home-shortcuts>button strong {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .home-shortcuts>button small {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .expedition-discover-toggle :is(span,small) {color:var(--ui-muted)}
+
+/* Only the unpurchased rail follows the material. Both legacy equipped bars
+   and enhanced purchased skins keep their complete artwork, including rail. */
+:root[data-interface]:not([data-interface="interface-default"]):is([data-bar="bar-default"],:not([data-bar])) :is(.total-progress,.subject-progress,.weekly-progress,.q-progress,.q-first-round-progress):is([data-pb-skin="bar-default"],:not([data-pb-skin])) {background:color-mix(in srgb,var(--ui-line) 35%,var(--ui-surface-raised))!important;border-color:var(--ui-line)!important;box-shadow:inset 0 1px 2px var(--ui-shadow)}
+
+/* Commission status and the first-round gift use semantic inks on every
+   material, including the subdued light papers. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-status,.q-first-round,.q-first-round-window,.q-first-round-window>span:last-child,.q-first-round-amount>span,.q-first-round>p,.q-history-row .q-history-bonus-days) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b,.q-empty>span) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-task.ready,.q-task.claimed) {background:var(--ui-surface);border-color:color-mix(in srgb,var(--ui-success) 55%,var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-task.ready .q-status,.q-task.claimed .q-status,.q-first-round.claimed .q-first-round-heading>span,.q-schedule .q-recommended) {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) .q-schedule .q-recommended {background:color-mix(in srgb,var(--ui-success) 8%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-success) 35%,var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-first-round,.q-first-round.ended,.q-first-round.upcoming) {background:var(--ui-soft);border-color:var(--ui-line);border-radius:var(--ui-control-radius,var(--ui-radius))}
+:root[data-interface]:not([data-interface="interface-default"]) .q-first-round.ready {background:color-mix(in srgb,var(--ui-warning) 7%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-warning) 55%,var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) .q-first-round.claimed {background:color-mix(in srgb,var(--ui-success) 6%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-success) 35%,var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-first-round-heading strong,.q-first-round-heading>span,.q-first-round-amount b,.q-first-round.ready .q-first-round-heading>span,.q-first-round>p.q-first-round-pending,.q-rules strong) {color:var(--ui-warning)}
+:root[data-interface]:not([data-interface="interface-default"]) .q-task.ready .primary-button {background:var(--ui-accent);border-color:var(--ui-accent);color:var(--ui-button-ink)}
+
+/* Learning-method totals retain their meaning without pastel text on paper.
+   Subject colors and all equipped progress bars are deliberately untouched. */
+:root[data-interface]:not([data-interface="interface-default"]) .method-summary-item.lecture {--method-stat:var(--ui-lecture)}
+:root[data-interface]:not([data-interface="interface-default"]) .method-summary-item.practice {--method-stat:var(--ui-practice)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-totals .lecture dd,.activity-time.lecture strong,.activity-label.lecture) {color:var(--ui-lecture)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-totals .practice dd,.activity-time.practice strong,.activity-label.practice) {color:var(--ui-practice)}
+:root[data-interface]:not([data-interface="interface-default"]) .method-round-steps>i.is-complete {color:var(--ui-success);border-color:color-mix(in srgb,var(--ui-success) 50%,var(--ui-line));background:color-mix(in srgb,var(--ui-success) 7%,var(--ui-surface))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-subject-round.is-counted,.method-insight.balance>strong) {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-subject-round>i,.method-completion-ticket.coin i) {color:var(--ui-coin)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-round-tickets,.method-completion,.q-round-progress) {border-radius:var(--ui-control-radius,var(--ui-radius))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-workshop,#review-heatmap,#goal-keeper) {box-shadow:var(--ui-panel-shadow,0 6px 20px var(--ui-shadow))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.method-title-row h2,#review-heatmap h2,.goal-keeper-heading h2) {font-family:var(--ui-heading-font,inherit)}
+:root[data-interface]:not([data-interface="interface-default"])[data-interface-tone="light"] #review-heatmap .hm-day[data-level]:not([data-status="future"]) :is(.hm-day-number,.hm-day-state,strong small) {color:var(--ui-ink)}
+
+/* The extra-study reward has the same material as the surrounding commission
+   square; the illustrated gifts and their reveal effects are independent. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.mystery-gift-track,.mystery-dialog-reward,.mystery-status,.mystery-open-gifts button) {background:var(--ui-soft);border-color:var(--ui-line);border-radius:var(--ui-control-radius,var(--ui-radius))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.mystery-quest[data-status="ready"],.mystery-status.ready,.mystery-open-gifts button[aria-expanded="true"]) {border-color:color-mix(in srgb,var(--ui-warning) 50%,var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) .mystery-status.ready {background:color-mix(in srgb,var(--ui-warning) 7%,var(--ui-surface));color:var(--ui-warning)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.mystery-today strong,.mystery-conditions .met>i) {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.mystery-multiplier,.mystery-gift-track h4,.mystery-pending strong,.mystery-history strong,.mystery-open-gifts strong,.mystery-dialog-reward) {color:var(--ui-warning)}
+:root[data-interface]:not([data-interface="interface-default"]) .mystery-actions button:not(:disabled) {background:var(--ui-accent);border-color:var(--ui-accent);color:var(--ui-button-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .mystery-actions button:disabled {background:var(--ui-soft);color:var(--ui-muted);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .mystery-open-gifts button:hover {background:var(--ui-surface-raised);border-color:var(--ui-accent)}
+
+/* Ownership and currency labels are text, not part of the purchased thumbnail.
+   Do not recolor .shop-owned: it is printed on its separately lit art stage. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.q-money,.shop-single-price,.exchange-cost,.exchange-intro p>b) {color:var(--ui-coin)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-single-price.diamonds,.exchange-intro p,.exchange-history strong) {color:var(--ui-diamond)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-single-price small,.exchange-intro p>span,.shop-empty,.exchange-history) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-free {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-possession {background:color-mix(in srgb,var(--ui-success) 8%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-success) 40%,var(--ui-line));color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-possession.equipped {background:var(--ui-soft);border-color:var(--ui-accent);color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-possession small,.shop-possession.equipped small) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button.active {background:var(--ui-soft);border-color:var(--ui-accent);color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button[data-shop-market="diamonds"].active {background:color-mix(in srgb,var(--ui-diamond) 7%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-diamond) 60%,var(--ui-line));color:var(--ui-diamond)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button[data-shop-market="coins"].active {background:color-mix(in srgb,var(--ui-coin) 7%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-coin) 60%,var(--ui-line));color:var(--ui-coin)}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button.active :is(small,b) {color:inherit}
+:root[data-interface]:not([data-interface="interface-default"]) .shop-markets>button b {background:var(--ui-soft)}
+:root[data-interface]:not([data-interface="interface-default"]) .exchange-controls button {background:var(--ui-soft);border-color:var(--ui-line);color:var(--ui-accent)}
+
+/* Lottery machines keep gold and diamond identities. A modal shares exactly
+   the same semantic inks as the machine that opened it. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-room,.lottery-rules-dialog) {--lottery-accent:var(--ui-coin);--lottery-companion:var(--ui-success);--lottery-coin-ink:var(--ui-coin);--lottery-diamond-ink:var(--ui-diamond)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-room.diamond,.lottery-rules-dialog.diamond) {--lottery-accent:var(--ui-diamond);--lottery-companion:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .lottery-exchange {--lottery-accent:var(--ui-coin);--lottery-companion:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) .lottery-room.diamond .lottery-exchange {--lottery-accent:var(--ui-diamond);--lottery-companion:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-result-kind.coin-item,.lottery-result-kind.coins) {--kind-ink:var(--ui-coin)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-result-kind.diamond-item,.lottery-result-kind.diamonds) {--kind-ink:var(--ui-diamond)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-main,.lottery-collection,.lottery-rules-dialog) {box-shadow:var(--ui-panel-shadow,0 6px 20px var(--ui-shadow));border-radius:var(--ui-radius)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-purchase,.lottery-exchange,.lottery-pity,.lottery-star-gifts,.lottery-rule-currency,.lottery-rule-guarantee,.lottery-source-cards li) {border-radius:var(--ui-control-radius,var(--ui-radius))}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.lottery-heading h2,.lottery-collection h3,.lottery-dialog-heading h2) {font-family:var(--ui-heading-font,inherit)}
+
+/* New room UI lives beside the scenery. No blanket overlay, SVG filter or
+   inherited scene-palette substitution is used to theme it. */
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city .city-room-welcome {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city:not([data-lottery="coin"]):not([data-lottery="diamond"]) .city-room .city-room-content {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);color:var(--ui-ink);border-radius:0}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city:is([data-lottery="coin"],[data-lottery="diamond"]) .city-room {background:var(--ui-bg)}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city .city-room-welcome strong {color:var(--ui-ink);font-family:var(--ui-heading-font,inherit)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.city-welcome-eyebrow,.city-room-welcome small) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) #city-talk {background:var(--ui-panel-detail),var(--ui-surface-raised);border-color:var(--ui-line);border-radius:var(--ui-radius);box-shadow:var(--ui-panel-shadow,0 12px 35px var(--ui-shadow));color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) #city-talk h3 {color:var(--ui-ink);font-family:var(--ui-heading-font,inherit)}
+:root[data-interface]:not([data-interface="interface-default"]) #city-talk p {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .city-talk-portrait {background:var(--ui-soft)}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city :is(.city-welcome-actions button,.city-wardrobe-shortcut,.city-talk-actions button,.city-room-content .city-service-close) {background:var(--ui-control);border-color:var(--ui-line);border-radius:var(--ui-control-radius,var(--ui-radius));color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) #city-talk .city-talk-actions button:first-child {background:var(--ui-accent)!important;color:var(--ui-button-ink)!important;border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city :is(.city-welcome-actions button,.city-wardrobe-shortcut,.city-talk-actions button,.city-room-content .city-service-close):hover {background:var(--ui-surface-raised);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city :is(.city-welcome-actions button,.city-wardrobe-shortcut,.city-talk-actions button,.city-room-content .city-service-close):focus-visible {outline-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) #citadel-view.rain-city .city-life-card[data-done="true"] p {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) .city-life-status {color:var(--ui-warning);background:color-mix(in srgb,var(--ui-warning) 7%,var(--ui-surface));border-color:color-mix(in srgb,var(--ui-warning) 50%,var(--ui-line))}
+:root[data-interface]:not([data-interface="interface-default"]) .city-life-form :is(input,textarea,select):focus {border-color:var(--ui-accent);box-shadow:0 0 0 3px var(--ui-soft)}
+:root[data-interface]:not([data-interface="interface-default"]) .city-life-date input {color-scheme:inherit}
+
+/* Camp services are readable on their material; purchased dialogue frames and
+   the camp's illustrated night remain untouched. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-duty-kicker,.campfire-duty-link,.campfire-rest-clock strong,.campfire-memory-records li>span) {color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-duty-summary strong,.campfire-duty-link:hover) {color:var(--ui-success)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.campfire-memory-records .campfire-memory-empty,.campfire-heading p,.campfire-heading h2 span) {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-card:is([data-chatframe="chatframe-default"],:not([data-chatframe])) .campfire-characters {background:var(--ui-soft);border-color:var(--ui-line)}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-card:is([data-chatframe="chatframe-default"],:not([data-chatframe])) .campfire-character {color:var(--ui-ink);border-radius:var(--ui-control-radius,var(--ui-radius))}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-card:is([data-chatframe="chatframe-default"],:not([data-chatframe])) .campfire-character small {color:var(--ui-muted)}
+:root[data-interface]:not([data-interface="interface-default"]) .campfire-card:is([data-chatframe="chatframe-default"],:not([data-chatframe])) .campfire-character[aria-pressed="true"] {background:var(--ui-surface-raised);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .ambience-controls :is(button,select):hover {background:var(--ui-surface-raised);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) .ambience-controls :is(button,select,input):focus-visible {outline-color:var(--ui-accent)}
+
+/* Secondary dialog states previously retained dark preview-era colors. */
+:root[data-interface]:not([data-interface="interface-default"]) dialog:not(#opening-dialog):not(#celebration-dialog)::backdrop {background:color-mix(in srgb,var(--ui-bg) 70%,transparent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.error-banner,.goal-form-error) {background:color-mix(in srgb,var(--ui-danger) 7%,var(--ui-surface));border-color:var(--ui-danger);color:var(--ui-danger)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.form-error,[data-interface-status][role="alert"],.record-remove) {color:var(--ui-danger)}
+:root[data-interface]:not([data-interface="interface-default"]) .record-remove:hover {color:var(--ui-danger);background:color-mix(in srgb,var(--ui-danger) 10%,var(--ui-surface))}
+:root[data-interface]:not([data-interface="interface-default"]) .interface-status-banner {background:var(--ui-surface-raised);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .trash-row strong span {color:var(--ui-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.target-inputs input,.mapping-row select,.exchange-controls input,.weekly-setting-input input):focus-visible {outline-color:var(--ui-accent);border-color:var(--ui-accent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.mapping-row select,.exchange-controls input,.target-inputs input,.weekly-setting-input input) {color-scheme:inherit}

@@ -62,7 +62,7 @@ class InterfaceShopTests(unittest.TestCase):
                          ["free" if not coins and not diamonds else "coins" if coins else "diamonds"
                           for _, coins, diamonds in PRICES])
         self.assertTrue(all(not (item["coins"] and item["diamonds"]) for item in state["catalog"]))
-        self.assertEqual((len(state["catalog"]), len(state["equipped"])), (104+len(server.shop_expansion.SHOP_CATALOG_EXTRA), 18))
+        self.assertEqual((len(state["catalog"]), len(state["equipped"])), (130+len(server.shop_expansion.SHOP_CATALOG_EXTRA), 24))
         self.assertEqual(self.rows("shop_purchases"), [])
         self.assertEqual(self.rows("wallet_ledger"), [])
 

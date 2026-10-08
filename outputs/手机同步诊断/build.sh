@@ -13,5 +13,6 @@ codesign --force --sign - --identifier com.local.focusquest.calendarprobe "$APP"
 codesign --verify --deep --strict "$APP"
 # Preserve a clean signed copy in the archive before FileProvider adds metadata.
 ditto -c -k --sequesterRsrc --keepParent "$APP" "$SOURCE_DIR/专注日历诊断.zip"
-ditto "$APP" "$SOURCE_DIR/专注日历诊断.app"
-printf '%s\n' "已编译并验证：$SOURCE_DIR/专注日历诊断.app"
+mkdir -p "$SOURCE_DIR/build.noindex"
+ditto "$APP" "$SOURCE_DIR/build.noindex/专注日历诊断.app"
+printf '%s\n' "已编译并验证：$SOURCE_DIR/build.noindex/专注日历诊断.app"

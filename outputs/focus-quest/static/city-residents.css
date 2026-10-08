@@ -1,0 +1,74 @@
+/* Articulated residents: the outer scene group owns all route transforms. */
+.city-npc{outline:none;--city-npc-step:.74s;--city-npc-direction:1;--city-npc-look:1}
+.city-npc[role=button]{cursor:pointer;touch-action:manipulation}
+.city-npc[data-facing=left]{--city-npc-direction:-1}
+.city-npc[data-looking=left]{--city-npc-look:-1}
+.city-npc-heading{transform-box:view-box;transform-origin:0px 0px}
+.city-npc[data-street=true] .city-npc-heading{transform:rotate(calc(var(--city-npc-direction)*1deg))}
+.city-npc-motion{transform-box:view-box;transform-origin:0px 0px}
+.city-npc-body{transform-box:view-box;transform-origin:0px -35px;animation:city-npc-breathe 6.4s ease-in-out infinite}
+.city-npc-head{transform-box:view-box;transform-origin:0px -77px}
+.city-npc-face{transform-box:view-box;transform-origin:0px -91px}
+.city-npc[data-street=true] .city-npc-head{transform:translateX(calc(var(--city-npc-direction)*1.8px)) rotate(calc(var(--city-npc-direction)*1.5deg))}
+.city-npc[data-street=true] .city-npc-face{transform:translateX(calc(var(--city-npc-direction)*1.8px))}
+.city-npc-eyes{transform-box:fill-box;transform-origin:center;animation:city-npc-blink 7.6s linear infinite}
+.city-npc-leg-left{transform-box:view-box;transform-origin:-9px -36px}
+.city-npc-leg-right{transform-box:view-box;transform-origin:9px -36px}
+.city-npc-arm-left{transform-box:view-box;transform-origin:-17px -69px}
+.city-npc-arm-right{transform-box:view-box;transform-origin:17px -69px}
+.city-npc-prop{transform-box:view-box;transform-origin:0px -52px}
+.city-npc-page{transform-box:view-box;transform-origin:-1px -54px;animation:city-npc-page-turn 9s ease-in-out infinite}
+.city-npc-steam{animation:city-npc-steam-rise 4s ease-in-out infinite}
+.city-npc[data-street=false].city-npc-yanqing .city-npc-head{animation:city-npc-read 9s ease-in-out infinite}
+.city-npc[data-street=false].city-npc-ayu .city-npc-teapot{animation:city-npc-pour 8s ease-in-out infinite}
+.city-npc[data-street=false].city-npc-wangshu .city-npc-cup{animation:city-npc-cup-warm 10s ease-in-out infinite}
+.city-npc[data-street=false].city-npc-lingxiang .city-npc-sewing{animation:city-npc-stitch 3.5s ease-in-out infinite}
+.city-npc[data-street=false].city-npc-ache .city-npc-service{animation:city-npc-inspect 7s ease-in-out infinite}
+.city-npc[data-street=false].city-npc-wenzhou .city-npc-map{animation:city-npc-map-read 8s ease-in-out infinite}
+.city-npc-lantern{transform-origin:27px -42px;animation:city-npc-lantern-sway 5s ease-in-out infinite}
+.city-npc-focus,.city-npc-hello{opacity:0;transition:opacity .2s ease;pointer-events:none}
+.city-npc:hover .city-npc-hello,.city-npc:focus-visible .city-npc-hello,.city-npc[data-speaking=true] .city-npc-hello{opacity:1}
+.city-npc:hover .city-npc-focus,.city-npc:focus-visible .city-npc-focus,.city-npc[data-speaking=true] .city-npc-focus{opacity:.9}
+.city-npc[data-speaking=true] .city-npc-head{animation:city-npc-listen 2.8s ease-in-out infinite}
+.city-npc[data-walking=true] .city-npc-motion{animation:city-npc-weight var(--city-npc-step) linear infinite}
+.city-npc[data-walking=true] .city-npc-body{animation:city-npc-walk-body var(--city-npc-step) ease-in-out infinite}
+.city-npc[data-walking=true] .city-npc-leg-left,.city-npc[data-walking=true] .city-npc-leg-right{animation:city-npc-step var(--city-npc-step) linear infinite}
+.city-npc[data-walking=true] .city-npc-leg-right{animation-delay:calc(var(--city-npc-step)*-.5)}
+.city-npc[data-walking=true] .city-npc-arm-left,.city-npc[data-walking=true] .city-npc-arm-right{animation:city-npc-arm-swing var(--city-npc-step) ease-in-out infinite}
+.city-npc[data-walking=true] .city-npc-arm-left{animation-delay:calc(var(--city-npc-step)*-.5)}
+.city-npc[data-walking=true] .city-npc-head,.city-npc[data-walking=true] .city-npc-prop{animation:none}
+.city-npc[data-walking=true].city-npc-qideng .city-npc-arm-right{animation:none}
+.city-npc[data-walking=true] .city-npc-lantern{animation:city-npc-lantern-sway 1.48s ease-in-out infinite}
+/* Direction changes are a planted-foot turn, never a mirrored whole sprite.
+   The controller holds the current phase while hovering/talking/offstage. */
+.city-npc[data-phase=look] .city-npc-head{animation:city-npc-look .28s ease-in-out both}
+.city-npc[data-phase=look] .city-npc-face{animation:city-npc-look-face .28s ease-in-out both}
+.city-npc[data-phase=turn] .city-npc-heading{animation:city-npc-turn-shoulders .68s ease-in-out both}
+.city-npc[data-phase=turn] .city-npc-leg-left{animation:city-npc-turn-left-foot .68s ease-in-out both}
+.city-npc[data-phase=turn] .city-npc-leg-right{animation:city-npc-turn-right-foot .68s ease-in-out both}
+.city-npc[data-phase=look][data-motion-paused=true] *,.city-npc[data-phase=turn][data-motion-paused=true] *{animation-play-state:paused!important}
+.city-npc-portrait{display:block;inline-size:100%;block-size:auto;max-inline-size:none;max-block-size:none;stroke:none}
+.city-npc-portrait .city-npc *{animation:none!important}
+.city-npc[data-paused=true] *,.citadel-view[data-paused=true] .city-npc *,[data-motion=false] .city-npc *,[data-interactive=false] .city-npc *,[hidden] .city-npc *,.no-motion .city-npc *,html.focus-runtime-hidden .city-npc *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.city-npc .city-npc-heading{transition:none}.city-npc *{animation:none!important;transition:none!important}}
+@keyframes city-npc-breathe{0%,100%{transform:translateY(0) scaleY(1)}50%{transform:translateY(-.6px) scaleY(1.008)}}
+@keyframes city-npc-blink{0%,44%,47%,100%{transform:scaleY(1)}45%,46%{transform:scaleY(.15)}}
+@keyframes city-npc-read{0%,30%,100%{transform:rotate(0)}40%,75%{transform:rotate(3deg)}}
+@keyframes city-npc-page-turn{0%,62%,100%{transform:scaleX(1)}68%,80%{transform:scaleX(.3)}}
+@keyframes city-npc-steam-rise{0%,100%{transform:translateY(1px);opacity:.25}50%{transform:translateY(-3px);opacity:.65}}
+@keyframes city-npc-pour{0%,45%,100%{transform:rotate(0)}60%,76%{transform:rotate(10deg)}}
+@keyframes city-npc-cup-warm{0%,65%,100%{transform:translateY(0)}74%,87%{transform:translateY(-5px)}}
+@keyframes city-npc-stitch{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2deg)}}
+@keyframes city-npc-inspect{0%,45%,100%{transform:rotate(0)}55%,75%{transform:rotate(-4deg)}}
+@keyframes city-npc-map-read{0%,35%,100%{transform:translateY(0)}50%,80%{transform:translateY(-2px) rotate(-2deg)}}
+@keyframes city-npc-lantern-sway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+@keyframes city-npc-listen{0%,100%{transform:rotate(0)}50%{transform:rotate(-3deg)}}
+@keyframes city-npc-step{0%,100%{transform:translate(0,0) rotate(-10deg)}25%{transform:translate(1px,-2px) rotate(1deg)}50%{transform:translate(0,0) rotate(11deg)}75%{transform:translate(-1px,0) rotate(0)}}
+@keyframes city-npc-weight{0%,50%,100%{transform:translateY(0)}25%,75%{transform:translateY(-1.3px)}}
+@keyframes city-npc-walk-body{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(1deg)}}
+@keyframes city-npc-arm-swing{0%,100%{transform:rotate(8deg)}50%{transform:rotate(-8deg)}}
+@keyframes city-npc-look{from{transform:translateX(calc(var(--city-npc-look)*-1.8px)) rotate(calc(var(--city-npc-look)*-1.5deg))}to{transform:translateX(calc(var(--city-npc-look)*1.8px)) rotate(calc(var(--city-npc-look)*1.5deg))}}
+@keyframes city-npc-look-face{from{transform:translateX(calc(var(--city-npc-look)*-1.8px))}to{transform:translateX(calc(var(--city-npc-look)*1.8px))}}
+@keyframes city-npc-turn-shoulders{0%,15%{transform:rotate(calc(var(--city-npc-direction)*-1deg))}45%{transform:translateY(-.5px) rotate(0)}100%{transform:rotate(calc(var(--city-npc-direction)*1deg))}}
+@keyframes city-npc-turn-left-foot{0%,15%,65%,100%{transform:translate(0,0) rotate(0)}36%{transform:translate(calc(var(--city-npc-direction)*2px),-2px) rotate(calc(var(--city-npc-direction)*-5deg))}}
+@keyframes city-npc-turn-right-foot{0%,40%,100%{transform:translate(0,0) rotate(0)}70%{transform:translate(calc(var(--city-npc-direction)*2px),-2px) rotate(calc(var(--city-npc-direction)*5deg))}}

@@ -1,4 +1,4 @@
-const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),{spawnSync}=require('node:child_process');
+const test=require('node:test'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),vm=require('node:vm'),{spawnSync}=require('node:child_process');
 const collection=require('../static/shop-collection-v2.js'),expansion=require('../static/shop-expansion.js'),shop=require('../static/shop-art.js'),camp=require('../static/camp-world-art.js'),campShop=require('../static/campfire-shop-art.js'),avatars=require('../static/quest-art.js'),bars=require('../static/progress-bars.js');
 const source=fs.readFileSync(require.resolve('../static/shop-collection-v2.js'),'utf8'),css=fs.readFileSync(require.resolve('../static/shop-collection-v2.css'),'utf8');
 const rows=collection.entries,bySlot=slot=>rows.filter(row=>row.slot===slot);
@@ -18,7 +18,11 @@ test('every preview uses the existing stage footprint, real distinct geometry, a
  for(let i=0;i<svgs.length;i++){assert.match(svgs[i],/^<svg class="shop-art-svg collection-v2-shop-art/);assert.match(svgs[i],/viewBox="0 0 160 112"/);assert.ok(svgs[i].length>400,rows[i].id);assert.doesNotMatch(svgs[i],/undefined|NaN|Infinity|<script|<foreignObject|\bon\w+=|href=/);}
  for(const slot of new Set(rows.map(row=>row.slot)))assert.equal(new Set(bySlot(slot).map(row=>geometry(collection.preview(row.id)))).size,bySlot(slot).length,slot);
  const actual=rows.flatMap(row=>row.slot==='avatar'?[0,1,2,3,4].map(stage=>collection.avatar(row.id,stage)):row.slot==='theme'?[collection.themeBackdrop(row.id),asSvg(collection.themeCityScene(row.id))]:row.slot==='island'?[asSvg(collection.islandDecoration(row.id))]:row.slot==='bar'?[asSvg(collection.barFigure(row.id)+collection.barRibbon(row.id,'xml-'+row.id))]:[]);
- const xml=spawnSync('/usr/bin/python3',['-c','import json,sys,xml.etree.ElementTree as ET\nfor svg in json.load(sys.stdin): ET.fromstring(svg)'],{input:JSON.stringify([...svgs,...actual]),encoding:'utf8'});assert.equal(xml.status,0,xml.stderr);
+ const dir=fs.mkdtempSync(path.join(os.tmpdir(),'focus-world-xml-')),input=path.join(dir,'scenes.json');
+ try {
+  fs.writeFileSync(input,JSON.stringify([...svgs,...actual]));
+  const xml=spawnSync('/usr/bin/python3',['-c','import json,sys,xml.etree.ElementTree as ET\nwith open(sys.argv[1]) as f: scenes=json.load(f)\nfor svg in scenes: ET.fromstring(svg)',input],{encoding:'utf8',timeout:15000});assert.equal(xml.status,0,xml.stderr||String(xml.error||''));
+ } finally {fs.rmSync(dir,{recursive:true,force:true});}
 });
 test('all twelve player outfits render full clothing and four staged additions without replacing NPCs',()=>{
  for(const row of bySlot('avatar')){assert.equal(expansion.fullOutfit(row.id),true);assert.ok(css.includes(`[data-avatar="${row.id}"]`));const stages=[0,1,2,3,4].map(n=>avatars.avatar('player',row.id,n));assert.equal(new Set(stages).size,5);

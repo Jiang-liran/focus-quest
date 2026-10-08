@@ -207,7 +207,23 @@
     const premium=item(id).lotteryOnly?ellipse(32,42,30,23,'none',`stroke="${a}" stroke-width=".8" stroke-dasharray="2 6" class="expansion-halo"`)+star(3,43,2,c)+star(60,48,2,c):'';
     return `<svg class="quest-avatar-art" viewBox="0 0 64 72" width="64" height="72" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none" data-role="player" data-outfit="${id}" data-skin-slots="avatar"><g class="quest-player-growth" data-avatar-stage="${s}">${premium}${coat}${face}${hat}${prop}${growth.map((art,i)=>`<g class="quest-avatar-tier quest-avatar-tier-${i+1}" data-avatar-tier="${i+1}" display="${s>i?'inline':'none'}">${art}</g>`).join('')}</g></svg>`;
   }
-  function travelerHat(id,index=0){if(limitedArt?.has(id,'avatar'))return limitedArt.travelerHat(id,index);if(collectionV2?.has(id,'avatar'))return collectionV2.travelerHat(id,index);if(!has(id,'avatar'))return '';const v=variant(id);const d={raincoat:'M156 190q-4-29 15-30 19 1 16 30l-9-6-7-4-8 4Z',baker:'M158 180q-12-7-6-17 3-6 10-3 7-12 15-4 12-3 13 7 0 13-11 17v9h-21Z',botanist:'M150 190h42l-9-10-5-17h-14l-5 17Z',fisher:'M150 190h43l-9-9-4-16h-18l-6 16Z',beekeeper:'M153 190q-4-25 18-26 22 1 19 26Z',knight:'M154 188q-3-26 17-26 22 0 18 26Z',witch:'M147 190 162 167q6-17 25-13l-12 7 19 29Z',astronaut:'M151 188q-8-33 20-33 28 0 20 33Z',moonwarden:'M152 189 155 166l10 8 6-17 7 17 11-8 2 23Z',stellararchon:'M151 189 156 159l10 13 5-22 7 22 10-13 5 30Z'}[v]||'';if(index===0)return d;if(index===1)return 'M171 167v23h19l-8-21Z';return 'M147 168 158 148 172 168Z';}
+  function travelerHat(id,index=0){
+    if(limitedArt?.has(id,'avatar'))return limitedArt.travelerHat(id,index);
+    if(collectionV2?.has(id,'avatar'))return collectionV2.travelerHat(id,index);
+    if(!has(id,'avatar'))return '';
+    const v=variant(id);
+    // The rain hood's shade must follow its curved right rim. The old shared
+    // pointed-hat polygon crossed the face opening and protruded past the hood.
+    if(v==='raincoat')return [
+      'M156 190q-4-29 15-30 19 1 16 30l-9-6-7-4-8 4Z',
+      'M171 160q19 1 16 30l-9-6-7-4Z',
+      'M154 168q-3-19 10-20 11 1 10 20l-5-4-5-3-5 3Z',
+    ][index]||'';
+    const d={baker:'M158 180q-12-7-6-17 3-6 10-3 7-12 15-4 12-3 13 7 0 13-11 17v9h-21Z',botanist:'M150 190h42l-9-10-5-17h-14l-5 17Z',fisher:'M150 190h43l-9-9-4-16h-18l-6 16Z',beekeeper:'M153 190q-4-25 18-26 22 1 19 26Z',knight:'M154 188q-3-26 17-26 22 0 18 26Z',witch:'M147 190 162 167q6-17 25-13l-12 7 19 29Z',astronaut:'M151 188q-8-33 20-33 28 0 20 33Z',moonwarden:'M152 189 155 166l10 8 6-17 7 17 11-8 2 23Z',stellararchon:'M151 189 156 159l10 13 5-22 7 22 10-13 5 30Z'}[v]||'';
+    if(index===0)return d;
+    if(index===1)return 'M171 167v23h19l-8-21Z';
+    return 'M147 168 158 148 172 168Z';
+  }
   function barDesign(id){if(limitedArt?.has(id,'bar'))return limitedArt.barDesign(id);if(collectionV2?.has(id,'bar'))return collectionV2.barDesign(id);if(!has(id,'bar'))return null;const [a,b,c]=colors(id);return {name:item(id).name,copy:item(id).description,colors:[b,a],rail:'#192c3c',accent:c};}
   function barFigure(id){if(limitedArt?.has(id,'bar'))return limitedArt.barFigure(id);if(collectionV2?.has(id,'bar'))return collectionV2.barFigure(id);if(!has(id,'bar'))return '';if(item(id).lotteryOnly)return premiumBarFigure(id);const v=variant(id),[a,b,c]=colors(id);let art='';
     if(v==='railway'||v==='skyexpress')art=rect(14,12,48,23,a,4)+path('M55 13h14l6 24H55Z',b)+rect(20,16,12,8,c,1)+rect(37,16,12,8,c,1)+circle(27,37,6,b)+circle(60,37,6,b)+line('M15 37h59',c,1.5)+(v==='skyexpress'?path('M4 31q8-13 14 0m42-23q14-13 18 0',a)+star(8,13,5,c):'');

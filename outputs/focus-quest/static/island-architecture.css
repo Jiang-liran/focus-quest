@@ -1,0 +1,27 @@
+/* Optional architecture only; original islands and all equipped objects stay intact. */
+[data-homeland="homeland-harbor"] .homeland-original-ground,
+[data-homeland="homeland-harbor"] .homeland-original-trees,
+[data-homeland="homeland-starglass"] .homeland-original-ground,
+[data-homeland="homeland-starglass"] .homeland-original-trees { display:none; }
+.homeland-original-ground>[fill="#252744"] { fill:var(--theme-rock-side,#252744); }
+#equipped-homeland { pointer-events:none; }
+.island-campus { pointer-events:none; }
+.island-campus-lit { opacity:var(--campus-light,.65); transition:opacity 1.2s ease; }
+.island-campus-orbit { transform-box:fill-box; transform-origin:center; animation:campus-orbit 44s linear infinite; }
+.island-campus-wheel { transform-box:fill-box; transform-origin:center; animation:campus-orbit 24s linear infinite; }
+.island-campus-boat { animation:campus-boat 6s ease-in-out infinite; }
+.island-campus-water { animation:campus-water 7s ease-in-out infinite; }
+.island-architecture-preview,.island-architecture-detail { display:block; max-width:100%; height:auto; overflow:visible; stroke:none; }
+.island-architecture-preview .island-campus * { animation:none; transition:none; }
+@keyframes campus-orbit { to { transform:rotate(360deg); } }
+@keyframes campus-boat { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-1.5px); } }
+@keyframes campus-water { 0%,100% { opacity:.45; } 50% { opacity:.85; } }
+html.focus-runtime-hidden .island-campus *, [hidden] .island-campus *, [inert] .island-campus *, dialog:not([open]) .island-campus *, .motion-paused .island-campus *, .runtime-paused .island-campus *, [data-paused="true"] .island-campus * { animation-play-state:paused!important; transition:none!important; }
+.no-motion .island-campus *, [data-motion="false"] .island-campus * { animation:none!important; transition:none!important; }
+@media(prefers-reduced-motion:reduce) { .island-campus * { animation:none!important; transition:none!important; } }
+
+/* Whole structural parts are fitted in place; no height-based reveal or slicing. */
+.campus-build-part { transition:opacity 1.2s ease; }
+.campus-blueprint * { fill:none!important; stroke:var(--campus-blueprint-ink)!important; stroke-width:.65px!important; stroke-dasharray:2 4; animation:none!important; transition:none!important; }
+.campus-progress-crystal { pointer-events:none; }
+.campus-progress-crystal path { transition:opacity 1.2s ease; }

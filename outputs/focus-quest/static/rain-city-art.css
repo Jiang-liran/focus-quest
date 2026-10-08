@@ -29,7 +29,7 @@
 .rain-city-art .rain-city-equipment{filter:saturate(.68) brightness(.84)}
 .rain-city-art .rain-city-traveler{filter:saturate(.74) brightness(.9)}
 /* Purchased decorative artwork can contain its own animation; the city uses only its geometry. */
-.rain-city-art .rain-city-equipment *,.rain-city-art .rain-city-traveler *{animation:none!important}
+.rain-city-art .rain-city-equipment:not(.rain-city-equipment-companion) *,.rain-city-art .rain-city-traveler *,.rain-city-art[data-interactive=false] .rain-city-equipment-companion *{animation:none!important}
 /* Shared effect artwork already sets its night-city intensity. Keep that light
    intact, and let every building, cabinet and route remain clickable. */
 .rain-city-art .rain-city-equipped-fx,.rain-city-art .rain-city-equipped-fx *{pointer-events:none}

@@ -166,6 +166,32 @@ SHOP_CATALOG = (
     ("island-observatory", "island", "星轨仪台", "整套观星布置，让前景矮灯与后侧星轨仪台映衬首页主岛夜色", 0, 28),
     ("island-arcade", "island", "流光回廊", "整套回廊布置，以前景花箱与后侧层叠灯廊丰富首页主岛", 0, 38),
     ("island-palace", "island", "云顶星苑", "整套星苑布置，以前景花箱、矮灯与后侧精巧楼苑装点首页主岛", 0, 52),
+    ("archipelago-default", "archipelago", "初旅四岛", "保留熟悉的四科学岛与原有建筑成长，可以随时免费切回", 0, 0),
+    ("archipelago-harbor", "archipelago", "雨港学院 · 四岛", "四科整体重建为海港学院：航图观测院、潮汐机巧坊、海风议事厅与灯语航港；学科配色与学习进度保留", 1800, 0),
+    ("archipelago-starglass", "archipelago", "星穹学宫 · 四岛", "以星象穹顶馆、晶格演算院、群星议会庭和译光帆书港重建四岛，透光穹顶与空中回廊映出四科学习进度", 0, 36),
+    ("campusmath-default", "campusmath", "数学 · 随整套主题", "沿用当前四岛套装；单岛选择优先于整套主题，其他学科不受影响", 0, 0),
+    ("campusmath-original", "campusmath", "数学 · 初旅原貌", "仅这一座学岛恢复最初建筑与学科配色，其他三座岛保持当前搭配", 0, 0),
+    ("campusmath-garden", "campusmath", "数学 · 几何花园", "圆规穹亭、几何花床与青绿阶地，数学独有的观测花园；仅更换本科岛屿，学习进度与奖励保留", 450, 0),
+    ("campusmath-hall", "campusmath", "数学 · 青石定理院", "拱窗石院、三角山墙与推演板，青绿学院围出安静的推演庭；仅更换本科岛屿，学习进度与奖励保留", 950, 0),
+    ("campusmath-spiral", "campusmath", "数学 · 螺旋星算塔", "层叠螺旋步道、观测塔与转动星象球，几何光轨映出专注进度；仅更换本科岛屿，学习进度与奖励保留", 0, 18),
+    ("campuscs-default", "campuscs", "408 · 随整套主题", "沿用当前四岛套装；单岛选择优先于整套主题，其他学科不受影响", 0, 0),
+    ("campuscs-original", "campuscs", "408 · 初旅原貌", "仅这一座学岛恢复最初建筑与学科配色，其他三座岛保持当前搭配", 0, 0),
+    ("campuscs-workshop", "campuscs", "408 · 齿轮机巧所", "蓝紫轴轮、锯齿屋顶与传动廊，重建一座完整机械工坊；仅更换本科岛屿，学习进度与奖励保留", 480, 0),
+    ("campuscs-server", "campuscs", "408 · 晶格数据庭", "双座机柜楼、晶格连廊与节点庭院，蓝紫灯格随专注点亮；仅更换本科岛屿，学习进度与奖励保留", 980, 0),
+    ("campuscs-neon", "campuscs", "408 · 回路云端城", "阶梯芯片楼、悬桥与环形信号台，蓝紫回路沿岛面流动；仅更换本科岛屿，学习进度与奖励保留", 0, 20),
+    ("campuspolitics-default", "campuspolitics", "政治 · 随整套主题", "沿用当前四岛套装；单岛选择优先于整套主题，其他学科不受影响", 0, 0),
+    ("campuspolitics-original", "campuspolitics", "政治 · 初旅原貌", "仅这一座学岛恢复最初建筑与学科配色，其他三座岛保持当前搭配", 0, 0),
+    ("campuspolitics-courtyard", "campuspolitics", "政治 · 暖杏议事庭", "杏色柱廊、书卷与圆桌，完整换成温暖安静的议事庭；仅更换本科岛屿，学习进度与奖励保留", 420, 0),
+    ("campuspolitics-archive", "campuspolitics", "政治 · 赤陶文史馆", "暖红砖墙、双层廊庭与档案书架，让文史与思辨在灯下相遇；仅更换本科岛屿，学习进度与奖励保留", 900, 0),
+    ("campuspolitics-forum", "campuspolitics", "政治 · 灯火共议台", "层叠议事厅、开放书庭与灯火钟楼，暖金灯光映出沉稳夜色；仅更换本科岛屿，学习进度与奖励保留", 0, 18),
+    ("campusenglish-default", "campusenglish", "英语 · 随整套主题", "沿用当前四岛套装；单岛选择优先于整套主题，其他学科不受影响", 0, 0),
+    ("campusenglish-original", "campusenglish", "英语 · 初旅原貌", "仅这一座学岛恢复最初建筑与学科配色，其他三座岛保持当前搭配", 0, 0),
+    ("campusenglish-library", "campusenglish", "英语 · 蓝湾书屋", "青蓝拱窗书屋、露台与读书角，海风吹过摊开的书；仅更换本科岛屿，学习进度与奖励保留", 450, 0),
+    ("campusenglish-harbor", "campusenglish", "英语 · 风信译港", "信号灯塔、邮舟与帆顶书馆，完整换成青蓝语言港湾；仅更换本科岛屿，学习进度与奖励保留", 950, 0),
+    ("campusenglish-greenhouse", "campusenglish", "英语 · 月光语境苑", "透光温室、植物与玻璃书廊，青蓝夜色包住语言花园；仅更换本科岛屿，学习进度与奖励保留", 0, 20),
+    ("homeland-default", "homeland", "初旅主岛", "保留原来的主岛地貌与树木，现有布置、伙伴和圣物照常使用", 0, 0),
+    ("homeland-harbor", "homeland", "雨港学院 · 主岛", "将主岛整体改建为灯下的学院港湾，石岸、学院楼与长廊围起中央广场；保留原有布置、圣物、门景、伙伴和篝火", 1200, 0),
+    ("homeland-starglass", "homeland", "星穹学宫 · 主岛", "整座主岛换上层叠晶石基座、穹顶学宫与银蓝廊桥，中央庭院兼容已有布置、圣物、门景、伙伴和篝火", 0, 28),
     ("trail-default", "camptrail", "泥土归途", "保留营地区域原有的泥土小径，通向歇脚处", 0, 0),
     ("trail-stone", "camptrail", "青石步道", "以朴素青石铺出营地小径，连接帐篷与火边", 240, 0),
     ("trail-stars", "camptrail", "星砂小径", "让细碎星砂沿营地小径发亮，点缀归途", 0, 10),
@@ -210,7 +236,7 @@ for _item_id, _metadata in shop_expansion.SHOP_ITEM_META.items():
     SHOP_ITEMS[_item_id].update(_metadata)
 SHOP_CATEGORIES = {"bar": "进度条", "fx": "星岛特效", "avatar": "我的时装",
                    "banner": "旅人铭牌", "theme": "星岛环境", "interface": "界面主题", "companion": "随行伙伴",
-                   "relic": "星岛圣物", "portal": "远征之门", "island": "主岛布置", "camp": "营地地貌",
+                   "relic": "星岛圣物", "portal": "远征之门", "island": "主岛布置", "archipelago": "四岛套装", "campusmath": "数学建筑", "campuscs": "408建筑", "campuspolitics": "政治建筑", "campusenglish": "英语建筑", "homeland": "主岛建筑", "camp": "营地地貌",
                    "fire": "篝火样式", "tent": "歇脚帐篷", "campgear": "营地陈设",
                    "campglow": "营地氛围", "chatframe": "对话外观", "camptrail": "营地小径", "campmark": "营地地标"}
 LEGACY_SHOP_ITEM_IDS = ("bar-aurora", "bar-comet", "fx-fireflies", "fx-meteor", "npc-scholar",
@@ -232,6 +258,12 @@ METHOD_COMPLETION_BONUS = {"name": "融会贯通", "coins": 200, "diamonds": 4}
 CITY_LIFE_LIMITS = {"notes": 200, "storedNotes": 1000, "outfits": 8, "storedOutfits": 64}
 CITY_NOTE_TYPES = {"note", "question", "quote", "plan"}
 TIMED_BONUS_START_META = "questTimedBonus:featureStartMs"
+EVENING_START_META = "eveningGifts:featureStartMs"
+EVENING_GIFT_MINUTES = 30
+EVENING_BASE_GIFTS = 5
+EVENING_GIFT_TARGETS = (30, 60, 90, 120, 150, 185, 220)
+EVENING_GIFTS = ((40, 1, 0, 0), (50, 1, 1, 0), (60, 2, 1, 0), (70, 2, 1, 1),
+                 (80, 3, 1, 1), (100, 4, 2, 1), (120, 5, 2, 2))
 MYSTERY_START_META = "questMystery:featureStartMs"
 MYSTERY_DIAMOND_CADENCE_META = "questMystery:diamondCadence15m:v1"
 MYSTERY_GIFT_LIMIT = 6
@@ -247,6 +279,12 @@ RETIRED_NPC_ITEM_IDS = ("npc-default", "npc-scholar", "npc-tea", "npc-copper", "
 # archives still need the v1.8 difference credited before the final net refund.
 RETIRED_NPC_V18_PRICES = {"npc-scholar": {"coins": 180, "diamonds": 0},
                          "npc-astral": {"coins": 0, "diamonds": 12}}
+EARLY_START_META = "earlyStart:featureStartMs:v1"
+EARLY_START_TIERS = (
+    {"beforeHour": 8, "label": "08:00 前", "coins": 90, "diamonds": 2, "coinTickets": 1, "diamondTickets": 1},
+    {"beforeHour": 9, "label": "08:00–08:59", "coins": 60, "diamonds": 1, "coinTickets": 0, "diamondTickets": 1},
+    {"beforeHour": 10, "label": "09:00–09:59", "coins": 30, "diamonds": 1, "coinTickets": 1, "diamondTickets": 0},
+)
 HISTORY_SOURCE = "history_xlsx"
 HISTORY_FIELDS = ("name", "minutes", "start_ms", "end_ms", "day")
 
@@ -662,6 +700,18 @@ class FocusStore:
             );
             CREATE INDEX IF NOT EXISTS quest_bonus_request ON quest_bonus_receipts(request_id);
             CREATE INDEX IF NOT EXISTS quest_bonus_subject ON quest_bonus_receipts(subject,day);
+            CREATE TABLE IF NOT EXISTS evening_gift_claims (
+                day TEXT NOT NULL, gift_index INTEGER NOT NULL,
+                coins INTEGER NOT NULL, diamonds INTEGER NOT NULL,
+                coin_tickets INTEGER NOT NULL, diamond_tickets INTEGER NOT NULL,
+                claimed_ms INTEGER NOT NULL, evidence TEXT NOT NULL,
+                PRIMARY KEY(day,gift_index)
+            );
+            CREATE TABLE IF NOT EXISTS early_start_rewards (
+                day TEXT PRIMARY KEY, record_id TEXT NOT NULL, start_ms INTEGER NOT NULL,
+                coins INTEGER NOT NULL, diamonds INTEGER NOT NULL, settled_ms INTEGER NOT NULL
+            );
+            CREATE INDEX IF NOT EXISTS records_reward_end ON records(end_ms,start_ms);
             CREATE INDEX IF NOT EXISTS quest_allocation_end ON quest_allocations(end_ms,start_ms);
             CREATE TABLE IF NOT EXISTS mystery_goal_epochs (
                 effective_ms INTEGER PRIMARY KEY, settings TEXT NOT NULL
@@ -873,6 +923,10 @@ class FocusStore:
         self._initialize_mystery()
         self._migrate_mystery_diamond_cadence()
         self._initialize_lottery()
+        self._initialize_evening_gifts()
+        with self.db:
+            if self._meta(EARLY_START_META) is None:
+                self._set_meta(EARLY_START_META, int(quest_clock().timestamp()*1000))
         self._initialize_method_round_tickets()
         self.revision = int(self._meta("revision") or 0)
         self._initialize_goals()
@@ -907,6 +961,7 @@ class FocusStore:
             except BaseException:
                 self.db.rollback()
                 self._play_ticket_sync_cache = None
+                self._evening_projection_cache = None
                 raise
 
     def _wallet(self):
@@ -1204,9 +1259,19 @@ class FocusStore:
                                    if item.get("lotteryOnly", False) and item.get("lotteryMachine") == machine],
                     "currencyExpected": lottery_rules.currency_expectation(machine),
                     "fullPoolCurrencyExpected": lottery_rules.currency_expectation(machine, exhausted=True)})
-            history = [{"requestId": row["request_id"], "machine": row["machine"],
-                        "drawnAt": iso_ms(row["created_ms"]), "result": json.loads(row["result"])}
-                       for row in self.db.execute("SELECT * FROM lottery_requests WHERE kind='draw' ORDER BY created_ms DESC,rowid DESC LIMIT 20")]
+            # A batch is one durable request, but history still counts individual gifts.
+            history = []
+            for row in self.db.execute("SELECT * FROM lottery_requests WHERE kind='draw' ORDER BY created_ms DESC,rowid DESC LIMIT 20"):
+                saved = json.loads(row["result"])
+                draws = saved["results"] if saved.get("type") == "batch" else [saved]
+                for index in range(len(draws)-1, -1, -1):
+                    history.append({"requestId": row["request_id"], "machine": row["machine"],
+                                    "drawnAt": iso_ms(row["created_ms"]), "result": draws[index],
+                                    **({"batchCount": len(draws), "drawIndex": index+1} if len(draws) > 1 else {})})
+                    if len(history) == 20:
+                        break
+                if len(history) == 20:
+                    break
             grants = [{"machine": row["machine"], "count": row["amount"], "source": row["source"],
                        "label": row["label"], "grantedAt": iso_ms(row["created_ms"])}
                       for row in self.db.execute("SELECT * FROM lottery_ticket_ledger WHERE amount>0 ORDER BY created_ms DESC,rowid DESC LIMIT 20")]
@@ -1231,7 +1296,7 @@ class FocusStore:
                     "roundTickets": self._round_ticket_state(),
                     "persistentTickets": True, "onlyUnownedItems": True, "shopExclusiveItemsExcluded": False}
 
-    def _lottery_request(self, machine, request_id, kind, now=None):
+    def _lottery_request(self, machine, request_id, kind, now=None, draw_count=1):
         machine = self._lottery_machine(machine)
         request_id = self._action_uuid(request_id)
         with self._quest_transaction():
@@ -1244,6 +1309,8 @@ class FocusStore:
                 if previous["kind"] != kind or previous["machine"] != machine:
                     raise ValueError("同一个抽奖请求标识不能更改机器或操作")
                 result = json.loads(previous["result"])
+                if kind == "draw" and (result["count"] if result.get("type") == "batch" else 1) != draw_count:
+                    raise ValueError("同一个抽奖请求标识不能更改连抽次数")
             else:
                 stamp, day = int(current.timestamp()*1000), current.date().isoformat()
                 if kind == "buy":
@@ -1271,21 +1338,27 @@ class FocusStore:
                                     (f"lottery-exchange:{request_id}", machine, stamp, "play-ticket-exchange", "游玩券兑换"))
                 else:
                     balance = self.db.execute("SELECT COALESCE(SUM(amount),0) FROM lottery_ticket_ledger WHERE machine=?", (machine,)).fetchone()[0]
-                    if balance < 1:
-                        raise ValueError("需要一张对应的抽奖券才能启动这台机器")
-                    pity_row = self.db.execute("SELECT count FROM lottery_pity WHERE machine=?", (machine,)).fetchone()
-                    pity_count = pity_row[0] if pity_row else 0
-                    result = lottery_rules.draw(machine, self._lottery_pools(),
-                                                force_limited=pity_count+1 >= lottery_rules.PITY_LIMITS[machine])
-                    self.db.execute("INSERT INTO lottery_pity VALUES (?,?) ON CONFLICT(machine) DO UPDATE SET count=excluded.count",
-                                    (machine, 0 if result["limited"] else pity_count+1))
-                    self.db.execute("INSERT INTO lottery_ticket_ledger VALUES (?,?,-1,?,?,?)",
-                                    (f"lottery-draw:{request_id}", machine, stamp, "draw", "使用抽奖券"))
-                    if result["type"] == "item":
-                        self.db.execute("INSERT INTO shop_purchases VALUES (?,?)", (result["item"]["id"], stamp))
-                    else:
-                        self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
-                                        (f"lottery-draw:{request_id}", result["coins"], result["diamonds"], stamp))
+                    if balance < draw_count:
+                        raise ValueError(f"抽奖券不足，需要 {draw_count} 张对应抽奖券，当前有 {balance} 张")
+                    draws = []
+                    for index in range(draw_count):
+                        reference = f"lottery-draw:{request_id}" + (f":{index+1}" if draw_count > 1 else "")
+                        pity_row = self.db.execute("SELECT count FROM lottery_pity WHERE machine=?", (machine,)).fetchone()
+                        pity_count = pity_row[0] if pity_row else 0
+                        reward = lottery_rules.draw(machine, self._lottery_pools(),
+                                                    force_limited=pity_count+1 >= lottery_rules.PITY_LIMITS[machine])
+                        self.db.execute("INSERT INTO lottery_pity VALUES (?,?) ON CONFLICT(machine) DO UPDATE SET count=excluded.count",
+                                        (machine, 0 if reward["limited"] else pity_count+1))
+                        self.db.execute("INSERT INTO lottery_ticket_ledger VALUES (?,?,-1,?,?,?)",
+                                        (reference, machine, stamp, "draw", "使用抽奖券"))
+                        if reward["type"] == "item":
+                            self.db.execute("INSERT INTO shop_purchases VALUES (?,?)", (reward["item"]["id"], stamp))
+                        else:
+                            self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)",
+                                            (reference, reward["coins"], reward["diamonds"], stamp))
+                        draws.append(reward)
+                    result = draws[0] if draw_count == 1 else {
+                        "type": "batch", "machine": machine, "count": draw_count, "results": draws}
                 if kind == "exchange":
                     self.db.execute("INSERT INTO lottery_play_ticket_exchanges VALUES (?,?,?,?,?)",
                         (request_id, machine, day, stamp, json.dumps(result, ensure_ascii=False, allow_nan=False)))
@@ -1302,8 +1375,10 @@ class FocusStore:
     def buy_lottery_ticket(self, machine, request_id, now=None):
         return self._lottery_request(machine, request_id, "buy", now)
 
-    def draw_lottery(self, machine, request_id, now=None):
-        return self._lottery_request(machine, request_id, "draw", now)
+    def draw_lottery(self, machine, request_id, now=None, *, count=1):
+        if type(count) is not int or count not in (1, 5, 10):
+            raise ValueError("请选择单抽、五连抽或十连抽")
+        return self._lottery_request(machine, request_id, "draw", now, draw_count=count)
 
     def exchange_play_tickets(self, machine, request_id, now=None):
         return self._lottery_request(machine, request_id, "exchange", now)
@@ -1458,6 +1533,164 @@ class FocusStore:
                 # bonuses retroactively for earlier days in the saved archive.
                 midnight = datetime.combine(current.date(), datetime.min.time()).astimezone()
                 self._set_meta(TIMED_BONUS_START_META, int(midnight.timestamp() * 1000))
+
+    def _initialize_evening_gifts(self, now=None):
+        with self._quest_transaction():
+            if self._meta(EVENING_START_META) is None:
+                current = quest_clock(now)
+                midnight = datetime.combine(current.date(), datetime.min.time()).astimezone()
+                # Include this installation day's evening, never backfill older days.
+                self._set_meta(EVENING_START_META, int(midnight.timestamp()*1000))
+
+    @staticmethod
+    def _evening_window(day):
+        midnight = datetime.combine(parse_day(day), datetime.min.time())
+        return (int((midnight+timedelta(hours=18)).astimezone().timestamp()*1000),
+                int((midnight+timedelta(days=1)).astimezone().timestamp()*1000))
+
+    @staticmethod
+    def _evening_merge_evidence(items):
+        """Union effective study by maximum density, never double a clock minute.
+
+        Source ingestion already deduplicates mirror records. This extra union
+        also prevents simultaneous tasks, frozen receipts and edited records
+        from doubling an evening. Pauses retain their proportional density.
+        """
+        events = {}
+        for i, item in enumerate(items):
+            start, end, minutes = item["start_ms"], item["end_ms"], item["minutes"]
+            if end <= start or minutes <= 0:
+                continue
+            rate = min(minutes, (end-start)/60000)/(end-start)
+            events.setdefault(start, []).append((i, rate))
+            events.setdefault(end, []).append((i, None))
+        active, previous, result = {}, None, []
+        for point, changes in sorted(events.items()):
+            rate = max(active.values(), default=0)
+            if previous is not None and point > previous and rate > 0:
+                gain = rate*(point-previous)
+                if result and result[-1]["end_ms"] == previous and abs(result[-1]["minutes"]/(previous-result[-1]["start_ms"])-rate) < 1e-14:
+                    result[-1]["end_ms"] = point
+                    result[-1]["minutes"] += gain
+                else:
+                    result.append({"start_ms": previous, "end_ms": point, "minutes": gain})
+            for identity, value in changes:
+                if value is None:
+                    active.pop(identity, None)
+                else:
+                    active[identity] = value
+            previous = point
+        return result
+
+    def _evening_projection(self, current):
+        now_ms = int(current.timestamp()*1000)
+        feature_ms = int(self._meta(EVENING_START_META))
+        signature = (self.db.total_changes, self.db.execute("PRAGMA data_version").fetchone()[0],
+                     str(current.tzinfo), current.utcoffset())
+        cache = getattr(self, "_evening_projection_cache", None)
+        if cache and cache[0] == signature and now_ms >= cache[1] and (cache[2] is None or now_ms < cache[2]):
+            return cache[3]
+        grouped = {}
+        rows = self.db.execute("""SELECT r.* FROM records r WHERE r.end_ms>? AND r.end_ms<=?
+            AND r.end_ms>r.start_ms AND r.minutes>0 AND r.source<>?
+            AND NOT EXISTS (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
+            (feature_ms, now_ms, HISTORY_SOURCE))
+        for row in rows:
+            if classify(row["name"], self.settings["mapping"]) not in SUBJECT_IDS:
+                continue
+            span = row["end_ms"]-row["start_ms"]
+            rate = min(row["minutes"], span/60000)/span
+            first = max(feature_ms, row["start_ms"])
+            day = datetime.fromtimestamp(first/1000, current.tzinfo).date()
+            final = datetime.fromtimestamp((row["end_ms"]-1)/1000, current.tzinfo).date()
+            while day <= final:
+                key = day.isoformat()
+                opens, closes = self._evening_window(key)
+                start, end = max(first, opens), min(row["end_ms"], closes)
+                if end > start:
+                    grouped.setdefault(key, []).append({"start_ms": start, "end_ms": end, "minutes": rate*(end-start)})
+                day += timedelta(days=1)
+        # Once observed and claimed, valid study remains part of this evening
+        # even if a source disappears or its classification later changes.
+        for claim in self.db.execute("SELECT day,evidence FROM evening_gift_claims WHERE claimed_ms<=?", (now_ms,)):
+            grouped.setdefault(claim["day"], []).extend(json.loads(claim["evidence"]))
+        result = {key: self._evening_merge_evidence(items) for key, items in grouped.items()}
+        future = self.db.execute("""SELECT MIN(stamp) FROM (
+            SELECT end_ms AS stamp FROM records WHERE end_ms>?
+            UNION ALL SELECT claimed_ms AS stamp FROM evening_gift_claims WHERE claimed_ms>?)""", (now_ms, now_ms)).fetchone()[0]
+        self._evening_projection_cache = (signature, now_ms, future, result)
+        return result
+
+    def evening_gifts_state(self, now=None):
+        with self.lock:
+            current = quest_clock(now)
+            today = current.date().isoformat()
+            projection = self._evening_projection(current)
+            claims = {(r["day"], r["gift_index"]): r for r in self.db.execute("SELECT * FROM evening_gift_claims")}
+            def day_row(day):
+                minutes = math.fsum(item["minutes"] for item in projection.get(day, []))
+                gifts = []
+                for index, (coins, diamonds, coin_tickets, diamond_tickets) in enumerate(EVENING_GIFTS, 1):
+                    claim = claims.get((day, index))
+                    if claim:
+                        coins, diamonds, coin_tickets, diamond_tickets = (claim[k] for k in ("coins", "diamonds", "coin_tickets", "diamond_tickets"))
+                    target = EVENING_GIFT_TARGETS[index-1]
+                    eligible = minutes+1e-8 >= target
+                    gifts.append({"day": day, "index": index, "target": target,
+                        "tier": "base" if index <= EVENING_BASE_GIFTS else "extra",
+                        "eligible": eligible or bool(claim), "claimed": bool(claim), "available": eligible and not claim,
+                        "reward": {"coins": coins, "diamonds": diamonds},
+                        "lotteryTickets": {"coinTickets": coin_tickets, "diamondTickets": diamond_tickets},
+                        "claimedAt": iso_ms(claim["claimed_ms"]) if claim else None})
+                return {"day": day, "minutes": round(minutes, 4), "gifts": gifts,
+                        "availableCount": sum(g["available"] for g in gifts), "claimedCount": sum(g["claimed"] for g in gifts)}
+            today_row = day_row(today)
+            pending = [day_row(day) for day in sorted(projection, reverse=True) if day < today]
+            pending = [row for row in pending if row["availableCount"]]
+            opens, closes = self._evening_window(today)
+            stamp = int(current.timestamp()*1000)
+            return {**today_row, "now": current.isoformat(), "windowLabel": "18:00–24:00",
+                    "interval": EVENING_GIFT_MINUTES, "limit": len(EVENING_GIFTS),
+                    "baseCount": EVENING_BASE_GIFTS, "baseTarget": EVENING_GIFT_TARGETS[EVENING_BASE_GIFTS-1],
+                    "extraInterval": 35,
+                    "status": "upcoming" if stamp < opens else "active" if stamp < closes else "ended",
+                    "featureStartMs": int(self._meta(EVENING_START_META)), "pendingDays": pending}
+
+    def claim_evening_gift(self, day, index, now=None):
+        parse_day(day)
+        if type(index) is not int or not 1 <= index <= len(EVENING_GIFTS):
+            raise ValueError("请选择第 1 至第 7 份晚间礼盒")
+        with self._quest_transaction():
+            current = quest_clock(now)
+            today = current.date().isoformat()
+            feature_day = datetime.fromtimestamp(int(self._meta(EVENING_START_META))/1000, current.tzinfo).date().isoformat()
+            if not feature_day <= day <= today:
+                raise ValueError("这一天尚无可领取的晚间礼盒")
+            existing = self.db.execute("SELECT * FROM evening_gift_claims WHERE day=? AND gift_index=?", (day, index)).fetchone()
+            grants = []
+            if existing:
+                values = tuple(existing[k] for k in ("coins", "diamonds", "coin_tickets", "diamond_tickets"))
+            else:
+                evidence = self._evening_projection(current).get(day, [])
+                if math.fsum(item["minutes"] for item in evidence)+1e-8 < EVENING_GIFT_TARGETS[index-1]:
+                    raise ValueError(f"这份礼盒还在积累，需要晚间累计 {EVENING_GIFT_TARGETS[index-1]} 分钟有效学习")
+                values = EVENING_GIFTS[index-1]
+                stamp = int(current.timestamp()*1000)
+                self.db.execute("INSERT INTO evening_gift_claims VALUES (?,?,?,?,?,?,?,?)",
+                    (day, index, *values, stamp, json.dumps(evidence, ensure_ascii=False, allow_nan=False)))
+                self.db.execute("INSERT INTO wallet_ledger VALUES (?,?,?,?)", (f"evening:{day}:{index}", *values[:2], stamp))
+                for machine, count in zip(("coin", "diamond"), values[2:]):
+                    if count:
+                        grant = self._grant_lottery_ticket(f"evening:{day}:{index}:{machine}", machine,
+                            "evening-gift", f"晚灯相伴 · {day} 第 {index} 份礼盒", current, count)
+                        if grant is None:
+                            raise ValueError("系统时间早于抽奖开启时间，请检查电脑日期")
+                        grants.append(grant)
+                self._bump_revision()
+            return {"day": day, "index": index, "alreadyClaimed": bool(existing),
+                    "reward": {"coins": values[0], "diamonds": values[1]},
+                    "lotteryTickets": {"coinTickets": values[2], "diamondTickets": values[3]},
+                    "ticketGrants": grants, "quests": self.quest_state(current), "now": current.isoformat()}
 
     @staticmethod
     def _mystery_goal_settings(settings):
@@ -2555,6 +2788,8 @@ class FocusStore:
             wallet = self._wallet()
             mystery_plan = self._mystery_plan(current)
             return {"day": current.date().isoformat(), "now": current.isoformat(), "wallet": wallet,
+                    "earlyStart": self.early_start_state(current),
+                    "evening": self.evening_gifts_state(current),
                     "mystery": self._mystery_state(current, mystery_plan),
                     "quests": [self._quest_row(definition, current, mystery_plan)[0] for definition in QUEST_DEFINITIONS],
                     "catalog": catalog, "equipped": equipped, "history": history, "exchange": self._exchange_state(wallet, current),
@@ -2929,6 +3164,93 @@ class FocusStore:
         self.revision = int(self._meta("revision") or 0) + 1
         self._set_meta("revision", self.revision)
 
+    def _early_start_candidate(self, day, current):
+        begin = datetime.combine(parse_day(day), datetime.min.time(), tzinfo=current.tzinfo)
+        lower = int(begin.timestamp()*1000)
+        upper = int((begin+timedelta(days=1)).timestamp()*1000)
+        now_ms = int(current.timestamp()*1000)
+        for row in self.db.execute("""SELECT r.* FROM records r
+                WHERE r.start_ms>=? AND r.start_ms<? AND r.end_ms<=?
+                AND r.end_ms>r.start_ms AND r.minutes>0 AND r.source<>?
+                AND NOT EXISTS (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)
+                ORDER BY r.start_ms,r.id""", (lower, upper, now_ms, HISTORY_SOURCE)):
+            if classify(row["name"], self.settings["mapping"]) in SUBJECT_IDS:
+                return row
+        return None
+
+    @staticmethod
+    def _early_start_reward(start_ms, current):
+        hour = datetime.fromtimestamp(start_ms/1000, current.tzinfo).hour
+        return next((tier for tier in EARLY_START_TIERS if hour < tier["beforeHour"]), None)
+
+    def _sync_early_start_rewards(self, current):
+        """Pay each learning day once; late earlier evidence only tops up the gap.
+
+        Login/ending hours never choose the tier. The feature does not backfill
+        sessions already completed before installation. Claims survive trash,
+        source deduplication, restarts and out-of-order synchronization.
+        """
+        feature_ms = int(self._meta(EARLY_START_META))
+        signature = (feature_ms, self.db.total_changes, self.db.execute("PRAGMA data_version").fetchone()[0], current.date().isoformat(), str(current.tzinfo))
+        now_ms = int(current.timestamp()*1000)
+        cached = getattr(self, "_early_start_sync_cache", None)
+        if cached and cached[0] == signature and cached[1] <= now_ms and (cached[2] is None or now_ms < cached[2]):
+            return
+        first_day = datetime.fromtimestamp(feature_ms/1000, current.tzinfo).date().isoformat()
+        now_ms = int(current.timestamp()*1000)
+        with self._quest_transaction():
+            days = {datetime.fromtimestamp(row[0]/1000, current.tzinfo).date().isoformat()
+                    for row in self.db.execute("SELECT DISTINCT start_ms FROM records WHERE end_ms>=? AND end_ms<=? AND start_ms<=?", (feature_ms, now_ms, now_ms))}
+            changed = False
+            for day in sorted(days):
+                if day < first_day:
+                    continue
+                candidate = self._early_start_candidate(day, current)
+                if candidate is None or candidate["end_ms"] < feature_ms:
+                    continue
+                existing = self.db.execute("SELECT * FROM early_start_rewards WHERE day=?", (day,)).fetchone()
+                start_ms = min(candidate["start_ms"], existing["start_ms"] if existing else candidate["start_ms"])
+                tier = self._early_start_reward(start_ms, current)
+                coins, diamonds = (tier["coins"], tier["diamonds"]) if tier else (0, 0)
+                if not existing or existing["start_ms"] != start_ms or existing["coins"] != coins or existing["diamonds"] != diamonds:
+                    self.db.execute("""INSERT INTO early_start_rewards VALUES (?,?,?,?,?,?)
+                        ON CONFLICT(day) DO UPDATE SET record_id=excluded.record_id,start_ms=excluded.start_ms,
+                            coins=excluded.coins,diamonds=excluded.diamonds,settled_ms=excluded.settled_ms""",
+                        (day, candidate["id"] if not existing or candidate["start_ms"] <= existing["start_ms"] else existing["record_id"], start_ms, coins, diamonds, now_ms))
+                    if coins or diamonds:
+                        self.db.execute("""INSERT INTO wallet_ledger VALUES (?,?,?,?)
+                            ON CONFLICT(reference) DO UPDATE SET coins=excluded.coins,diamonds=excluded.diamonds""",
+                            (f"early-start:{day}", coins, diamonds, now_ms))
+                    changed = True
+                # Earlier evidence can add a missing ticket, but never revoke an
+                # already received/spent ticket. Each kind has one daily receipt.
+                for machine, field in (("coin", "coinTickets"), ("diamond", "diamondTickets")):
+                    if tier and tier[field]:
+                        grant = self._grant_lottery_ticket(f"early-start:{day}:{machine}", machine,
+                            "early-start", f"晨光启程礼 · {day}", current, tier[field])
+                        changed = changed or bool(grant)
+            if changed:
+                self._bump_revision()
+        future = self.db.execute("SELECT MIN(end_ms) FROM records WHERE end_ms>?", (now_ms,)).fetchone()[0]
+        signature = (feature_ms, self.db.total_changes, self.db.execute("PRAGMA data_version").fetchone()[0], current.date().isoformat(), str(current.tzinfo))
+        self._early_start_sync_cache = (signature, now_ms, future)
+
+    def early_start_state(self, current):
+        day = current.date().isoformat()
+        saved = self.db.execute("SELECT * FROM early_start_rewards WHERE day=?", (day,)).fetchone()
+        candidate = self._early_start_candidate(day, current)
+        start_ms = saved["start_ms"] if saved else candidate["start_ms"] if candidate else None
+        tier = self._early_start_reward(start_ms, current) if start_ms is not None else None
+        status = "awarded" if saved and saved["coins"] else "late" if saved else "prior" if candidate and candidate["end_ms"] < int(self._meta(EARLY_START_META)) else "recorded" if candidate else "waiting"
+        tickets = {"coinTickets": 0, "diamondTickets": 0}
+        for row in self.db.execute("SELECT machine,amount FROM lottery_ticket_ledger WHERE reference IN (?,?)",
+                (f"early-start:{day}:coin", f"early-start:{day}:diamond")):
+            tickets["coinTickets" if row["machine"] == "coin" else "diamondTickets"] += row["amount"]
+        return {"day": day, "status": status, "firstStart": iso_ms(start_ms) if start_ms is not None else None,
+                "reward": {"coins": saved["coins"], "diamonds": saved["diamonds"]} if saved else {"coins": 0, "diamonds": 0},
+                "lotteryTickets": tickets, "tier": tier["beforeHour"] if tier else None,
+                "tiers": [dict(tier) for tier in EARLY_START_TIERS], "automatic": True}
+
     def _opening_state(self, current):
         day = current.date().isoformat()
         row = self.db.execute("""SELECT COALESCE(SUM(r.minutes),0) AS minutes,
@@ -2937,7 +3259,8 @@ class FocusStore:
                 (SELECT 1 FROM record_lifecycle l WHERE l.record_id=r.id AND l.deleted_at IS NOT NULL)""",
             (day, day)).fetchone()
         return {"day": day, "now": current.isoformat(), "minutes": round(row["minutes"], 4),
-                "target": self._daily_goal(day, current)["total"], "seen": bool(row["seen"])}
+                "target": self._daily_goal(day, current)["total"], "seen": bool(row["seen"]),
+                "earlyStart": self.early_start_state(current)}
 
     def opening(self, now=None):
         """Read today's greeting context without consuming its first opening."""
@@ -4319,6 +4642,7 @@ class FocusStore:
         selected_day = selected_day or now.date().isoformat()
         selected = parse_day(selected_day)
         with self.lock:
+            self._sync_early_start_rewards(quest_clock(now))
             self._sync_play_tickets(quest_clock(now))
             self._ensure_goal_days(now)
             self.revision = int(self._meta("revision") or 0)
@@ -4592,7 +4916,7 @@ def make_handler(store, static_dir=STATIC_DIR):
                                 "/api/city-life/outfit": store.city_life_outfit,
                                 "/api/city-life/outfit-apply": store.city_life_outfit_apply,
                                 "/api/city-life/outfit-archive": store.city_life_outfit_archive}
-                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/island-rewards/claim", "/api/method-rewards/claim", "/api/method-rewards/completion") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions and path not in lottery_actions:
+                if path not in ("/api/interface", "/api/settings", "/api/sync", "/api/records/trash", "/api/records/restore", "/api/opening/claim", "/api/shop/exchange", "/api/shop/exchange-coins", "/api/quests/submit", "/api/quests/mystery/submit", "/api/quests/evening/claim", "/api/island-rewards/claim", "/api/method-rewards/claim", "/api/method-rewards/completion") and path not in quest_actions and path not in study_actions and path not in arcade_actions and path not in goal_actions and path not in city_actions and path not in lottery_actions:
                     self._send(404, {"error": "接口不存在"})
                     return
                 length = int(self.headers.get("Content-Length", "0"))
@@ -4631,12 +4955,18 @@ def make_handler(store, static_dir=STATIC_DIR):
                     if url.query or set(payload) != {"day"}:
                         raise ValueError("请仅提供页面日期；四科研习资格与额外奖赏由服务器决定")
                     self._send(200, store.claim_method_completion(payload["day"]))
+                elif path == "/api/quests/evening/claim":
+                    if url.query or set(payload) != {"day", "index"}:
+                        raise ValueError("请仅提供礼盒日期与份数；学习时段、资格与奖励由服务器决定")
+                    self._send(200, store.claim_evening_gift(payload["day"], payload["index"]))
                 elif path in lottery_actions:
                     fields = ("day", "index", "requestId") if path.endswith("/star-gift") else ("machine", "requestId")
-                    if url.query or set(payload) != set(fields):
+                    allowed = (set(fields), set(fields) | {"count"}) if path.endswith("/draw") else (set(fields),)
+                    if url.query or set(payload) not in allowed:
                         raise ValueError("请仅提供星礼日期、份数与 UUID 请求标识" if path.endswith("/star-gift") else
-                                         "请仅提供抽奖机与 UUID 请求标识；奖券、概率及奖品由服务器决定")
-                    self._send(200, lottery_actions[path](*(payload[field] for field in fields)))
+                                         "请仅提供抽奖机、UUID 请求标识及可选连抽次数；奖券、概率及奖品由服务器决定")
+                    options = {"count": payload.get("count", 1)} if path.endswith("/draw") else {}
+                    self._send(200, lottery_actions[path](*(payload[field] for field in fields), **options))
                 elif path in arcade_actions:
                     fields, action = arcade_actions[path]
                     if url.query or set(payload) != set(fields):

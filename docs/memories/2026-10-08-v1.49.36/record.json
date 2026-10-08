@@ -1,0 +1,103 @@
+{
+  "version": "1.49.36",
+  "build": 101,
+  "organized_date": "2026-10-08",
+  "timezone": "Asia/Shanghai",
+  "publication_kind": "Code and memories upload; no new release or tag",
+  "source_path": "../../../outputs/focus-quest/",
+  "study_summary": {
+    "date": "2026-10-08",
+    "captured_at": "2026-10-08T22:59:46.529355+08:00",
+    "completed_focus_count": 20,
+    "focus_minutes": 608.0,
+    "daily_goal_minutes": 480,
+    "displayed_goal_percent": 126.7,
+    "subjects": [
+      {
+        "id": "math",
+        "name": "数学",
+        "minutes": 285.0,
+        "target": 180,
+        "percent": 158.3
+      },
+      {
+        "id": "cs",
+        "name": "408",
+        "minutes": 196.0,
+        "target": 180,
+        "percent": 108.9
+      },
+      {
+        "id": "politics",
+        "name": "政治",
+        "minutes": 40.0,
+        "target": 60,
+        "percent": 66.7
+      },
+      {
+        "id": "english",
+        "name": "英语",
+        "minutes": 87.0,
+        "target": 60,
+        "percent": 145.0
+      }
+    ],
+    "methods": {
+      "other": 0,
+      "lecture": 443.0,
+      "practice": 165.0
+    },
+    "evening": {
+      "window": "18:00–24:00",
+      "effective_minutes": 205.2696,
+      "displayed_minutes": 205,
+      "base_rewards_claimed": 5,
+      "optional_rewards_claimed": 1
+    }
+  },
+  "scope": "Cumulative completed study at capture; not a final daily total. Evening time is a subset of daily time and uses clipped, proportional, overlap-deduplicated evidence; do not add it again.",
+  "source": "Installed native app and its local state API; only selected aggregate fields retained, no database or raw sync content.",
+  "quotes": [
+    {
+      "date": "2026-10-08",
+      "source": "本次用户项目对话",
+      "text": "代码上传一次github 因为今天的学习成果还不错 但此刻我的心情有些沮丧 因为有些累 我感觉晚上以后的学习格外需要意志力 但我总算是坚持下来了"
+    },
+    {
+      "date": "2026-10-08",
+      "source": "本次用户项目对话",
+      "text": "以后每次上传github的时候 除了保留我的原话 你也可以适当为我补充一些内容 因为我的语言总是简要的"
+    }
+  ],
+  "editorial_note": "补记由 Codex 依据用户原话及已核对的汇总整理，区别于用户原话，不补写未知经历或感受。",
+  "screenshots": [
+    {
+      "file": "01-islands-real.jpg",
+      "kind": "真实学习记录",
+      "captured_at": "2026-10-08T22:35:39.642+08:00",
+      "learning_date": "2026-10-08",
+      "source": "正式安装应用的原生首页"
+    },
+    {
+      "file": "02-evening-real.jpg",
+      "kind": "真实学习记录",
+      "captured_at": "2026-10-08T22:44:39.312+08:00",
+      "learning_date": "2026-10-08",
+      "source": "正式安装应用的晚灯相伴详情"
+    },
+    {
+      "file": "03-diamond-ten-demo.jpg",
+      "kind": "测试 / 演示数据",
+      "captured_date": "2026-10-08",
+      "learning_date": null,
+      "source": "隔离临时存档中的钻石十连抽功能验证，排除于真实学习统计"
+    }
+  ],
+  "image_privacy": "全部画面目视检查无无关身份信息、账号、通知或凭据；仅 JPEG 压缩及剥离元数据，未改动可见学习数值。",
+  "validation": {
+    "python_tests": 675,
+    "node_tests": 1149,
+    "result": "passed",
+    "test_fixture_fix": "晨光测试显式固定抽奖功能开始时间，避免依赖运行当天日期；运行源码未因此修改。"
+  }
+}

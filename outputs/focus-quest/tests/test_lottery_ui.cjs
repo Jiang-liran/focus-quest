@@ -62,10 +62,10 @@ test('old result history retains categories without rewriting rewards or guessin
     {machine:'coin',drawnAt:'2026-09-30T18:01:00+08:00',result:{type:'item',item:{id:'older-item',name:'旧商品',coins:45,diamonds:0}}},
     {machine:'coin',drawnAt:'2026-09-30T18:02:00+08:00',result:{type:'item',item:{id:'unknown',name:'未知收藏'}}}
   ];
-  const original=clone(initial),h=harness(initial);
-  assert.match(h.host.innerHTML,/旧限定<span class="lottery-history-kind">抽奖限定商品<\/span>/);
-  assert.match(h.host.innerHTML,/旧商品<span class="lottery-history-kind">金币商品<\/span>/);
-  assert.match(h.host.innerHTML,/未知收藏<span class="lottery-history-kind">收藏商品<\/span>/);
+  const original=clone(initial),h=harness(initial),html=h.rulesHTML('history');
+  assert.match(html,/旧限定<\/strong><span class="lottery-history-kind">抽奖限定商品<\/span>/);
+  assert.match(html,/旧商品<\/strong><span class="lottery-history-kind">金币商品<\/span>/);
+  assert.match(html,/未知收藏<\/strong><span class="lottery-history-kind">收藏商品<\/span>/);
   assert.deepEqual(initial,original);assert.equal(h.mutations().length,0);assert.equal(h.revealStarts,0);
 });
 function harness(initial=lottery(),kind='coin',shopArt=null){
@@ -309,7 +309,8 @@ test('item results join collection without automatically equipping, all labels a
 test('empty pools show conversion rules and reward history remains bounded',()=>{
   const data=lottery({history:Array.from({length:20},(_,i)=>({machine:'coin',requestId:String(i),drawnAt:'2026-09-30T12:00:00+08:00',result:outcome('coin',{coins:i+1,fallback:true})}))});data.machines[0].pool.coinItems=0;data.machines[0].pool.diamondItems=0;
   const h=harness(data);assert.match(h.allHTML(),/0 款可抽/);assert.match(h.allHTML(),/集齐后换成 35 金币/);assert.match(h.allHTML(),/集齐后换成 2 钻石/);assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.equal(h.host.querySelector('.lottery-stage.is-result'),null);
-  assert.equal((h.allHTML().match(/<li><span>/g)||[]).length,4);
+  assert.equal((h.rulesHTML('history').match(/class="lottery-history-index"/g)||[]).length,20);
+  assert.doesNotMatch(h.host.innerHTML,/lottery-history-index/);
 });
 
 test('hidden and modified clicks never start mutations',()=>{
@@ -546,17 +547,17 @@ test('malformed modern gift rows never fall back to one ticket or expose an out-
 for(const kind of ['coin','diamond'])test(`${kind} keeps history but returns to the cabinet after leaving a fresh result`,async()=>{
   const historical={machine:kind,drawnAt:'2026-09-30T12:00:00+08:00',result:outcome(kind,{type:'coins',coins:87})};
   const initial=lottery({history:[historical]}),h=harness(initial,kind);
-  assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.equal(h.host.querySelector('.lottery-stage.is-result'),null);assert.match(h.host.innerHTML,/最近拆开的礼物/);assert.match(h.host.innerHTML,/<span>87 金币<span class="lottery-history-kind">随机金币<\/span>/);
+  assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.equal(h.host.querySelector('.lottery-stage.is-result'),null);assert.match(h.host.innerHTML,/最近拆开的礼物/);assert.match(h.rulesHTML('history'),/<strong>87 金币<\/strong><span class="lottery-history-kind">随机金币<\/span>/);
   h.emit('draw');const result=outcome(kind,{type:'coins',coins:95});const next=lottery({revision:11,history:[{...historical,result},historical]});
   h.mutations()[0].resolve(receipt(kind,'draw',{lottery:next,result}));await h.flush();assert.match(h.host.innerHTML,/<h3>95 金币<\/h3>/);
   h.api.mount(kind,h.host,{lottery:clone(next)});h.api.render({lottery:clone(next)});assert.match(h.host.innerHTML,/<h3>95 金币<\/h3>/);
-  h.api.unmount();h.api.mount(kind,h.host,{lottery:clone(next)});assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.doesNotMatch(h.host.innerHTML,/<h3>95 金币<\/h3>/);assert.match(h.host.innerHTML,/<span>95 金币<span class="lottery-history-kind">随机金币<\/span>/);assert.equal(h.revealStarts,1);
+  h.api.unmount();h.api.mount(kind,h.host,{lottery:clone(next)});assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.doesNotMatch(h.host.innerHTML,/<h3>95 金币<\/h3>/);assert.match(h.rulesHTML('history'),/<strong>95 金币<\/strong><span class="lottery-history-kind">随机金币<\/span>/);assert.equal(h.revealStarts,1);
 });
 
 test('a late receipt after leaving and returning to the same machine never replaces its cabinet',async()=>{
   const h=harness();h.emit('draw');h.api.unmount();h.api.mount('coin',h.host,{lottery:lottery()});
   assert.ok(h.host.querySelector('.lottery-stage.is-idle'));const next=lottery({revision:11,history:[{machine:'coin',drawnAt:'2026-09-30T12:00:00+08:00',result:outcome()}]});
-  h.mutations()[0].resolve(receipt('coin','draw',{lottery:next}));await h.flush();assert.equal(h.receipts.length,1);assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.doesNotMatch(h.host.innerHTML,/<h3>25 金币<\/h3>/);assert.match(h.host.innerHTML,/<span>25 金币<span class="lottery-history-kind">随机金币<\/span>/);assert.equal(h.revealStarts,0);assert.equal(h.sounds.length,0);
+  h.mutations()[0].resolve(receipt('coin','draw',{lottery:next}));await h.flush();assert.equal(h.receipts.length,1);assert.ok(h.host.querySelector('.lottery-stage.is-idle'));assert.doesNotMatch(h.host.innerHTML,/<h3>25 金币<\/h3>/);assert.match(h.rulesHTML('history'),/<strong>25 金币<\/strong><span class="lottery-history-kind">随机金币<\/span>/);assert.equal(h.revealStarts,0);assert.equal(h.sounds.length,0);
 });
 
 test('an explicitly confirmed uncertain draw may show its receipt in a new visit without spending again',async()=>{
@@ -567,7 +568,7 @@ test('an explicitly confirmed uncertain draw may show its receipt in a new visit
 
 test('rule and source entrances never expand text inside the machine page',()=>{
   const h=harness();assert.doesNotMatch(h.host.innerHTML,/<details|lottery-dialog-body|普通商品基础概率|抽奖券永久保留/);
-  for(const id of ['rules-odds','rules-sources'])assert.equal(h.button(id).attributes['aria-haspopup'],'dialog');
+  for(const id of ['rules-odds','rules-sources','rules-history'])assert.equal(h.button(id).attributes['aria-haspopup'],'dialog');
   h.emit('rules-sources');const dialog=h.dialog;assert.equal(dialog.open,true);assert.equal(dialog.modalCalls,1);assert.match(dialog.innerHTML,/lottery-source-cards/);assert.match(dialog.innerHTML,/每天最多购买 10 张/);assert.match(dialog.innerHTML,/跨天、重启都会保留/);assert.doesNotMatch(dialog.innerHTML,/<details/);
   h.dialogEvent('click',{target:dialog.children.filter(node=>Object.hasOwn(node.dataset,'lotteryClose')).at(-1)});assert.equal(h.dialog,null);assert.equal(h.host.appended.length,0);assert.equal(h.document.activeElement,h.button('rules-sources'));
 });
@@ -729,4 +730,122 @@ for(const kind of ['coin','diamond'])test(`the ${kind} lottery uses the shared c
   h.emit('draw');const draw=receipt(kind);h.mutations()[0].resolve(draw);await h.flush();
   assert.match(h.host.innerHTML,/lottery-prize-currency/);assert.match(h.host.innerHTML,new RegExp(`class="currency-icon currency-icon-${kind==='coin'?'coins':'diamonds'} lottery-prize-currency"`));
   const writes=h.host.writes;h.api.render({lottery:clone(draw.lottery)});assert.equal(h.host.writes,writes);assert.equal(h.revealStarts,1);
+});
+
+test('both lottery source dialogs describe automatic morning tickets by actual start hour',()=>{
+  const h=harness();let html=h.rulesHTML('sources');
+  assert.match(html,/晨光启程礼/);assert.match(html,/08:00 前或 09:00–09:59/);assert.match(html,/首段完成并同步后自动入袋/);
+  h.api.mount('diamond',h.host,{lottery:lottery()});html=h.rulesHTML('sources');
+  assert.match(html,/开始于 09:00 前/);assert.match(html,/08:00 前另有 1 张金币券/);
+  assert.equal(h.mutations().length,0);
+});
+
+for(const kind of ['coin','diamond'])test(`${kind} history popup shows only this machine's latest twenty saved gifts and escapes item names`,()=>{
+  const other=kind==='coin'?'diamond':'coin';
+  const history=Array.from({length:24},(_,i)=>({machine:kind,drawnAt:'2026-09-30T18:00:00+08:00',result:outcome(kind,{coins:100+i,diamonds:100+i})}));
+  history.splice(1,0,{machine:other,drawnAt:'2026-09-30T18:00:00+08:00',result:{type:'item',item:{name:'另一台机器的奖品',coins:1}}});
+  history[0].result={type:'item',item:{name:'<img onerror=bad>',coins:10}};
+  const original=lottery({history}),h=harness(original,kind),before=clone(original);
+  assert.doesNotMatch(h.host.innerHTML,/lottery-history-index|onerror|另一台机器的奖品/);
+  h.emit('rules-history');const html=h.dialog.innerHTML;
+  assert.match(html,/最近 20 份礼物/);assert.match(html,/&lt;img onerror=bad&gt;/);assert.match(html,/<time>[^<]+18:00<\/time>/);
+  assert.doesNotMatch(html,/<img|另一台机器的奖品|123 (?:金币|钻石)/);
+  assert.equal((html.match(/class="lottery-history-index"/g)||[]).length,20);
+  assert.deepEqual(original,before);assert.equal(h.mutations().length,0);assert.equal(h.revealStarts,0);
+  h.dialogEvent('keydown',{key:'Escape'});assert.equal(h.document.activeElement,h.button('rules-history'));
+});
+
+test('history empty state and malformed timestamps stay readable, and polls update only on reopening',()=>{
+  const h=harness();h.emit('rules-history');const dialog=h.dialog,writes=h.host.writes;
+  assert.match(dialog.innerHTML,/下一份惊喜，还在等你/);
+  const next=lottery({revision:11,history:[{machine:'coin',drawnAt:'not a date',result:outcome('coin',{coins:42})}]});
+  h.api.render({lottery:next});assert.equal(h.dialog,dialog);assert.equal(h.host.writes,writes);assert.match(dialog.innerHTML,/下一份惊喜/);
+  h.dialogEvent('keydown',{key:'Escape'});h.emit('rules-history');assert.match(h.dialog.innerHTML,/<strong>42 金币<\/strong>/);assert.match(h.dialog.innerHTML,/<time>已收好<\/time>/);
+  assert.equal(h.mutations().length,0);assert.equal(h.revealStarts,0);
+  h.api.unmount();assert.equal(h.dialog,null);assert.equal(h.host.appended.length,0);
+});
+
+test('a receipt arriving while history is open waits to reveal and enters the record popup once',async()=>{
+  const h=harness();h.emit('draw');h.emit('rules-history');const dialog=h.dialog,writes=h.host.writes;
+  const next=receipt();next.lottery.history=[{machine:'coin',drawnAt:'2026-09-30T19:00:00+08:00',result:next.result}];
+  h.mutations()[0].resolve(next);await h.flush();
+  assert.equal(h.dialog,dialog);assert.equal(h.host.writes,writes);assert.equal(h.revealStarts,0);assert.equal(h.receipts.length,1);
+  h.dialogEvent('keydown',{key:'Escape'});assert.match(h.host.innerHTML,/<h3>25 金币<\/h3>/);assert.equal(h.revealStarts,1);
+  h.endAnimation('animationend');assert.match(h.rulesHTML('history'),/<strong>25 金币<\/strong>/);
+  h.api.render({lottery:next.lottery});assert.equal(h.revealStarts,1);assert.equal(h.mutations().length,1);
+});
+
+function batchReceipt(machine,amount,patch={}){
+  const results=Array.from({length:amount},(_,index)=>outcome(machine,index===2?{type:'item',coins:0,diamonds:0,item:{id:'batch-limited',name:'星空纪念',lotteryOnly:true},limited:true,pityTriggered:true,rarity:'jackpot'}:{}));
+  const data=limitedLottery({revision:11,tickets:{coin:20-(machine==='coin'?amount:0),diamond:20-(machine==='diamond'?amount:0)}});
+  return receipt(machine,'draw',{lottery:data,quests:{lottery:data,wallet:data.wallet},result:{machine,type:'batch',count:amount,results},...patch});
+}
+test('both machines provide single five and ten draws with exact ticket requirements',()=>{
+  for(const machine of ['coin','diamond'])for(const balance of [0,1,4,5,9,10]){
+    const h=harness(limitedLottery({tickets:{coin:balance,diamond:balance}}),machine);
+    for(const amount of [1,5,10]){
+      const focus=amount===1?'draw':`draw-${amount}`;
+      assert.equal(h.button(focus).attributes['aria-disabled'],String(balance<amount));
+      assert.equal(h.button(focus).dataset.lotteryCount,String(amount));
+    }
+    if(balance<5)h.emit('draw-5');
+    if(balance<10)h.emit('draw-10');
+    assert.equal(h.mutations().length,0);
+  }
+});
+test('five and ten draws send one atomic request show every prize and play one reveal',async()=>{
+  for(const machine of ['coin','diamond'])for(const amount of [5,10]){
+    const h=harness(limitedLottery({tickets:{coin:20,diamond:20}}),machine);
+    h.emit(`draw-${amount}`);h.emit('draw');h.emit('draw-5');h.emit('draw-10');h.emit('buy');
+    assert.equal(h.mutations().length,1);
+    assert.deepEqual(h.mutations()[0].body,{machine,requestId:'00000000-0000-4000-8000-000000000001',count:amount});
+    assert.match(h.host.innerHTML,new RegExp(`这 ${amount} 份`));
+    const r=batchReceipt(machine,amount);h.mutations()[0].resolve(r);await h.flush();
+    assert.ok(h.dialog?.open);assert.match(h.dialog.innerHTML,/本次结果/);
+    assert.equal((h.dialog.innerHTML.match(/class="lottery-batch-prize(?: is-limited)?"/g)||[]).length,amount);
+    assert.match(h.dialog.innerHTML,/第 3 抽/);assert.match(h.dialog.innerHTML,/抽奖限定商品/);assert.match(h.dialog.innerHTML,/>保底</);
+    assert.match(h.dialog.innerHTML,new RegExp(`使用 ${amount} 张${machine==='coin'?'金币':'钻石'}抽奖券`));
+    assert.match(h.dialog.innerHTML,new RegExp(`随机${machine==='coin'?'金币':'钻石'}`));
+    assert.equal(h.sounds.length,1);assert.equal(h.sounds[0][0],'victory');assert.equal(h.revealStarts,1);
+    const dialog=h.dialog,writes=dialog.writes;h.api.render({lottery:r.lottery});h.api.render({lottery:{...r.lottery,revision:12}});
+    assert.equal(h.dialog,dialog);assert.equal(dialog.writes,writes);assert.equal(h.revealStarts,1);
+    h.dialogEvent('keydown',{key:'Escape'});assert.equal(h.document.activeElement,h.button('batch-results'));
+    assert.match(h.host.innerHTML,/份惊喜，一起入袋/);
+    h.emit('batch-results');assert.equal(h.revealStarts,1);
+    h.dialogEvent('keydown',{key:'Escape'});h.api.unmount();h.api.mount(machine,h.host,{lottery:r.lottery});
+    assert.match(h.host.innerHTML,/is-idle/);assert.doesNotMatch(h.host.innerHTML,/is-batch/);assert.ok(!h.dialog);
+  }
+});
+test('uncertain batch retry retains its original machine uuid and draw count',async()=>{
+  const h=harness(limitedLottery({tickets:{coin:20,diamond:20}}));h.emit('draw-10');
+  const body=clone(h.mutations()[0].body);h.mutations()[0].reject(new Error('timeout'));await h.flush();
+  h.emit('draw-5');assert.equal(h.mutations().length,1);
+  h.api.mount('diamond',h.host,{lottery:limitedLottery({tickets:{coin:20,diamond:20}})});
+  h.emit('retry');assert.deepEqual(h.mutations()[1].body,body);
+  h.mutations()[1].resolve(batchReceipt('coin',10,{alreadyProcessed:true}));await h.flush();
+  assert.equal(h.receipts.length,1);assert.ok(!h.dialog);assert.match(h.host.innerHTML,/is-idle/);assert.equal(h.sounds.length,0);
+});
+test('malformed batch receipts remain retriable instead of claiming completed rewards',async()=>{
+  for(const patch of [r=>r.count=5,r=>r.results.pop(),r=>r.results[0].machine='diamond',r=>r.results[0].type='batch',r=>r.results[0].coins=-1]){
+    const h=harness(limitedLottery({tickets:{coin:20,diamond:20}}));h.emit('draw-10');const r=batchReceipt('coin',10);patch(r.result);
+    h.mutations()[0].resolve(r);await h.flush();
+    assert.equal(h.receipts.length,0);assert.ok(!h.dialog);assert.equal(h.sounds.length,0);assert.match(h.host.innerHTML,/确认上次/);
+    h.emit('retry');assert.equal(h.mutations()[1].body.count,10);assert.equal(h.mutations()[1].body.requestId,h.mutations()[0].body.requestId);
+  }
+});
+test('batch backend rejection clears retry and does not alter ticket balance',async()=>{
+  const h=harness(limitedLottery({tickets:{coin:20,diamond:20}}));h.emit('draw-5');h.mutations()[0].reject(Object.assign(new Error('券不足'),{status:400}));await h.flush();
+  assert.match(h.host.innerHTML,/券不足/);assert.equal(h.button('draw-5').attributes['aria-disabled'],'false');assert.equal(h.button('retry'),null);
+  assert.equal(h.receipts.length,0);assert.ok(!h.dialog);
+});
+test('late batch completion after leaving updates balances without reopening a result modal',async()=>{
+  const h=harness(limitedLottery({tickets:{coin:20,diamond:20}}));h.emit('draw-5');h.api.unmount();h.api.mount('coin',h.host,{lottery:limitedLottery({tickets:{coin:20,diamond:20}})});
+  h.mutations()[0].resolve(batchReceipt('coin',5));await h.flush();assert.equal(h.receipts.length,1);assert.ok(!h.dialog);assert.match(h.host.innerHTML,/is-idle/);assert.equal(h.revealStarts,0);
+});
+test('batch results escape names and maintain separate preview gradient scopes',async()=>{
+  let serial=0;const h=harness(limitedLottery({tickets:{coin:20,diamond:20}}),'coin',{preview:id=>`<svg id="preview-${++serial}" data-preview="${id}"></svg>`});
+  h.emit('draw-5');const r=batchReceipt('coin',5);r.result.results[2].item.name='<script>unsafe</script>&';
+  h.mutations()[0].resolve(r);await h.flush();assert.match(h.dialog.innerHTML,/&lt;script&gt;unsafe&lt;\/script&gt;&amp;/);assert.doesNotMatch(h.dialog.innerHTML,/<script>/);
+  const ids=[...`${h.host.innerHTML}${h.dialog.innerHTML}`.matchAll(/id="(preview-\d+)"/g)].map(m=>m[1]);assert.equal(new Set(ids).size,ids.length);
+  const before=h.dialog.innerHTML;h.api.render({lottery:r.lottery});assert.equal(h.dialog.innerHTML,before);
 });

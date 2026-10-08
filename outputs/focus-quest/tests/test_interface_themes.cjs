@@ -20,7 +20,7 @@ test('all eleven themes preview the app with different materials and panel frame
   }
   assert.equal(motifs.size,11,'each theme has a structural material, not only a colour change');
   assert.match(themes.preview('interface-tide'),/stroke-dasharray/);
-  assert.match(themes.preview('interface-paper'),/#ede8db|#faf7ee/);
+  assert.match(themes.preview('interface-paper'),/#c9c7bb|#ded9ca/);
   assert.match(themes.preview('interface-amber'),/r="2.1"/);
   assert.match(themes.preview('interface-ember'),/stroke-dasharray="2 4"/);
   assert.match(themes.preview('interface-ink'),/#a76755/,'ink theme has a cinnabar seal');
@@ -88,9 +88,37 @@ test('full preview shows collected island and progress bar without modifying the
 test('preview cards display the selected theme palette independently of live theme and tolerate missing art',()=>{
   const paper=themes.fullPreview('interface-paper',{},null);
   const rain=themes.fullPreview('interface-rain',{},null);
-  assert.match(paper,/data-preview-tone="light"[^>]*--ui-ink:#353a39/);
+  assert.match(paper,/data-preview-tone="light"[^>]*--ui-ink:#303630/);
   assert.match(rain,/data-preview-tone="dark"[^>]*--ui-ink:#e8f0ed/);
   assert.match(paper,/纸纹与墨线|暖纸底|原有夜色/);
   assert.match(rain,/玻璃窗框/);
   assert.match(paper,/每日主线/);
+});
+
+test('preview chrome and live theme use identical palettes; light surfaces stay softly lit and readable',()=>{
+  const css=require('node:fs').readFileSync(require.resolve('../static/interface-themes.css'),'utf8');
+  const luminance=hex=>hex.slice(1).match(/../g).map(v=>parseInt(v,16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((sum,v,i)=>sum+v*[.2126,.7152,.0722][i],0);
+  const contrast=(a,b)=>{a=luminance(a);b=luminance(b);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);};
+  for(const id of ids.slice(1)){
+    const prefix=':root'+(id==='interface-paper'?'[data-interface]':'')+'[data-interface="'+id+'"]';
+    const block=css.slice(css.indexOf(prefix+' {')).split('}')[0];
+    const tokens=Object.fromEntries([...block.matchAll(/--ui-([\w-]+):(#[\da-f]{6})\b/g)].map(([,k,v])=>[k,v]));
+    const preview=themes.fullPreview(id,{},null);
+    for(const name of ['bg','surface','surface-raised','ink','muted','accent','line'])assert.ok(preview.includes('--ui-'+name+':'+tokens[name]+';'),id+' preview '+name);
+    if(themes.metadata.find(t=>t.id===id).tone==='light'){
+      for(const surface of ['bg','sidebar','surface','surface-raised','control'])assert.ok(luminance(tokens[surface])<=.77,id+' '+surface+' avoids near-white glare');
+      for(const surface of ['bg','surface','surface-raised','control'])for(const ink of ['ink','muted','accent'])assert.ok(contrast(tokens[ink],tokens[surface])>=4.5,id+' '+ink+'/'+surface);
+    }
+    assert.match(block,/--ui-panel-ornament:url\("data:image\/svg\+xml,/,'each theme has a visible small corner construction, without a network image');
+  }
+  const panelRule=css.match(/:root\[data-interface\]:not\(\[data-interface="interface-default"\]\) :is\(\.quest-hero\.expedition-hero,\.method-workshop,\.shop-welcome,\.q-mentor,#review-heatmap\) \{([^}]+)\}/);
+  assert.ok(panelRule,'material reaches the frequently used main panels');
+  assert.doesNotMatch(panelRule[1],/ui-panel-ornament/,'period controls, shop wallets and mentor status have no decorative overlay');
+  const homeOrnament=css.match(/@media\(min-width:1100px\) \{\s*:root\[data-interface\]\[data-interface\]:not\(\[data-interface="interface-default"\]\) \.quest-hero\.expedition-hero \{([^}]+)\}/);
+  assert.ok(homeOrnament,'ornament is absent from the compact home layout');
+  assert.match(homeOrnament[1],/background-position:left 260px top 0/,'the wide home ornament stays in the empty header gap, away from the right-hand action');
+  assert.match(homeOrnament[1],/background-repeat:no-repeat/,'the one permitted motif never tiles');
+  const homeSurface=css.match(/:root\[data-interface\]:not\(\[data-interface="interface-default"\]\) \.quest-hero\.expedition-hero \{([^}]+)\}/);
+  assert.match(homeSurface[1],/transition:border-color \.2s/,'purchased light/dark themes switch surface immediately alongside ink');
+  assert.doesNotMatch(homeSurface[1],/transition:[^;}]*(?:background|\ball\b)/,'no temporary unreadable background interpolation');
 });

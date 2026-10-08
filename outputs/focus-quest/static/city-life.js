@@ -108,5 +108,6 @@
     host.addEventListener('click',click);host.addEventListener('submit',submit);draw();if(place!=='tea')load();
   }
   function init(callbacks={}){bridge=callbacks;if(initialized)return;initialized=true;const visibility=event=>{if(event.detail?.visible===false||!visible())stopTick();else scheduleTea();};document.addEventListener('visibilitychange',visibility);document.addEventListener('focusquest:visibility',visibility);}
-  root.FocusCityLife={init,mount,unmount};
+  function setFilter(next){if(!host||room==='tea'||!['active','archive'].includes(next)||filter===next)return;remember();filter=next;draw();}
+  root.FocusCityLife={init,mount,unmount,setFilter};
 })(globalThis);

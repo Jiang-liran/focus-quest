@@ -1,9 +1,10 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(root, typeof module === 'object' && module.exports ? require('./island-architecture.js') : null);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.FocusExpeditionArt = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (root, nodeArchitecture) {
   'use strict';
+  const architecture = () => root.FocusIslandArchitecture || nodeArchitecture;
 
   const islands = [
     {id:'math', name:'数学', place:'几何观测台', x:235, y:181, accent:'#9bd6be', light:'#e2eed3', top:'#536c70', edge:'#8aaa99', rock:'#373d58', path:'M344 191Q373 188 412 233'},
@@ -27,7 +28,9 @@
         const source = subjects.find(item => item && item.id === definition.id) || {};
         const raw = finite(source.percent) ? Math.max(0, Math.min(99999, source.percent)) : null;
         const progress = clamp(finite(source.progress) ? source.progress : raw === null ? 0 : raw / 100);
-        return {...definition, progress, percent: raw === null ? progress * 100 : raw};
+        const campus = architecture()?.resolve(input.equipped, definition.id)||'archipelago-default';
+        const info = architecture()?.subjectInfo(campus, definition.id);
+        return {...definition, ...(info ? {place:info.name} : {}), campus, progress, percent: raw === null ? progress * 100 : raw};
       }),
     };
   }
@@ -108,9 +111,10 @@
 
   function island(subject) {
     const structures={math,cs,politics,english};
+    const custom=architecture()?.subject(subject.campus,subject);
     const label=`${subject.name} · ${subject.place}，完成 ${n(Math.floor(subject.percent*100)/100)}%`;
-    return `<g class="expedition-subject-island" data-expedition-subject="${subject.id}" data-progress="${n(subject.progress)}" data-percent="${n(subject.percent)}" role="button" tabindex="0" aria-label="${label}" style="--expedition-accent:${subject.accent};--expedition-progress:${n(subject.progress)}" transform="translate(${subject.x} ${subject.y})"><title>${label}</title><ellipse class="expedition-hit-area" cx="0" cy="-22" rx="128" ry="130" fill="transparent"/>
-      <g class="expedition-island-rest"><g class="expedition-island-float">${ground(subject)}<g class="expedition-architecture" style="filter:saturate(${n(.45+subject.progress*.55)}) brightness(${n(.7+subject.progress*.3)})">${structures[subject.id](subject)}</g>${completion(subject)}<ellipse class="expedition-focus-ring" cx="0" cy="9" rx="120" ry="43" fill="none" stroke="${subject.accent}" stroke-width="2" opacity="0"/>
+    return `<g class="expedition-subject-island" data-expedition-subject="${subject.id}" data-skin-slots="${architecture()?.slot(subject.id)||''} archipelago" data-progress="${n(subject.progress)}" data-percent="${n(subject.percent)}" role="button" tabindex="0" aria-label="${label}" style="--expedition-accent:${subject.accent};--expedition-progress:${n(subject.progress)}" transform="translate(${subject.x} ${subject.y})"><title>${label}</title><ellipse class="expedition-hit-area" cx="0" cy="-22" rx="128" ry="130" fill="transparent"/>
+      <g class="expedition-island-rest"><g class="expedition-island-float">${custom||`${ground(subject)}<g class="expedition-architecture" style="filter:saturate(${n(.45+subject.progress*.55)}) brightness(${n(.7+subject.progress*.3)})">${structures[subject.id](subject)}</g>`}${completion(subject)}<ellipse class="expedition-focus-ring" cx="0" cy="9" rx="120" ry="43" fill="none" stroke="${subject.accent}" stroke-width="2" opacity="0"/>
       <g class="expedition-island-caption" transform="translate(0 88)"><rect x="-77" y="-11" width="154" height="25" rx="12.5" fill="#141f35" opacity=".82"/><circle cx="-61" cy="1" r="2.5" fill="${subject.accent}"/><text x="0" y="5" text-anchor="middle" fill="${subject.light}" font-size="11" letter-spacing="1.2">${subject.place}</text><path d="m59-2 4 3-4 3" fill="none" stroke="${subject.accent}" stroke-width="1.4" stroke-linecap="round"/></g></g></g></g>`;
   }
 
@@ -176,5 +180,12 @@
     </svg>`;
   }
 
-  return {world, resonance};
+  function subjectPreview(subjectId,large=false,equipped={}){
+    const subject=normalize({equipped,subjects:[{id:subjectId,progress:1,percent:100}]}).subjects.find(s=>s.id===subjectId);
+    if(!subject)return '';
+    const content=island({...subject,x:0,y:0}).replace(/ role="button"| tabindex="0"| data-expedition-subject="[^"]+"| data-skin-slots="[^"]+"/g,'');
+    const inner=`<svg xmlns="http://www.w3.org/2000/svg" class="island-architecture-${large?'detail':'preview'}" viewBox="-130 -132 260 255" ${large?'width="500" height="490"':'x="25" y="2" width="110" height="108"'} aria-hidden="true" focusable="false" fill="none" stroke="none">${content}</svg>`;
+    return large?inner:`<svg xmlns="http://www.w3.org/2000/svg" class="shop-art-svg" viewBox="0 0 160 112" aria-hidden="true" focusable="false" fill="none" stroke="none">${inner}</svg>`;
+  }
+  return {world, resonance,subjectPreview};
 });

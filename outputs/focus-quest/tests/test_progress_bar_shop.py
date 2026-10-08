@@ -50,7 +50,7 @@ class ProgressBarShopTests(unittest.TestCase):
         bars = [item for item in state["catalog"] if item["slot"] == "bar"]
         legacy_ids = {item[0] for item in LEGACY+NEW}
         self.assertEqual([(item["id"], item["name"], item["coins"], item["diamonds"]) for item in bars if item["id"] in legacy_ids], list(LEGACY + NEW))
-        self.assertEqual(len(state["catalog"]), 104+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
+        self.assertEqual(len(state["catalog"]), 130+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
         self.assertEqual(state["equipped"]["bar"], "bar-default")
         self.assertEqual([item["id"] for item in bars if item["owned"]], ["bar-default"])
         self.assertTrue(all(item["currency"] == "diamonds" for item in bars if item["id"] in NEW_IDS))

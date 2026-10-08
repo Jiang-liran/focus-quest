@@ -63,20 +63,3 @@
 #citadel-view.rain-city[data-lottery=coin] .city-room-content,#citadel-view.rain-city[data-lottery=diamond] .city-room-content{position:relative;inset:auto;width:100%!important;max-width:none!important;height:100%;max-height:none;padding:0;background:transparent;border:0;border-radius:0;backdrop-filter:none;box-shadow:none;overflow:auto}
 #citadel-view[data-lottery=coin] .city-room-vignette,#citadel-view[data-lottery=diamond] .city-room-vignette,#citadel-view[data-lottery=coin] .city-room-sign,#citadel-view[data-lottery=diamond] .city-room-sign{display:none}
 #city-lottery-pane{width:100%;min-height:100%}
-/* The entrance information has its own column, rather than covering the
-   cabinet hotspots when the scene letterboxes in a short desktop window. */
-#citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room{display:grid;grid-template-columns:clamp(240px,23vw,360px) minmax(0,1fr);align-items:stretch;overflow:auto}
-#citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-interior-art{position:relative;inset:auto;grid-column:2;grid-row:1;min-width:0;min-height:320px;width:100%;height:100%}
-#citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-content{position:relative;inset:auto!important;grid-column:1;grid-row:1;align-self:center;margin:18px 0 18px 18px;width:auto!important;max-width:none!important;height:auto;max-height:none;overflow:visible;padding:18px;backdrop-filter:none}
-#citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-vignette{display:none}
-@media(max-width:1000px){
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(260px,1fr) auto}
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-interior-art{grid-column:1;grid-row:1;min-height:260px}
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-content{grid-column:1;grid-row:2;margin:0 14px 14px;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:6px 16px;padding:14px 16px}
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-content :is(.city-room-eyebrow,h3,p,.city-room-note){grid-column:1;margin:0}
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-content .city-room-actions{grid-column:2;grid-row:1/5;align-self:center}
-}
-@media(max-width:600px){
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-content{grid-template-columns:minmax(0,1fr)}
-  #citadel-view.rain-city[data-room=arcade][data-lottery=""] .city-room-content .city-room-actions{grid-column:1;grid-row:auto}
-}

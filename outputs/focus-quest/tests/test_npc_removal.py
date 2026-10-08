@@ -52,10 +52,10 @@ class NpcRemovalTests(unittest.TestCase):
 
     def test_expanded_catalog_keeps_18_slots_and_rejects_all_six_retired_ids(self):
         state = self.store.quest_state(NOW)
-        self.assertEqual(len(server.SHOP_CATALOG), 104+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
+        self.assertEqual(len(server.SHOP_CATALOG), 130+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
         self.assertEqual(len(state["catalog"]), len(server.SHOP_CATALOG))
-        self.assertEqual(len(state["equipped"]), 18)
-        self.assertEqual(sum(item["currency"] == "free" for item in state["catalog"]), 18)
+        self.assertEqual(len(state["equipped"]), 24)
+        self.assertEqual(sum(item["currency"] == "free" for item in state["catalog"]), 28)
         self.assertNotIn("npc", server.SHOP_CATEGORIES)
         self.assertNotIn("npc", state["equipped"])
         self.assertTrue(all(item["slot"] != "npc" and not item["id"].startswith("npc-") for item in state["catalog"]))

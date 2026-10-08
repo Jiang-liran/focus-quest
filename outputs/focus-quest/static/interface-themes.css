@@ -1,92 +1,112 @@
 /* Purchased interface themes. This layer owns the application chrome only:
    no world palette, artwork, equipped bar, character, particles, or game board. */
 :root[data-interface="interface-forest"] {
-  --ui-bg:#101b18;--ui-sidebar:#15231c;--ui-surface:#1b3027;--ui-surface-raised:#243b30;
-  --ui-ink:#e5ebdf;--ui-muted:#9db3a5;--ui-faint:#8a9f90;--ui-accent:#b4cda0;--ui-line:#49634f;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#1a2a21;--ui-button-ink:#203022;
-  --ui-radius:17px 8px 17px 8px;--ui-shadow:#030f0a30;
-  --ui-panel-detail:radial-gradient(ellipse at 100% 0,#b4cda00c,transparent 43%),repeating-linear-gradient(93deg,#b7c89703 0 1px,transparent 1px 13px);
-  --ui-shell-detail:radial-gradient(ellipse at 0 20%,#5c865718,transparent 55%);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cpath%20d%3D%22M49%200v37l8-6%208%206V0%22%20fill%3D%22%23b5c78b%22%20opacity%3D%22.62%22%2F%3E%3Cpath%20d%3D%22M77%208q11%2017%2024%2025M89%2021q-13%203-14-10%2010-4%2014%2010m2%201q-4-13%208-16%208%2012-8%2016m10%2011q-1-12%2010-14%205%209-10%2014%22%20fill%3D%22%23b5c78b%22%20stroke%3D%22%23b5c78b%22%20opacity%3D%22.5%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 62px;
+  --ui-bg:#101b18;--ui-sidebar:#15261d;--ui-surface:#203329;--ui-surface-raised:#2b4134;
+  --ui-ink:#e5ebdf;--ui-muted:#b0c2b3;--ui-faint:#9caf9d;--ui-accent:#c4d4a5;--ui-line:#61785b;
+  --ui-control:#17291e;--ui-button-ink:#213322;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:18px 5px 18px 5px;--ui-control-radius:12px 3px 12px 3px;--ui-heading-font:"Songti SC","STSong",serif;--ui-shadow:#07100d24;
+  --ui-panel-detail:linear-gradient(90deg,transparent 8px,#c4d4a529 8px 10px,transparent 10px),radial-gradient(ellipse 36px 8px at calc(100% - 28px) 13px,#c4d4a52a 0 65%,transparent 70%),repeating-linear-gradient(93deg,#b7c89708 0 1px,transparent 1px 15px);
+  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 111px,#7390630b 111px 112px);
+  --ui-panel-shadow:inset 4px 0 0 #91aa7028,inset 0 1px 0 #d3e5b52c,0 4px 12px #050d0833;
 }
 :root[data-interface="interface-tide"] {
-  --ui-bg:#0d1923;--ui-sidebar:#102430;--ui-surface:#172e40;--ui-surface-raised:#223e50;
-  --ui-ink:#e0edf0;--ui-muted:#97b5c2;--ui-faint:#87a6b3;--ui-accent:#9cd7df;--ui-line:#3f697c;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#122633;--ui-button-ink:#16333b;
-  --ui-radius:5px 15px 5px 15px;--ui-shadow:#02101c38;
-  --ui-panel-detail:linear-gradient(#9cd7df05 1px,transparent 1px),linear-gradient(90deg,#9cd7df05 1px,transparent 1px);
-  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 55px,#9cd7df06 55px 56px);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cg%20fill%3D%22none%22%20stroke%3D%22%23a4d7df%22%20opacity%3D%22.6%22%3E%3Cpath%20d%3D%22M15%209h88v36m-88-32v-8m20%208v-8m20%208v-8m20%208v-8m20%208v-8M99%2025h8m-8%2014h8%22%2F%3E%3Ccircle%20cx%3D%2267%22%20cy%3D%2234%22%20r%3D%2216%22%2F%3E%3Cpath%20d%3D%22M67%2013v42M46%2034h42m-21-12-4%2016%204-4%204%204Z%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 66px;
+  --ui-bg:#101c26;--ui-sidebar:#122834;--ui-surface:#1a3041;--ui-surface-raised:#254353;
+  --ui-ink:#e0edf0;--ui-muted:#a7c0cd;--ui-faint:#96b5c2;--ui-accent:#a4d7df;--ui-line:#547889;
+  --ui-control:#152a38;--ui-button-ink:#18353c;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:4px 14px 4px 14px;--ui-control-radius:3px 9px 3px 9px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:repeating-linear-gradient(0deg,transparent 0 47px,#a4d7df0c 47px 48px),repeating-linear-gradient(90deg,transparent 0 47px,#a4d7df0c 47px 48px);
+  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 95px,#a4d7df0b 95px 96px);
+  --ui-panel-shadow:inset 0 0 0 4px #85b7c012,inset 0 -3px 0 #86bfd143,0 4px 12px #05101c2b;
 }
 :root[data-interface="interface-amber"] {
-  --ui-bg:#211913;--ui-sidebar:#2a2018;--ui-surface:#33271d;--ui-surface-raised:#403326;
-  --ui-ink:#f3e5d0;--ui-muted:#c0aa8e;--ui-faint:#b59e81;--ui-accent:#e6bc7d;--ui-line:#765b3b;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#2a2119;--ui-button-ink:#362413;
-  --ui-radius:6px;--ui-shadow:#10090340;
-  --ui-panel-detail:radial-gradient(circle at 12px 12px,#d8b27d8c 0 1px,transparent 1.6px),radial-gradient(circle at calc(100% - 12px) calc(100% - 12px),#d8b27d8c 0 1px,transparent 1.6px),linear-gradient(125deg,#b9925709,transparent 45%);
-  --ui-shell-detail:repeating-linear-gradient(0deg,transparent 0 79px,#c2a16a07 79px 80px);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cpath%20d%3D%22m54%205%2056%200%205%205v20l-5%205H54l-5-5V10Z%22%20fill%3D%22%2345382b%22%20stroke%3D%22%23e4c48c%22%20opacity%3D%22.6%22%2F%3E%3Cpath%20d%3D%22M60%2015h43m-43%209h27%22%20stroke%3D%22%23e4c48c%22%20opacity%3D%22.42%22%2F%3E%3Ccircle%20cx%3D%2254%22%20cy%3D%2210%22%20r%3D%221.7%22%20fill%3D%22%23e4c48c%22%2F%3E%3Ccircle%20cx%3D%22110%22%20cy%3D%2230%22%20r%3D%221.7%22%20fill%3D%22%23e4c48c%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 48px;
+  --ui-bg:#221c17;--ui-sidebar:#2b231c;--ui-surface:#372e25;--ui-surface-raised:#45382b;
+  --ui-ink:#f0e1cb;--ui-muted:#c8b398;--ui-faint:#bca689;--ui-accent:#e4c48c;--ui-line:#896d4e;
+  --ui-control:#2d251e;--ui-button-ink:#362817;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:5px;--ui-control-radius:3px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:radial-gradient(circle at 11px 11px,#e4c48cc2 0 1.5px,#292015 1.6px 3px,transparent 3.5px),radial-gradient(circle at calc(100% - 11px) 11px,#e4c48cc2 0 1.5px,#292015 1.6px 3px,transparent 3.5px),radial-gradient(circle at 11px calc(100% - 11px),#e4c48c80 0 1.5px,transparent 2px),radial-gradient(circle at calc(100% - 11px) calc(100% - 11px),#e4c48c80 0 1.5px,transparent 2px),linear-gradient(115deg,#e8c58d08,transparent 45%);
+  --ui-shell-detail:repeating-linear-gradient(0deg,transparent 0 79px,#d2b37f09 79px 80px);
+  --ui-panel-shadow:inset 0 0 0 3px #b7925d26,inset 0 0 0 5px #160e072e,0 3px 0 #100b0659;
 }
 /* Match the specificity of the common opt-in rule so later light-surface
    corrections also win for labels with authored dark-preview backgrounds. */
 :root[data-interface][data-interface="interface-paper"] {
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cpath%20d%3D%22M78%200h18v37l-9-7-9%207Z%22%20fill%3D%22%2365745b%22%20opacity%3D%22.46%22%2F%3E%3Cpath%20d%3D%22M102%200h18v19Z%22%20fill%3D%22%23b2ad99%22%20opacity%3D%22.56%22%2F%3E%3Cpath%20d%3D%22M102%200v19h18%22%20stroke%3D%22%23899079%22%20opacity%3D%22.55%22%2F%3E%3Cpath%20d%3D%22M10%209h37m-37%205h24%22%20stroke%3D%22%237f876e%22%20opacity%3D%22.35%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 48px;
   color-scheme:light;
-  --ui-bg:#ede8db;--ui-sidebar:#e4e3d5;--ui-surface:#faf7ee;--ui-surface-raised:#e7e5d8;
-  --ui-ink:#353a39;--ui-muted:#61685e;--ui-faint:#73796e;--ui-accent:#536c60;--ui-line:#b8bfad;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 7%,transparent);--ui-control:#fffdf6;--ui-button-ink:#fffdf2;
-  --ui-radius:5px 12px 5px 12px;--ui-shadow:#69644816;
-  --ui-panel-detail:repeating-linear-gradient(0deg,transparent 0 31px,#68765e07 31px 32px);
-  --ui-shell-detail:radial-gradient(circle at 1px 1px,#776b460b .6px,transparent .8px);
+  --ui-bg:#c9c7bb;--ui-sidebar:#bfbcad;--ui-surface:#ded9ca;--ui-surface-raised:#cbc7b9;
+  --ui-ink:#303630;--ui-muted:#4c5249;--ui-faint:#5c6257;--ui-accent:#3d5649;--ui-line:#9a9d89;
+  --ui-control:#e2dfd2;--ui-button-ink:#e8e4d7;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 8%,transparent);--ui-radius:4px 10px 4px 4px;--ui-control-radius:3px 8px 3px 3px;--ui-heading-font:"Songti SC","STSong",serif;--ui-shadow:#07100d24;
+  --ui-panel-detail:linear-gradient(90deg,transparent 13px,#a6796452 13px 14px,transparent 14px),repeating-linear-gradient(0deg,transparent 0 31px,#6a70550c 31px 32px);
+  --ui-shell-detail:repeating-linear-gradient(4deg,transparent 0 5px,#6d685505 5px 6px);
+  --ui-panel-shadow:0 2px 0 #b6b2a3,0 3px 0 #8e918071,0 5px 0 #d5d1c2,inset 0 1px 0 #eee8d84d;
 }
 
 /* Each purchased style has its own material and construction language. Static
    textures stay on the chrome; separately equipped artwork is never recolored. */
 :root[data-interface="interface-rain"] {
-  --ui-bg:#0e1b29;--ui-sidebar:#132736;--ui-surface:#1c3040;--ui-surface-raised:#263b4c;
-  --ui-ink:#e8f0ed;--ui-muted:#adc2cc;--ui-faint:#a1b7c3;--ui-accent:#d9c999;--ui-line:#4f7183;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#132736;--ui-button-ink:#263039;
-  --ui-radius:13px 13px 5px 5px;--ui-shadow:#020d1830;
-  --ui-panel-detail:linear-gradient(135deg,#b8d3df0a,transparent 46%),linear-gradient(90deg,transparent calc(100% - 10px),#94b6c51b calc(100% - 10px),#94b6c51b calc(100% - 9px),transparent calc(100% - 9px)),linear-gradient(0deg,transparent calc(100% - 10px),#94b6c51b calc(100% - 10px),#94b6c51b calc(100% - 9px),transparent calc(100% - 9px));
-  --ui-shell-detail:repeating-linear-gradient(108deg,transparent 0 72px,#97bbd008 72px 73px,transparent 73px 124px);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cg%20stroke%3D%22%23a5c4d0%22%20fill%3D%22none%22%20opacity%3D%22.58%22%3E%3Cpath%20d%3D%22M48%207h62v45m-57-40h51v34m-43-34v34m27-34v34M55%2031h49%22%2F%3E%3Cpath%20d%3D%22m72%2013-3%2012m28%2010-2%209m-16-1-2%208%22%20opacity%3D%22.65%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22M103%2043h8v8h-8Z%22%20fill%3D%22%23dfc997%22%20opacity%3D%22.45%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 66px;
+  --ui-bg:#0e1b29;--ui-sidebar:#162a38;--ui-surface:#203543;--ui-surface-raised:#294250;
+  --ui-ink:#e8f0ed;--ui-muted:#b4c6ce;--ui-faint:#9bb5c1;--ui-accent:#dfc997;--ui-line:#657e8b;
+  --ui-control:#172d3a;--ui-button-ink:#263039;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:14px 14px 5px 5px;--ui-control-radius:10px 10px 4px 4px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:linear-gradient(90deg,transparent 7px,#a5c4d032 7px 8px,transparent 8px calc(100% - 8px),#a5c4d032 calc(100% - 8px) calc(100% - 7px),transparent calc(100% - 7px)),linear-gradient(0deg,transparent 7px,#a5c4d024 7px 8px,transparent 8px),linear-gradient(125deg,#b8d3df0c,transparent 52%);
+  --ui-shell-detail:repeating-linear-gradient(108deg,transparent 0 72px,#97bbd00d 72px 73px,transparent 73px 124px);
+  --ui-panel-shadow:inset 0 1px 0 #cde0e34d,inset 0 -1px 0 #06182770,0 4px 14px #020d183d;
 }
 :root[data-interface="interface-ember"] {
-  --ui-bg:#251d1a;--ui-sidebar:#302521;--ui-surface:#392b27;--ui-surface-raised:#43332f;
-  --ui-ink:#f3e6d8;--ui-muted:#c5b2a8;--ui-faint:#bca99f;--ui-accent:#e5c09a;--ui-line:#846959;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#2a211e;--ui-button-ink:#3c2b24;
-  --ui-radius:22px;--ui-shadow:#130b092a;
-  --ui-panel-detail:repeating-linear-gradient(0deg,#e7cdb006 0 1px,transparent 1px 4px),repeating-linear-gradient(90deg,#e7cdb006 0 1px,transparent 1px 5px);
-  --ui-shell-detail:repeating-linear-gradient(45deg,#a9795506 0 10px,transparent 10px 20px);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cpath%20d%3D%22M37%202h66q13%200%2013%2013v36%22%20fill%3D%22none%22%20stroke%3D%22%23d8b899%22%20stroke-width%3D%222%22%20stroke-dasharray%3D%223%204%22%20opacity%3D%22.7%22%2F%3E%3Cpath%20d%3D%22M73%204h22v20L84%2018%2073%2024Z%22%20fill%3D%22%23b99c7d%22%20opacity%3D%22.35%22%2F%3E%3Cpath%20d%3D%22M44%208v10m7-10v10m7-10v10m-15-7h18m-18%205h18%22%20stroke%3D%22%23e5c59e%22%20opacity%3D%22.35%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 62px;
+  --ui-bg:#28211e;--ui-sidebar:#322723;--ui-surface:#3b302c;--ui-surface-raised:#493a34;
+  --ui-ink:#f0e3d5;--ui-muted:#cdb9ac;--ui-faint:#bca699;--ui-accent:#e5c59e;--ui-line:#8d7566;
+  --ui-control:#322723;--ui-button-ink:#3c2c25;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:24px;--ui-control-radius:18px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:repeating-linear-gradient(0deg,#e7cdb009 0 1px,transparent 1px 5px),repeating-linear-gradient(90deg,#e7cdb009 0 1px,transparent 1px 6px);
+  --ui-shell-detail:repeating-linear-gradient(45deg,#a979550b 0 8px,transparent 8px 16px);
+  --ui-panel-shadow:inset 0 0 0 5px #d9b49312,inset 0 2px 0 #f5ddbd24,inset 0 -3px 0 #170e103d,0 4px 10px #170e102e;
 }
 :root[data-interface="interface-ink"] {
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cg%20fill%3D%22%23ac725b%22%20opacity%3D%22.69%22%3E%3Cpath%20d%3D%22M92%208h18v24H92Z%22%2F%3E%3Cpath%20d%3D%22M95%2011h12v18H95Z%22%20fill%3D%22%23d7dbcd%22%2F%3E%3Cpath%20d%3D%22M97%2013h8v3h-5v4h5v7h-8v-3h5v-2h-5Z%22%2F%3E%3C%2Fg%3E%3Cpath%20d%3D%22m30%2042%2016-26%2012%2018%209-11%2016%2021Z%22%20fill%3D%22%23516b4d%22%20opacity%3D%22.16%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 55px;
   color-scheme:light;
-  --ui-bg:#ecebdf;--ui-sidebar:#e3e5d8;--ui-surface:#f8f6ec;--ui-surface-raised:#e4e2d7;
-  --ui-ink:#303e38;--ui-muted:#596459;--ui-faint:#646b5d;--ui-accent:#466455;--ui-line:#acb6a4;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 7%,transparent);--ui-control:#fcfbf2;--ui-button-ink:#faf8f0;
-  --ui-radius:2px 7px 3px 2px;--ui-shadow:#53644912;
-  --ui-panel-detail:linear-gradient(90deg,#62736713 0 3px,transparent 3px),repeating-linear-gradient(0deg,transparent 0 34px,#54635506 34px 35px);
-  --ui-shell-detail:radial-gradient(ellipse at 100% 100%,#74846b10,transparent 40%),repeating-linear-gradient(12deg,transparent 0 6px,#65735804 6px 7px);
+  --ui-bg:#c5c8bd;--ui-sidebar:#b8beb0;--ui-surface:#d7dbcd;--ui-surface-raised:#c4cbbb;
+  --ui-ink:#2e3931;--ui-muted:#495345;--ui-faint:#5b6555;--ui-accent:#365944;--ui-line:#909f89;
+  --ui-control:#dee0d4;--ui-button-ink:#e2e3d7;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 8%,transparent);--ui-radius:2px 6px 2px 2px;--ui-control-radius:2px;--ui-heading-font:"Songti SC","STSong",serif;--ui-shadow:#07100d24;
+  --ui-panel-detail:linear-gradient(90deg,#526c4e33 0 3px,transparent 3px),linear-gradient(0deg,#596e4910,transparent 26%),repeating-linear-gradient(0deg,transparent 0 35px,#54635509 35px 36px);
+  --ui-shell-detail:repeating-linear-gradient(12deg,transparent 0 7px,#65735809 7px 8px);
+  --ui-panel-shadow:2px 3px 0 #86958036,inset 0 -2px 0 #6174582b;
 }
 :root[data-interface="interface-garden"] {
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cpath%20d%3D%22M69%2053V23q0-17%2018-17t18%2017v30m-36-26h36m-18-21v47%22%20fill%3D%22none%22%20stroke%3D%22%234f7858%22%20opacity%3D%22.5%22%2F%3E%3Cpath%20d%3D%22M57%2051q11-19%2011-37m-7%2025q-13-1-12-12%2011%200%2012%2012m3-8q12-1%2012-12-11%202-12%2012%22%20fill%3D%22%2391ad89%22%20stroke%3D%22%234f7858%22%20opacity%3D%22.58%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 65px;
   color-scheme:light;
-  --ui-bg:#edf4eb;--ui-sidebar:#e3eee3;--ui-surface:#f7faf1;--ui-surface-raised:#e3eee4;
-  --ui-ink:#304337;--ui-muted:#52675b;--ui-faint:#5d7063;--ui-accent:#426755;--ui-line:#a0b6a0;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 7%,transparent);--ui-control:#fbfcf6;--ui-button-ink:#f7faf1;
-  --ui-radius:26px 26px 8px 8px;--ui-shadow:#40583e16;
-  --ui-panel-detail:linear-gradient(100deg,#c7debc26,transparent 45%),linear-gradient(90deg,transparent calc(100% - 13px),#719c7d1a calc(100% - 13px),#719c7d1a calc(100% - 12px),transparent calc(100% - 12px));
-  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 143px,#87a88410 143px 144px),repeating-linear-gradient(0deg,transparent 0 143px,#87a88410 143px 144px);
+  --ui-bg:#bac8be;--ui-sidebar:#aabeb0;--ui-surface:#d1dbcf;--ui-surface-raised:#bacfbd;
+  --ui-ink:#293e32;--ui-muted:#3e5145;--ui-faint:#536557;--ui-accent:#31533d;--ui-line:#849d86;
+  --ui-control:#dce2d5;--ui-button-ink:#e4e9df;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 8%,transparent);--ui-radius:28px 28px 7px 7px;--ui-control-radius:15px 15px 4px 4px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:linear-gradient(90deg,transparent 9px,#6483692b 9px 10px,transparent 10px calc(100% - 10px),#6483692b calc(100% - 10px) calc(100% - 9px),transparent calc(100% - 9px)),linear-gradient(105deg,#a2bd9530,transparent 50%);
+  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 143px,#638c7318 143px 144px),repeating-linear-gradient(0deg,transparent 0 143px,#638c7318 143px 144px);
+  --ui-panel-shadow:inset 0 0 0 4px #5f836b12,inset 0 1px 0 #e4e9dd80,0 3px 0 #6a88652e;
 }
 :root[data-interface="interface-observatory"] {
-  --ui-bg:#151b2c;--ui-sidebar:#1b2336;--ui-surface:#242b41;--ui-surface-raised:#2d314b;
-  --ui-ink:#e6eaf3;--ui-muted:#b2bbd3;--ui-faint:#a6b1ca;--ui-accent:#c2cce3;--ui-line:#65718f;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 9%,transparent);--ui-control:#1c2335;--ui-button-ink:#25324a;
-  --ui-radius:4px 14px 4px 4px;--ui-shadow:#0509152c;
-  --ui-panel-detail:radial-gradient(circle at calc(100% - 26px) 25px,transparent 0 13px,#b0bfd61c 13px 14px,transparent 14px 22px,#b0bfd613 22px 23px,transparent 23px),linear-gradient(90deg,#b0bfd608 1px,transparent 1px);
-  --ui-shell-detail:radial-gradient(circle at 16px 16px,#bcc7df16 0 1px,transparent 1.3px);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cg%20stroke%3D%22%23c6d1e7%22%20opacity%3D%22.54%22%20fill%3D%22none%22%3E%3Ccircle%20cx%3D%2286%22%20cy%3D%2231%22%20r%3D%2220%22%2F%3E%3Cellipse%20cx%3D%2286%22%20cy%3D%2231%22%20rx%3D%2210%22%20ry%3D%2223%22%2F%3E%3Cpath%20d%3D%22M59%2031h54M86%204v54M30%208h18m-18%204h9m-9%204h18%22%2F%3E%3Ccircle%20cx%3D%2298%22%20cy%3D%2214%22%20r%3D%222%22%20fill%3D%22%23c6d1e7%22%2F%3E%3C%2Fg%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 64px;
+  --ui-bg:#161d2c;--ui-sidebar:#1d2739;--ui-surface:#273145;--ui-surface-raised:#323c53;
+  --ui-ink:#e6eaf3;--ui-muted:#bbc5d9;--ui-faint:#aab8d1;--ui-accent:#c6d1e7;--ui-line:#72819b;
+  --ui-control:#1d283c;--ui-button-ink:#26324a;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:3px 13px 3px 3px;--ui-control-radius:3px 10px 3px 3px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:radial-gradient(circle at calc(100% - 24px) 23px,transparent 0 11px,#c6d1e742 11px 12px,transparent 12px 18px,#c6d1e72b 18px 19px,transparent 19px),repeating-linear-gradient(90deg,transparent 0 63px,#b0bfd608 63px 64px);
+  --ui-shell-detail:repeating-linear-gradient(0deg,transparent 0 47px,#bcc7df0c 47px 48px),repeating-linear-gradient(90deg,transparent 0 47px,#bcc7df0c 47px 48px);
+  --ui-panel-shadow:inset 4px 0 0 #a4b7d23b,inset 0 -3px 0 #b0bfd626,inset 0 0 0 1px #a4b7d20f;
 }
 :root[data-interface="interface-neon"] {
-  --ui-bg:#0c1722;--ui-sidebar:#112231;--ui-surface:#172b3a;--ui-surface-raised:#233343;
-  --ui-ink:#e6edf4;--ui-muted:#aabed0;--ui-faint:#9db4c7;--ui-accent:#75dce0;--ui-line:#427482;
-  --ui-soft:color-mix(in srgb,var(--ui-accent) 8%,transparent);--ui-control:#112332;--ui-button-ink:#102530;
-  --ui-radius:3px 12px 3px 12px;--ui-shadow:#030c172c;
-  --ui-panel-detail:linear-gradient(90deg,#84e3de20,transparent 28%,transparent 78%,#d19bbc1c),repeating-linear-gradient(0deg,transparent 0 8px,#97b7c404 8px 9px);
-  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 59px,#8bc5cd07 59px 60px);
+  --ui-panel-ornament:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22120%22%20height%3D%2270%22%20viewBox%3D%220%200%20120%2070%22%3E%3Cpath%20d%3D%22M40%208h58l14%2014v19%22%20stroke%3D%22%238ddddb%22%20fill%3D%22none%22%20opacity%3D%22.7%22%2F%3E%3Cpath%20d%3D%22M41%2041v-7m7%207V27m7%2014V21m7%2020V30m7%2011V18m7%2023V24m7%2017V30m7%2011V25m7%2016V35%22%20stroke%3D%22%23d497b9%22%20opacity%3D%22.7%22%20stroke-width%3D%222%22%2F%3E%3Cpath%20d%3D%22M37%2048h61%22%20stroke%3D%22%238ddddb%22%20opacity%3D%22.5%22%2F%3E%3C%2Fsvg%3E");--ui-ornament-size:120px 64px;
+  --ui-bg:#0d1820;--ui-sidebar:#132633;--ui-surface:#1b2d38;--ui-surface-raised:#273d4a;
+  --ui-ink:#e6edf4;--ui-muted:#acc6d0;--ui-faint:#9ab9c4;--ui-accent:#8ddddb;--ui-line:#547887;
+  --ui-control:#142a37;--ui-button-ink:#142b34;
+  --ui-soft:color-mix(in srgb,var(--ui-accent) 11%,transparent);--ui-radius:2px 11px 2px 11px;--ui-control-radius:2px 8px 2px 8px;--ui-heading-font:inherit;--ui-shadow:#07100d24;
+  --ui-panel-detail:linear-gradient(90deg,#8ddddb13,transparent 22%,transparent 85%,#d497b91a),repeating-linear-gradient(0deg,transparent 0 7px,#aacbd307 7px 8px);
+  --ui-shell-detail:repeating-linear-gradient(90deg,transparent 0 63px,#8bc5cd0a 63px 64px);
+  --ui-panel-shadow:inset 2px 0 0 #8ddddbb3,inset -2px 0 0 #d497b980,inset 0 1px 0 #b7e7e326,0 3px 10px #03101d33;
 }
 
 /* Explicit opt-in means the original theme is pixel-for-pixel unchanged. */
@@ -94,9 +114,7 @@
   color:var(--ui-ink);background:var(--ui-bg);
 }
 :root[data-interface]:not([data-interface="interface-default"]) body {background:var(--ui-shell-detail),var(--ui-bg);color:var(--ui-ink)}
-:root[data-interface][data-interface="interface-paper"] body {background-size:6px 6px,auto}
 :root[data-interface]:not([data-interface="interface-default"]) .sidebar {background:var(--ui-panel-detail),var(--ui-sidebar);border-color:var(--ui-line)}
-:root[data-interface="interface-tide"] .sidebar {background-size:32px 32px,32px 32px,auto}
 :root[data-interface]:not([data-interface="interface-default"]) .topbar {background:color-mix(in srgb,var(--ui-bg) 96%,transparent);border-color:var(--ui-line)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.brand small,.nav-label,.source-status,.local-label,.side-note p,.side-note>span,.breadcrumb,.breadcrumb span,.live-clock,.greeting p,footer,.muted) {color:var(--ui-muted)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.brand-mark,.small-orbit,.eyebrow,.section-kicker,.text-button,.level-help,.skin-hint,footer>span:first-child) {color:var(--ui-accent)}
@@ -121,7 +139,6 @@
 :root[data-interface]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.q-mentor,.q-mentor.afternoon,.q-rules,.shop-welcome,.q-loadout:not(.equipped-player-card),.shop-exchange,.mystery-quest,.arcade-destination,.arcade-destination.flagship,.arcade-collection,.arcade-album,.arcade-rulebook,.arcade-boundaries,.arcade-result,.arcade-result.full) {
   background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);border-radius:var(--ui-radius);color:var(--ui-ink);
 }
-:root[data-interface="interface-tide"] :is(.panel,.stat-card,.weekly-goal,.q-mentor,.q-rules,.shop-welcome,.q-loadout:not(.equipped-player-card),.shop-exchange,.mystery-quest,.arcade-destination,.arcade-collection,.arcade-album,.arcade-rulebook,.arcade-boundaries,.arcade-result) {background-size:32px 32px,32px 32px,auto}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.shop-item,.q-task,.equipped-slots button,.shop-markets>button,.arcade-library-card,.arcade-library-card.flagship,.arcade-memory,.arcade-collection-grid article,.home-shortcuts>button,.activity-total,.opening-settings,.mystery-settings-note) {background:var(--ui-surface);border-color:var(--ui-line);color:var(--ui-ink)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.shop-item.equipped,.arcade-library-card.selected,.arcade-library-card:hover,.shop-markets>button[data-shop-market=owned].active) {border-color:var(--ui-accent);background-color:var(--ui-surface-raised)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.wallet-side,.activity-overview,.target-summary,.weekly-setting,.source-explanation,.calendar-pending,.level-guide-current,.q-action-reward,.arcade-pass,.arcade-variant-list button,.arcade-captain-records>span) {background:var(--ui-soft);border-color:var(--ui-line);color:var(--ui-ink)}
@@ -129,12 +146,11 @@
 :root[data-interface]:not([data-interface="interface-default"]) :is(.ghost-button:hover,.secondary-button:hover,.today-shortcut:hover,.week-arrow:hover,.shop-filter button:hover,.quick-skin-tabs button:hover,.arcade-primary:hover:not(:disabled)) {background:var(--ui-surface-raised);color:var(--ui-ink);border-color:var(--ui-accent)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.shop-filter button.active,.quick-skin-tabs button[aria-pressed=true],.arcade-variant-list button.selected,.preview-stages button.active) {background:var(--ui-surface-raised);color:var(--ui-accent);border-color:var(--ui-accent)}
 :root[data-interface]:not([data-interface="interface-default"]) .primary-button:not([id="opening-done"]) {background:var(--ui-accent);border-color:var(--ui-accent);color:var(--ui-button-ink);box-shadow:0 3px 12px var(--ui-shadow)}
-:root[data-interface]:not([data-interface="interface-default"]) .primary-button:not([id="opening-done"]):hover {background:color-mix(in srgb,var(--ui-accent) 88%,white);color:var(--ui-button-ink)}
+:root[data-interface]:not([data-interface="interface-default"]) .primary-button:not([id="opening-done"]):hover {background:color-mix(in srgb,var(--ui-accent) 92%,var(--ui-ink));color:var(--ui-button-ink)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.nav-item,.text-button,.ghost-button,.primary-button,.secondary-button,.shop-filter button,.quick-skin-tabs button,.arcade-primary,.citadel-header button,.campfire-room-bar button):focus-visible {outline-color:var(--ui-accent)}
 
 /* The home map is a display case for separately collected worlds and effects. */
-:root[data-interface]:not([data-interface="interface-default"]) .quest-hero.expedition-hero {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);border-radius:var(--ui-radius);box-shadow:0 10px 35px var(--ui-shadow)}
-:root[data-interface="interface-tide"] .quest-hero.expedition-hero {background-size:40px 40px,40px 40px,auto}
+:root[data-interface]:not([data-interface="interface-default"]) .quest-hero.expedition-hero {background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);border-radius:var(--ui-radius);box-shadow:0 10px 35px var(--ui-shadow);transition:border-color .2s}
 :root[data-interface]:not([data-interface="interface-default"]) .expedition-hero .hero-copy {background:linear-gradient(110deg,var(--ui-soft),transparent),var(--ui-surface-raised);border-color:var(--ui-line);box-shadow:inset 0 1px 0 var(--ui-soft),0 6px 22px var(--ui-shadow)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.hero-copy h2,.hero-numbers strong,.expedition-deck h3,.expedition-trail strong,.weekly-numbers>span>strong,.stat-card strong,.activity-total>strong) {color:var(--ui-ink)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.expedition-hero .hero-copy>p,.hero-numbers strong small,.expedition-hero .hero-numbers>span,.expedition-hero .total-progress-label span,.expedition-inspector-kicker,#expedition-detail-copy,.expedition-next,#expedition-log-summary,.expedition-log-heading>div>span,.expedition-trail small,.expedition-replay-controls span,#expedition-frame-copy,.weekly-goal-heading p,.weekly-numbers strong small,.weekly-numbers>span>small,.weekly-goal-progress>p,.stat-card span,.stat-card strong small) {color:var(--ui-muted)}
@@ -172,7 +188,6 @@
 
 /* Dialog chrome excludes bespoke illustrated opening/celebration scenes. */
 :root[data-interface]:not([data-interface="interface-default"]) :is(dialog:not(#opening-dialog):not(#celebration-dialog),.quick-skins) {color:var(--ui-ink);background:var(--ui-panel-detail),var(--ui-surface);border-color:var(--ui-line);box-shadow:0 30px 100px #0006}
-:root[data-interface="interface-tide"] :is(dialog:not(#opening-dialog):not(#celebration-dialog),.quick-skins) {background-size:32px 32px,32px 32px,auto}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.dialog-intro,.settings-label span,.target-inputs label,.mapping-row label,.mapping-help,.mapping-table-head,.toggle-row span,.target-summary,.weekly-setting p,.weekly-setting-input>span,.source-explanation,.source-detail-row span,.source-detail-row b,.calendar-pending p,.calendar-pending small,#quest-action-body>p,#quest-action-body .q-fineprint,#mystery-dialog-body>p,#mystery-dialog-body p.mystery-fineprint) {color:var(--ui-muted)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(.target-summary strong,.source-group .source-detail-row:first-child span,.calendar-pending p b,#quest-action-body strong,#quest-action-body b,.quick-skins h2) {color:var(--ui-ink)}
 :root[data-interface]:not([data-interface="interface-default"]) :is(#date-picker,.target-inputs input,.weekly-setting-input input,.mapping-row select,.exchange-controls input) {background:var(--ui-control);color:var(--ui-ink);border-color:var(--ui-line)}
@@ -213,98 +228,112 @@
 :root[data-interface]:not([data-interface="interface-default"]) :is(.arcade-heading h2>span,.arcade-pass>span,.arcade-pass>i,.arcade-pass strong small,.arcade-quota,.arcade-description,.arcade-place-record,.arcade-entry-note,.arcade-library-card span,.arcade-library-card i,.arcade-variant-list button span,.arcade-collection>summary small,.arcade-collection-body>p,.arcade-collection-grid p,.arcade-collection-grid small,.arcade-captain-records b,.arcade-how-grid p,.arcade-boundaries>p,.arcade-rulebook summary span,.arcade-boundaries summary span,.arcade-result-copy p,.arcade-result-reward>span,.arcade-result-reward small,.arcade-memory small,.arcade-memory-body p,.arcade-memory-reward-label,.arcade-memory-body>div>small,.arcade-album>summary small,.arcade-album>summary>span:last-child,.arcade-game-message,.mines-status,.mines-guide,.mines-best,.mines-safety span) {color:var(--ui-muted)}
 :root[data-interface]:not([data-interface="interface-default"]) .arcade-ticket-dots i.ready {background:var(--ui-accent);border-color:var(--ui-line);box-shadow:0 0 9px var(--ui-soft)}
 
-/* Distinct construction details: carved leaf corners / chart plotting lines /
-   brass brackets / stitched notebook edge. All are static paints. */
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) :is(.shop-welcome,.weekly-goal,.quest-hero.expedition-hero) {box-shadow:inset 0 1px 0 #cfdfad18,inset 0 -1px 0 #0a171955,0 10px 30px var(--ui-shadow)}
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .brand-mark {border-radius:16px 5px 16px 5px}
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .sidebar {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 190'%3E%3Cg fill='none' stroke='%237d9b6b' stroke-width='1' opacity='.18'%3E%3Cpath d='M7 184Q69 152 87 58M53 147Q18 115 25 81Q64 99 53 147M70 115Q111 110 129 80Q88 75 70 115M80 91Q53 65 63 37Q89 49 80 91M17 179Q88 182 165 154'/%3E%3Cpath d='M54 145L31 96M72 112L117 88M80 90L67 48'/%3E%3C/g%3E%3C/svg%3E"),var(--ui-panel-detail);background-position:left bottom,0 0,0 0;background-size:100% 190px,auto,auto;background-repeat:no-repeat,repeat,repeat}
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .topbar {border-bottom-style:double}
-:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) :is(.side-note,.source-status,footer,.q-schedule,.q-rules,.loadout-details,.citadel-status,.campfire-room-bar) {border-style:dashed}
-:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) .brand-mark {border-radius:50%;outline:1px dashed var(--ui-line);outline-offset:3px}
-:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) .nav-item.active {box-shadow:inset 0 0 0 1px var(--ui-line);background-image:linear-gradient(90deg,var(--ui-accent) 2px,transparent 2px);background-repeat:no-repeat;background-size:2px 40%;background-position:7px center}
-:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) :is(.shop-welcome,.weekly-goal,.quest-hero.expedition-hero) {box-shadow:inset 3px 3px 0 #d6ae6521,inset -3px -3px 0 #d6ae6514,0 10px 30px var(--ui-shadow)}
-:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) .brand-mark {border-radius:4px;box-shadow:inset 0 0 0 3px #6f573132}
-:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) :is(.section-heading,.q-schedule,.loadout-details) {text-decoration-color:var(--ui-line)}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) :is(.panel,.shop-welcome,.weekly-goal,.quest-hero.expedition-hero,.stat-card) {box-shadow:1px 2px 0 #76826522,3px 4px 0 #f6f2e7}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .sidebar {background:linear-gradient(90deg,transparent calc(100% - 13px),#858e7620 calc(100% - 13px),#858e7620 calc(100% - 12px),transparent calc(100% - 12px)),var(--ui-sidebar)}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .brand-mark {border-radius:4px 12px 4px 12px;box-shadow:inset 0 0 0 3px #f6f3e766}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .nav-item.active {box-shadow:inset 0 -2px 0 var(--ui-accent);background:var(--ui-soft)}
-
-
-/* A consistent material reaches the actual clickable chrome, without moving
-   controls or painting over a separately equipped frame or art preview. */
-:root[data-interface]:not([data-interface="interface-default"]) :where(.primary-button,.secondary-button,.ghost-button,.shop-filter button,.shop-areas>[data-shop-area],.shop-markets>button,.quick-skin-tabs button,.equipped-slots button,.shop-item,.q-task,.home-shortcuts>button) {border-radius:var(--ui-radius)}
-:root[data-interface]:not([data-interface="interface-default"]) :is(.greeting h1,.section-heading h2,.q-mentor h2,.shop-words h2,.exchange-intro h3,.dialog-heading h2) {font-family:var(--ui-heading-font,inherit)}
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) {
-  --ui-panel-detail:radial-gradient(ellipse 30px 8px at calc(100% - 30px) 12px,#bbd59818 0 70%,transparent 73%),radial-gradient(ellipse 8px 24px at calc(100% - 13px) 25px,#bbd59812 0 70%,transparent 73%),repeating-linear-gradient(93deg,#b7c89706 0 1px,transparent 1px 13px);
+/* Material construction is shared by old and new panels. These are only
+   chrome surfaces: the illustration, equipped banner and progress artwork
+   never inherit a recoloring, mask, blur or extra animated layer. */
+:root[data-interface]:not([data-interface="interface-default"]) {
+  --ui-success:#a8cfb2;--ui-warning:#e1c18d;--ui-danger:#e4a3ae;--ui-coin:#e6c581;--ui-diamond:#b8ccea;--ui-lecture:#c3aedc;--ui-practice:#9fcdb4;
 }
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:14px 5px 14px 5px;box-shadow:inset 0 1px 0 #dbe8bc20,inset 0 -1px 0 #08201433}
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .nav-item.active {box-shadow:inset 0 -1px 0 var(--ui-line),inset 4px 0 0 var(--ui-accent);background:linear-gradient(100deg,var(--ui-soft),transparent)}
-:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) :is(.side-note,.section-heading h2) {text-decoration-color:var(--ui-line)}
-:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:3px 11px 3px 11px;background-image:linear-gradient(0deg,transparent calc(100% - 5px),#ddf5ee14 calc(100% - 5px),#ddf5ee14 calc(100% - 4px),transparent calc(100% - 4px));box-shadow:inset 0 0 0 3px #6facbb0a}
-:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) :is(.panel,.weekly-goal,.shop-welcome,.quest-hero.expedition-hero) {box-shadow:inset 0 0 0 4px #78acbb08,inset 0 -2px 0 #69a3b530}
-:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) .topbar {background-image:repeating-linear-gradient(90deg,#9ed5dd2a 0 1px,transparent 1px 9px);background-repeat:no-repeat;background-size:100% 3px;background-position:bottom}
-:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:3px;box-shadow:inset 0 1px 0 #fff0cf38,inset 0 -2px 0 #150d1736;outline:1px solid #c2a77412;outline-offset:-4px}
-:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) .nav-item.active {background-image:linear-gradient(90deg,#e4bd8029,transparent);box-shadow:inset 3px 0 0 var(--ui-accent),inset 0 1px 0 #ebcb9426,inset 0 -1px 0 #ebcb9418}
-:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) :is(.section-kicker,.eyebrow) {text-shadow:0 1px 0 #08090466}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) {--ui-heading-font:"Songti SC","STSong",serif}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:3px 9px 3px 3px;box-shadow:1px 2px 0 #66715524}
-:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .topbar {background-image:linear-gradient(90deg,#68775c,transparent);background-size:100% 1px;background-position:bottom;background-repeat:no-repeat}
+:root[data-interface][data-interface-tone="dark"]:not([data-interface="interface-default"]) {color-scheme:dark}
+:root[data-interface][data-interface-tone="light"] {
+  --ui-success:#294b32;--ui-warning:#593f19;--ui-danger:#76283f;--ui-coin:#593f19;--ui-diamond:#30415d;--ui-lecture:#543660;--ui-practice:#254b34;
+}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.method-workshop,.quest-hero.expedition-hero) {box-shadow:var(--ui-panel-shadow)}
+:root[data-interface]:not([data-interface="interface-default"]) :where(.primary-button,.secondary-button,.ghost-button,.shop-filter button,.shop-areas>[data-shop-area],.shop-markets>button,.quick-skin-tabs button,.equipped-slots button,.home-shortcuts>button) {border-radius:var(--ui-control-radius)}
+:root[data-interface]:not([data-interface="interface-default"]) :where(.shop-item,.q-task) {border-radius:var(--ui-radius)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.greeting h1,.section-heading h2,.q-mentor h2,.shop-words h2,.exchange-intro h3,.dialog-heading h2,.method-workshop h2,.hm-title,.goal-keeper h2) {font-family:var(--ui-heading-font,inherit)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.eyebrow,.section-kicker,.nav-label) {letter-spacing:.14em}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-item,.q-task,.activity-total,.home-shortcuts>button) {box-shadow:inset 0 1px 0 color-mix(in srgb,var(--ui-ink) 7%,transparent)}
+:root[data-interface]:not([data-interface="interface-default"]) :is(.shop-item.equipped,.quick-skin-item[aria-pressed=true]) {box-shadow:inset 0 -2px 0 var(--ui-accent)}
+
+/* Working panels retain their material, but their headers host real controls.
+   Heatmap periods, shop wallets and mentor status must never share that space
+   with a decorative corner. The wide home header has one known empty gap. */
+:root[data-interface]:not([data-interface="interface-default"]) :is(.quest-hero.expedition-hero,.method-workshop,.shop-welcome,.q-mentor,#review-heatmap) {
+  background-image:var(--ui-panel-detail);background-color:var(--ui-surface);
+  box-shadow:var(--ui-panel-shadow);
+}
+@media(min-width:1100px) {
+  :root[data-interface][data-interface]:not([data-interface="interface-default"]) .quest-hero.expedition-hero {
+    background-image:var(--ui-panel-ornament),var(--ui-panel-detail);
+    background-size:var(--ui-ornament-size),auto,auto,auto,auto,auto;background-position:left 260px top 0,0 0,0 0,0 0,0 0,0 0;background-repeat:no-repeat,repeat,repeat,repeat,repeat,repeat;
+  }
+}
+/* Forest: clothbound books, a readable spine and leaf-shaped bookmarks. */
+:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .sidebar {background-image:linear-gradient(90deg,#294832 0 7px,#a1b78266 7px 8px,#0b1c1352 8px 13px,transparent 13px),repeating-linear-gradient(93deg,#c4d4a50c 0 1px,transparent 1px 17px);box-shadow:inset -1px 0 0 #a2b88666,inset -7px 0 0 #0a18152e}
+:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .brand-mark {border-radius:18px 3px 18px 3px;box-shadow:inset 0 0 0 3px #adc78533}
+:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:13px 3px 13px 3px;background:linear-gradient(100deg,#7d9a5e40,#7d9a5e10);box-shadow:inset 5px 0 0 var(--ui-accent),inset 0 -2px 0 #91ad7166}
+:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);box-shadow:inset 0 2px 0 #dbe8bc29,inset 0 -2px 0 #08201466}
+:root[data-interface][data-interface="interface-forest"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:linear-gradient(90deg,#9daf7755,transparent 72%);background-size:100% 2px;background-position:bottom;background-repeat:no-repeat}
+
+/* Tide: a ruled chart, compass housing, plotted labels and scale markings. */
+:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) .sidebar {background-image:radial-gradient(circle at 50% 82%,transparent 0 46px,#a4d7df3d 46px 47px,transparent 47px 65px,#a4d7df26 65px 66px,transparent 66px),var(--ui-panel-detail);box-shadow:inset -4px 0 0 #84b5c329}
+:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) :is(.side-note,.source-status,footer,.q-schedule,.q-rules,.loadout-details,.citadel-status,.campfire-room-bar) {border-style:dashed}
+:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) .brand-mark {border-radius:50%;outline:1px dashed var(--ui-accent);outline-offset:3px;box-shadow:inset 0 0 0 3px #a4d7df20}
+:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:3px 11px 3px 11px;background:var(--ui-surface-raised);box-shadow:inset 0 0 0 1px var(--ui-accent),inset 5px 0 0 #a4d7df66}
+:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);outline:1px dashed #a4d7df5c;outline-offset:-4px;box-shadow:inset 0 -2px 0 #5b9dae38}
+:root[data-interface][data-interface="interface-tide"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:repeating-linear-gradient(90deg,#9ed5dd70 0 1px,transparent 1px 10px);background-repeat:no-repeat;background-size:100% 4px;background-position:bottom}
+
+/* Amber: riveted enclosures, brass plate borders and inset name plaques. */
+:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) .sidebar {background-image:linear-gradient(90deg,transparent calc(100% - 7px),#cba86a70 calc(100% - 7px),#cba86a70 calc(100% - 6px),transparent calc(100% - 6px)),var(--ui-panel-detail);box-shadow:inset 0 0 0 4px #a8804930}
+:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) .brand-mark {border-radius:3px;box-shadow:inset 0 0 0 3px #b99a6457,0 2px 0 #170f075e}
+:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:3px;background:linear-gradient(0deg,#9c783019,#e4bd8033);box-shadow:inset 0 0 0 1px #dfbb807a,inset 0 0 0 4px #d4ab6521,0 2px 0 #0c08063b}
+:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);box-shadow:inset 0 1px 0 #ead1a566,inset 0 -3px 0 #150d1742;outline:1px solid #c2a77450;outline-offset:-4px}
+:root[data-interface][data-interface="interface-amber"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:linear-gradient(#b58e576b 0 1px,transparent 1px 4px,#b58e5738 4px 5px);background-position:bottom;background-size:100% 5px;background-repeat:no-repeat}
+
+/* Paper: low-brightness pages, binding rail and offset stacked sheets. */
+:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .sidebar {background-image:linear-gradient(90deg,#8c8e754d 0 6px,transparent 6px calc(100% - 14px),#9b76684d calc(100% - 14px) calc(100% - 13px),transparent calc(100% - 13px)),repeating-linear-gradient(0deg,transparent 0 39px,#79796313 39px 40px);box-shadow:inset -5px 0 0 #6d745521}
+:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .brand-mark {border-radius:3px 10px 3px 3px;box-shadow:2px 2px 0 #747b5845}
+:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:2px 8px 2px 2px;background:var(--ui-surface);box-shadow:inset 4px 0 0 #64775799,inset 0 -1px 0 #75815e5c,2px 2px 0 #8b8b7638}
+:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);box-shadow:1px 2px 0 #66715540,inset 0 1px 0 #dcd8c55c}
+:root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:linear-gradient(90deg,#68775c9e,transparent 84%);background-size:100% 1px;background-position:bottom;background-repeat:no-repeat}
 :root[data-interface][data-interface="interface-paper"]:not([data-interface="interface-default"]) :is(.shop-markets>button.active,.shop-filter button.active) {box-shadow:inset 0 -2px 0 var(--ui-accent)}
 
-/* Night window: fixed rain etching, inset glazing and a soft pool of lamplight. */
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .sidebar {background-image:repeating-linear-gradient(108deg,transparent 0 37px,#a5c7d50b 37px 38px,transparent 38px 59px),linear-gradient(0deg,#cdbd7e10,transparent 42%);box-shadow:inset -5px 0 0 #0717273d,inset -6px 0 0 #83acbf29}
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.quest-hero.expedition-hero) {box-shadow:inset 0 0 0 4px #8db6c50a,inset 0 1px 0 #bcdae12d,inset 0 -1px 0 #020c1838}
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .topbar {background-image:linear-gradient(90deg,transparent,#9dbbc824,transparent);background-repeat:no-repeat;background-size:100% 1px;background-position:bottom}
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .brand-mark {border-radius:12px 12px 3px 3px;box-shadow:inset 0 0 0 3px #92bcc713}
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:12px 12px 4px 4px;background:linear-gradient(90deg,#d9c99920,#b1cdd309);box-shadow:inset 0 0 0 1px #92b6c157,inset 0 -2px 0 #d9c99980}
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:11px 11px 4px 4px;box-shadow:inset 0 1px 0 #eef3dc2b,inset 0 -1px 0 #070f2333}
-:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .primary-button:not(#opening-done) {background-image:linear-gradient(0deg,#b2a77724,transparent);box-shadow:inset 0 1px 0 #fff2d361,0 0 9px #d9c99912}
+/* Rain: quiet glazing and window beading, lit navigation in warm lamplight. */
+:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .sidebar {background-image:repeating-linear-gradient(108deg,transparent 0 37px,#a5c7d514 37px 38px,transparent 38px 59px),linear-gradient(0deg,#cdbd7e1a,transparent 45%);box-shadow:inset -6px 0 0 #07172766,inset -7px 0 0 #83acbf66}
+:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .brand-mark {border-radius:13px 13px 3px 3px;box-shadow:inset 0 0 0 3px #92bcc733}
+:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:11px 11px 3px 3px;background:linear-gradient(90deg,#dfc9972e,#b1cdd31a);box-shadow:inset 0 0 0 1px #92b6c194,inset 0 -3px 0 #dfc997ab}
+:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);box-shadow:inset 0 1px 0 #eef3dc47,inset 0 -2px 0 #070f2359}
+:root[data-interface][data-interface="interface-rain"]:not([data-interface="interface-default"]) .topbar {background-image:linear-gradient(90deg,transparent,#bfc9af91,transparent);background-repeat:no-repeat;background-size:100% 1px;background-position:bottom}
 
-/* Fireside upholstery: woven surfaces, seam borders and pillow-like corners. */
-:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) .sidebar {background-image:repeating-linear-gradient(90deg,#f3d3b405 0 1px,transparent 1px 6px),repeating-linear-gradient(0deg,#f3d3b405 0 1px,transparent 1px 5px);box-shadow:inset -4px 0 0 #a0836412}
-:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.quest-hero.expedition-hero) {border-style:dashed;box-shadow:inset 0 0 0 4px #edc79c08,inset 0 1px 0 #f2dec015,inset 0 -2px 0 #160b1026}
-:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) .brand-mark {border-radius:16px;outline:1px dashed #c4a1879c;outline-offset:-4px;box-shadow:inset 0 0 0 4px #25171320}
-:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:18px;background:var(--ui-soft);box-shadow:inset 0 0 0 1px #c6a38b50,inset 0 2px 0 #f2e0c214}
-:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:18px;outline:1px dashed #a2826761;outline-offset:-4px;box-shadow:inset 0 1px 0 #fff4db20,inset 0 -2px 0 #130b1226}
-:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) :is(.side-note,.source-status,.q-rules) {border-style:dashed}
+/* Ember: a tangible woven cushion, seam borders and soft textile labels. */
+:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) .sidebar {background-image:var(--ui-panel-detail);box-shadow:inset -5px 0 0 #a083643d,inset -7px 0 0 #20130f6b}
+:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.method-workshop,.quest-hero.expedition-hero) {outline:1px dashed #c6a78880;outline-offset:-7px}
+:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) .brand-mark {border-radius:17px;outline:1px dashed #d3b18d;outline-offset:-4px;box-shadow:inset 0 0 0 4px #25171338}
+:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:20px;background:var(--ui-surface-raised);outline:1px dashed #d2ae8d94;outline-offset:-5px;box-shadow:inset 0 2px 0 #f2e0c236,inset 0 -2px 0 #1f12173b}
+:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);outline:1px dashed #bfa088b3;outline-offset:-4px;box-shadow:inset 0 1px 0 #f0d8b838,inset 0 -2px 0 #130b123d}
+:root[data-interface][data-interface="interface-ember"]:not([data-interface="interface-default"]) :is(.side-note,.source-status,.q-rules,.topbar) {border-style:dashed}
 
-/* Ink mountain journal: deckled paper edge, column rule, inkstone and red seal. */
+/* Ink: gray bamboo paper, brush rules, mountain edge and cinnabar imprint. */
 :root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) {--ui-heading-font:"Songti SC","STSong",serif}
-:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .sidebar {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 160'%3E%3Cpath d='M0 155L42 90L71 121L125 41L156 91L185 70L220 143V160H0Z' fill='%236b806c' opacity='.10'/%3E%3Cpath d='M0 144L42 90L71 121L125 41L156 91L185 70L220 143M93 157L124 76L151 139' fill='none' stroke='%236b806c' opacity='.18'/%3E%3C/svg%3E"),linear-gradient(90deg,transparent calc(100% - 12px),#71816c29 calc(100% - 12px),#71816c29 calc(100% - 11px),transparent calc(100% - 11px));background-size:100% 160px,auto;background-position:left bottom,0 0;background-repeat:no-repeat,repeat}
-:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.quest-hero.expedition-hero) {box-shadow:2px 2px 0 #5364490d,inset 0 -2px 0 #5364490a;outline:1px solid #71816c12;outline-offset:-5px}
-:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .brand-mark {border-radius:2px;border-color:#a76552;color:#945842;background:#a7655207;box-shadow:inset 0 0 0 3px #a765520e}
-:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:2px 7px 2px 2px;background:linear-gradient(90deg,#46645518,transparent);box-shadow:inset 3px 0 0 var(--ui-accent),inset 0 -1px 0 #46645534}
-:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:2px 6px 2px 2px;box-shadow:inset 0 0 0 3px #4d69530b,1px 2px 0 #53644919}
-:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .topbar {background-image:linear-gradient(90deg,#586e6066,transparent 73%);background-position:bottom;background-repeat:no-repeat;background-size:100% 1px}
+:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .sidebar {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 160'%3E%3Cpath d='M0 155L42 90L71 121L125 41L156 91L185 70L220 143V160H0Z' fill='%234f6750' opacity='.16'/%3E%3Cpath d='M0 144L42 90L71 121L125 41L156 91L185 70L220 143M93 157L124 76L151 139' fill='none' stroke='%234f6750' opacity='.32'/%3E%3C/svg%3E"),linear-gradient(90deg,transparent calc(100% - 12px),#566b4d59 calc(100% - 12px),#566b4d59 calc(100% - 11px),transparent calc(100% - 11px));background-size:100% 160px,auto;background-position:left bottom,0 0;background-repeat:no-repeat,repeat}
+:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .brand-mark {border-radius:2px;border-color:#a76552;color:#854631;background:#a7655217;box-shadow:inset 0 0 0 3px #a7655226}
+:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:2px;background:linear-gradient(90deg,#36594426,#36594408);box-shadow:inset 4px 0 0 #985d49,inset 0 -1px 0 #46645570}
+:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);box-shadow:inset 0 0 0 3px #4d695319,1px 2px 0 #5364493d}
+:root[data-interface][data-interface="interface-ink"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:linear-gradient(90deg,#586e60a6,transparent 76%);background-position:bottom;background-repeat:no-repeat;background-size:100% 2px}
 
-/* Glasshouse: arched panes, fine greenhouse lattice and botanical edge work. */
-:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .sidebar {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 190'%3E%3Cg fill='none' stroke='%23678a69' opacity='.26' stroke-width='1.2'%3E%3Cpath d='M10 186Q72 169 53 56M36 162Q6 145 9 115Q35 119 36 162M54 135Q93 125 93 94Q58 105 54 135M57 108Q24 96 29 70Q54 74 57 108M42 178Q128 191 211 169'/%3E%3C/g%3E%3C/svg%3E"),repeating-linear-gradient(90deg,transparent 0 71px,#87a88417 71px 72px);background-size:100% 190px,auto;background-position:left bottom,0 0;background-repeat:no-repeat,repeat}
-:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.quest-hero.expedition-hero) {box-shadow:inset 0 0 0 4px #789b7c0a,inset 0 1px 0 #ffffffc9,0 2px 0 #658b6210}
-:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .brand-mark {border-radius:20px 20px 5px 5px;box-shadow:inset 0 0 0 3px #789b7c15}
-:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:21px 21px 6px 6px;background:linear-gradient(110deg,#d5e4c78a,transparent);box-shadow:inset 0 0 0 1px #6e937777,inset 0 -2px 0 #42675561}
-:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:18px 18px 5px 5px;box-shadow:inset 0 1px 0 #ffffff5c,inset 0 0 0 3px #71966f0b}
-:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .topbar {background-image:repeating-linear-gradient(90deg,#87a88427 0 1px,transparent 1px 72px);background-size:100% 6px;background-repeat:no-repeat;background-position:bottom}
+/* Garden: sage glass rather than white glare; arches, mullions and leaf corners. */
+:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .sidebar {background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 220 190'%3E%3Cg fill='none' stroke='%23456950' opacity='.4' stroke-width='1.2'%3E%3Cpath d='M10 186Q72 169 53 56M36 162Q6 145 9 115Q35 119 36 162M54 135Q93 125 93 94Q58 105 54 135M57 108Q24 96 29 70Q54 74 57 108M42 178Q128 191 211 169'/%3E%3C/g%3E%3C/svg%3E"),repeating-linear-gradient(90deg,transparent 0 71px,#4e735933 71px 72px);background-size:100% 190px,auto;background-position:left bottom,0 0;background-repeat:no-repeat,repeat;box-shadow:inset -4px 0 0 #5f826421}
+:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .brand-mark {border-radius:21px 21px 4px 4px;box-shadow:inset 0 0 0 3px #547c5838}
+:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:23px 23px 5px 5px;background:linear-gradient(110deg,#d1dbcf,#c0d1bd);box-shadow:inset 0 0 0 1px #6e9377a6,inset 0 -3px 0 #4267559e}
+:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);box-shadow:inset 0 1px 0 #e4e9df5c,inset 0 0 0 3px #71966f21}
+:root[data-interface][data-interface="interface-garden"]:not([data-interface="interface-default"]) .topbar {background-image:repeating-linear-gradient(90deg,#6280695c 0 1px,transparent 1px 72px);background-size:100% 7px;background-repeat:no-repeat;background-position:bottom}
 
-/* Observatory archive: plotted rings, measured rules and tabbed index marks. */
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) body {background-size:48px 48px,auto}
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) .sidebar {background-image:radial-gradient(circle at 45% 78%,transparent 0 50px,#b0bfd619 50px 51px,transparent 51px 73px,#b0bfd611 73px 74px,transparent 74px),repeating-linear-gradient(0deg,transparent 0 15px,#9aafca12 15px 16px);background-size:auto,8px 100%;background-repeat:no-repeat;background-position:center,right}
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.quest-hero.expedition-hero) {box-shadow:inset 0 -3px 0 #b0bfd614,inset 3px 0 0 #b0bfd608;outline:1px solid #b0bfd611;outline-offset:-5px}
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) .brand-mark {border-radius:50%;outline:1px dotted #8aa1c9;outline-offset:3px;box-shadow:inset 0 0 0 3px #9badc91a}
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:3px 12px 3px 3px;background:linear-gradient(90deg,#9badc91e,transparent);box-shadow:inset 0 0 0 1px var(--ui-line),inset 4px 0 0 var(--ui-accent)}
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:3px 10px 3px 3px;background-image:linear-gradient(90deg,#ced9ed13 2px,transparent 2px);box-shadow:inset 0 0 0 3px #96aac610}
-:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:repeating-linear-gradient(90deg,#9aafca32 0 1px,transparent 1px 10px);background-repeat:no-repeat;background-position:bottom;background-size:100% 3px}
+/* Observatory: indexed sleeves, orbital brasswork and fine measuring scales. */
+:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) .sidebar {background-image:radial-gradient(circle at 45% 80%,transparent 0 50px,#b0bfd647 50px 51px,transparent 51px 73px,#b0bfd62e 73px 74px,transparent 74px),repeating-linear-gradient(0deg,transparent 0 15px,#9aafca42 15px 16px);background-size:auto,9px 100%;background-repeat:no-repeat;background-position:center,right}
+:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) .brand-mark {border-radius:50%;outline:1px dotted #9fafd2;outline-offset:3px;box-shadow:inset 0 0 0 3px #9badc936}
+:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:3px 12px 3px 3px;background:linear-gradient(90deg,#9badc940,#9badc91a);box-shadow:inset 0 0 0 1px var(--ui-line),inset 5px 0 0 var(--ui-accent)}
+:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);background-image:linear-gradient(90deg,#ced9ed38 2px,transparent 2px);box-shadow:inset 0 0 0 3px #96aac626}
+:root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) :is(.topbar,.section-heading) {background-image:repeating-linear-gradient(90deg,#9aafca85 0 1px,transparent 1px 10px);background-repeat:no-repeat;background-position:bottom;background-size:100% 4px}
 :root[data-interface][data-interface="interface-observatory"]:not([data-interface="interface-default"]) :is(.q-schedule,.source-status,.q-rules,.side-note) {border-style:dotted}
 
-/* Quiet neon radio: cyan/rose edge lamps and cut buttons, with no flashing. */
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .sidebar {background-image:repeating-linear-gradient(90deg,transparent 0 8px,#75dce00b 8px 10px,transparent 10px 16px,#d19bbc08 16px 18px),linear-gradient(0deg,#0a152900,transparent);background-size:100% 43px,auto;background-position:bottom,0 0;background-repeat:no-repeat;box-shadow:inset -1px 0 0 #ce9cb64d}
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) :is(.panel,.stat-card,.weekly-goal,.shop-welcome,.q-mentor,.quest-hero.expedition-hero) {box-shadow:inset 1px 0 0 #75dce077,inset -1px 0 0 #d19bbc50,inset 0 1px 0 #75dce012}
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .brand-mark {border-radius:2px 11px 2px 11px;box-shadow:inset 2px 0 0 #75dce061,inset -2px 0 0 #d19bbc57}
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .nav-item.active {background:linear-gradient(90deg,#75dce018,#d19bbc07);box-shadow:inset 2px 0 0 #75dce0,inset -1px 0 0 #d19bbc83}
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:0;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px));box-shadow:inset 1px 0 0 #75dce083,inset -1px 0 0 #d19bbc83}
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .primary-button:not(#opening-done) {background-image:linear-gradient(105deg,transparent 55%,#d19bbc2b);box-shadow:inset 0 1px 0 #d5f4f23b}
+/* Radio: narrow dual-color light rails; static tuner face, no visual chatter. */
+:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .sidebar {background-image:repeating-linear-gradient(90deg,transparent 0 8px,#8ddddb40 8px 10px,transparent 10px 16px,#d497b930 16px 18px);background-size:100% 39px;background-position:bottom;background-repeat:no-repeat;box-shadow:inset 2px 0 0 #8ddddb7a,inset -2px 0 0 #ce9cb685}
+:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .brand-mark {border-radius:2px 10px 2px 10px;box-shadow:inset 2px 0 0 #8ddddb99,inset -2px 0 0 #d497b991}
+:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .nav-item.active {border-radius:2px 9px 2px 9px;background:linear-gradient(90deg,#8ddddb2e,#d497b91c);box-shadow:inset 3px 0 0 #8ddddb,inset -2px 0 0 #d497b9b3}
+:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button) {border-radius:var(--ui-control-radius);clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px));box-shadow:inset 1px 0 0 #8ddddbb3,inset -1px 0 0 #d497b9a6}
 :root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) :is(.primary-button,.secondary-button,.ghost-button):focus-visible {outline-offset:-3px}
-:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .topbar {background-image:linear-gradient(90deg,#75dce092,transparent 45%,#d19bbc6b);background-position:bottom;background-size:100% 1px;background-repeat:no-repeat}
+:root[data-interface][data-interface="interface-neon"]:not([data-interface="interface-default"]) .topbar {background-image:linear-gradient(90deg,#8ddddbd4,transparent 55%,#d497b9b3);background-position:bottom;background-size:100% 2px;background-repeat:no-repeat}
 
 /* Light chrome keeps the collected landscape, banner, portraits and classic
    games keep their authored contrast and colors inside a dark display case. */
@@ -313,45 +342,45 @@
 :root[data-interface][data-interface-tone="light"] :is(.expedition-map-heading>span,.expedition-map-footer) {color:#adb6c8}
 :root[data-interface][data-interface-tone="light"] .expedition-map-heading>strong {color:#d6d5e2}
 :root[data-interface][data-interface-tone="light"] .expedition-map-footer>span:last-child {color:#c1bccf}
-:root[data-interface][data-interface-tone="light"] :is(.expedition-subjects>button,.subject-card) {background:#253447;border-color:#47546a;color:#e7e7f2}
-:root[data-interface][data-interface-tone="light"] .expedition-subjects>button:hover,:root[data-interface][data-interface-tone="light"] .expedition-subjects>button[aria-pressed=true] {background:color-mix(in srgb,var(--isle-color) 13%,#253447);border-color:var(--isle-color)}
+:root[data-interface][data-interface-tone="light"] :is(.expedition-subjects>button,.subject-card) {background:var(--ui-surface-raised);border-color:var(--ui-line);color:var(--ui-ink)}
+:root[data-interface][data-interface-tone="light"] .expedition-subjects>button:hover,:root[data-interface][data-interface-tone="light"] .expedition-subjects>button[aria-pressed=true] {background:color-mix(in srgb,var(--isle-color) 15%,var(--ui-surface-raised));border-color:color-mix(in srgb,var(--isle-color) 58%,var(--ui-accent))}
 :root[data-interface][data-interface-tone="light"][data-banner]:not([data-banner="banner-default"]) .level-pill {color:#e7e7f2}
 :root[data-interface][data-interface-tone="light"][data-banner]:not([data-banner="banner-default"]) .equipped-player-card {--ui-ink:#e2d5ea;--ui-muted:#aaa1b7;--ui-accent:#c4abd9;--ui-surface:#1b2232;--ui-soft:#bda3d510;--ui-line:#93839f60}
 :root[data-interface][data-interface-tone="light"] :is(.shop-item-visual,.q-action-art,.quick-skin-thumb) {background-color:#1e2836}
 :root[data-interface][data-interface-tone="light"] :is(.shop-item .shop-item-visual .shop-item-type,.shop-item .shop-item-visual .shop-owned) {color:#c4c9d5}
 :root[data-interface][data-interface-tone="light"] .shop-item.owned .shop-owned {color:#b3d8c2}
 :root[data-interface][data-interface-tone="light"] .shop-item.equipped .shop-owned {color:#dbc5f1}
-:root[data-interface][data-interface-tone="light"] :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b) {color:#49645b}
-:root[data-interface][data-interface-tone="light"] .afternoon :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b) {color:#645b82}
-:root[data-interface][data-interface-tone="light"] :is(.q-task.ready .q-status,.q-task.claimed .q-status,.shop-free,.mystery-today strong,.mystery-conditions .met i,.campfire-duty-summary strong,.mines-safety strong) {color:#406c52}
+:root[data-interface][data-interface-tone="light"] :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b) {color:var(--ui-success)}
+:root[data-interface][data-interface-tone="light"] .afternoon :is(.q-mentor-role,.q-schedule>span:last-child,.q-numbers>b) {color:var(--ui-lecture)}
+:root[data-interface][data-interface-tone="light"] :is(.q-task.ready .q-status,.q-task.claimed .q-status,.shop-free,.mystery-today strong,.mystery-conditions .met i,.campfire-duty-summary strong,.mines-safety strong) {color:var(--ui-success)}
 :root[data-interface][data-interface-tone="light"] .q-task:not(.ready):not(.claimed) .q-status {color:var(--ui-muted)}
-:root[data-interface][data-interface-tone="light"] :is(.q-money,.coin-mark,.shop-single-price,.arcade-money,.exchange-cost,.exchange-intro p>b,.mystery-pending strong,.mystery-gift-track h4,.mystery-multiplier,.mystery-history strong,.mystery-status.ready,.citadel-place-state[data-awake=true],.citadel-records b,.citadel-subject-list strong,.mines-best strong) {color:#856025}
-:root[data-interface][data-interface-tone="light"] :is(.diamond-mark,.shop-single-price.diamonds,.arcade-money.diamond,.exchange-intro p,.exchange-history strong) {color:#3d708f}
-:root[data-interface][data-interface-tone="light"] :is(.shop-markets>button.active,.shop-markets>button.active small,.shop-markets>button.active b) {color:#856025}
-:root[data-interface][data-interface-tone="light"] :is(.shop-markets>button[data-shop-market=diamonds].active,.shop-markets>button[data-shop-market=diamonds].active small,.shop-markets>button[data-shop-market=diamonds].active b) {color:#3d708f}
+:root[data-interface][data-interface-tone="light"] :is(.q-money,.coin-mark,.shop-single-price,.arcade-money,.exchange-cost,.exchange-intro p>b,.mystery-pending strong,.mystery-gift-track h4,.mystery-multiplier,.mystery-history strong,.mystery-status.ready,.citadel-place-state[data-awake=true],.citadel-records b,.citadel-subject-list strong,.mines-best strong) {color:var(--ui-coin)}
+:root[data-interface][data-interface-tone="light"] :is(.diamond-mark,.shop-single-price.diamonds,.arcade-money.diamond,.exchange-intro p,.exchange-history strong) {color:var(--ui-diamond)}
+:root[data-interface][data-interface-tone="light"] :is(.shop-markets>button.active,.shop-markets>button.active small,.shop-markets>button.active b) {color:var(--ui-coin)}
+:root[data-interface][data-interface-tone="light"] :is(.shop-markets>button[data-shop-market=diamonds].active,.shop-markets>button[data-shop-market=diamonds].active small,.shop-markets>button[data-shop-market=diamonds].active b) {color:var(--ui-diamond)}
 :root[data-interface][data-interface-tone="light"] :is(.shop-markets>button[data-shop-market=owned].active,.shop-markets>button[data-shop-market=owned].active small,.shop-markets>button[data-shop-market=owned].active b) {color:var(--ui-accent)}
-:root[data-interface][data-interface-tone="light"] :is(.q-first-round,.q-first-round-window,.q-first-round-amount>span,.q-first-round>p) {color:#766545}
-:root[data-interface][data-interface-tone="light"] :is(.q-first-round-heading strong,.q-first-round-heading>span,.q-first-round-amount b,.q-first-round.ready .q-first-round-heading>span,.q-first-round>p.q-first-round-pending) {color:#80602a}
-:root[data-interface][data-interface-tone="light"] .q-first-round.claimed .q-first-round-heading>span {color:#406c52}
-:root[data-interface][data-interface-tone="light"] :is(.q-first-round-window>span:last-child,.mystery-open-gifts strong,.mystery-dialog-reward) {color:#80602a}
-:root[data-interface][data-interface-tone="light"] :is(.activity-time.lecture strong,.activity-label.lecture) {color:#795c92}
-:root[data-interface][data-interface-tone="light"] :is(.activity-time.practice strong,.activity-label.practice) {color:#40745c}
-:root[data-interface][data-interface-tone="light"] .activity-total.lecture {--activity-color:#795c92}
-:root[data-interface][data-interface-tone="light"] .activity-total.practice {--activity-color:#40745c}
-:root[data-interface][data-interface-tone="light"] .activity-total:not(.lecture):not(.practice) {--activity-color:#647175}
+:root[data-interface][data-interface-tone="light"] :is(.q-first-round,.q-first-round-window,.q-first-round-amount>span,.q-first-round>p) {color:var(--ui-warning)}
+:root[data-interface][data-interface-tone="light"] :is(.q-first-round-heading strong,.q-first-round-heading>span,.q-first-round-amount b,.q-first-round.ready .q-first-round-heading>span,.q-first-round>p.q-first-round-pending) {color:var(--ui-warning)}
+:root[data-interface][data-interface-tone="light"] .q-first-round.claimed .q-first-round-heading>span {color:var(--ui-success)}
+:root[data-interface][data-interface-tone="light"] :is(.q-first-round-window>span:last-child,.mystery-open-gifts strong,.mystery-dialog-reward) {color:var(--ui-warning)}
+:root[data-interface][data-interface-tone="light"] :is(.activity-time.lecture strong,.activity-label.lecture) {color:var(--ui-lecture)}
+:root[data-interface][data-interface-tone="light"] :is(.activity-time.practice strong,.activity-label.practice) {color:var(--ui-practice)}
+:root[data-interface][data-interface-tone="light"] .activity-total.lecture {--activity-color:var(--ui-lecture)}
+:root[data-interface][data-interface-tone="light"] .activity-total.practice {--activity-color:var(--ui-practice)}
+:root[data-interface][data-interface-tone="light"] .activity-total:not(.lecture):not(.practice) {--activity-color:var(--ui-muted)}
 :root[data-interface][data-interface-tone="light"] :is(.activity-total>strong small,.activity-insight.rest strong,.activity-insight.neutral strong) {color:var(--ui-muted)}
-:root[data-interface][data-interface-tone="light"] :is(.record-remove,.form-error) {color:#a04458}
-:root[data-interface][data-interface-tone="light"] .table-subject {background:color-mix(in srgb,var(--subject-color) 32%,white);color:#35433e}
-:root[data-interface][data-interface-tone="light"] :is(.citadel-locations button[data-current=true] small,.citadel-locations button[data-awake=true]>span,.citadel-preview-row>#citadel-demo,.citadel-interact,.citadel-inspector>.citadel-feedback) {color:#80602a}
+:root[data-interface][data-interface-tone="light"] :is(.record-remove,.form-error) {color:var(--ui-danger)}
+:root[data-interface][data-interface-tone="light"] .table-subject {background:color-mix(in srgb,var(--subject-color) 22%,var(--ui-surface));color:#35433e}
+:root[data-interface][data-interface-tone="light"] :is(.citadel-locations button[data-current=true] small,.citadel-locations button[data-awake=true]>span,.citadel-preview-row>#citadel-demo,.citadel-interact,.citadel-inspector>.citadel-feedback) {color:var(--ui-warning)}
 :root[data-interface][data-interface-tone="light"] .citadel-locations button[data-citadel-select=core] {background:var(--ui-soft)}
 :root[data-interface][data-interface-tone="light"] .citadel-locations button[data-citadel-select=core]>span {color:var(--ui-accent)}
 :root[data-interface][data-interface-tone="light"] :is(.citadel-place-state,.campfire-duty-kicker,.campfire-speaker strong,.campfire-duty-link,.campfire-memory-records li>span,.campfire-rest-clock strong) {color:var(--ui-accent)}
 :root[data-interface][data-interface-tone="light"] .campfire-study-stars strong {color:color-mix(in srgb,var(--study-star) 35%,#21382f)}
 :root[data-interface][data-interface-tone="light"] .campfire-card[data-chatframe]:not([data-chatframe="chatframe-default"]) .campfire-line p {color:var(--chat-ink)}
 :root[data-interface][data-interface-tone="light"] .campfire-card[data-chatframe]:not([data-chatframe="chatframe-default"]) .campfire-line strong {color:var(--chat-title)}
-:root[data-interface][data-interface-tone="light"] .arcade-notice {color:#7c5a25}
+:root[data-interface][data-interface-tone="light"] .arcade-notice {color:var(--ui-warning)}
 :root[data-interface][data-interface-tone="light"] .arcade-abandon-confirm {background:#f0dfd8;border-color:#b28c7b}
-:root[data-interface][data-interface-tone="light"] .arcade-abandon-confirm :is(strong,p) {color:#80564d}
+:root[data-interface][data-interface-tone="light"] .arcade-abandon-confirm :is(strong,p) {color:var(--ui-danger)}
 :root[data-interface][data-interface-tone="light"] :is(.arcade-reward-details,.arcade-empty-collection) {color:var(--ui-muted)}
 
 /* Product detail cards describe construction, not merely a color swatch. */

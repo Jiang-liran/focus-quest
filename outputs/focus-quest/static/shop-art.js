@@ -6,6 +6,8 @@
   'use strict';
 
   const inventory = {
+    archipelago: ['default','harbor','starglass'],
+    homeland: ['default','harbor','starglass'],
     bar: ['default', 'mint', 'aurora', 'comet', 'tide', 'prism', 'koi', 'fox', 'whale', 'dragon'],
     fx: ['default', 'fireflies', 'petals', 'snow', 'meteor', 'nebula'],
     avatar: ['default', 'ranger', 'voyager', 'alchemist', 'star', 'royal'],
@@ -17,6 +19,8 @@
     island: ['default', 'lanterns', 'garden', 'pavilion', 'supplies', 'banners', 'fountain', 'library', 'observatory', 'arcade', 'palace'],
   };
   const expansion=typeof module==='object'&&module.exports?require('./shop-expansion.js'):root.FocusShopExpansion;
+  const architecture=typeof module==='object'&&module.exports?require('./island-architecture.js'):root.FocusIslandArchitecture;
+  for(const [slot,entries] of Object.entries(architecture?.inventory||{}))if(slot.startsWith('campus'))inventory[slot]=entries.map(item=>item.id.slice(slot.length+1));
   const companionLife=typeof module==='object'&&module.exports?require('./companion-life.js'):root.FocusCompanionLife;
   const islandEffects=typeof module==='object'&&module.exports?require('./island-effects.js'):root.FocusIslandEffects;
   for(const entry of expansion?.entries||[])if(inventory[entry.slot])inventory[entry.slot].push(entry.id.slice(entry.id.indexOf('-')+1));
@@ -77,21 +81,108 @@
     return `<rect x="15" y="28" width="130" height="55" rx="8" fill="${bg}" stroke="${edge}" stroke-width="1.4"/><circle cx="41" cy="50" r="10" fill="${edge}"/><path d="M27 73q2-16 14-16t14 16Z" fill="${accent}" opacity=".8"/><path d="M66 47h53M66 58h35M66 69h47" stroke="${accent}" stroke-width="3" stroke-linecap="round" opacity=".5"/>${ornament}`;
   }
 
-  function themePreview(variant) {
-    const [sky,ground,rock,accent] = themes[variant];
-    let ornament='';
-    if(variant==='forest')ornament=`<path d="m34 23-11 20h22Zm91 12-9 18h18Z" fill="#90b1a0"/><path d="M34 41v9m91 2v8" stroke="#657e70" stroke-width="3"/>`;
-    if(variant==='ocean')ornament=`<path d="M20 34q12-7 24 0t24 0m28 41q17-8 35 0" fill="none" stroke="#8dbdc9" stroke-width="1.5" opacity=".6"/><circle cx="124" cy="29" r="5" fill="none" stroke="#abd5da" stroke-width="1.1"/>`;
-    if(variant==='sakura')ornament=`<path d="M120 60V26m0 13-13-10m13 3 11-10" stroke="#8b697c" stroke-width="2"/><g fill="#dbb0c3"><circle cx="107" cy="29" r="7"/><circle cx="119" cy="23" r="9"/><circle cx="130" cy="24" r="6"/></g>`;
-    if(variant==='aurora')ornament=`<path d="M19 38Q46 6 80 25t62-8" fill="none" stroke="#a0cbb6" stroke-width="9" opacity=".3"/><path d="M22 31Q51 8 86 28t54-4" fill="none" stroke="#b5a6ce" stroke-width="5" opacity=".3"/>`;
-    return `<rect x="12" y="12" width="136" height="87" rx="15" fill="${sky}"/><circle cx="115" cy="28" r="10" fill="${accent}" opacity=".4"/>${ornament}<path d="m25 64 36-23 42 3 34 21-30 23-32 8-30-12Z" fill="${rock}"/><path d="m25 62 36-23 42 3 34 21-30 14-32 8-30-10Z" fill="${ground}"/><path d="M45 66q15-11 27 0t38-5" fill="none" stroke="${accent}" stroke-width="2.5" opacity=".7"/><path d="m87 30 9 14-9 16-9-16Z" fill="${accent}"/><path d="m87 30 1 14-10 0Z" fill="#e8e1ed" opacity=".6"/>${sparkle(43,24,2,accent)}`;
+  // Every terrain and layout uses the same camera, scale, island and roadside
+  // context. Collection modules provide the actual ornaments, never a separate
+  // thumbnail composed of detached buildings or a flat terrain swatch.
+  function worldPreview(itemId) {
+    const slot=items.get(itemId)?.slot;
+    if(!['theme','island','homeland'].includes(slot))return '';
+    const scene=slot==='theme'?islandScene('island-default',{theme:itemId}):slot==='homeland'?islandScene('island-default',{homeland:itemId}):islandScene(itemId);
+    return `<svg class="shop-art-svg shop-world-preview" viewBox="0 0 160 112" aria-hidden="true" focusable="false" data-art="${itemId}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none"><g data-preview-camera="590 350" transform="translate(6.25 12.25) scale(.25)">${scene}</g></svg>`;
+  }
+
+  // Coordinates here are foot contacts on the actual homepage top polygon,
+  // not the visible roof silhouette. A roof may overhang; a chair leg may not.
+  // Both live mounts and every preview go through this same placement pass.
+  function groundIslandDecoration(itemId,markup) {
+    if(!markup)return '';
+    const move=(from,to,feet,part)=>{
+      const before=`transform="${from}"`,after=`data-ground-part="${part}" data-ground-contacts="${feet.map(point=>point.join(',')).join(' ')}" transform="${to}"`;
+      markup=markup.replace(before,after);
+    };
+    const rectFeet=[[0,75],[100,75],[100,101],[0,101]];
+    if(markup.includes('translate(363 67) scale(.76)')){
+      move('translate(363 67) scale(.76)','translate(363 105) scale(.7)',rectFeet,'rear-building');
+      move('translate(177 224) scale(.65)','translate(177 191) scale(.65)',[[12,73],[24,80],[46,92],[75,89],[87,80]],'coastal-furnishing');
+    }
+    if(markup.includes('translate(411 163) scale(1.12)')){
+      move('translate(411 163) scale(1.12)','translate(410 171) scale(1.12)',[[-49,15],[5,37],[49,15]],'rear-building');
+      move('translate(146 244) scale(.8)','translate(194 232) scale(.8)',[[-13,5],[2,14],[19,6]],'coastal-furnishing');
+    }
+    const deck=[[-44,10],[0,29],[44,10]],observatoryFeet=[[-42,12],[4,31],[41,12]],pavilionFeet=[[-48,6],[6,29],[48,7]],towerFeet=[[-34,0],[-26,19],[0,37],[26,19],[35,0]],flowerFeet=[[-21,4],[1,13],[23,5]];
+    const plans={
+      'island-starhaven':[
+        ['translate(144 162) scale(0.78)','translate(188 181) scale(.62)',deck,'left-lighthouse'],
+        ['translate(425 133) scale(0.95)','translate(417 176) scale(.82)',deck,'rear-lighthouse'],
+        ['translate(225 293) scale(0.95)','translate(245 239) scale(.66)',deck,'coastal-pavilion']],
+      'island-celestialpalace':[
+        ['translate(138 166) scale(0.95)','translate(185 181) scale(.62)',deck,'left-lighthouse'],
+        ['translate(411 155) scale(1.24)','translate(417 173) scale(.84)',deck,'rear-palace'],
+        ['translate(223 307) scale(1.02)','translate(245 239) scale(.66)',deck,'coastal-pavilion'],
+        ['translate(252 139) scale(0.8)','translate(268 141) scale(.65)',deck,'upper-palace'],
+        ['translate(454 198) scale(0.6)','translate(432 201) scale(.43)',deck,'right-lighthouse']],
+      'island-lanternwharf':[
+        ['translate(183 174) scale(0.85)','translate(195 181) scale(.66)',pavilionFeet,'left-pavilion'],
+        ['translate(417 164) scale(1.05)','translate(417 178) scale(.84)',pavilionFeet,'rear-pavilion']],
+      'island-lunarobservatory':[
+        ['translate(150 185) scale(0.67)','translate(188 181) scale(.64)',observatoryFeet,'left-observatory'],
+        ['translate(408 170) scale(1.08)','translate(416 177) scale(.84)',observatoryFeet,'rear-observatory'],
+        ['translate(239 292) scale(0.58)','translate(245 239) scale(.55)',observatoryFeet,'coastal-observatory']],
+      'island-clockworkgarden':[
+        ['translate(167 184) scale(0.81)','translate(174 186) scale(.76)',[[-25,15],[0,28],[27,15]],'left-windmill'],
+        ['translate(420 176) scale(1.03)','translate(420 176) scale(1.03)',[[-25,15],[0,28],[27,15]],'rear-windmill'],
+        ['translate(225 124) scale(0.47)','translate(238 141) scale(.43)',[[-25,15],[0,28],[27,15]],'upper-windmill'],
+        ['translate(145 213) scale(0.8)','translate(145 210) scale(.8)',flowerFeet,'left-flowerbed'],
+        ['translate(206 249) scale(1)','translate(215 240) scale(.85)',flowerFeet,'coastal-flowerbed'],
+        ['translate(447 209) scale(0.9)','translate(430 207) scale(.7)',flowerFeet,'right-flowerbed']],
+      'island-aethercitadel':[
+        ['translate(151 177) scale(0.8)','translate(180 185) scale(.64)',towerFeet,'left-tower'],
+        ['translate(231 143) scale(0.64)','translate(242 145) scale(.58)',towerFeet,'upper-tower'],
+        ['translate(390 137) scale(1.05)','translate(415 170) scale(.8)',towerFeet,'rear-tower'],
+        ['translate(448 181) scale(0.74)','translate(432 195) scale(.5)',towerFeet,'right-tower']],
+    };
+    for(const [from,to,feet,part] of plans[itemId]||[])move(from,to,feet,part);
+    if(itemId==='island-starhaven'||itemId==='island-celestialpalace'){
+      // Rebuild the bridge rails and their posts together; moving only a curve
+      // would leave the old rail posts hanging at the previous coordinates.
+      const [a,b,c]=expansion.colors(itemId);
+      const bridge=(x1,y1,x2,y2)=>{const mx=(x1+x2)/2,my=Math.min(y1,y2)-13,d=`M${x1} ${y1}Q${mx} ${my} ${x2} ${y2}`;return `<g data-ground-part="connecting-walk" data-ground-contacts="${x1},${y1} ${x2},${y2}"><path d="${d}" fill="none" stroke="${b}" stroke-width="6"/><path d="${d}" fill="none" stroke="${c}" stroke-width="1.5"/>${[.2,.4,.6,.8].map(t=>{const x=(1-t)*(1-t)*x1+2*(1-t)*t*mx+t*t*x2,y=(1-t)*(1-t)*y1+2*(1-t)*t*my+t*t*y2;return `<path d="M${x.toFixed(2)} ${y.toFixed(2)}v-5" fill="none" stroke="${a}" stroke-width="1.3"/>`;}).join('')}</g>`;};
+      const walks=itemId==='island-starhaven'?bridge(188,181,245,161)+bridge(364,176,417,176):bridge(185,181,268,141)+bridge(352,173,417,173)+bridge(417,184,432,201);
+      const firstDistrict=markup.indexOf('<g data-ground-part="left-lighthouse"'),opening=markup.indexOf('>')+1;
+      if(firstDistrict>opening)markup=markup.slice(0,opening)+walks+markup.slice(firstDistrict);
+    }
+    if(itemId==='island-lanternwharf'){
+      markup=markup.replace('class="lca-water-lights"','class="lca-water-lights" transform="translate(25 -16)" data-ground-part="coastal-lanterns" data-ground-contacts="113,222 134,232 146,224 204,262 224,271 246,263"');
+      markup=markup.replace(/M186 164/g,'M198 174').replace(/190 176/g,'202 186');
+    }
+    if(itemId==='island-lunarobservatory'){
+      markup=markup.replace(/(<g\b[^>]*class="lca-telescope">[\s\S]*?<\/g>)/,'<g transform="translate(-30 12)" data-ground-part="right-telescope" data-ground-contacts="454,185 482,174 492,183 465,194">$1</g>');
+      markup=markup.replace(/M169 179Q203 195 233 162/g,'M188 181Q216 191 242 156');
+    }
+    if(itemId==='island-aethercitadel'){
+      markup=markup.replace(/M144 174Q182 169 219 142/g,'M180 185Q210 179 242 145').replace(/l2 8q-39 31-74 33/g,'l2 8q-31 37-61 48');
+      markup=markup.replace(/M377 123q25 7 47 31/g,'M415 170q7 7 17 25').replace(/l-3 8q-19-22-46-29/g,'l-3 8q-9-20-17-23');
+      markup=markup.replace('translate(137 183)','translate(169 195)').replace('translate(414 173)','translate(416 191)');
+      markup=markup.replace('m126 176 24-9 25 10-25 10Z','m162 188 24-9 25 10-25 10Z').replace('m126 176v5l24 11 25-10v-5l-25 10Z','m162 188v5l24 11 25-10v-5l-25 10Z').replace('m431 186 22-8 23 8-23 10Z','m415 194 22-8 23 8-23 10Z').replace('m431 186v5l22 11 23-11v-5l-23 10Z','m415 194v5l22 11 23-11v-5l-23 10Z').replace('M136 172v-9m8 6v-12m308 24v-10m7 11v-8','M172 184v-9m8 6v-12m256 20v-10m7 11v-8');
+    }
+    // First-generation small furnishings were authored directly in island
+    // coordinates. Their front feet need the same inset as later collections.
+    if(!expansion?.has(itemId,'island')){
+      markup=markup.replace(/transform="translate\((\d+) (\d+)\)([^\"]*)"/g,(full,x,y,rest)=>{
+        const a=Number(x),b=Number(y);
+        if(a>=170&&a<=300&&b>=230)return `data-ground-part="coastal-original" data-ground-contacts="-12,8 12,4" transform="translate(${a} ${b-14})${rest}"`;
+        if(a>=390&&a<=405&&b>=148&&b<=151)return `data-ground-part="rear-original" data-ground-contacts="-35,4 0,18 35,4" transform="translate(${a-10} ${b+14})${rest}"`;
+        return full;
+      });
+    }
+    return markup.replace(/^<g\b/,'<g data-island-grounding="shore-v2"');
   }
 
   // Complete, mutually exclusive layouts on the 590 × 350 homepage island.
   // Low coastal accents use x174–291 / y220–269; buildings use x363–444 / y56–166.
   // The roadside camp at x303–373 / y205–265, original route, and other mounts stay clear.
   function islandDecoration(itemId) {
-    if(expansion?.has(itemId,'island'))return expansion.islandDecoration(itemId);
+    if(expansion?.has(itemId,'island'))return groundIslandDecoration(itemId,expansion.islandDecoration(itemId));
     const item=items.get(itemId);if(item?.slot!=='island'||item.variant==='default')return '';
     const stones=points=>points.map(([x,y],index)=>`<path d="m${x-6} ${y} 7-2 7 2-7 3Z" fill="${index%2?'#91939f':'#afb0b5'}" opacity=".7"/>`).join('');
     const lamp=(x,y,short=false)=>`<g transform="translate(${x} ${y})"><ellipse rx="10" ry="3" fill="#dac794" opacity=".13"/><path d="M-4 0H4M0 0v-${short?9:17}" stroke="#9a8a79" stroke-width="2" stroke-linecap="round"/><g transform="translate(0 ${short?8:0})"><path d="M-5-20 0-24l5 4-1 8H-4Z" fill="#b7a786" stroke="#716779" stroke-width="1"/><path d="M-2-19H2v5H-2Z" fill="#f2d9a2"/><g class="shop-portal-glimmer"><ellipse cy="-16" rx="7" ry="7" fill="#eed3a0" opacity=".12"/></g></g></g>`;
@@ -110,18 +201,23 @@
     if(item.variant==='observatory')content=`<g transform="translate(404 149)">${terrace(0,4,32)}<path d="m-25 0 0-23 25-11 26 13V1L1 13Z" fill="#99a5b4"/><path d="M1-11 26-21V1L1 13Z" fill="#707f9e"/><path d="M-25-23q-1-31 24-40 28 8 27 42L1-10Z" fill="#8c93b3"/><path d="M-1-63q20 20 16 43l-14 10Z" fill="#646e96"/><path d="M-25-23q-1-31 24-40 28 8 27 42m-27-42q-10 23-9 45" stroke="#c1bdce" stroke-width="1.4"/><path d="m-5-6 12-5V6L-5 12Z" fill="#444c71"/><g class="shop-orbit-slow"><ellipse cy="-58" rx="29" ry="9" fill="none" stroke="#d3c098" stroke-width="1.6" transform="rotate(-28 0 -58)"/><circle cx="25" cy="-70" r="3" fill="#cfb7d5"/></g><path d="M-1-64v-19" stroke="#c9b79a" stroke-width="2"/>${sparkle(-1,-86,5,'#e9d7b1')}<path d="m-26-1-9 5m9-5 0 9" stroke="#bcb29c" stroke-width="1.5"/><g transform="translate(-29 -6) rotate(-27)"><rect x="-8" y="-3" width="20" height="7" rx="1" fill="#a8b8c3"/><path d="M10-5h4v11h-4Z" fill="#d5c5a5"/></g></g>`+coast()+bench(233,256)+`<g transform="translate(270 259)"><ellipse rx="10" ry="4" fill="#9595ae"/><ellipse rx="7" ry="2.4" fill="none" stroke="#d3c7ab" stroke-width="1"/>${sparkle(0,-7,4,'#ded2b4')}</g>`;
     if(item.variant==='arcade')content=`<g transform="translate(404 148)">${terrace(0,3,34)}<path d="m-33-22 22-14 37 19-20 13Z" fill="#a5a5b5"/><path d="m-33-22 0 22 9 5v-12q4-10 9-3V9l9 4V-7Z" fill="#b7b5c2"/><path d="m-6-7 32-10v22L-6 16V-7Z" fill="#858aa5"/><path d="m1 11 0-14q5-12 9-4V8m5-3V-9q5-11 8-3V2" fill="#4d5e7b"/><path d="m-36-23 24-18 43 22-25 14Z" fill="#8fa8b5"/><path d="m-12-41 43 22-25 14-2-12Z" fill="#728aab"/><path d="m-36-23 42 18 25-14" stroke="#ddd0b2" stroke-width="2"/><path d="M-25-30v-28M17-25v-27" stroke="#b5b5bd" stroke-width="3"/><path d="m-33-56 13-15 12 17-13 6Z" fill="#a4b7c0"/><path d="m9-51 13-18 14 16-14 7Z" fill="#a29cbd"/><path d="M-25-57 17-52" stroke="#d9c7a6" stroke-width="1"/><g class="shop-portal-glimmer">${sparkle(-15,-56,2,'#eddaad')}${sparkle(-1,-55,2,'#eddaad')}${sparkle(12,-53,2,'#eddaad')}<path d="m-17-10 0 6m22-9v6m14-10v6" stroke="#e8d5ae" stroke-width="2"/></g></g>`+coast(true)+bench(235,256)+flowers(210,250,'#c4cbd9',.52)+stones([[265,264],[379,164]]);
     if(item.variant==='palace')content=`<g transform="translate(404 148)">${terrace(0,3,35)}<path d="m-33-9 32-13 34 13-32 15Z" fill="#d1c5be"/><path d="m-33-9 0 13 34 12L33 4V-9L1 6Z" fill="#8b88a0"/><path d="m-21-19 0-26 22-11 22 10v28L1-7Z" fill="#c9bfd0"/><path d="M1-33 23-46v28L1-7Z" fill="#958aa9"/><path d="m-25-45 26-28 27 27-26 14Z" fill="#a79fc4"/><path d="M1-73 2-32l26-14Z" fill="#7b82ab"/><path d="m-25-45 27 13 26-14" stroke="#ebd6b1" stroke-width="2"/><path d="M1-72v-15" stroke="#d8c09b" stroke-width="2"/>${sparkle(1,-88,4,'#f0dbaa')}<path d="m-33-5 0-27 12-7 12 7v28l-12 6Z" fill="#b5b2c5"/><path d="m-39-31 18-22 16 21-16 9Z" fill="#9ca9bc"/><path d="m15-5 0-30 13-7 12 7v29L28 1Z" fill="#a9a4bb"/><path d="m10-34 18-24 17 22-17 10Z" fill="#9d94b8"/><path d="m-39-31 18 8 16-9m15-2 18 8 17-10" stroke="#dbcbb0" stroke-width="1.5"/><path d="m-25-18 7-3v14l-7 3Zm50-2 7-3v14l-7 3Z" fill="#e5cfa7"/><path d="M-5-12v-14q7-11 13-4v15Z" fill="#4e5578"/><path d="M-2-26v9m6-12v9" stroke="#ceb995" stroke-width="1.5"/><path d="M-13-34v-8m7 11v-9m15-1v-9m7 5v-9" stroke="#e1c8a3" stroke-width="2"/><g class="shop-portal-glimmer">${sparkle(-21,-53,3,'#e9d8b7')}${sparkle(28,-58,3,'#e9d8b7')}<ellipse cy="-82" rx="15" ry="3" fill="none" stroke="#c8bcd7" stroke-width="1" opacity=".75"/></g><path d="m-17 13 17-7 19 7-17 4Z" fill="#c3b4ba"/></g>`+coast(true)+bench(233,256)+flowers(212,250,'#d5b9d0',.48)+lamp(269,261,true)+stones([[281,266]]);
-    return `<g class="island-decoration" data-island-decoration="${itemId}" fill="none" stroke="none">${content}</g>`;
+    return groundIslandDecoration(itemId,`<g class="island-decoration" data-island-decoration="${itemId}" fill="none" stroke="none">${content}</g>`);
   }
 
   function islandScene(itemId,equipped={}) {
     if(items.get(itemId)?.slot!=='island')return '';
     const choice=slot=>items.get(equipped?.[slot])?.slot===slot?equipped[slot]:`${slot}-default`;
-    const [sky,ground,rock]=expansion?.themePalette(choice('theme'))||themes[items.get(choice('theme')).variant];
+    const theme=choice('theme'),[sky,ground,rock,accent]=expansion?.themePalette(theme)||themes[items.get(theme).variant];
+    const backdrop=themeBackdrop(items.get(theme).variant).replace(/^<svg[^>]*>|<\/svg>$/g,'').replace(/opacity="\.(?:18|24|25)"/g,'opacity=".58"');
     const relic=choice('relic'),portal=choice('portal'),companion=choice('companion');
     const player=(nodeArt||root.QuestArt)?.avatar('player',choice('avatar'))?.replace(/^<svg[^>]*>|<\/svg>$/g,'')||'';
     const roadside=(nodeCampArt||root.FocusCampWorldArt)?.roadside?.(equipped)||'';
+    const decoration=islandDecoration(itemId);
+    const homeland=choice('homeland'),rebuilt=architecture?.main(homeland,{...equipped,island:itemId})||'';
+    const foundation=rebuilt||`<g data-preview-layer="island-body"><path d="m100 207 67 32 100 37 138-25 76-67-76 87-104 55-110-37Z" fill="${rock}"/><path d="m100 207 67 32 24 50Z" fill="${ground}" opacity=".22"/><path d="m267 276 34 50 104-55 0-20Z" fill="${ground}" opacity=".15"/><path d="m405 251 76-67-37 83-39 4Z" fill="${sky}" opacity=".35"/></g><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="${ground}" stroke="${accent}" stroke-opacity=".45" stroke-width="2"/>`;
+    const trees=rebuilt?'':`<g data-preview-layer="foreground-trees" fill="#5c8288"><path d="m156 137-21 33 21 12 20-12Z"/><path d="m216 110-17 32 17 10 17-10Z"/><path d="m435 171-20 34 20 12 20-12Z"/></g>`;
     const crystal=relic==='relic-default'?'<ellipse cx="322" cy="159" rx="39" ry="15" fill="#9d8ac4" opacity=".18"/><path d="m285 152 37-21 38 21-38 23Z" fill="#b9a4de"/><path d="m285 152 37 23v13l-37-24Zm37 23 38-23v13l-38 23Z" fill="#8879a9"/><path d="m321 60-23 39 23 42 24-42Z" fill="#b9a4e6"/><path d="m321 60 3 42-26-3Zm3 42-3 39 24-42Z" fill="#e0d6ed"/>':`<g transform="translate(278 62) scale(.88)">${(expansion?.premium(relic)||expansion?.relic(relic)||relics[items.get(relic).variant])}</g>`;
-    return `<rect x="38" y="18" width="514" height="307" rx="26" fill="${sky}" opacity=".35"/><ellipse cx="300" cy="319" rx="166" ry="12" fill="#11162a" opacity=".25"/><path d="m100 212 91 77 110 37 104-55 76-81-87 32-94 22-108-16Z" fill="${rock}"/><path d="m100 207 116-87 130-15 135 79-76 67-138 25-100-37Z" fill="${ground}" stroke="#77718f" stroke-width="2"/><path d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" fill="none" stroke="#b5a1cc" stroke-width="4" opacity=".6"/>${islandDecoration(itemId)}<g fill="#5c8288"><path d="m156 137-21 33 21 12 20-12Z"/><path d="m216 110-17 32 17 10 17-10Z"/><path d="m435 171-20 34 20 12 20-12Z"/></g>${crystal}${portal==='portal-default'?'':`<g transform="translate(220 123) scale(.57)">${(expansion?.portal(portal)||portals[items.get(portal).variant])}</g>`}${companion==='companion-default'?'':`<g transform="translate(362 192) scale(.53)">${companionArt(companion)}</g>`}<g transform="translate(151 172) scale(.65)">${player}</g>${roadside}`;
+    return `<g data-preview-layer="sky"><rect x="0" y="0" width="590" height="350" rx="26" fill="${sky}"/>${backdrop}</g><ellipse cx="300" cy="319" rx="166" ry="12" fill="#11162a" opacity=".25"/>${foundation}<path data-preview-layer="main-route" d="M166 218C203 202 214 236 258 220s11-39 47-40 66 26 93-4" fill="none" stroke="${accent}" stroke-width="4" opacity=".6"/>${decoration}${trees}<g data-preview-layer="crystal-shrine">${crystal}</g>${portal==='portal-default'?'':`<g transform="translate(220 123) scale(.57)">${(expansion?.portal(portal)||portals[items.get(portal).variant])}</g>`}${companion==='companion-default'?'':`<g transform="translate(362 192) scale(.53)">${companionArt(companion)}</g>`}<g transform="translate(151 172) scale(.65)">${player}</g><g data-preview-layer="roadside-camp">${roadside}</g>`;
   }
 
   function companionArt(id,options={}){
@@ -134,7 +230,19 @@
     return `<svg class="shop-island-art" viewBox="0 0 590 350" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none">${content}</svg>`;
   }
 
-  function preview(itemId) {
+  function archipelagoPreview(itemId,large=false) {
+    if(items.get(itemId)?.slot!=='archipelago')return '';
+    if(itemId!=='archipelago-default')return large?architecture?.detail(itemId)||'':architecture?.preview(itemId)||'';
+    const art=typeof module==='object'&&module.exports?require('./expedition-art.js'):root.FocusExpeditionArt;
+    const scene=(art?.world({progress:.75,subjects:['math','cs','politics','english'].map(id=>({id,progress:.75,percent:75}))})||'').replace(/^<svg[^>]*>|<\/svg>$/g,'').replace(/ role="button"| tabindex="0"| data-expedition-subject="[^"]+"| data-skin-slots="[^"]+"/g,'');
+    return large?`<svg class="shop-island-art" viewBox="0 0 1000 540" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none">${scene}</svg>`:`<svg class="shop-art-svg" viewBox="0 0 160 112" data-art="${itemId}" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" fill="none" stroke="none"><g transform="translate(0 13) scale(.16)">${scene}</g></svg>`;
+  }
+
+  function preview(itemId,equipped={}) {
+    if(items.get(itemId)?.slot.startsWith('campus'))return subjectIslandPreview(itemId,false,equipped);
+    if(items.get(itemId)?.slot==='homeland')return worldPreview(itemId);
+    if(items.get(itemId)?.slot==='archipelago')return archipelagoPreview(itemId);
+    if(['theme','island'].includes(items.get(itemId)?.slot))return worldPreview(itemId);
     if(items.get(itemId)?.slot==='companion'&&itemId!=='companion-default')return `<svg class="shop-art-svg" viewBox="0 0 160 112" aria-hidden="true" focusable="false" data-art="${itemId}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none"><g transform="translate(30 5)">${companionArt(itemId)}</g></svg>`;
     if(expansion?.has(itemId))return expansion.has(itemId,'bar')?(nodeProgressBars||root.FocusProgressBars)?.preview(itemId)||'':expansion.preview(itemId);
     const interfaceThemes=nodeInterfaceThemes||root.FocusInterfaceThemes;
@@ -151,8 +259,6 @@
       content=`<ellipse cx="80" cy="92" rx="34" ry="7" fill="#82709910"/><g transform="translate(48 16)">${character}</g>`;
     }else if(slot==='fx')content=fxPreview(variant);
     else if(slot==='banner')content=bannerPreview(variant);
-    else if(slot==='theme')content=themePreview(variant);
-    else if(slot==='island')content=`<g transform="translate(-3 5) scale(.28)">${islandScene(itemId)}</g>`;
     else content=`<g transform="translate(30 5)">${({companion:companions,relic:relics,portal:portals})[slot][variant]}</g>`;
     return `<svg class="shop-art-svg" viewBox="0 0 160 112" aria-hidden="true" focusable="false" data-art="${itemId}" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="none">${content}</svg>`;
   }
@@ -175,19 +281,20 @@
     element=svg?doc.createElementNS('http://www.w3.org/2000/svg','g'):doc.createElement('div');
     element.id=id;element.setAttribute('aria-hidden','true');
     if(!svg)element.className='scene-theme-backdrop';
-    if(svg&&id==='equipped-island')parent.insertBefore(element,parent.querySelector?.('.crystal-shrine')||null);
+    if(svg&&id==='equipped-homeland')parent.insertBefore(element,parent.firstChild||null);
+    else if(svg&&id==='equipped-island')parent.insertBefore(element,parent.querySelector?.('.crystal-shrine')||null);
     else if(svg)parent.appendChild(element);else parent.insertBefore(element,parent.firstChild||null);
     return element;
   }
-  function put(element,id,markup,transform){
+  function put(element,id,markup,transform,renderKey=id){
     if(!element)return;
     const slot=items.get(id)?.slot;
     if(slot&&element.getAttribute('data-skin-slots')!==slot)element.setAttribute('data-skin-slots',slot);
-    if(cache.get(element)===id)return;
+    if(cache.get(element)===renderKey)return;
     if(transform)element.setAttribute('transform',transform);
     element.setAttribute('data-item',id);
     element.innerHTML=markup;
-    cache.set(element,id);
+    cache.set(element,renderKey);
   }
   function dressTravelers(doc,outfit){
     const shapes={
@@ -244,6 +351,10 @@
     if('npc' in doc.documentElement.dataset)delete doc.documentElement.dataset.npc;
     for(const [slot,id] of Object.entries(valid))if(doc.documentElement.dataset[slot]!==id)doc.documentElement.dataset[slot]=id;
     dressTravelers(doc,valid.avatar);
+    if(architecture){
+      const homeland=mount(doc,'equipped-homeland','.floating-island',true);
+      put(homeland,valid.homeland,architecture.main(valid.homeland,valid),null,`${valid.homeland}:${valid.island}`);
+    }
     let regalia=doc.getElementById('equipped-player-regalia');
     const fullOutfit=expansion?.item(valid.avatar)?.lotteryOnly===true||expansion?.fullOutfit?.(valid.avatar)===true;
     if(fullOutfit)regalia=mount(doc,'equipped-player-regalia','#scene-traveler',true);
@@ -256,7 +367,7 @@
     const portal=mount(doc,'equipped-portal','.floating-island',true);
     let backdrop=doc.querySelector('.scene-theme-backdrop');
     if(!backdrop)backdrop=mount(doc,'scene-theme-backdrop','.quest-scene');
-    put(companion,valid.companion,companionArt(valid.companion,{interactive:true}),'translate(362 192) scale(.53)');
+    put(companion,valid.companion,companionArt(valid.companion,{interactive:true,zone:'island'}),'translate(362 192) scale(.53)');
     put(island,valid.island,islandDecoration(valid.island));
     put(relic,valid.relic,valid.relic==='relic-default'?'':`<g class="shop-relic-core">${(expansion?.premium(valid.relic)||expansion?.relic(valid.relic)||relics[items.get(valid.relic).variant])}</g>`,'translate(278 62) scale(.88)');
     put(portal,valid.portal,valid.portal==='portal-default'?'':(expansion?.portal(valid.portal)||portals[items.get(valid.portal).variant]),'translate(220 123) scale(.57)');
@@ -274,5 +385,12 @@
     return valid;
   }
 
-  return {preview,apply,islandDecoration,islandPreview,companionArt};
+  function subjectIslandPreview(itemId,large=false,equipped={}){
+    const item=items.get(itemId);if(!item?.slot.startsWith('campus'))return '';
+    const custom=large?architecture?.detail(itemId):architecture?.preview(itemId);if(custom)return custom;
+    const subject={campusmath:'math',campuscs:'cs',campuspolitics:'politics',campusenglish:'english'}[item.slot];
+    const art=typeof module==='object'&&module.exports?require('./expedition-art.js'):root.FocusExpeditionArt;
+    return art?.subjectPreview(subject,large,{...equipped,[item.slot]:itemId})||'';
+  }
+  return {preview,apply,islandDecoration,islandPreview,archipelagoPreview,subjectIslandPreview,companionArt};
 });

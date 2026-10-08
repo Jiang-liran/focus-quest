@@ -76,3 +76,142 @@ html.has-citadel-view main .pb-art *,html.has-campfire-room main .pb-art *,html.
 #quest-action-dialog.progress-bar-item-dialog .progress-bar-sample{height:47px}
 #quest-action-dialog.progress-bar-item-dialog .progress-bar-preview-note{padding:10px 3px 0;font-size:10px;line-height:1.5;margin:0}
 @media(max-height:760px){#quest-action-dialog.progress-bar-item-dialog{padding:18px 23px}#quest-action-dialog.progress-bar-item-dialog .q-action-art{padding:11px 14px}#quest-action-dialog.progress-bar-item-dialog .progress-bar-stage{height:42px}#quest-action-dialog.progress-bar-item-dialog .progress-bar-sample{height:40px}}
+/* Quiet entry-level pieces, more articulated motion for costly and limited pieces.
+   These groups are inside the existing clipped fill/leader. Nothing animates the
+   track's dimensions or its completed width, including in purchase previews. */
+[data-pb-motion=soft]{--pb-bob:1px;--pb-rock:2deg;--pb-tempo:7s}
+[data-pb-motion=lively]{--pb-bob:2px;--pb-rock:3.5deg;--pb-tempo:5s}
+[data-pb-motion=vivid]{--pb-bob:3px;--pb-rock:5deg;--pb-tempo:3.8s}
+[data-pb-motion=limited]{--pb-bob:3.4px;--pb-rock:5.5deg;--pb-tempo:4.3s}
+.pb-figure-motion{transform-box:view-box;transform-origin:40px 28px}
+.pb-figure-motion[data-pb-figure=bar-railway]{animation:pb-train-settle 2s ease-in-out infinite}
+.pb-train-wheel{transform-origin:0 0;animation:pb-wheel-roll 3.2s linear infinite}
+[data-pb-ribbon=bar-railway] .expansion-track-detail>path:nth-child(2){animation:pb-track-ties 4s linear infinite}
+.pb-figure-motion[data-pb-figure=bar-cat]{animation:pb-cat-weight 4.8s ease-in-out infinite}
+.pb-cat-tail{transform-box:view-box;transform-origin:28px 30px;animation:pb-cat-tail 5.5s ease-in-out infinite}
+[data-pb-ribbon=bar-cat] .expansion-track-detail>ellipse{animation:pb-paw-touch 7s ease-in-out infinite}
+[data-pb-ribbon=bar-cat] .expansion-track-detail>ellipse:nth-of-type(2n){animation-delay:-3.5s}
+.pb-figure-motion[data-pb-figure=bar-honey],.pb-figure-motion[data-pb-figure=bar-hummingbird]{animation:pb-hover-balance 3.2s ease-in-out infinite}
+.pb-bee-wing{transform-box:fill-box;transform-origin:center bottom;animation:pb-bee-wing .46s ease-in-out infinite alternate}
+.pb-bee-wing-back{animation-delay:-.2s}
+.pb-pollen-drift{animation:pb-pollen-travel 9s linear infinite}
+.pb-figure-motion[data-pb-figure=bar-lantern]{transform-origin:49px 5px;animation:pb-lantern-swing 5.6s ease-in-out infinite}
+.pb-lantern-core{animation:pb-lamp-warmth 7s ease-in-out infinite}
+[data-pb-ribbon=bar-lantern] .expansion-track-detail>rect{animation:pb-lamp-warmth 7s ease-in-out infinite}
+[data-pb-ribbon=bar-lantern] .expansion-track-detail>rect:nth-of-type(3n){animation-delay:-2.3s}
+[data-pb-ribbon=bar-lantern] .expansion-track-detail>rect:nth-of-type(3n+1){animation-delay:-4.7s}
+.pb-figure-motion:is([data-pb-figure=bar-jellyfish],[data-pb-figure=bar-whale],[data-pb-figure=bar-moonjelly]){animation:pb-jelly-rise var(--pb-tempo) ease-in-out infinite}
+.pb-jelly-bell{transform-box:view-box;transform-origin:46px 25px;animation:pb-jelly-bell 3.2s ease-in-out infinite}
+.pb-jelly-thread{transform-box:fill-box;transform-origin:50% 0;animation:pb-jelly-thread 3.2s ease-in-out infinite}
+.pb-jelly-thread:nth-of-type(2n){animation-delay:-1.6s}
+[data-pb-ribbon=bar-jellyfish] .expansion-track-detail>circle{animation:pb-bubble-rise 4.5s ease-in-out infinite}
+[data-pb-ribbon=bar-jellyfish] .expansion-track-detail>circle:nth-child(2n){animation-delay:-2.1s}
+.pb-figure-motion[data-pb-figure=bar-phoenix]{animation:pb-hover-balance 2.8s ease-in-out infinite}
+.pb-phoenix-wings{transform-box:view-box;transform-origin:45px 28px;animation:pb-phoenix-flight 1.7s ease-in-out infinite}
+[data-pb-ribbon=bar-phoenix] .expansion-track-detail>path:nth-child(2n){stroke-dasharray:11 17;animation:pb-feather-light 3.8s linear infinite}
+.pb-music-dancer{transform-box:view-box;transform-origin:45px 16px;animation:pb-music-turn 3.2s ease-in-out infinite}
+.pb-music-note{animation:pb-note-rise 3.7s ease-out infinite}
+.pb-music-note-late{animation-delay:-1.8s}
+[data-pb-ribbon=bar-music] .expansion-track-detail>rect{transform-box:fill-box;transform-origin:center bottom;animation:pb-key-play 2.6s ease-in-out infinite}
+[data-pb-ribbon=bar-music] .expansion-track-detail>rect:nth-of-type(3n){animation-delay:-.9s}
+[data-pb-ribbon=bar-music] .expansion-track-detail>rect:nth-of-type(3n+1){animation-delay:-1.8s}
+.pb-figure-motion[data-pb-figure=bar-airship]{animation:pb-airship-cruise 5.3s ease-in-out infinite}
+.pb-airship-propeller{transform-origin:0 0;animation:pb-wheel-roll .72s linear infinite}
+[data-pb-ribbon=bar-airship] .expansion-track-detail{animation:pb-cloud-altitude 8s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-snailtrail]{animation:pb-snail-inch 16s ease-in-out infinite}
+.pb-figure-motion:is([data-pb-figure=bar-kiteflight],[data-pb-figure=bar-dragon]){animation:pb-kite-tack 5.8s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-paperboat]{transform-origin:40px 40px;animation:pb-boat-rock 6.4s ease-in-out infinite}
+.pb-cup-steam{animation:pb-cup-steam 4.2s ease-out infinite}
+.pb-tea-surface{stroke-dasharray:27 73;animation:pb-tea-ripple 12s linear infinite}
+.pb-sewing-needle{transform-box:view-box;transform-origin:55px 30px;animation:pb-needle-stitch 3.3s ease-in-out infinite}
+[data-pb-ribbon=bar-needlework] .collection-v2-bar-ribbon>path:last-child{stroke-dasharray:4 3;animation:pb-thread-feed 4.6s linear infinite}
+.pb-figure-motion[data-pb-figure=bar-lilyriver]{animation:pb-fish-swim 4s ease-in-out infinite}
+[data-pb-ribbon=bar-lilyriver] .collection-v2-stream{animation:pb-river-ripple 4s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-foxsteps] .collection-v2-tail{animation:pb-fox-tail 4.8s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-clockpendulum] .collection-v2-pendulum{animation-duration:2.4s;transform-origin:50% -190%}
+[data-pb-ribbon=bar-clockpendulum] .collection-v2-bar-ribbon>path:nth-of-type(2){animation:pb-clock-tick 6s steps(6,end) infinite}
+.pb-figure-motion[data-pb-figure=bar-bamboocascade] .collection-v2-wheel{animation-duration:7.8s}
+[data-pb-ribbon=bar-bamboocascade] .collection-v2-current{animation-duration:3.8s}
+.pb-figure-motion[data-pb-figure=bar-crystalvine]{transform-origin:14px 40px;animation:pb-crystal-branch 5.5s ease-in-out infinite}
+.pb-crystal-glint{transform-box:fill-box;transform-origin:center;animation:pb-dew-catch 4.6s ease-in-out infinite;animation-delay:var(--pb-delay,0s)}
+.pb-vine-dew{animation:pb-dew-flow 5.8s linear infinite}
+.pb-figure-motion[data-pb-figure=bar-solarfleet]{animation:pb-sail-bank 4.5s ease-in-out infinite}
+.pb-solar-courier{animation:pb-solar-stream 3.3s linear infinite}
+.pb-figure-motion[data-pb-figure=bar-prismcurrent]{animation:pb-crystal-float 4.6s ease-in-out infinite}
+.pb-crystal-reflection{animation:pb-facet-light 3.4s ease-in-out infinite}
+.pb-prism-current-spectrum{animation:pb-rgb-travel 11s linear infinite}
+[data-pb-ribbon=bar-prismcurrent] .collection-v2-stream{animation:pb-prism-tide 4.5s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-toastdash] .cv3p-bob{animation:none}
+.pb-figure-motion[data-pb-figure=bar-puddleduck]{transform-origin:38px 34px;animation:pb-boat-rock 8.5s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-mushroomtrail] .cv3p-cap{animation-duration:7.5s}
+.pb-figure-motion[data-pb-figure=bar-marbletrack] .cv3p-marble{animation-duration:10s}
+.pb-figure-motion[data-pb-figure=bar-cocoamelt] .cv3p-steam{animation:pb-cup-steam 4.7s ease-out infinite}
+.pb-figure-motion[data-pb-figure=bar-hummingbird] .cv3p-wing{animation:pb-hummingbird-wing .65s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-crystalotter]{transform-origin:40px 30px;animation:pb-otter-float 5.8s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-moonjelly] .cv3p-tentacle{animation:pb-jelly-thread 3.8s ease-in-out infinite}
+[data-pb-ribbon=bar-moonjelly] .cv3p-water{animation:pb-river-ripple 4.2s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-fox] .pb-animal-tail{animation:pb-fox-tail 3.6s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-koi]{transform-origin:40px 32px;animation:pb-lotus-float 6s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-koi] .pb-star-flow{transform-box:fill-box;transform-origin:center;animation:pb-lotus-ripple 4.8s ease-out infinite}
+.pb-figure-motion[data-pb-figure=bar-whale] .pb-animal-tail{transform-origin:50% 0;animation:pb-jelly-thread 3.8s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-dragon] .pb-animal-tail{animation:pb-kite-streamer 3.8s ease-in-out infinite}
+.progress-bar-thumbnail [data-pb-figure=bar-mint],.progress-bar-sample [data-pb-figure=bar-mint]{transform-origin:42px 40px;animation:pb-sprout-sway 5s ease-in-out infinite alternate}
+/* Limited pieces keep their bespoke geometry; layered motion is clearer at compact scale. */
+.pb-figure-motion[data-pb-figure=bar-skyexpress] .expansion-train-leader{animation:pb-train-settle 1.8s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-galaxy] .expansion-leader-orbit{animation:pb-orbit-lift 3.6s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-tidewhale] .lca-tail{animation-duration:2.9s}
+.pb-figure-motion[data-pb-figure=bar-eventhorizon] .lca-jump-craft{animation:pb-jump-hover 3.6s ease-in-out infinite}
+.pb-figure-motion[data-pb-figure=bar-koidance] .lcv3c-koi-fin{animation-duration:2.3s}
+.pb-figure-motion[data-pb-figure=bar-stardragon] .lcv3d-dragon-whiskers{animation-duration:2.8s}
+@keyframes pb-train-settle{0%,50%,100%{transform:translateY(0)}25%,75%{transform:translateY(-.55px)}}
+@keyframes pb-wheel-roll{to{transform:rotate(360deg)}}
+@keyframes pb-track-ties{to{stroke-dashoffset:24}}
+@keyframes pb-cat-weight{0%,70%,100%{transform:translateY(0)}35%{transform:translateY(-.8px)}}
+@keyframes pb-cat-tail{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(7deg)}}
+@keyframes pb-paw-touch{0%,100%{opacity:.65}35%,60%{opacity:1}}
+@keyframes pb-hover-balance{0%,100%{transform:translate(0,1px) rotate(-1deg)}50%{transform:translate(-.7px,-2px) rotate(2deg)}}
+@keyframes pb-bee-wing{to{transform:scaleY(.52) rotate(8deg)}}
+@keyframes pb-pollen-travel{to{stroke-dashoffset:-73}}
+@keyframes pb-lantern-swing{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(4deg)}}
+@keyframes pb-lamp-warmth{0%,100%{opacity:.68}45%,65%{opacity:1}}
+@keyframes pb-jelly-rise{0%,100%{transform:translateY(1px)}45%{transform:translateY(calc(var(--pb-bob)*-1))}}
+@keyframes pb-jelly-bell{0%,100%{transform:scale(1,1)}40%{transform:scale(.95,.91)}65%{transform:scale(1.03,.98)}}
+@keyframes pb-jelly-thread{0%,100%{transform:skewX(-4deg) scaleY(.95)}50%{transform:skewX(7deg) scaleY(1)}}
+@keyframes pb-bubble-rise{0%,100%{transform:translateY(3px);opacity:.35}50%{transform:translateY(-3px);opacity:.8}}
+@keyframes pb-phoenix-flight{0%,100%{transform:rotate(-2deg) scaleY(.86)}50%{transform:rotate(1deg) scaleY(1.07)}}
+@keyframes pb-feather-light{to{stroke-dashoffset:-28}}
+@keyframes pb-music-turn{0%,100%{transform:rotate(-5deg)}50%{transform:rotate(6deg)}}
+@keyframes pb-note-rise{0%{transform:translateY(3px);opacity:0}20%,65%{opacity:.85}100%{transform:translateY(-7px);opacity:0}}
+@keyframes pb-key-play{0%,45%,100%{transform:scaleY(1);opacity:.7}20%,30%{transform:scaleY(.6);opacity:1}}
+@keyframes pb-airship-cruise{0%,100%{transform:translateY(1px) rotate(-2deg)}50%{transform:translateY(-3px) rotate(2deg)}}
+@keyframes pb-cloud-altitude{0%,100%{transform:translateY(1px)}50%{transform:translateY(-2.5px)}}
+@keyframes pb-snail-inch{0%,100%{transform:translateX(0)}55%{transform:translateX(1px)}}
+@keyframes pb-kite-tack{0%,100%{transform:translateY(1px) rotate(-2deg)}40%{transform:translateY(calc(var(--pb-bob)*-1)) rotate(var(--pb-rock))}70%{transform:translateY(0) rotate(0)}}
+@keyframes pb-boat-rock{0%,100%{transform:rotate(calc(var(--pb-rock)*-1))}50%{transform:rotate(var(--pb-rock)) translateY(-.7px)}}
+@keyframes pb-cup-steam{0%{transform:translate(0,2px);opacity:.15}30%,60%{opacity:.8}100%{transform:translate(2px,-5px);opacity:.08}}
+@keyframes pb-tea-ripple{to{stroke-dashoffset:-100}}
+@keyframes pb-needle-stitch{0%,65%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(-2px,3px) rotate(-4deg)}40%{transform:translate(-2px,3px) rotate(-4deg)}}
+@keyframes pb-thread-feed{to{stroke-dashoffset:-28}}
+@keyframes pb-fish-swim{0%,100%{transform:translate(-1px,0) rotate(-2deg)}50%{transform:translate(1px,-1px) rotate(3deg)}}
+@keyframes pb-river-ripple{0%,100%{transform:translateY(-1px);opacity:.9}50%{transform:translateY(2px);opacity:.6}}
+@keyframes pb-fox-tail{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(10deg)}}
+@keyframes pb-clock-tick{to{stroke-dashoffset:-90}}
+@keyframes pb-crystal-branch{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(3deg)}}
+@keyframes pb-dew-catch{0%,35%,100%{opacity:.2;transform:scale(.72)}60%{opacity:.95;transform:scale(1.12)}}
+@keyframes pb-dew-flow{to{stroke-dashoffset:-70}}
+@keyframes pb-sail-bank{0%,100%{transform:translateY(1px) rotate(-3deg)}50%{transform:translateY(-2px) rotate(4deg)}}
+@keyframes pb-solar-stream{to{stroke-dashoffset:-260}}
+@keyframes pb-crystal-float{0%,100%{transform:translateY(1px) rotate(-2deg)}50%{transform:translateY(-2.4px) rotate(3deg)}}
+@keyframes pb-facet-light{0%,100%{opacity:.3}48%,62%{opacity:1}}
+@keyframes pb-prism-tide{0%,100%{transform:translateY(-1.2px);opacity:1}50%{transform:translateY(2px);opacity:.72}}
+@keyframes pb-hummingbird-wing{0%,100%{transform:scaleX(.66) rotate(-11deg)}50%{transform:scaleX(1.05) rotate(5deg)}}
+@keyframes pb-otter-float{0%,100%{transform:rotate(-2deg) translateY(1px)}50%{transform:rotate(2deg) translateY(-1.5px)}}
+@keyframes pb-lotus-float{0%,100%{transform:rotate(-1deg)}50%{transform:rotate(2deg) translateY(-1px)}}
+@keyframes pb-lotus-ripple{0%{transform:scale(.86);opacity:.7}80%,100%{transform:scale(1.04);opacity:.22}}
+@keyframes pb-kite-streamer{0%,100%{transform:rotate(-6deg) skewY(-2deg)}50%{transform:rotate(7deg) skewY(3deg)}}
+@keyframes pb-orbit-lift{0%,100%{transform:translateY(-3.2px)}50%{transform:translateY(3.2px)}}
+@keyframes pb-jump-hover{0%,100%{transform:translateY(1px) rotate(-2deg)}50%{transform:translateY(-2.8px) rotate(2deg)}}
+/* Guards also cover the newly articulated groups, not just inherited collections. */
+html.no-motion :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,[data-motion=false] :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *{animation:none!important;transition:none!important}
+html.focus-runtime-hidden :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,[hidden] :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,dialog:not([open]) :is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *,[data-pb-empty=true] .pb-art *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){:is(.pb-art,.progress-bar-thumbnail,.progress-bar-sample) *{animation:none!important;transition:none!important}}

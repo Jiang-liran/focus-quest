@@ -61,8 +61,8 @@ function harness({reducedMotion = false, appGuards = false, realExpedition = fal
       if (/<svg\b[^>]*class="citadel-art"/.test(this._html)) {
         parent = new Element('svg'); parent.className = 'citadel-art'; this.append(parent);
       }
-      for (const match of this._html.matchAll(/<(button|g)\b([^>]*)>/g)) {
-        if (match[1] === 'g' && !/data-city-place|data-city-trail|data-citadel-place|data-skin-slots|data-home-action|data-lottery-machine/.test(match[2])) continue;
+      for (const match of this._html.matchAll(/<(button|g|p)\b([^>]*)>/g)) {
+        if (match[1] === 'g' && !/data-city-place|data-city-trail|data-citadel-place|data-skin-slots|data-home-action|data-lottery-machine|data-city-npc|data-city-workstation/.test(match[2])) continue;
         const child = new Element(match[1]);
         for (const attr of match[2].matchAll(/([\w-]+)(?:="([^"]*)"|='([^']*)')?/g)) child.setAttribute(attr[1], decode(attr[2] ?? attr[3] ?? ''));
         parent.append(child);
@@ -78,6 +78,7 @@ function harness({reducedMotion = false, appGuards = false, realExpedition = fal
     }
     getAttribute(name) { if (name === 'disabled') return this.disabled ? '' : null; if (name === 'hidden') return this.hidden ? '' : null; return this.attributes[name] ?? null; }
     hasAttribute(name) { return this.getAttribute(name) !== null; }
+    removeAttribute(name) { delete this.attributes[name]; if (name.startsWith('data-')) delete this.dataset[camel(name)]; }
     matches(selector) {
       if (selector.includes(',')) return selector.split(',').some(part => this.matches(part.trim()));
       if (selector === 'dialog[open]') return this.tagName === 'DIALOG' && this.open;
@@ -124,8 +125,9 @@ function harness({reducedMotion = false, appGuards = false, realExpedition = fal
   for (const id of buttons) if (id.startsWith('citadel-') && id !== 'citadel-enter') element('citadel-view').append(element(id));
   for (const id of ['city-street', 'city-room']) element('citadel-view').append(element(id));
   for (const id of ['citadel-stage', 'citadel-locations']) element('city-street').append(element(id));
-  for (const id of ['city-interior-art', 'city-room-content']) element('city-room').append(element(id));
+  for (const id of ['city-interior-art', 'city-room-content', 'city-room-welcome']) element('city-room').append(element(id));
   element('city-room').hidden=true;
+  element('citadel-view').append(element('city-talk')); element('city-talk').hidden=true;
   element('citadel-stage').append(element('citadel-camera')); element('citadel-camera').append(element('citadel-scene'));
   element('citadel-preview-controls').append(element('citadel-preview-range')); element('citadel-preview-controls').hidden = true;
   element('quick-skins').append(element('quick-skin-close'), element('quick-skin-tabs'), element('quick-skin-items'));
@@ -135,7 +137,7 @@ function harness({reducedMotion = false, appGuards = false, realExpedition = fal
     const list = documentListeners.get(type) || []; list.push({fn, capture: capture === true}); documentListeners.set(type, list);
   };
   function emit(target, type, patch = {}) {
-    const event = {target, currentTarget: target, button: 0, ctrlKey: false, defaultPrevented: false, stopped: false,
+    const event = {type, target, currentTarget: target, button: 0, ctrlKey: false, defaultPrevented: false, stopped: false,
       preventDefault() { this.defaultPrevented = true; }, stopImmediatePropagation() { this.stopped = true; }, ...patch};
     const list = documentListeners.get(type) || [];
     for (const {fn, capture} of list) if (capture && !event.stopped) fn(event);
@@ -156,13 +158,13 @@ function harness({reducedMotion = false, appGuards = false, realExpedition = fal
     ShopArt: {apply() {}, preview(id) { return `<svg data-preview="${id}"></svg>`; }},
     FocusExpeditionArt: {world() { return '<svg></svg>'; }},
     FocusRainCityArt: {scene(model, equipment, options) { calls.scenes.push(copy({model, equipment, options}));
-      return `<svg class="citadel-art">${options.interactive ? placeIds.map((id, i) => `<g data-city-place="${id}" data-citadel-place="${id}" data-skin-slots="${slots[i]}" tabindex="0" role="button"></g>`).join('')+'<g data-city-trail="open" tabindex="0" role="button"></g>' : ''}</svg>`; },
-      interior(id,model,equipment,options){calls.interiors.push(copy({id,model,equipment,options}));return `<svg class="rain-city-interior" data-room="${id}">${id==='observatory'&&options.mode==='home'&&options.interactive?'<g role="button" tabindex="0" data-home-action="window"></g><g role="button" tabindex="0" data-home-action="rooftop"></g>':''}${id==='arcade'&&options.interactive?'<g role="button" tabindex="0" data-lottery-machine="coin" aria-controls="city-lottery-pane"></g><g role="button" tabindex="0" data-lottery-machine="diamond" aria-controls="city-lottery-pane"></g>':''}</svg>`;}},
+      return `<svg class="citadel-art">${options.interactive ? placeIds.map((id, i) => `<g data-city-place="${id}" data-citadel-place="${id}" data-skin-slots="${slots[i]}" tabindex="0" role="button"></g>`).join('')+'<g data-city-trail="open" tabindex="0" role="button"></g>'+['yanqing','ayu','qideng'].map(id=>`<g data-city-npc="${id}" data-city-walker="${id}" data-talking="false" tabindex="0" role="button"></g>`).join('') : ''}</svg>`; },
+      interior(id,model,equipment,options){calls.interiors.push(copy({id,model,equipment,options}));const npc=context.FocusCityResidents.roomResident(id,options.mode),workstations={library:['desk','shelf'],tea:['tea','tea-window'],atelier:['wardrobe','outfits'],station:['plan','camp'],arcade:['games'],observatory:options.mode==='home'?['home-light']:options.mode==='panorama'?[]:['sky']}[id]||[];return `<svg class="rain-city-interior" data-room="${id}">${options.interactive&&npc?`<g data-city-npc="${npc}" tabindex="0" role="button"></g>`:''}${options.interactive?workstations.map(key=>`<g data-city-workstation="${key}" tabindex="0" role="button"></g>`).join(''):''}${id==='observatory'&&options.mode==='home'&&options.interactive?'<g role="button" tabindex="0" data-home-action="window"></g><g role="button" tabindex="0" data-home-action="rooftop"></g>':''}${id==='arcade'&&options.interactive?'<g role="button" tabindex="0" data-lottery-machine="coin" aria-controls="city-lottery-pane"></g><g role="button" tabindex="0" data-lottery-machine="diamond" aria-controls="city-lottery-pane"></g>':''}</svg>`;}},
     FocusAmbience:{setScene(id){calls.ambienceScenes.push(id);},mount(node,id){calls.ambienceMounts.push({id,node:node?.id});}},
     FocusCityLife:{mount(id,node,state){calls.lifeMounts.push({id,node,date:state.date});},unmount(){calls.lifeUnmounts++;}},
     FocusLottery:{mount(id,node,state){calls.lotteryMounts.push({id,node,date:state.date,wallet:copy(state.quests?.wallet)});},unmount(){calls.lotteryUnmounts++;}},
   });
-  for (const name of ['expedition-model.js', 'citadel-route.js', ...(realExpedition ? ['expedition.js'] : []), 'quick-skins.js', 'citadel.js']) vm.runInContext(source(name), context);
+  for (const name of ['city-residents.js', 'expedition-model.js', 'citadel-route.js', ...(realExpedition ? ['expedition.js'] : []), 'quick-skins.js', 'citadel.js']) vm.runInContext(source(name), context);
   const api = context.FocusCitadel, quick = context.FocusQuickSkins, run = code => vm.runInContext(code, context);
   const expedition = context.FocusExpedition;
   quick.init({api(path, body) { calls.requests.push({path, body}); return new Promise((resolve, reject) => { request = {resolve, reject}; }); },
@@ -175,7 +177,7 @@ function harness({reducedMotion = false, appGuards = false, realExpedition = fal
     vm.runInContext(source('effects.js'), context);
     vm.runInContext(source('app.js').split("\ndocument.querySelectorAll('[data-view]')")[0], context);
   }
-  return {api, quick, expedition, calls, document, main, sidebar, element, emit, media, timers, frames, animations, run,
+  return {api, quick, expedition, residents:context.FocusCityResidents, calls, document, main, sidebar, element, emit, media, timers, frames, animations, run,
     render(next) { state = next; quick.render(next.quests); expedition?.render(next); api.render(next); },
     select(id) { const button = element('citadel-locations').querySelector(`[data-city-select="${id}"]`); assert.ok(button); button.click(); },
     hotspot(id) { const node = element('citadel-scene').querySelector(`[data-city-place="${id}"]`); assert.ok(node); return node; },
@@ -280,14 +282,14 @@ test('open dialog blocks entering and room keyboard navigation, and unknown buil
 });
 
 test('arcade room opens existing games only on explicit entry, without spending a ticket or awarding anything',()=>{
-  const h=harness();const s=snapshot();s.arcade={available:3,active:null};h.render(s);h.api.open();h.api.openPlace('arcade');
+  const h=harness();const s=snapshot();s.arcade={available:3,active:null};h.render(s);h.api.open();h.api.openPlace('arcade');h.api.openService('games');
   assert.equal(h.calls.arcades,0);assert.match(h.element('city-room-content').innerHTML,/3 张累计游玩券/);
   const initial=JSON.stringify(s);h.element('city-room-content').querySelector('[data-city-action="arcade"]').click();
   assert.equal(h.calls.arcades,1);assert.equal(h.api.isOpen(),false);assert.equal(h.main.inert,false);assert.equal(JSON.stringify(s),initial);assert.equal(h.calls.requests.length,0);
 });
 
 test('arcade room reports a retained active game without altering its state',()=>{
-  const h=harness();const s=snapshot();s.arcade={available:1,active:{id:'retained-board',type:'minesweeper'}};h.render(s);h.api.open();h.api.openPlace('arcade');
+  const h=harness();const s=snapshot();s.arcade={available:1,active:{id:'retained-board',type:'minesweeper'}};h.render(s);h.api.open();h.api.openPlace('arcade');h.api.openService('games');
   assert.match(h.element('city-room-content').innerHTML,/继续未结束的游戏/);h.api.backToStreet();h.api.openPlace('arcade');assert.equal(s.arcade.active.id,'retained-board');assert.equal(h.calls.requests.length,0);
 });
 
@@ -298,7 +300,7 @@ test('arcade cabinet hotspot opens exactly its ticket machine, then returns thro
   assert.equal(h.element('citadel-view').dataset.lottery,'coin');assert.equal(h.element('citadel-title').textContent,'金币抽奖机');assert.equal(h.element('citadel-close').textContent,'← 返回游乐场');assert.equal(art.hidden,true);assert.equal(art.getAttribute('aria-hidden'),'true');
   assert.equal(h.calls.lotteryMounts.at(-1).id,'coin');assert.equal(h.calls.lotteryMounts.at(-1).node,h.element('city-lottery-pane'));assert.match(h.element('city-room-content').innerHTML,/id="city-lottery-pane"/);assert.equal(h.element('city-room').hidden,false);assert.equal(h.calls.arcades,0);
   const unmounts=h.calls.lotteryUnmounts;h.element('citadel-close').click();assert.ok(h.calls.lotteryUnmounts>unmounts);assert.equal(h.element('citadel-view').dataset.lottery,'');assert.equal(h.element('city-room').hidden,false);assert.equal(art.hidden,false);assert.equal(h.document.activeElement,coin);
-  assert.match(h.element('city-room-content').innerHTML,/去游戏区/);assert.equal(h.element('citadel-close').textContent,'← 返回街道');h.element('citadel-close').click();assert.equal(h.element('city-street').hidden,false);assert.equal(h.document.activeElement,h.hotspot('arcade'));assert.equal(h.api.isOpen(),true);
+  assert.equal(h.element('city-room-content').hidden,true);assert.match(h.element('city-room-welcome').innerHTML,/看看游戏/);assert.equal(h.element('citadel-close').textContent,'← 返回街道');h.element('citadel-close').click();assert.equal(h.element('city-street').hidden,false);assert.equal(h.document.activeElement,h.hotspot('arcade'));assert.equal(h.api.isOpen(),true);
   h.element('citadel-close').click();assert.equal(h.api.isOpen(),false);assert.equal(h.main.inert,false);assert.equal(h.calls.requests.length,0);assert.equal(h.calls.arcades,0);assert.equal(h.timers.size,0);assert.equal(h.frames.size,0);
 });
 
@@ -330,13 +332,13 @@ test('lottery parent pane survives polls, history navigation and equipment refre
 test('switching cabinet or building and closing the city unmount the previous lottery without routing into games',()=>{
   const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('arcade');h.api.openMachine('coin');let unmounts=h.calls.lotteryUnmounts;
   h.api.openMachine('diamond');assert.ok(h.calls.lotteryUnmounts>unmounts);assert.equal(h.calls.lotteryMounts.at(-1).id,'diamond');unmounts=h.calls.lotteryUnmounts;
-  h.api.openPlace('tea');assert.ok(h.calls.lotteryUnmounts>unmounts);assert.equal(h.element('citadel-view').dataset.lottery,'');assert.equal(h.element('city-interior-art').hidden,false);assert.equal(h.calls.lifeMounts.at(-1).id,'tea');
+  h.api.openPlace('tea');assert.ok(h.calls.lotteryUnmounts>unmounts);assert.equal(h.element('citadel-view').dataset.lottery,'');assert.equal(h.element('city-interior-art').hidden,false);assert.equal(h.element('city-room-content').hidden,true);h.api.openService('tea');assert.equal(h.calls.lifeMounts.at(-1).id,'tea');
   h.api.openPlace('arcade');h.api.openMachine('coin');unmounts=h.calls.lotteryUnmounts;h.api.close(false);assert.ok(h.calls.lotteryUnmounts>unmounts);assert.equal(h.calls.arcades,0);assert.equal(h.calls.requests.length,0);
 });
 
 test('library mounts private notes without importing study task names and keeps optional review access',()=>{
   const h=harness(),s=snapshot(125.5);s.records=[{id:'1',day,minutes:45.5,name:'<数学>&',end:day+'T12:00:00'}];
-  const before=JSON.stringify(s);h.render(s);h.api.open();h.api.openPlace('library');const html=h.element('city-room-content').innerHTML;
+  const before=JSON.stringify(s);h.render(s);h.api.open();h.api.openPlace('library');h.api.openService('desk');const html=h.element('city-room-content').innerHTML;
   assert.match(html,/私人的纸页/);assert.match(html,/id="city-life-pane"/);assert.doesNotMatch(html,/&lt;数学&gt;|<数学>/);
   assert.equal(h.calls.lifeMounts.at(-1).id,'library');assert.equal(h.calls.lifeMounts.at(-1).node,h.element('city-life-pane'));
   assert.equal(JSON.stringify(s),before);
@@ -344,7 +346,7 @@ test('library mounts private notes without importing study task names and keeps 
 });
 
 test('tea updates chat and window lighting in place without restarting its mounted rest timer',()=>{
-  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('tea');const room=h.element('city-room-content'),writes=room.htmlWrites,unmounts=h.calls.lifeUnmounts;
+  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('tea');h.api.openService('tea');const room=h.element('city-room-content'),writes=room.htmlWrites,unmounts=h.calls.lifeUnmounts;
   const before=h.element('city-tea-line').textContent;
   room.querySelector('[data-city-action="tea-chat"]').click();assert.notEqual(h.element('city-tea-line').textContent,before);
   room.querySelector('[data-city-action="tea-window"]').click();assert.equal(h.calls.interiors.at(-1).options.mode,'lamplight');
@@ -358,11 +360,11 @@ test('home leads to the former rooftop and remembers stars when revisiting it',(
   const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('observatory');
   assert.equal(h.calls.interiors.at(-1).options.mode,'home');
   assert.equal(h.element('citadel-title').textContent,'我的家');
-  const room=h.element('city-room-content');
+  const room=h.element('city-room-welcome');
   room.querySelector('[data-city-action="home-rooftop"]').click();
   assert.equal(h.calls.interiors.at(-1).options.mode,'rain');
   assert.equal(h.element('citadel-title').textContent,'屋顶天台');
-  room.querySelector('[data-city-action="sky"]').click();assert.equal(h.calls.interiors.at(-1).options.mode,'stars');
+  h.element('city-interior-art').querySelector('[data-city-workstation="sky"]').click();assert.equal(h.calls.interiors.at(-1).options.mode,'stars');
   h.api.backToStreet();assert.equal(h.calls.interiors.at(-1).options.mode,'home');
   room.querySelector('[data-city-action="home-rooftop"]').click();assert.equal(h.calls.interiors.at(-1).options.mode,'stars');
   h.api.backToStreet();h.api.backToStreet();h.api.openPlace('observatory');
@@ -395,7 +397,7 @@ test('home window and rooftop scene hotspots work with click and keyboard, with 
 test('city and home soundscapes switch on visits, keep their controls and stop on departure',()=>{
   const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('observatory');
   assert.deepEqual(h.calls.ambienceScenes,['city','home']);
-  const room=h.element('city-room-content');
+  const room=h.element('city-room-welcome');
   room.querySelector('[data-city-action="home-window"]').click();
   h.api.backToStreet();room.querySelector('[data-city-action="home-rooftop"]').click();
   assert.deepEqual(h.calls.ambienceScenes,['city','home']);
@@ -411,7 +413,7 @@ test('city and home soundscapes switch on visits, keep their controls and stop o
 
 test('shop and station route to existing modules after releasing main-page inert ownership',()=>{
   for(const [room,action,count] of [['atelier','shop','shops'],['station','camp','camps'],['station','home','closed']]){
-    const h=harness();h.render(snapshot());h.api.open();h.api.openPlace(room);
+    const h=harness();h.render(snapshot());h.api.open();h.api.openPlace(room);h.api.openService(room==='atelier'?'outfits':'plan');
     h.element('city-room-content').querySelector(`[data-city-action="${action}"]`).click();assert.equal(h.calls[count],1);assert.equal(h.api.isOpen(),false);assert.equal(h.main.inert,false);
   }
 });
@@ -419,7 +421,7 @@ test('shop and station route to existing modules after releasing main-page inert
 test('polls reuse expensive street and room SVG and leave focused interaction controls attached',()=>{
   const h=harness();h.render(snapshot());h.api.open();const scene=h.element('citadel-scene'),writes=scene.htmlWrites;
   h.render(snapshot(180));h.render(snapshot(240));assert.equal(scene.htmlWrites,writes);
-  h.api.openPlace('tea');const room=h.element('city-interior-art'),roomWrites=room.htmlWrites,content=h.element('city-room-content'),contentWrites=content.htmlWrites;
+  h.api.openPlace('tea');h.api.openService('tea');const room=h.element('city-interior-art'),roomWrites=room.htmlWrites,content=h.element('city-room-content'),contentWrites=content.htmlWrites;
   const chat=content.querySelector('[data-city-action="tea-chat"]');chat.focus();h.render(snapshot(300));
   assert.equal(room.htmlWrites,roomWrites);assert.equal(content.htmlWrites,contentWrites);assert.equal(h.document.activeElement,chat);
 });
@@ -444,7 +446,7 @@ test('equipped effects stay mounted through progress polls and redraw only when 
 });
 
 test('changing selected history date keeps the private notebook mounted without recreating its draft pane',()=>{
-  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('library');
+  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('library');h.api.openService('desk');
   const pane=h.element('city-life-pane'),writes=h.element('city-room-content').htmlWrites,unmounts=h.calls.lifeUnmounts;
   const s=snapshot(30,{date:'2026-09-21',records:[{id:'old',day:'2026-09-21',name:'英语听课',minutes:30}],dayRecordCount:1});h.render(s);
   assert.match(h.element('city-room-content').innerHTML,/私人的纸页/);assert.doesNotMatch(h.element('city-room-content').innerHTML,/英语听课/);
@@ -537,4 +539,156 @@ test('the city street trail sign handles mouse and keyboard without hijacking ot
   assert.equal(h.document.activeElement,sign(),'equipping redraws the scene but keeps focus on the route sign');
   h.api.close(false);sign().click();assert.equal(h.calls.trails.length,3);
   assert.equal(h.calls.requests.length,0);assert.equal(h.calls.storageWrites,0);
+});
+
+test('entering each building prioritizes its room scene and waits for an object before opening tools',()=>{
+  const h=harness();h.render(snapshot());h.api.open();
+  for(const id of placeIds){
+    h.api.openPlace(id);
+    assert.equal(h.element('city-interior-art').hidden,false,id);
+    assert.equal(h.element('city-interior-art').getAttribute('aria-hidden'),'false',id);
+    assert.equal(h.calls.interiors.at(-1).options.interactive,true,id);
+    assert.equal(h.element('city-room-content').hidden,true,`${id}: tools should not obscure the room on entry`);
+    assert.equal(h.element('city-room-welcome').hidden,false,id);
+    h.api.backToStreet();
+  }
+  assert.equal(h.calls.requests.length,0);
+});
+
+test('closing and reopening a desk keeps its unsaved draft and mounted notebook through polls and appearance changes',()=>{
+  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('library');
+  assert.equal(h.api.openService('desk'),true);
+  const content=h.element('city-room-content'),pane=h.element('city-life-pane'),writes=content.htmlWrites,unmounts=h.calls.lifeUnmounts;
+  const draft=new content.constructor('textarea');draft.value='雨声里想到的一句话，还没有保存。';content.append(draft);draft.focus();
+  assert.equal(content.hidden,false);
+  h.render(snapshot(180));assert.equal(h.document.activeElement,draft);
+  assert.equal(h.api.closeService(),true);assert.equal(content.hidden,true);
+  assert.equal(h.calls.lifeUnmounts,unmounts,'closing tools is not leaving the notebook');
+  assert.equal(h.api.openService('desk'),true);assert.equal(content.hidden,false);
+  h.api.applyEquipment({theme:'theme-forest'},'2026-09-28T12:00:00+08:00');
+  assert.equal(content.htmlWrites,writes);assert.equal(draft.parentElement,content);assert.equal(draft.value,'雨声里想到的一句话，还没有保存。');
+  assert.equal(h.calls.lifeMounts.at(-1).node,pane);assert.equal(h.calls.lifeUnmounts,unmounts);
+  assert.equal(h.calls.requests.length,0);assert.equal(h.calls.storageWrites,0);
+});
+
+test('tea tools can be put away without unmounting the rest timer, while leaving the room releases it',()=>{
+  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('tea');assert.equal(h.api.openService('tea'),true);
+  const pane=h.element('city-life-pane'),writes=h.element('city-room-content').htmlWrites,unmounts=h.calls.lifeUnmounts;
+  h.api.closeService();h.render(snapshot(210));h.api.openService('tea');
+  assert.equal(h.element('city-room-content').htmlWrites,writes);assert.equal(h.calls.lifeMounts.at(-1).node,pane);
+  assert.equal(h.calls.lifeUnmounts,unmounts,'the tea timer belongs to the room visit, not the panel visibility');
+  h.api.closeService();h.api.backToStreet();assert.ok(h.calls.lifeUnmounts>unmounts);
+  assert.equal(h.calls.requests.length,0);
+});
+
+test('changing the tea-room lamp before opening its tools does not prefill the service cache',()=>{
+  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('tea');
+  const content=h.element('city-room-content'),writes=content.htmlWrites;
+  const lamp=h.element('city-interior-art').querySelector('[data-city-workstation="tea-window"]');
+  lamp.click();assert.equal(h.calls.interiors.at(-1).options.mode,'lamplight');
+  assert.equal(content.hidden,true);assert.equal(content.htmlWrites,writes);
+  assert.equal(h.calls.lifeMounts.length,0,'a lamp interaction must not create the tea timer');
+  assert.equal(h.api.openService('tea'),true);assert.equal(content.hidden,false);
+  assert.match(content.innerHTML,/id="city-life-pane"/,'the first service visit still constructs its real content');
+  assert.match(content.innerHTML,/看窗外的雨/,'the tool button reflects the lamp already switched on');
+  assert.equal(content.htmlWrites,writes+1);assert.equal(h.calls.lifeMounts.at(-1).id,'tea');
+  const pane=h.calls.lifeMounts.at(-1).node,unmounts=h.calls.lifeUnmounts;
+  h.api.closeService();h.render(snapshot(150));h.api.openService('tea');
+  assert.equal(content.htmlWrites,writes+1);assert.equal(h.calls.lifeMounts.at(-1).node,pane);
+  assert.equal(h.calls.lifeUnmounts,unmounts,'putting tools away must keep the mounted timer');
+});
+
+test('unknown or mismatched workstations cannot open tools in another building',()=>{
+  const h=harness();h.render(snapshot());assert.equal(h.api.openService('desk'),false);h.api.open();assert.equal(h.api.openService('desk'),false);
+  h.api.openPlace('library');
+  for(const id of ['unknown','plan','games','tea'])assert.equal(h.api.openService(id),false,id);
+  assert.equal(h.element('city-room-content').hidden,true);
+  h.element('test-dialog').open=true;assert.equal(h.api.openService('desk'),false);h.element('test-dialog').open=false;
+  assert.equal(h.api.openService('desk'),true);h.api.close(false);
+  assert.equal(h.api.openService('desk'),false);assert.equal(h.calls.requests.length,0);
+});
+
+test('room furniture responds to mouse and keyboard, and Escape first puts the tools away',()=>{
+  for(const event of ['click','Enter',' ']){
+    const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('library');
+    const desk=h.element('city-interior-art').querySelector('[data-city-workstation="desk"]');
+    if(event==='click')desk.click();else assert.equal(h.emit(desk,'keydown',{key:event}).defaultPrevented,true);
+    assert.equal(h.element('city-room-content').hidden,false);assert.equal(desk.getAttribute('aria-pressed'),'true');
+    assert.equal(h.document.activeElement,h.element('city-room-content').querySelector('[data-city-service-close]'));
+    h.emit(h.document.activeElement,'keydown',{key:'Escape'});
+    assert.equal(h.element('city-room-content').hidden,true);assert.equal(h.element('city-room').hidden,false);assert.equal(h.api.isOpen(),true);
+    assert.equal(h.document.activeElement,desk);assert.equal(desk.getAttribute('aria-pressed'),'false');
+    h.emit(desk,'keydown',{key:'Escape'});assert.equal(h.element('city-room').hidden,true);assert.equal(h.api.isOpen(),true);
+  }
+});
+
+test('street NPC conversations stop their walk, advance without redrawing, and resume on closing',()=>{
+  const h=harness();h.render(snapshot());h.api.open();
+  const npc=h.element('citadel-scene').querySelector('[data-city-npc="ayu"]'),dialogue=h.element('city-talk');
+  npc.click();assert.equal(dialogue.hidden,false);assert.equal(npc.dataset.talking,'true');assert.equal(h.element('city-room').hidden,true);
+  assert.match(dialogue.innerHTML,/阿榆/);const writes=dialogue.htmlWrites;
+  dialogue.querySelector('[data-city-talk-action="next"]').click();const line=dialogue.querySelector('p').textContent;
+  assert.equal(line,h.residents.find('ayu').lines[1]);assert.equal(dialogue.htmlWrites,writes);
+  h.render(snapshot(200));assert.equal(dialogue.querySelector('p').textContent,line);assert.equal(dialogue.htmlWrites,writes);assert.equal(npc.dataset.talking,'true');
+  dialogue.querySelector('[data-city-talk-action="close"]').click();assert.equal(dialogue.hidden,true);assert.equal(npc.dataset.talking,'false');assert.equal(h.document.activeElement,npc);
+  assert.equal(h.calls.requests.length,0);assert.equal(h.calls.storageWrites,0);
+});
+
+test('every resident has room dialogue and their invitation opens the corresponding room function without charging rewards',()=>{
+  const service={library:'desk',tea:'tea',atelier:'outfits',arcade:'games',station:'plan'};
+  for(const room of placeIds){
+    const h=harness();h.render(snapshot());h.api.open();h.api.openPlace(room);
+    const npcId=h.residents.roomResident(room,'home'),npc=h.element('city-interior-art').querySelector(`[data-city-npc="${npcId}"]`);
+    assert.ok(npc,room);h.emit(npc,'keydown',{key:'Enter'});const dialogue=h.element('city-talk');assert.equal(dialogue.hidden,false,room);
+    assert.match(dialogue.innerHTML,new RegExp(h.residents.find(npcId).name));
+    dialogue.querySelector('[data-city-talk-action="service"]').click();assert.equal(dialogue.hidden,true,room);
+    if(room==='observatory')assert.equal(h.element('citadel-view').dataset.homeView,'panorama');
+    else {assert.equal(h.element('citadel-view').dataset.service,service[room]);assert.equal(h.element('city-room-content').hidden,false);}
+    assert.equal(h.calls.requests.length,0,room);assert.equal(h.calls.arcades,0,room);assert.equal(h.calls.lotteryMounts.length,0,room);
+  }
+});
+
+test('a street invitation visits the right house and closes conversation before room navigation',()=>{
+  const h=harness();h.render(snapshot());h.api.open();const npc=h.element('citadel-scene').querySelector('[data-city-npc="yanqing"]');
+  h.emit(npc,'keydown',{key:' '});assert.equal(h.element('city-talk').hidden,false);
+  h.element('city-talk').querySelector('[data-city-talk-action="service"]').click();
+  assert.equal(h.calls.interiors.at(-1).id,'library');assert.equal(h.element('city-talk').hidden,true);assert.equal(npc.dataset.talking,'false');
+  assert.equal(h.element('city-room-content').hidden,true);assert.equal(h.calls.requests.length,0);
+});
+
+test('conversation closes before service, room and city navigation; dialogs and mismatched NPCs cannot bypass context',()=>{
+  const h=harness();h.render(snapshot());assert.equal(h.api.talkTo('ayu'),false);h.api.open();
+  assert.equal(h.api.talkTo('missing'),false);h.element('test-dialog').open=true;assert.equal(h.api.talkTo('ayu'),false);h.element('test-dialog').open=false;
+  h.api.openPlace('library');assert.equal(h.api.talkTo('ayu'),false);h.api.openService('desk');assert.equal(h.api.talkTo('yanqing'),true);
+  assert.equal(h.element('city-room-content').hidden,true);h.emit(h.document.activeElement,'keydown',{key:'Escape'});
+  assert.equal(h.element('city-talk').hidden,true);assert.equal(h.element('city-room').hidden,false);assert.equal(h.api.isOpen(),true);
+  h.api.talkTo('yanqing');h.api.openPlace('tea');assert.equal(h.element('city-talk').hidden,true);
+  h.api.talkTo('ayu');h.api.close(false);assert.equal(h.element('city-talk').hidden,true);assert.equal(h.api.isOpen(),false);
+  h.api.open();assert.equal(h.element('city-talk').hidden,true);assert.equal(h.element('city-room-content').hidden,true);
+  assert.equal(h.calls.requests.length,0);
+});
+
+test('equipment refresh keeps a talking street NPC stopped without resetting the current line',()=>{
+  const h=harness();h.render(snapshot());h.api.open();h.api.talkTo('ayu');const talk=h.element('city-talk');
+  talk.querySelector('[data-city-talk-action="next"]').click();const line=talk.querySelector('p').textContent,writes=talk.htmlWrites;
+  h.api.applyEquipment({theme:'theme-forest'},'2026-09-28T12:00:00+08:00');
+  assert.equal(talk.hidden,false);assert.equal(talk.htmlWrites,writes);assert.equal(talk.querySelector('p').textContent,line);
+  assert.equal(h.element('citadel-scene').querySelector('[data-city-npc="ayu"]').dataset.talking,'true');
+  h.api.closeConversation();assert.equal(h.element('citadel-scene').querySelector('[data-city-npc="ayu"]').dataset.talking,'false');
+});
+
+test('the rooftop neighbor invitation remains actionable in the rooftop context',()=>{
+  const h=harness();h.render(snapshot());h.api.open();h.api.openPlace('observatory');h.api.openService('home-rooftop');
+  const before=JSON.stringify([h.element('citadel-view').dataset.homeView,h.calls.interiors.at(-1).options.mode]);
+  h.api.talkTo('wangshu');h.element('city-talk').querySelector('[data-city-talk-action="service"]').click();
+  assert.equal(h.element('city-talk').hidden,true);
+  assert.notEqual(JSON.stringify([h.element('citadel-view').dataset.homeView,h.calls.interiors.at(-1).options.mode]),before,'the invitation should perform a valid rooftop action');
+  assert.equal(h.calls.requests.length,0);
+});
+
+test('holding an activation key cannot repeatedly reset a street conversation',()=>{
+  const h=harness();h.render(snapshot());h.api.open();const npc=h.element('citadel-scene').querySelector('[data-city-npc="ayu"]');
+  h.emit(npc,'keydown',{key:'Enter'});const talk=h.element('city-talk');talk.querySelector('[data-city-talk-action="next"]').click();
+  const writes=talk.htmlWrites,line=talk.querySelector('p').textContent;
+  h.emit(npc,'keydown',{key:'Enter',repeat:true});assert.equal(talk.htmlWrites,writes);assert.equal(talk.querySelector('p').textContent,line);
 });

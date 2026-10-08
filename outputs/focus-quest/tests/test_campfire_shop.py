@@ -55,13 +55,13 @@ class CampfireShopTests(unittest.TestCase):
 
     def test_expanded_catalog_has_unique_ids_and_preserves_legacy_camp_prices(self):
         state = self.store.quest_state(NOW)
-        count = 104+len(server.shop_expansion.SHOP_CATALOG_EXTRA)
+        count = 130+len(server.shop_expansion.SHOP_CATALOG_EXTRA)
         self.assertEqual(len(server.SHOP_CATALOG), count)
         self.assertEqual(len(server.SHOP_ITEMS), count)
         self.assertEqual(len(state["catalog"]), count)
-        self.assertEqual(len(state["equipped"]), 18)
-        self.assertEqual(sum(item["currency"] == "free" for item in state["catalog"]), 18)
-        self.assertEqual(sum(item["currency"] != "free" for item in state["catalog"]), count-18)
+        self.assertEqual(len(state["equipped"]), 24)
+        self.assertEqual(sum(item["currency"] == "free" for item in state["catalog"]), 28)
+        self.assertEqual(sum(item["currency"] != "free" for item in state["catalog"]), count-28)
         self.assertEqual(len({item["id"] for item in state["catalog"]}), count)
         expected_ids = {sku(slot, variant) for slot, variants in EXPECTED.items() for variant, _, _ in variants}
         new_catalog = {item["id"]: item for item in state["catalog"] if item["id"] in expected_ids}
@@ -166,13 +166,13 @@ class CampfireShopTests(unittest.TestCase):
         with self.store.db:
             for slot in EXPECTED:
                 self.store.db.execute("DELETE FROM shop_equipment WHERE slot=?", (slot,))
-        self.assertEqual(len(self.snapshot("shop_equipment")), 10)
+        self.assertEqual(len(self.snapshot("shop_equipment")), 16)
         tables = ("wallet_ledger", "shop_purchases", "quest_tracks", "quest_deliveries", "quest_allocations", "records", "meta")
         before = {table: self.snapshot(table) for table in tables}
         legacy_equipment = dict(self.store.quest_state(NOW)["equipped"])
         self.restart()
         result = self.store.quest_state(NOW)
-        self.assertEqual(len(result["equipped"]), 18)
+        self.assertEqual(len(result["equipped"]), 24)
         for slot, item_id in legacy_equipment.items():
             self.assertEqual(result["equipped"][slot], item_id)
         for slot in EXPECTED:

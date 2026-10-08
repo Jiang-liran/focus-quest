@@ -62,7 +62,7 @@ class DailyOpeningTests(unittest.TestCase):
 
     def test_preview_returns_context_and_does_not_consume_first_opening(self):
         expected = {"day": "2026-09-23", "now": self.now.isoformat(), "minutes": 0,
-                    "target": 480, "seen": False}
+                    "target": 480, "seen": False, "earlyStart": self.store.early_start_state(self.now)}
         for _ in range(3):
             self.assertEqual(self.store.opening(now=self.now), expected)
         self.assertEqual(self.store.db.execute("SELECT COUNT(*) FROM daily_openings").fetchone()[0], 0)
@@ -174,13 +174,13 @@ class DailyOpeningTests(unittest.TestCase):
             for _ in range(2):
                 status, preview = self.request(port, "GET", "/api/opening")
                 self.assertEqual(status, 200)
-                self.assertEqual(set(preview), {"day", "now", "minutes", "target", "seen"})
+                self.assertEqual(set(preview), {"day", "now", "minutes", "target", "seen", "earlyStart"})
                 self.assertFalse(preview["seen"])
                 self.assertEqual(preview["day"], datetime.fromisoformat(preview["now"]).date().isoformat())
                 self.assertIsNotNone(datetime.fromisoformat(preview["now"]).utcoffset())
             status, first = self.request(port, "POST", "/api/opening/claim", "{}", {"Content-Type": "application/json"})
             self.assertEqual(status, 200)
-            self.assertEqual(set(first), {"day", "now", "minutes", "target", "seen", "show"})
+            self.assertEqual(set(first), {"day", "now", "minutes", "target", "seen", "show", "earlyStart"})
             self.assertTrue(first["seen"])
             self.assertTrue(first["show"])
             status, again = self.request(port, "POST", "/api/opening/claim", "{}", {"Content-Type": "application/json"})

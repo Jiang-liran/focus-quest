@@ -55,7 +55,7 @@ const variants = {
   portal: ['default','moon','archive','cosmos'],
   island: ['default','lanterns','garden','pavilion','supplies','banners','fountain','library','observatory','arcade','palace'],
 };
-const defaults = Object.fromEntries(Object.keys(variants).map(slot=>[slot,`${slot}-default`]));
+const defaults = Object.fromEntries([...Object.keys(variants),'archipelago','homeland','campusmath','campuscs','campuspolitics','campusenglish'].map(slot=>[slot,`${slot}-default`]));
 const allIds = Object.entries(variants).flatMap(([slot,names])=>names.map(name=>`${slot}-${name}`));
 
 function harness(preMounted = true, extras = {}) {
@@ -75,7 +75,7 @@ function harness(preMounted = true, extras = {}) {
   const hatSelectors = ['#scene-traveler .traveler-hat','#scene-traveler .traveler-hat-shade','.opening-traveler .opening-hat'];
   const hats = hatSelectors.map((selector,index)=>{ const node=new Node('path',selector);node.setAttribute('d',`M${index} 1 2 3Z`);nodes.set(selector,node);return node; });
   if(preMounted){
-    for(const id of ['equipped-companion','equipped-relic','equipped-portal','equipped-island'])island.appendChild(new Node('g',id));
+    for(const id of ['equipped-companion','equipped-relic','equipped-portal','equipped-island','equipped-homeland'])island.appendChild(new Node('g',id));
     const backdrop = new Node('div','backdrop');backdrop.className='scene-theme-backdrop';scene.appendChild(backdrop);
   }
   document.documentElement={dataset:new Proxy({}, {set(target,key,value){document.datasetWrites++;target[key]=value;return true;}})};
@@ -90,7 +90,7 @@ function harness(preMounted = true, extras = {}) {
   document.createElementNS=(namespace,tag)=>{assert.equal(namespace,'http://www.w3.org/2000/svg');document.created++;return new Node(tag);};
   const context=vm.createContext({document,FocusProgressBars:{...require('../static/progress-bars.js'),decorate(){}},...extras});
   vm.runInContext(fs.readFileSync(require.resolve('../static/quest-art.js'),'utf8'),context);
-  vm.runInContext(fs.readFileSync(require.resolve('../static/shop-art.js'),'utf8'),context);
+  for(const name of ['subject-island-styles','island-architecture','shop-art'])vm.runInContext(fs.readFileSync(require.resolve(`../static/${name}.js`),'utf8'),context);
   return {api:context.ShopArt,document,nodes,island,scene,hats};
 }
 
@@ -137,7 +137,7 @@ test('untrusted IDs and cross-slot equipment cannot inject attributes, HTML or r
   assert.equal(normalized.bar,'bar-default');
   assert.equal(normalized.fx,'fx-snow');
   assert.equal(normalized.theme,'theme-default');
-  assert.equal(Object.keys(normalized).length,9);
+  assert.equal(Object.keys(normalized).length,15);
   assert.equal(normalized.other,undefined);
   assert.deepEqual(apply(null),defaults);
 });
@@ -262,15 +262,15 @@ test('royal crown, voyager cap and ranger hood change both travelers and restore
 test('missing mount containers are created safely once and previews never change the live scene', () => {
   const h=harness(false);
   h.api.apply({companion:'companion-owl',portal:'portal-archive',relic:'relic-hourglass',theme:'theme-ocean'});
-  assert.equal(h.document.created,5);
-  assert.equal(h.island.children.length,4);
+  assert.equal(h.document.created,6);
+  assert.equal(h.island.children.length,5);
   assert.equal(h.scene.children.length,1);
   for(const node of [...h.island.children,...h.scene.children])assert.equal(node.getAttribute('aria-hidden'),node.id==='equipped-companion'?'false':'true');
   const before=JSON.stringify({dataset:h.document.documentElement.dataset,html:[...h.nodes.values()].map(node=>node.raw)});
   allIds.forEach(id=>assert.ok(h.api.preview(id)));
   assert.equal(JSON.stringify({dataset:h.document.documentElement.dataset,html:[...h.nodes.values()].map(node=>node.raw)}),before);
   h.api.apply({companion:'companion-owl',portal:'portal-archive',relic:'relic-hourglass',theme:'theme-ocean'});
-  assert.equal(h.document.created,5);
+  assert.equal(h.document.created,6);
 });
 
 test('every new pet, relic, portal and environment yields a distinct mounted illustration', () => {
@@ -311,7 +311,7 @@ test('complete island previews use the same current-fire roadside camp as the li
   const camp=campArt.roadside(equipment);
   for(const variant of variants.island) {
     const markup=islandPreview(`island-${variant}`,equipment);
-    assert.ok(markup.endsWith(`${camp}</svg>`));
+    assert.ok(markup.endsWith(`${camp}</g></svg>`));
     assert.equal((markup.match(/class="island-roadside-camp"/g)||[]).length,1);
     assert.doesNotMatch(markup,/role="button"|tabindex=|\bid=/);
   }
@@ -408,8 +408,8 @@ test('every decorative shape stays out of the roadside camp pocket and original 
     for(const [x0,y0,x1,y1] of geometry) {
       const footprint=`${variant}: [${x0}, ${y0}, ${x1}, ${y1}]`;
       assert.ok(x1<303||x0>373||y1<205||y0>265,`overlaps roadside camp: ${footprint}`);
-      const coast=x0>=160&&x1<=297&&y0>=218&&y1<=272;
-      const rear=x0>=354&&x1<=454&&y0>=45&&y1<=172;
+      const coast=x0>=160&&x1<=297&&y0>=200&&y1<=272;
+      const rear=x0>=344&&x1<=454&&y0>=45&&y1<=188;
       assert.ok(coast||rear,`outside the two available decoration areas: ${footprint}`);
     }
   }

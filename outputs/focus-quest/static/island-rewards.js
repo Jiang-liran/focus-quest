@@ -70,17 +70,30 @@
       next?.focus({preventScroll:true});
     }
   }
+  function summary(){const count=entries().length;return {count,text:count?`${count} 份群岛礼物可领取`:live()?'各科达标与四科共辉，各有星礼':'回到今天查看群岛礼物'};}
+  function paintDetail(){
+    const host=$('island-reward-detail');if(!host)return;
+    const rewards=latest?.islandRewards;if(!rewards){host.innerHTML='<p>等待今日目标与学习记录同步。</p>';return;}
+    const ready=new Set(entries().map(item=>item.id)),rows=[...(rewards.subjects||[]),rewards.main].filter(Boolean);
+    const currency=kind=>root.FocusCurrencyArt?.icon?.(kind)||'';
+    const html=`<div class="reward-island-intro">${root.QuestArt?.avatar('guide')||''}<p>「每座岛屿建成时，都有一份小礼物。四科与总目标都完成，再把主岛的星礼带走。」<br>这里与首页岛屿的礼盒是同一份奖励，每天各领一次。</p></div><div class="reward-island-grid">${rows.map(item=>{
+      const done=item.claimed||received.has(key(rewards.day,item.id)),can=ready.has(item.id),tickets=item.lotteryTickets||{};
+      const label=done?'✓ 已收好':can?'打开礼盒':'继续积累';
+      return `<article class="reward-island-card${can?' is-ready':''}"><h3>${esc(item.name)}${item.id==='main'?' · 主岛礼':' · 学岛礼'}</h3><p>${Number(item.minutes||0).toLocaleString('zh-CN',{maximumFractionDigits:1})} / ${item.target} 分钟${item.id==='main'?' · 同时完成四科目标':''}</p><div class="reward-island-currency"><span>${currency('coin')}${item.reward.coins} 金币</span><span>${currency('diamond')}${item.reward.diamonds} 钻石</span></div><p>${tickets.coinTickets?`金币券 × ${tickets.coinTickets} `:''}${tickets.diamondTickets?`钻石券 × ${tickets.diamondTickets}`:''}</p><button type="button" class="${can?'primary':'secondary'}-button" data-island-detail="${item.id}" ${!can||busy?'disabled':''}>${busy?.id===item.id?'正在收好…':label}</button></article>`;
+    }).join('')}</div>`;
+    if(host._rewardHTML!==html){host.innerHTML=html;host._rewardHTML=html;}
+  }
   function render(snapshot,options={}){
     latest=snapshot;mode=options.mode||'live';
     const rewards=snapshot?.islandRewards;
     if(rewards)for(const item of [...(rewards.subjects||[]),rewards.main])if(item?.claimed)remember(key(rewards.day,item.id));
-    paint();
+    paint();paintDetail();root.FocusRewardHub?.update();
   }
   async function claim(id){
     if(busy||document.hidden||bridge?.isHome?.()===false)return;
     const item=entries().find(entry=>entry.id===id);if(!item)return;
     const day=latest.islandRewards.day;
-    busy={day,id};bridge.unlock?.();paint();
+    busy={day,id};bridge.unlock?.();paint();paintDetail();
     try{
       const result=await bridge.api('/api/island-rewards/claim',{day,island:id});
       if(result.day!==day||result.island!==id||!result.islandRewards||!result.wallet||!result.reward)throw new Error('礼盒回执暂未返回，请再点一次确认。');
@@ -92,7 +105,7 @@
         bridge.toast?.(id==='main'?'四科共辉，星礼已收好':`${islands[id].name}岛的礼物已收好`,`+${result.reward.coins} 金币 · +${result.reward.diamonds} 钻石${root.FocusLottery?.ticketText?.(result.ticketGrants)||''}`);
       }else bridge.toast?.('这份礼物已经收好','金币和钻石已在行囊里。');
     }catch(error){bridge.toast?.('礼盒还在等你',error.message,true);}
-    finally{busy=null;paint();}
+    finally{busy=null;paint();paintDetail();root.FocusRewardHub?.update();}
     // The receipt already removes the gift. A failed refresh cannot undo it.
     try{await bridge.refresh?.(true);}catch(_){}
   }
@@ -109,6 +122,7 @@
       const target=event.target.closest('[data-island-gift]');if(!target||!host.contains(target)||!['Enter',' '].includes(event.key))return;
       event.preventDefault();event.stopPropagation();if(!event.repeat)claim(target.dataset.islandGift);
     });
+    $('island-reward-detail')?.addEventListener('click',event=>{const target=event.target.closest('[data-island-detail]');if(target&&!target.disabled&&!event.defaultPrevented)void claim(target.dataset.islandDetail);});
   }
-  root.FocusIslandRewards={init,render};
+  root.FocusIslandRewards={init,render,summary};
 })(typeof globalThis!=='undefined'?globalThis:this);

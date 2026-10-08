@@ -26,7 +26,7 @@ class ExpansionCatalogTests(unittest.TestCase):
     def test_broad_catalog_is_single_currency_and_contains_affordable_midrange_and_top_collections(self):
         ids = [row[0] for row in SHOP_CATALOG_EXTRA]
         self.assertEqual(len(ids), len(set(ids)))
-        self.assertEqual(len(server.SHOP_ITEMS), 408)
+        self.assertEqual(len(server.SHOP_ITEMS), 434)
         self.assertEqual(len(SHOP_CATALOG_EXTRA), 304)
         purchasable = [row for row in SHOP_CATALOG_EXTRA if row[0] not in SHOP_LOTTERY_ONLY_IDS]
         self.assertGreaterEqual(len(purchasable), 100)
@@ -63,7 +63,7 @@ class ExpansionCatalogTests(unittest.TestCase):
             store = server.FocusStore(Path(temp) / 'data', Path(temp) / 'absent.json')
             try:
                 state = store.quest_state(NOW)
-                self.assertEqual(len(state['equipped']), 18)
+                self.assertEqual(len(state['equipped']), 24)
                 for item in state['catalog']:
                     if item['id'] in {r[0] for r in SHOP_CATALOG_EXTRA}:
                         self.assertFalse(item['owned'])

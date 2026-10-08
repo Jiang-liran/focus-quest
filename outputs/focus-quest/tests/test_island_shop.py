@@ -41,11 +41,11 @@ class IslandShopTests(unittest.TestCase):
 
     def test_catalog_prices_empty_default_and_no_free_unlocks(self):
         state = self.store.quest_state()
-        self.assertEqual((len(state["catalog"]), len(state["equipped"])), (104+len(server.shop_expansion.SHOP_CATALOG_EXTRA), 18))
+        self.assertEqual((len(state["catalog"]), len(state["equipped"])), (130+len(server.shop_expansion.SHOP_CATALOG_EXTRA), 24))
         items = [item for item in state["catalog"] if item["slot"] == "island"]
         legacy_ids = {item[0] for item in PRICES}
         self.assertEqual([(item["id"], item["coins"], item["diamonds"]) for item in items if item["id"] in legacy_ids], list(PRICES))
-        self.assertEqual(sum(item["currency"] != "free" for item in state["catalog"]), len(state["catalog"])-18)
+        self.assertEqual(sum(item["currency"] != "free" for item in state["catalog"]), len(state["catalog"])-28)
         self.assertTrue(all(item["category"] == "主岛布置" for item in items))
         self.assertTrue(all(not (item["coins"] and item["diamonds"]) for item in items))
         self.assertEqual(state["equipped"]["island"], "island-default")
@@ -136,7 +136,7 @@ class IslandShopTests(unittest.TestCase):
             after = self.store.quest_state()
             self.assertEqual(after["equipped"], before["equipped"])
             self.assertEqual(after["wallet"], before["wallet"])
-            self.assertEqual(len(after["catalog"]), 104+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
+            self.assertEqual(len(after["catalog"]), 130+len(server.shop_expansion.SHOP_CATALOG_EXTRA))
             self.assertTrue(all(not item["owned"] for item in after["catalog"] if item["id"] in NEW_IDS))
             self.assertTrue(all(item["owned"] for item in after["catalog"] if item["id"] in {row[0] for row in PRICES[:4]}))
             self.assertEqual(self.store.settings["targets"]["math"], 200)

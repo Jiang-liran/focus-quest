@@ -3,8 +3,10 @@ set -euo pipefail
 MACOS_DIR="$(cd "$(dirname "$0")" && pwd)"
 PROJECT_DIR="$(cd "$MACOS_DIR/.." && pwd)"
 OUTPUT_DIR="$(cd "$PROJECT_DIR/.." && pwd)"
-APP_PATH="${1:-$OUTPUT_DIR/专注远征.app}"
+BUILD_OUTPUT_DIR="$OUTPUT_DIR/build.noindex"
+APP_PATH="${1:-$BUILD_OUTPUT_DIR/专注远征.app}"
 ARCHIVE_PATH="$OUTPUT_DIR/专注远征.zip"
+mkdir -p "$(dirname "$APP_PATH")"
 
 if [[ ! -f "$PROJECT_DIR/server.py" || ! -f "$PROJECT_DIR/static/index.html" ]]; then
   echo "缺少 server.py 或 static/index.html；请先完成后端和界面。" >&2

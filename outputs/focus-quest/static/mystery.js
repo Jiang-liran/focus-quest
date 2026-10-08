@@ -21,6 +21,9 @@
   function sameTickets(a,b){return a!==null&&b!==null&&a.coinTickets===b.coinTickets&&a.diamondTickets===b.diamondTickets;}
   let bridge={},data=null,busy=false,intent=null,receipt=null,stamp=-Infinity,markup='',opened=new Set();
   const timestamp=value=>{const fraction=String(value).match(/\.(\d+)(?:Z|[+-]\d{2}:\d{2})$/);return Date.parse(value)*1000+Number((fraction?.[1]||'').padEnd(6,'0').slice(3,6));};
+  function storedGifts(){return (lottery?.starGifts||[]).filter(row=>row.claimed===false&&/^\d{4}-\d{2}-\d{2}$/.test(row.day)&&Number.isInteger(row.index)&&row.index>=1&&row.index<=6&&['coin','diamond'].includes(row.machine)&&giftTickets(row));}
+  function summary(){const gifts=storedGifts().length,delivery=Number(data?.reward?.coins)>0||Number(data?.reward?.diamonds)>0;return {count:gifts+Number(delivery),text:delivery?`余辉可交付${gifts?` · 另有 ${gifts} 份星礼未开启`:''}`:gifts?`${gifts} 份已交付星礼待开启`:data?.unlocked?'额外专注继续积累':'等待今日远征达成'};}
+  function storedHTML(){const gifts=storedGifts();if(!gifts.length)return '';return `<section class="mystery-stored-gifts" aria-label="已交付但尚未开启的星礼"><h4>拾星留存的星礼 · ${gifts.length} 份</h4><p>货币奖励已收好，打开星礼再领抽奖券；与抽奖机里留存的礼盒是同一份。</p>${gifts.slice(0,12).map(g=>`<div><span>${esc(g.day)} · 第 ${g.index} 份星礼<small>${esc(ticketReward(giftTickets(g)))}</small></span><button type="button" class="secondary-button" data-mystery-stored="${esc(g.day)}:${g.index}" ${busy||giftBusy!==null?'disabled':''}>开启星礼</button></div>`).join('')}${gifts.length>12?`<p>另有 ${gifts.length-12} 份，收好这些后会继续显示。</p>`:''}</section>`;}
   function condition(label,actual,target,met,strict=false){
     const percent=target>0?Math.min(100,Math.max(0,actual/target*100)):0;
     return `<li class="${met?'met':''}"><span><i aria-hidden="true">${met?'✦':'◇'}</i>${esc(label)}</span><strong>${duration(actual)} <small>/ ${strict?'超过 ':''}${duration(target)}</small></strong><div class="mystery-condition-bar" aria-hidden="true"><i style="width:${percent}%"></i></div></li>`;
@@ -51,9 +54,10 @@
     if(Number.isFinite(nextStamp))stamp=nextStamp;
     rememberLottery(snapshot?.lottery);
     data=snapshot?.mystery||null;host.hidden=!data;if(!data)return;
-    const html=card(data);if(html!==markup){host.innerHTML=html;markup=html;}
+    const html=card(data)+storedHTML();if(html!==markup){host.innerHTML=html;markup=html;}
     host.dataset.status=data.status||'locked';
     if(data.status==='ready'&&$('quest-invitation-text'))$('quest-invitation-text').textContent=Number(data.pendingMinutes)>0?`拾星已备好 ${duration(data.pendingMinutes)} 的余辉收获，去委托广场交付余辉。`:'拾星已将先前积累的进度换算为钻石，去委托广场领取。';
+    root.FocusRewardHub?.update();
   }
   function showDialog(){
     if(busy||giftBusy!==null||!data||!(Number(data.reward?.coins)>0||Number(data.reward?.diamonds)>0))return;
@@ -74,6 +78,7 @@
     lottery=next;
   }
   function receiptMarkup(){
+    if(receipt.stored)return `<p>这份星礼的金币与钻石已经结算，这次只收好抽奖券。</p><div class="mystery-open-gifts">${receipt.gifts.map((g,i)=>`<button type="button" data-mystery-gift="${i}" ${giftBusy!==null||opened.has(i)?'disabled':''}>${gift(g.index,opened.has(i))}<span>${esc(g.day)} · 第 ${g.index} 份星礼</span><strong>${giftBusy===i?'正在开启…':opened.has(i)?'✓ 抽奖券已收好':'轻触打开星礼'}</strong><small>${esc(ticketReward(giftTickets(g)))}</small></button>`).join('')}</div>`;
     return `<p>「${(receipt.gifts||[]).length?'这些星礼，记着你走过的每一段余途。':'多走出的每一步，都已收好。'}」</p><div class="mystery-dialog-reward">+${reward(receipt)}</div><p>${Number(receipt.minutes)>0?duration(receipt.minutes)+' 已交付':'此前积累的钻石已兑换'} · 奖励已入袋</p>${receipt.gifts?.length?`<div class="mystery-open-gifts">${receipt.gifts.map((g,i)=>{const ticket=(lottery?.starGifts||[]).find(row=>row.day===g.day&&row.index===g.index),tickets=ticketReward(giftTickets(ticket||g));return `<button type="button" data-mystery-gift="${i}" aria-expanded="${opened.has(i)}" ${giftBusy!==null?'disabled':''}>${gift(g.index,opened.has(i))}<span>${esc(g.day)} · 第 ${num(g.index)} 盒</span><strong>${giftBusy===i?'正在开启…':opened.has(i)?reward(g):'轻触打开星礼'}</strong>${tickets?`<small>${ticket?.claimed?'已收好':'内含'} ${esc(tickets)}</small>`:''}</button>`;}).join('')}</div>`:''}`;
   }
   function validStarReceipt(result,g,entry){
@@ -131,10 +136,13 @@
   }
   function init(callbacks){
     bridge=callbacks;
-    $('mystery-quest')?.addEventListener('click',e=>{if(e.target.closest('#mystery-submit'))showDialog();});
+    $('mystery-quest')?.addEventListener('click',e=>{if(e.target.closest('#mystery-submit'))showDialog();const button=e.target.closest('[data-mystery-stored]');if(button&&!button.disabled&&!busy&&giftBusy===null&&!document.querySelector('dialog[open]')){
+      const g=storedGifts().find(g=>`${g.day}:${g.index}`===button.dataset.mysteryStored);if(!g)return;
+      intent=null;receipt={stored:true,gifts:[g]};opened.clear();$('mystery-dialog-title').textContent='收好拾星留存的星礼';$('mystery-dialog-art').innerHTML=portrait();$('mystery-dialog-body').innerHTML=receiptMarkup();$('mystery-dialog-error').hidden=true;$('mystery-confirm').textContent='返回详情';$('mystery-confirm').disabled=false;$('mystery-dialog').showModal();void openGift(0);
+    }});
     $('mystery-confirm')?.addEventListener('click',submit);
     $('mystery-dialog')?.addEventListener('close',()=>{if(!busy){intent=null;receipt=null;opened.clear();}});
     $('mystery-dialog-body')?.addEventListener('click',e=>{const b=e.target.closest('[data-mystery-gift]');if(b&&receipt)void openGift(Number(b.dataset.mysteryGift));});
   }
-  root.FocusMystery={init,render};
+  root.FocusMystery={init,render,summary};
 })(typeof globalThis!=='undefined'?globalThis:this);

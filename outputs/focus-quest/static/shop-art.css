@@ -71,7 +71,8 @@
 #quest-action-dialog.island-item-dialog{width:min(690px,94vw);max-width:690px}
 #quest-action-dialog.island-item-dialog #quest-action-art{height:auto;min-height:0;margin:12px 0 18px;overflow:hidden}
 .island-full-preview{width:100%;border:1px solid #9993ae30;border-radius:14px;background:#1b2132;overflow:hidden}
-.island-full-preview .shop-island-art{display:block;width:100%;height:auto;stroke:none}
+.island-full-preview .shop-island-art,
+#quest-action-dialog.island-item-dialog .island-full-preview>.island-architecture-detail{display:block;width:100%;height:auto;stroke:none}
 .island-full-preview p{margin:0;padding:10px 14px;color:#b9b4c4;font-size:11px;text-align:center;background:#ffffff04}
 
 /* One display stage for every catalog generation. Scene art keeps its own palette. */

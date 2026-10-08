@@ -2,7 +2,10 @@
 # Optional: install the local collector as a per-user login service.
 set -euo pipefail
 MACOS_DIR="$(cd "$(dirname "$0")" && pwd)"
-DEFAULT_APP="$(cd "$MACOS_DIR/../.." && pwd)/专注远征.app"
+DEFAULT_APP="$HOME/Applications/专注远征.app"
+if [[ ! -f "$DEFAULT_APP/Contents/Resources/server.py" ]]; then
+  DEFAULT_APP="$(cd "$MACOS_DIR/../.." && pwd)/build.noindex/专注远征.app"
+fi
 APP_PATH="${1:-$DEFAULT_APP}"
 if [[ ! -f "$APP_PATH/Contents/Resources/server.py" ]]; then
   echo "找不到应用内的 server.py。请先打包，或传入已安装 .app 的完整路径。" >&2

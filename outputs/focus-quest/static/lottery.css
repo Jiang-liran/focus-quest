@@ -74,3 +74,69 @@
 :root[data-interface-tone="light"] .lottery-room.diamond .lottery-exchange{--lottery-accent:#695192;--lottery-companion:#386779}
 
 .lottery-result-art .lottery-prize-currency{font-size:inherit;width:100%;height:100%;max-width:128px;max-height:128px;display:inline-flex;flex:none;vertical-align:middle}.lottery-result-art .lottery-prize-currency>svg{width:100%;height:100%}
+
+/* Keep both desks aligned; their shared information lives on one compact row. */
+.lottery-room .lottery-layout{align-items:stretch}
+.lottery-layout>.lottery-main{display:flex;flex-direction:column}
+.lottery-layout>.lottery-main>.lottery-stage{height:auto;flex:1}
+.lottery-layout>.lottery-main>.lottery-draw{flex-shrink:0}
+.lottery-layout>.lottery-aside{display:flex;flex-direction:column;gap:16px}
+.lottery-layout>.lottery-aside>.lottery-exchange,.lottery-layout>.lottery-aside>.lottery-star-gifts{margin-top:0}
+.lottery-layout>.lottery-aside>.lottery-exchange{flex:1;display:flex;flex-direction:column;justify-content:center}
+.lottery-info-links{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;margin-top:18px}
+.lottery-info-links>.lottery-info-link{min-width:0;margin:0;padding:14px 17px;gap:10px;border:1px solid var(--lottery-line);border-radius:var(--ui-control-radius,12px);background:color-mix(in srgb,var(--lottery-panel) 97%,var(--lottery-companion));font-size:12px!important}
+.lottery-info-links>.lottery-info-link strong{min-width:0;overflow-wrap:anywhere}
+.lottery-info-links>.lottery-info-link:hover{border-color:var(--lottery-accent)}
+.lottery-info-links+.lottery-collection{margin-top:18px}
+.lottery-rules-dialog .lottery-history{padding:0}
+.lottery-rules-dialog .lottery-history ul{gap:10px}
+.lottery-rules-dialog .lottery-history li{justify-content:flex-start;gap:16px;padding:16px 18px;border:1px solid var(--lottery-line);border-radius:var(--ui-control-radius,12px);background:color-mix(in srgb,var(--lottery-companion) 4%,var(--lottery-panel))}
+.lottery-history-index{flex:none;display:grid;place-items:center;width:34px;height:34px;border:1px solid color-mix(in srgb,var(--lottery-accent) 25%,var(--lottery-line));border-radius:9px;color:var(--lottery-accent);font-size:12px;font-variant-numeric:tabular-nums}
+.lottery-history-label{flex:1;min-width:0}
+.lottery-history-label>strong{font-size:15px;line-height:1.7;font-weight:550;color:var(--lottery-ink);overflow-wrap:anywhere}
+.lottery-rules-dialog .lottery-history-kind{font-size:11px;margin-top:3px;line-height:1.7}
+.lottery-history time{font-size:12px;line-height:1.7;color:var(--lottery-muted);font-variant-numeric:tabular-nums;white-space:nowrap}
+.lottery-history-empty{padding:30px 12px;text-align:center;color:var(--lottery-muted)}
+.lottery-history-empty>svg{width:92px;height:62px;margin-bottom:12px;opacity:.7}
+.lottery-history-empty h3{font-size:20px;font-weight:550;color:var(--lottery-ink);margin:0 0 10px;line-height:1.6}
+.lottery-history-empty p{font-size:13px;line-height:1.8;margin:0}
+@media(min-width:1600px){.lottery-info-links>.lottery-info-link{font-size:14px!important;padding:17px 20px}.lottery-history-label>strong{font-size:18px}.lottery-rules-dialog .lottery-history-kind,.lottery-history time{font-size:14px}}
+@media(max-width:850px){.lottery-layout>.lottery-aside{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,260px),1fr));gap:14px}.lottery-layout>.lottery-aside>.lottery-purchase,.lottery-layout>.lottery-aside>.lottery-exchange{grid-column:auto}.lottery-info-links{grid-template-columns:minmax(0,1fr);gap:10px}.lottery-info-links>.lottery-info-link{align-items:center;padding:12px 14px}}
+@media(max-width:550px){.lottery-layout>.lottery-aside,.lottery-info-links{grid-template-columns:minmax(0,1fr)}.lottery-info-links{gap:8px;margin-top:14px}.lottery-info-links>.lottery-info-link{flex-direction:row;align-items:center;padding:13px 14px}.lottery-rules-dialog .lottery-history li{padding:13px 12px;gap:12px;flex-wrap:wrap}.lottery-history-label>strong{font-size:14px}.lottery-history time{width:100%;padding-left:46px;font-size:11px}}
+
+/* Single, five and ten draws share the same saved per-draw rules. */
+.lottery-draw-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.lottery-draw-options>.lottery-draw-button{min-width:0;padding:13px 7px}
+.lottery-draw-options strong{display:block;font-size:15px;font-weight:550;line-height:1.6}
+.lottery-draw-options span{display:block;margin-top:4px;font-size:10px;line-height:1.6;color:var(--lottery-muted)}
+.lottery-batch-highlights{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;margin:18px 0 12px}
+.lottery-batch-highlights>div{width:min(28%,110px);height:90px;display:flex;align-items:center;justify-content:center}
+.lottery-batch-highlights svg{width:100%;height:100%}
+.lottery-batch-highlights .lottery-prize-currency{width:75%;height:75%;font-size:inherit;flex:none;min-width:0}
+.lottery-batch-total{padding:14px 18px;margin-bottom:20px;border:1px solid color-mix(in srgb,var(--lottery-accent) 40%,var(--lottery-line));border-radius:12px;background:color-mix(in srgb,var(--lottery-accent) 6%,var(--lottery-panel));font-size:14px;line-height:1.8;font-weight:550;color:var(--lottery-accent)}
+.lottery-batch-grid{list-style:none;padding:0;margin:0;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.lottery-batch-prize{min-width:0;display:flex;flex-direction:column;align-items:center;padding:13px 9px 16px;border:1px solid var(--lottery-line);border-radius:14px;background:color-mix(in srgb,var(--lottery-companion) 4%,var(--lottery-panel));text-align:center}
+.lottery-batch-prize.is-limited{border-color:color-mix(in srgb,var(--lottery-accent) 65%,var(--lottery-line));background:radial-gradient(ellipse at 50% 35%,color-mix(in srgb,var(--lottery-accent) 15%,transparent),transparent 75%),var(--lottery-panel)}
+.lottery-batch-prize-top{width:100%;display:flex;align-items:center;justify-content:space-between;gap:5px;color:var(--lottery-muted);font-size:10px;line-height:1.6}
+.lottery-batch-prize-top>b{color:var(--lottery-accent);font-size:10px;font-weight:500}
+.lottery-batch-art{width:100%;height:85px;margin:9px 0;display:flex;align-items:center;justify-content:center}
+.lottery-batch-art>svg{width:90%;height:90%}
+.lottery-batch-art .lottery-prize-currency{width:65%;height:65%;font-size:inherit;display:inline-flex;flex:none;min-width:0}
+.lottery-batch-art .lottery-prize-currency>svg{width:100%;height:100%}
+.lottery-batch-prize>h3{font-size:13px;font-weight:550;line-height:1.65;margin:0 0 8px;color:var(--lottery-ink);overflow-wrap:anywhere}
+.lottery-batch-prize>.lottery-result-kind{margin-top:auto;padding:2px 5px;font-size:9px}
+.lottery-batch-prize>small{font-size:9px;line-height:1.6;color:var(--lottery-muted);margin-top:5px}
+@media(min-width:1600px){.lottery-draw-options strong{font-size:17px}.lottery-draw-options span{font-size:12px}.lottery-batch-art{height:105px}.lottery-batch-prize>h3{font-size:15px}.lottery-batch-prize-top,.lottery-batch-prize-top>b,.lottery-batch-prize>.lottery-result-kind{font-size:11px}.lottery-batch-total{font-size:16px}}
+@media(max-width:760px){.lottery-batch-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:550px){.lottery-draw-options{gap:7px}.lottery-draw-options>.lottery-draw-button{padding:11px 5px}.lottery-draw-options strong{font-size:14px}.lottery-draw-options span{font-size:9px}.lottery-batch-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.lottery-batch-highlights{gap:8px}.lottery-batch-total{font-size:13px;padding:12px}}
+/* Room-wide heading styles must not inflate individual prize cards. */
+#citadel-view .lottery-rules-dialog.is-batch-dialog .lottery-batch-prize>h3{font-size:14px;line-height:1.6;margin:0 0 7px}
+.lottery-rules-dialog.is-batch-dialog .lottery-dialog-heading{padding:19px 28px}
+.lottery-rules-dialog.is-batch-dialog .lottery-dialog-body{padding:18px 28px 22px}
+.lottery-rules-dialog.is-batch-dialog .lottery-dialog-intro{margin-bottom:12px}
+.lottery-rules-dialog.is-batch-dialog .lottery-batch-total{padding:10px 15px;margin-bottom:14px}
+.lottery-rules-dialog.is-batch-dialog .lottery-batch-art{height:66px;margin:7px 0}
+.lottery-rules-dialog.is-batch-dialog .lottery-batch-prize{padding:10px 9px 12px}
+@media(min-width:1600px) and (min-height:850px){#citadel-view .lottery-rules-dialog.is-batch-dialog .lottery-batch-prize>h3{font-size:16px}.lottery-rules-dialog.is-batch-dialog .lottery-batch-art{height:94px}}
+@media(max-width:600px){.lottery-rules-dialog.is-batch-dialog .lottery-dialog-heading{padding:16px 18px}.lottery-rules-dialog.is-batch-dialog .lottery-dialog-body{padding:17px 18px 20px}}
+.lottery-rules-dialog.is-batch-dialog{max-height:min(1000px,94vh)}

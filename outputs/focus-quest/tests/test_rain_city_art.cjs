@@ -2,6 +2,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
+const os = require('node:os');
+const path = require('node:path');
+const {spawnSync} = require('node:child_process');
+const residents = require('../static/city-residents.js');
+const roomArt = require('../static/city-room-art.js');
 const art = require('../static/rain-city-art.js');
 const ids = ['library','tea','observatory','atelier','arcade','station'];
 
@@ -9,7 +14,8 @@ test('rain city offers six always-open buildings plus one keyboard accessible re
   const svg=art.scene({daily:{progress:0}},{});
   assert.match(svg,/viewBox="0 0 1200 720"/);
   assert.match(svg,/stroke="none" style="stroke:none"/);
-  assert.equal((svg.match(/role="button" tabindex="0"/g)||[]).length,7);
+  assert.equal((svg.match(/data-city-place="[^"]+"[^>]*role="button" tabindex="0"/g)||[]).length,6);
+  assert.equal((svg.match(/data-city-npc="[^"]+"[^>]*role="button" tabindex="0"/g)||[]).length,8);
   assert.equal((svg.match(/data-city-place=/g)||[]).length,6);
   for(const id of ids){
     assert.match(svg,new RegExp(`data-city-place="${id}" data-citadel-place="${id}" data-unlocked="true"`));
@@ -64,6 +70,23 @@ test('room renderer provides actual room scenery and bounded visual modes',()=>{
   assert.equal(art.normalize({}, {mode:'<script>'}).mode,'rain');
 });
 
+test('every service room keeps the equipped visitor on open floor alongside its resident',()=>{
+  for(const id of ['library','tea','atelier','arcade','station'])for(const interactive of [false,true]){
+    const svg=art.interior(id,{}, {avatar:'avatar-royal'}, {interactive});
+    const visitors=[...svg.matchAll(/<g class="rain-city-traveler" data-skin-slots="avatar" data-citadel-equipment="([^"]+)" transform="translate\(([\d.]+) ([\d.]+)\) scale\(([\d.]+)\)">/g)];
+    assert.equal(visitors.length,1,`${id}: the visitor must not disappear when residents are present`);
+    const [,outfit,x,y,scale]=visitors[0];assert.equal(outfit,'avatar-royal');
+    const bounds={left:Number(x),top:Number(y),right:Number(x)+64*Number(scale),bottom:Number(y)+72*Number(scale)};
+    assert.ok(Number(scale)>=1.25&&Number(scale)<=1.5,`${id}: human scale, not a giant decoration`);
+    assert.ok(bounds.left>90&&bounds.right<1110&&bounds.top>=499&&bounds.bottom<700,`${id}: the whole visitor stands on the interior floor`);
+    const [hostX,hostY]=roomArt.rooms[id].at;
+    const visitorX=Number(x)+32*Number(scale),visitorFeet=Number(y)+68*Number(scale);
+    assert.ok(Math.hypot(visitorX-hostX,visitorFeet-hostY)>100,`${id}: leave space between visitor and host`);
+    assert.ok(svg.indexOf(visitors[0][0])<svg.indexOf('class="city-room-inhabitants"'),`${id}: resident interactions stay above the decorative visitor`);
+    assert.match(svg,/quest-player-growth/,'equipped avatar rendering is retained, not replaced with an NPC');
+  }
+});
+
 test('equipped cosmetics remain visible, defaults do not grant purchased decorations',()=>{
   const items={theme:'theme-forest',fx:'fx-snow',avatar:'avatar-royal',companion:'companion-fox',relic:'relic-hourglass',portal:'portal-moon'};
   const svg=art.scene({},items);
@@ -116,7 +139,8 @@ test('shared city effects render exactly one noninteractive layer in street and 
     assert.match(street,new RegExp(`data-skin-slots="fx" data-citadel-equipment="${id}" pointer-events="none"`));
     assert.doesNotMatch(street,/expansion-particle/);
     assert.equal((street.match(/data-city-place=/g)||[]).length,6);
-    assert.equal((street.match(/role="button" tabindex="0"/g)||[]).length,7);
+    assert.equal((street.match(/data-city-place="[^"]+"[^>]*role="button" tabindex="0"/g)||[]).length,6);
+    assert.equal((street.match(/data-city-trail="open"/g)||[]).length,1);
     const position=street.indexOf('class="rain-city-equipped-fx"');
     assert.ok(position>street.lastIndexOf('class="rain-city-place'),id);
     assert.ok(position<street.indexOf('class="rain-city-rain"'),id);
@@ -151,7 +175,7 @@ test('browser helper takes precedence while missing helpers retain a single lega
 
 test('interior weather belongs behind the existing glass while outdoor rooms keep full scene contexts',()=>{
   const source=fs.readFileSync(require.resolve('../static/rain-city-art.js'),'utf8');
-  const calls=[],context=vm.createContext({FocusIslandEffects:{has:id=>id==='fx-snow',scene(id,mode,options){calls.push(JSON.parse(JSON.stringify({id,mode,options})));return '<g data-fx-context-test="weather"/>';}}});
+  const calls=[],context=vm.createContext({FocusCityRoomArt:roomArt,FocusIslandEffects:{has:id=>id==='fx-snow',scene(id,mode,options){calls.push(JSON.parse(JSON.stringify({id,mode,options})));return '<g data-fx-context-test="weather"/>';}}});
   vm.runInContext(source,context);
   const api=context.FocusRainCityArt,expected={library:[445,109,550,291],tea:[164,115,583,303],atelier:[562,110,466,284],arcade:[158,123,273,222],station:[194,123,540,281],observatory:[605,111,389,308]};
   const equipment={fx:'fx-snow',avatar:'avatar-voyager',companion:'companion-fox'};
@@ -160,8 +184,8 @@ test('interior weather belongs behind the existing glass while outdoor rooms kee
     const svg=api.interior(place,{},equipment,{interactive:true});
     assert.deepEqual(calls,[{id:'fx-snow',mode:'city',options:{environment:'interior',region}}],place);
     assert.equal((svg.match(/data-fx-context-test=/g)||[]).length,1,place);
-    const weatherAt=svg.indexOf('data-fx-context-test='),glassAt=svg.indexOf('clip-path="url('),furnitureAt=svg.indexOf('rain-city-traveler');
-    assert.ok(glassAt>=0&&glassAt<weatherAt&&weatherAt<furnitureAt,`${place}: outdoor weather stays behind glass and furniture`);
+    const weatherAt=svg.indexOf('data-fx-context-test='),glassAt=svg.indexOf('clip-path="url('),furnitureAt=svg.indexOf('class="city-room-inhabitants"');
+    assert.ok(glassAt>=0&&glassAt<weatherAt&&weatherAt<furnitureAt,`${place}: outdoor weather stays behind glass, furnishings and residents`);
     assert.match(svg,/<g data-fx-context-test="weather"\/><\/g><\/g><path d="M/,'the weather shares the actual clipped sky group, before the opaque window frame');
   }
   for(const [mode,environment] of [['rain','rooftop'],['stars','rooftop'],['lamplight','rooftop'],['panorama','panorama']]){
@@ -224,7 +248,8 @@ test('home and panorama keep valid noncolliding gradients and purchased scenery'
 
 test('arcade scenery has exactly two different accessible ticket lottery cabinets',()=>{
   const svg=art.interior('arcade',{},{},{interactive:true});assert.match(svg,/role="group" aria-label="星海游乐场的室内/);
-  assert.equal((svg.match(/data-lottery-machine=/g)||[]).length,2);assert.equal((svg.match(/role="button" tabindex="0"/g)||[]).length,2);
+  assert.equal((svg.match(/data-lottery-machine=/g)||[]).length,2);assert.equal((svg.match(/data-lottery-machine="(?:coin|diamond)" role="button" tabindex="0"/g)||[]).length,2);
+  assert.equal((svg.match(/data-city-npc="ache"/g)||[]).length,1);assert.match(svg,/data-city-workstation="games" role="button" tabindex="0"/);
   for(const [kind,label] of [['coin','金币'],['diamond','钻石']]){
     assert.match(svg,new RegExp(`data-lottery-machine="${kind}" role="button" tabindex="0" aria-label="进入${label}抽奖机" aria-controls="city-lottery-pane"`));assert.match(svg,new RegExp(`只收${label}抽奖券`));
   }
@@ -267,8 +292,37 @@ test('new landscape themes add actual city-edge scenery while retaining every bu
     assert.ok(actual.indexOf(layer)<actual.indexOf('class="rain-city-place'),theme.id);
     assert.equal((actual.match(/data-city-place=/g)||[]).length,6);
     assert.equal((actual.match(/data-city-trail="open"/g)||[]).length,1);
-    assert.equal((actual.match(/role="button" tabindex="0"/g)||[]).length,7);
+    assert.equal((actual.match(/data-city-place="[^"]+"[^>]*role="button" tabindex="0"/g)||[]).length,6);
+    assert.equal((actual.match(/data-city-npc="[^"]+"[^>]*role="button" tabindex="0"/g)||[]).length,8);
     assert.doesNotMatch(layer,/role=|tabindex=|NaN|undefined|<script/);
   }
   assert.equal(unique.size,themes.length);
+});
+
+test('room residents and usable furniture are present together, with bounded accessible hit regions and valid SVG',()=>{
+  const cases=ids.map(id=>[id,id==='observatory'?'home':'rain']);cases.push(['observatory','stars'],['observatory','panorama']);
+  const expected={library:['desk','shelf'],tea:['tea','tea-window'],atelier:['wardrobe','outfits'],arcade:['games'],station:['plan','camp'],home:['home-light'],stars:['sky'],panorama:[]};
+  const renders=[];
+  for(const [id,mode]of cases){
+    const svg=art.interior(id,{}, {companion:'companion-fox',fx:'fx-petals'},{mode,interactive:true});renders.push(svg);
+    const npc=residents.roomResident(id,mode),people=[...svg.matchAll(/data-city-npc="([^"]+)"/g)].map(row=>row[1]);
+    assert.deepEqual(people,npc?[npc]:[],`${id}/${mode}: exactly the right resident`);
+    if(npc)assert.match(svg,new RegExp(`data-city-npc="${npc}"[^>]*role="button" tabindex="0" aria-label="与${residents.find(npc).name}交谈`));
+    const spots=[...svg.matchAll(/data-city-workstation="([^"]+)"[^>]*role="button" tabindex="0" aria-label="([^"]+)"/g)];
+    assert.deepEqual(spots.map(row=>row[1]),expected[id==='observatory'?mode:id],`${id}/${mode}: actual furniture opens the room's function`);
+    const boxes=[...svg.matchAll(/class="city-workstation-hit" x="([\d.]+)" y="([\d.]+)" width="([\d.]+)" height="([\d.]+)"/g)];
+    assert.equal(boxes.length,spots.length);
+    for(const [_,x,y,w,h]of boxes){const bounds=[x,y,w,h].map(Number);assert.ok(bounds[0]>=0&&bounds[1]>=0&&bounds[2]>0&&bounds[3]>0&&bounds[0]+bounds[2]<=1200&&bounds[1]+bounds[3]<=720,`${id}: furniture hit regions fit the scene`);}
+    const preview=art.interior(id,{}, {},{mode,interactive:false});renders.push(preview);
+    assert.doesNotMatch(preview,/data-city-workstation=|city-npc-hit|role="button"|tabindex=/,'previews remain decorative');
+  }
+  renders.push(art.scene({}, {companion:'companion-fox',fx:'fx-petals'},{interactive:true}));
+  // The complete scenes are larger now. A file avoids macOS's synchronous
+  // child-process pipe stalling while streaming all SVGs through stdin.
+  const directory=fs.mkdtempSync(path.join(os.tmpdir(),'focus-city-svg-'));
+  try{
+    const input=path.join(directory,'scenes.json');fs.writeFileSync(input,JSON.stringify(renders));
+    const parsed=spawnSync('/usr/bin/python3',['-c','import json,sys,xml.etree.ElementTree as ET\nwith open(sys.argv[1]) as f: scenes=json.load(f)\nfor svg in scenes: ET.fromstring(svg)',input],{encoding:'utf8',timeout:10000});
+    assert.equal(parsed.status,0,parsed.error?.message||parsed.stderr);
+  }finally{fs.rmSync(directory,{recursive:true,force:true});}
 });

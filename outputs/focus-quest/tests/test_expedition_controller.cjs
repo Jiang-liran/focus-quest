@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 
-const sources = ['record-time.js', 'expedition-model.js', 'expedition.js']
+const sources = ['record-time.js', 'subject-island-styles.js', 'island-architecture.js', 'expedition-model.js', 'expedition.js']
   .map(name => fs.readFileSync(require.resolve(`../static/${name}`), 'utf8'));
 const day = '2026-09-24';
 const copy = value => JSON.parse(JSON.stringify(value));
@@ -557,4 +557,45 @@ test('replay trail and frame copy preserve each record start, end and duration',
   const h=harness();h.api.render(snapshot([record(1,30,'math',{start:'2026-09-24T08:15:00+08:00',end:'2026-09-24T08:45:00+08:00'})]));
   const trail=h.element('expedition-trail').innerHTML;assert.match(trail,/08:15/);assert.match(trail,/08:45/);assert.match(trail,/30分钟/);
   h.api.startReplay(1,false);assert.match(h.element('expedition-frame-copy').textContent,/08:15 → 08:45/);
+});
+
+
+test('architecture preview updates all four islands without changing study records or unrelated equipment', () => {
+  const h=harness();
+  const state=snapshot(undefined,{quests:{equipped:{archipelago:'archipelago-default',homeland:'homeland-harbor',island:'island-pavilion',companion:'companion-owl'}}});
+  const before=JSON.stringify(state);
+  h.api.render(state);
+  const initial=h.calls.world.length;
+  h.api.previewEquipment({archipelago:'archipelago-harbor',fx:'fx-sakura'});
+  assert.equal(h.calls.world.length,initial+1);
+  assert.equal(h.calls.world.at(-1).equipped.archipelago,'archipelago-harbor');
+  assert.equal(h.calls.world.at(-1).equipped.companion,'companion-owl');
+  assert.equal(h.calls.world.at(-1).subjects[0].landmark,'航图观测院');
+  assert.match(h.element('expedition-subjects').innerHTML,/潮汐机巧坊/);
+  h.api.render(copy(state));
+  h.api.previewEquipment({archipelago:'archipelago-harbor',fx:'fx-snow'});
+  assert.equal(h.calls.world.length,initial+1,'polls and other equipment must preserve architecture animation phase');
+  h.api.previewEquipment(state.quests.equipped);
+  assert.equal(h.calls.world.at(-1).equipped.archipelago,'archipelago-default');
+  assert.equal(h.calls.world.length,initial+2);
+  assert.equal(JSON.stringify(state),before);
+  assert.equal(h.calls.storageWrites,0);
+});
+
+test('newly equipped architecture follows snapshot changes after preview closes, including history preview', () => {
+  const h=harness(),state=snapshot(undefined,{quests:{equipped:{archipelago:'archipelago-harbor'}}});
+  h.api.render(state);
+  h.api.previewEquipment(state.quests.equipped);
+  const next={...state,quests:{equipped:{archipelago:'archipelago-starglass'}}};
+  h.api.render(next);
+  assert.equal(h.calls.world.at(-1).equipped.archipelago,'archipelago-starglass');
+  h.api.preview(0);
+  assert.equal(h.calls.world.at(-1).equipped.archipelago,'archipelago-starglass');
+  assert.equal(h.calls.world.at(-1).subjects[2].landmark,'群星议会庭');
+  assert.equal(h.calls.world.at(-1).subjects[0].progress,0);
+  h.api.previewEquipment({archipelago:'evil" onload="bad'});
+  assert.equal(h.calls.world.at(-1).equipped.archipelago,'archipelago-starglass');
+  h.api.previewEquipment({archipelago:'archipelago-harbor'});
+  h.api.previewEquipment(null);
+  assert.equal(h.calls.world.at(-1).equipped.archipelago,'archipelago-starglass');
 });

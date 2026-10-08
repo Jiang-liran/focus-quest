@@ -13,6 +13,7 @@
   let bridge=null,latest=null,mode='live',previewPercent=null,replay=null,index=0,playing=false,timer=null,generation=0;
   let selected=null,discovery=null,immersive=false,arrivalTimer=null,arrivalGeneration=0;
   let resonanceKey=null,resonanceTimer=null,resonanceGeneration=0,resonancePending=false;
+  let equipmentPreview=null;
   const cache=new Map();
   function replace(id,html){
     if(cache.get(id)===html)return;
@@ -28,7 +29,27 @@
     if(!latest)return null;
     return mode==='replay'?replay?.frames[index]?.model:mode==='preview'?modelApi().preview(latest,previewPercent):null;
   }
-  function model(){return visualModel()||modelApi().build(latest);}
+  function model(){
+    const base=visualModel()||modelApi().build(latest),architecture=root.FocusIslandArchitecture;
+    const equipped={...(latest?.quests?.equipped||{}),...(equipmentPreview||{})};
+    const candidate=equipped.archipelago;
+    const archipelago=architecture?.has(candidate,'archipelago')?candidate:'archipelago-default';
+    return {...base,equipped:{...equipped,archipelago},subjects:base.subjects.map(subject=>{
+      const campus=architecture?.resolve(equipped,subject.id)||archipelago;
+      const info=architecture?.subjectInfo(campus,subject.id);
+      return info?{...subject,landmark:info.name,description:info.description}:subject;
+    })};
+  }
+  function previewEquipment(overrides){
+    const next={};
+    for(const slot of ['archipelago','campusmath','campuscs','campuspolitics','campusenglish']){
+      const candidate=overrides?.[slot];
+      if(root.FocusIslandArchitecture?.has(candidate,slot)&&candidate!==latest?.quests?.equipped?.[slot])next[slot]=candidate;
+    }
+    if(JSON.stringify(equipmentPreview||{})===JSON.stringify(next))return;
+    equipmentPreview=next;
+    if(latest&&bridge)paint();
+  }
   function stop(shouldPaint=true){cancelTimer();clearResonance();resonancePending=false;mode='live';playing=false;replay=null;index=0;previewPercent=null;if(shouldPaint&&latest)paint();}
   function render(next,options={}){
     if(!bridge||!next)return;
@@ -88,11 +109,13 @@
   function detail(m){
     const subject=m.subjects.find(s=>s.id===selected);
     const entry=m.discoveries.find(d=>d.id===discovery&&d.unlocked)||m.currentDiscovery;
+    const campus=subject&&root.FocusIslandArchitecture?.resolve(m.equipped,subject.id);
+    const rebuilt=subject&&Boolean(root.FocusIslandArchitecture?.subjectInfo(campus,subject.id));
     $('expedition-overview').hidden=!subject&&!discovery;
-    $('expedition-detail-kicker').textContent=subject?`${subject.name} · ${subject.complete?'设施已建成':'建设中的岛屿'}`:`第 ${entry.index+1} 处路标 · 沿途见闻`;
+    $('expedition-detail-kicker').textContent=subject?`${subject.name} · ${subject.complete?'今日灯火已点亮':rebuilt?'等待灯火的岛屿':'建设中的岛屿'}`:`第 ${entry.index+1} 处路标 · 沿途见闻`;
     $('expedition-detail-title').textContent=subject?subject.landmark:entry.name;
-    $('expedition-detail-copy').textContent=subject?`${subject.description} ${subject.complete?'今日的灯已点亮，额外积累也会留在星光里。':subject.minutes?'每一段完成的专注，都在为这里添上新的细节。':'第一段专注结束后，这里的建设就会开始。'}`:entry.narrative;
-    $('expedition-next').textContent=subject?(subject.goalSet?`${duration(subject.minutes)} / ${duration(subject.target)} · ${percent(subject.percent)}%${subject.complete?' · 可以安心欣赏，也可以继续自由探索':` · 建成还需 ${duration(subject.remainingMinutes)}`}`:'请在设置中为这科安排目标。'):m.nextDiscovery?`下一处 · ${m.nextDiscovery.name}，再积累 ${duration(m.nextDiscovery.remainingMinutes)} 就能看见。`:m.complete?'这一天的见闻已完整。归光之后，休息也属于旅程。':'先设定目标，让远方有一个方向。';
+    $('expedition-detail-copy').textContent=subject?`${subject.description} ${subject.complete?'今日的灯已点亮，额外积累也会留在星光里。':subject.minutes?'每一段完成的专注，都在为这里添上新的细节。':rebuilt?'建筑已经备好，第一段专注会点亮这里的灯。':'第一段专注结束后，这里的建设就会开始。'}`:entry.narrative;
+    $('expedition-next').textContent=subject?(subject.goalSet?`${duration(subject.minutes)} / ${duration(subject.target)} · ${percent(subject.percent)}%${subject.complete?' · 可以安心欣赏，也可以继续自由探索':` · ${rebuilt?'点亮还需':'建成还需'} ${duration(subject.remainingMinutes)}`}`:'请在设置中为这科安排目标。'):m.nextDiscovery?`下一处 · ${m.nextDiscovery.name}，再积累 ${duration(m.nextDiscovery.remainingMinutes)} 就能看见。`:m.complete?'这一天的见闻已完整。归光之后，休息也属于旅程。':'先设定目标，让远方有一个方向。';
     $('expedition-discovery-count').textContent='星辉城 · 随时走走';
     replace('expedition-discoveries',m.discoveries.map(d=>`<button type="button" class="expedition-discovery ${d.unlocked?'unlocked':'locked'}" data-expedition-discovery="${esc(d.id)}" ${d.unlocked?'':'disabled'} aria-pressed="${entry.id===d.id&&!subject}"><span class="discovery-stamp" aria-hidden="true"><svg viewBox="0 0 64 48"><path d="M8 39 23 15l12 17 9-24 13 31Z"/><circle cx="46" cy="12" r="5"/><path d="M8 43h49M21 39l5-9 8 9"/></svg><i>${String(d.index+1).padStart(2,'0')}</i></span><strong>${esc(d.name)}</strong><small>${d.unlocked?'到城里歇一会儿':`主线 ${d.threshold}% 后显现`}</small></button>`).join(''));
   }
@@ -130,7 +153,7 @@
     $('quest-hero').dataset.expeditionMode=mode;
     $('expedition-canvas').dataset.focus=selected||'';
     $('expedition-canvas').dataset.afterglow=String(m.afterglow.active);
-    const key=JSON.stringify([m.progress,m.stage,m.subjects.map(s=>[s.id,s.progress,s.percent])]);
+    const key=JSON.stringify([m.progress,m.stage,['archipelago','campusmath','campuscs','campuspolitics','campusenglish'].map(slot=>m.equipped[slot]),m.subjects.map(s=>[s.id,s.progress,s.percent])]);
     if(cache.get('world')!==key){
       replace('expedition-world',root.FocusExpeditionArt.world(m));cache.set('world',key);
     }
@@ -204,5 +227,5 @@
     document.addEventListener('visibilitychange',()=>{if(document.hidden){if(playing)pause();clearResonance();resonancePending=false;}});
     root.matchMedia?.('(prefers-reduced-motion: reduce)').addEventListener?.('change',()=>{if(reduced())pause();else if(latest)paint();});
   }
-  root.FocusExpedition={init,render,preview,visualModel,startReplay,stop,pause,leave,noteArrival,deferResonance,resumeResonance};
+  root.FocusExpedition={init,render,preview,previewEquipment,visualModel,startReplay,stop,pause,leave,noteArrival,deferResonance,resumeResonance};
 })(typeof globalThis!=='undefined'?globalThis:this);

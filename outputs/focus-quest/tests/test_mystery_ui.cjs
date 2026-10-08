@@ -55,14 +55,14 @@ function harness(extras = {}) {
     renderQuests(data) { calls.renders.push(copy(data)); },
     acceptReceipt(data) { calls.accepted.push(copy(data)); },
   };
-  const context = vm.createContext({document: {getElementById: element}, crypto, FocusMysteryArt: art, ...extras});
+  const context = vm.createContext({document: {getElementById: element, querySelector: () => [...elements.values()].find(e => e.open) || null}, crypto, FocusMysteryArt: art, ...extras});
   vm.runInContext(source, context);
   const api = context.FocusMystery;
   api.init(bridge);
-  const fire = (id, {targetId = id, giftIndex} = {}) => {
+  const fire = (id, {targetId = id, giftIndex, storedKey} = {}) => {
     const target = {
-      id: targetId, dataset: giftIndex === undefined ? {} : {mysteryGift: String(giftIndex)},
-      closest(selector) { return selector === `#${this.id}` || (selector === '[data-mystery-gift]' && 'mysteryGift' in this.dataset) ? this : null; },
+      id: targetId, dataset: {...(giftIndex === undefined ? {} : {mysteryGift: String(giftIndex)}), ...(storedKey ? {mysteryStored: storedKey} : {})},
+      closest(selector) { return selector === `#${this.id}` || (selector === '[data-mystery-gift]' && 'mysteryGift' in this.dataset) || (selector === '[data-mystery-stored]' && 'mysteryStored' in this.dataset) ? this : null; },
     };
     return (element(id).listeners.get('click') || []).map(callback => callback({target}));
   };
@@ -500,6 +500,38 @@ function modernStarResponse(request,gifts,patch={}){
     lottery:modernTicketState(gifts,[row.index],{revision:11}),quests:{now:'2026-09-25T20:00:02+08:00',wallet:{coins:364,diamonds:7}},
     ticketGrants:[['coin','coinTickets'],['diamond','diamondTickets']].filter(([,key])=>row.lotteryTickets[key]>0).map(([machine,key])=>({machine,count:row.lotteryTickets[key],source:'mystery-gift'})),...patch};
 }
+
+test('hub finds already delivered star boxes and opens only their tickets, without resubmitting currency', async()=>{
+  const h=harness(),gifts=[modernGift(2)];
+  h.api.render(snapshot(mystery(),{lottery:modernTicketState(gifts)}));
+  assert.equal(h.api.summary().count,1);
+  assert.match(h.element('mystery-quest').innerHTML,/拾星留存的星礼 · 1 份/);
+  h.fire('mystery-quest',{storedKey:'2026-09-25:2'});
+  assert.equal(h.element('mystery-dialog').open,true);
+  assert.match(h.element('mystery-dialog-body').innerHTML,/这次只收好抽奖券/);
+  assert.equal(h.calls.requests.length,1);
+  const request=h.calls.requests[0];assert.equal(request.path,'/api/lottery/star-gift');
+  request.resolve(modernStarResponse(request,gifts));await settle();
+  assert.equal(h.api.summary().count,0);assert.equal(h.calls.accepted.length,1);
+  assert.match(h.element('mystery-dialog-body').innerHTML,/✓ 抽奖券已收好/);
+  assert.equal(h.calls.requests.some(r=>r.path==='/api/mystery/submit'),false);
+  h.element('mystery-dialog').close();
+  h.api.render(snapshot(mystery(),{lottery:modernTicketState(gifts)}));
+  assert.equal(h.api.summary().count,0,'old polls cannot resurrect a received box');
+});
+
+test('retained-star retry keeps request identity and refuses to open behind another dialog',async()=>{
+  const h=harness(),gifts=[modernGift(6)];
+  h.api.render(snapshot(mystery(),{lottery:modernTicketState(gifts)}));
+  h.element('another-dialog').open=true;h.fire('mystery-quest',{storedKey:'2026-09-25:6'});
+  assert.equal(h.calls.requests.length,0);h.element('another-dialog').open=false;
+  h.fire('mystery-quest',{storedKey:'2026-09-25:6'});
+  const first=h.calls.requests[0];first.reject(new Error('network interrupted'));await settle();
+  assert.equal(h.api.summary().count,1);assert.equal(h.element('mystery-dialog-error').hidden,false);
+  h.fire('mystery-dialog-body',{giftIndex:0});const retry=h.calls.requests[1];
+  assert.equal(retry.body.requestId,first.body.requestId);
+  retry.resolve(modernStarResponse(retry,gifts));await settle();assert.equal(h.api.summary().count,0);
+});
 
 test('the sixth gift quota removes any next-gift hint but keeps pending boxes and base income deliverable', async()=>{
   const h=harness(),gifts=Array.from({length:6},(_,i)=>modernGift(i+1));

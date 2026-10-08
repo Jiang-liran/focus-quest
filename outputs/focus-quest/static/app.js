@@ -161,6 +161,8 @@ function render() {
   globalThis.FocusCitadel?.render(s);
   globalThis.FocusReturnTrail?.render(s);
   renderCityEntry();
+  globalThis.FocusEarlyStart?.observe(s);
+  globalThis.FocusRewardHub?.update();
   maybeDailyOpening();
 }
 
@@ -193,8 +195,8 @@ async function maybeDailyOpening() {
     if(ready.day===localDay()){showOpening(ready);return;}
     openingPending=true;
   }
-  if(!openingPending || Date.now()<openingRetryAt)return;
-  if(openingCheckedDay===localDay()){openingPending=false;return;}
+  if(openingCheckedDay===localDay())openingPending=false;
+  if(!openingPending || Date.now()<openingRetryAt){maybeEarlyStartNotice();return;}
   openingBusy=true;
   try{
     // The service owns the daily claim, so reopening a window, reloading, or
@@ -208,8 +210,12 @@ async function maybeDailyOpening() {
   }finally{
     openingBusy=false;
     if(openingReady)maybeDailyOpening();
-    else playNextCelebration();
+    else {maybeEarlyStartNotice();playNextCelebration();}
   }
+}
+function maybeEarlyStartNotice(){
+  if(!state||state.today!==localDay()||document.hidden||globalThis.FocusRuntime?.isVisible?.()===false||globalThis.FocusGoals?.required()||openingBusy||openingReady||(openingPending&&Date.now()>=openingRetryAt)||currentView==='achievements'||document.querySelector('dialog[open]')||globalThis.FocusCitadel?.isOpen()||globalThis.FocusCampfireRoom?.isOpen()||globalThis.FocusReturnTrail?.isOpen())return false;
+  return globalThis.FocusEarlyStart?.showNotice()||false;
 }
 function showOpening(context,preview=false) {
   const copy=FocusOpening.compose(context),dialog=$('opening-dialog');
@@ -218,6 +224,7 @@ function showOpening(context,preview=false) {
   $('opening-time').textContent=`${dateText(context.day)} · ${timeOf(context.now)}`;
   $('opening-title').textContent=copy.title;$('opening-body').textContent=copy.body;
   $('opening-closing').textContent=copy.closing;
+  $('opening-early-start').innerHTML=globalThis.FocusEarlyStart?.markup(context.earlyStart)||'';
   $('opening-note').textContent=preview?'此刻开场预览 · 不占用每日首次，不增加记录。':context.minutes>0?`今日已专注 ${duration(context.minutes)} · 每一段投入，都已记下。`:'每日开场 · 从此刻开始。';
   $('opening-done').textContent=preview?'返回设置':copy.button;
   if(!dialog.open)dialog.showModal();
@@ -267,8 +274,8 @@ function updateViewTitle() {
     $('page-subtitle').textContent='那些安静专注的时刻，已经成为了你的积累。';
     $('greeting-eyebrow').textContent='YOUR FOCUS ARCHIVE';
   }else if(currentView==='quests'){
-    $('page-title').textContent='接一份委托，踏实地出发。';
-    $('page-subtitle').textContent='四科全天可接，按自己的计划学习，让每段专注都有回响。';
+    $('page-title').textContent='收获与伙伴，都在这里。';
+    $('page-subtitle').textContent='先看谁为你备好了奖励，再进入详情，收好这一路的努力。';
     $('greeting-eyebrow').textContent='MEET YOUR COMPANIONS';
   }else if(currentView==='shop'){
     $('page-title').textContent='让努力，拥有自己的模样。';
@@ -422,7 +429,7 @@ function openCity(anchor){
   stopScenePreview();globalThis.FocusExpedition?.leave();
   return globalThis.FocusCitadel?.open(anchor||$('city-open'));
 }
-function switchView(view) {
+function switchView(view,options={}) {
   if(view==='city'){viewNavigationVersion++;openCity(document.querySelector('[data-view="city"]'));return;}
   if(!viewNames[view] || globalThis.FocusGoals?.required())return;
   viewNavigationVersion++;
@@ -432,16 +439,19 @@ function switchView(view) {
   globalThis.FocusCitadel?.close(false);
   globalThis.FocusCampfireRoom?.close(false);
   if(view!=='today'){stopScenePreview();globalThis.FocusExpedition?.leave();}
+  globalThis.FocusRewardHub?.leave();
   currentView=view;document.body.dataset.page=view;
   document.querySelectorAll('.view').forEach(el=>el.hidden=el.id!=='view-'+view);
   setNavSelection(view);
   updateViewTitle();window.scrollTo({top:0,behavior:'auto'});
+  if(view==='quests'&&globalThis.FocusRewardHub&&!options.history&&state?.date!==state?.today){selectedDate=null;void refresh(true,true);}
   const reviewReady=view==='review'?globalThis.FocusReviewHeatmap?.onEnter():undefined;
   if(view==='achievements')globalThis.FocusArcade?.enter?.();else{globalThis.FocusArcade?.leave();setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0);}
   return reviewReady;
 }
 
 async function openMethodRewards(){
+  if(globalThis.FocusRewardHub)return globalThis.FocusRewardHub.open('method',{history:currentView==='review'&&state?.date!==state?.today});
   const ready=switchView('review'),navigation=viewNavigationVersion;
   // The first heatmap response adds most of the preceding page's height.
   // Scroll only after that layout exists, and never override a later navigation.
@@ -544,6 +554,7 @@ function celebrationFor(event,preview=false) {
 }
 function playNextCelebration() {
   if(globalThis.FocusGoals?.required() || openingBusy || openingReady)return;
+  if(maybeEarlyStartNotice())return;
   if(state?.settings.motion===false){celebrationQueue=[];return;}
   if(!celebrationQueue.length || currentView==='achievements' || document.querySelector('dialog[open]') || globalThis.FocusCitadel?.isOpen() || globalThis.FocusCampfireRoom?.isOpen() || globalThis.FocusReturnTrail?.isOpen())return;
   showCelebration(celebrationQueue.shift());
@@ -655,8 +666,10 @@ function acceptLotteryReceipt(result){
   globalThis.FocusCitadel?.applyEquipment(state.quests.equipped,state.quests.now);
 }
 globalThis.FocusMystery?.init({api,toast,refresh,playSound,acceptReceipt:acceptLotteryReceipt,renderQuests:snapshot=>globalThis.FocusQuests?.render(snapshot)});
+globalThis.FocusEveningRewards?.init({api,toast,refresh,playSound,acceptReceipt:acceptLotteryReceipt,
+  isVisible:()=>globalThis.FocusRewardHub?globalThis.FocusRewardHub.isDetail('evening'):currentView==='quests'&&!globalThis.FocusCitadel?.isOpen()&&!globalThis.FocusCampfireRoom?.isOpen()&&!globalThis.FocusReturnTrail?.isOpen()});
 globalThis.FocusMethodRewards?.init({api,toast,refresh,playSound,unlock:ensureAudio,
-  isVisible:()=>currentView==='review'&&!globalThis.FocusCitadel?.isOpen()&&!globalThis.FocusCampfireRoom?.isOpen()&&!globalThis.FocusReturnTrail?.isOpen(),
+  isVisible:()=>globalThis.FocusRewardHub?globalThis.FocusRewardHub.isDetail('method'):currentView==='review'&&!globalThis.FocusCitadel?.isOpen()&&!globalThis.FocusCampfireRoom?.isOpen()&&!globalThis.FocusReturnTrail?.isOpen(),
   openMethods:()=>{showSettings();$('mapping-fields').scrollIntoView({block:'center'});},
   acceptReceipt:result=>{
     if(!state||state.today!==result.day)return;
@@ -665,13 +678,18 @@ globalThis.FocusMethodRewards?.init({api,toast,refresh,playSound,unlock:ensureAu
     globalThis.FocusQuests?.render(state.quests);
   }
 });
-globalThis.FocusIslandRewards?.init({api,toast,refresh,playSound,unlock:ensureAudio,isHome:()=>currentView==='today'&&!globalThis.FocusReturnTrail?.isOpen(),acceptReceipt:result=>{
+globalThis.FocusIslandRewards?.init({api,toast,refresh,playSound,unlock:ensureAudio,isHome:()=>currentView==='today'&&!globalThis.FocusReturnTrail?.isOpen()||globalThis.FocusRewardHub?.isDetail('islands'),acceptReceipt:result=>{
   if(!state||state.today!==result.day)return;
   // A pre-claim poll must not briefly put the old wallet or gift back on screen.
   requestSequence++;inFlight=false;
   state={...state,quests:{...state.quests,wallet:result.wallet,now:result.now,lottery:result.lottery||state.quests.lottery},lottery:result.lottery||state.lottery,islandRewards:state.date===result.day?result.islandRewards:state.islandRewards};
   globalThis.FocusQuests?.render(state.quests);
 }});
+globalThis.FocusRewardHub?.init({navigate:options=>switchView('quests',options),
+  isVisible:()=>currentView==='quests'&&!document.hidden&&globalThis.FocusRuntime?.isVisible?.()!==false&&!globalThis.FocusCitadel?.isOpen()&&!globalThis.FocusCampfireRoom?.isOpen()&&!globalThis.FocusReturnTrail?.isOpen(),
+  canOpen:()=>Boolean(state)&&!globalThis.FocusGoals?.required()&&!document.querySelector('dialog[open]'),
+  prepare:async history=>{if(history)return true;if(state?.date!==state?.today){selectedDate=null;await refresh(true,true);}return state?.date===state?.today;}
+});
 globalThis.FocusExpedition?.init({renderHero,stopPreview:stopScenePreview,isHome:()=>currentView==='today'&&!globalThis.FocusReturnTrail?.isOpen()});
 globalThis.FocusCityLife?.init({api,toast,playSound,refresh:()=>refresh(true,true),acceptQuests:snapshot=>{
   if(state){requestSequence++;inFlight=false;state={...state,quests:snapshot};}
@@ -691,5 +709,7 @@ globalThis.FocusCampfireRoom?.init({openPage:switchView,openTrail:anchor=>global
 globalThis.FocusReturnTrail?.init({getState:()=>state,onOpen:()=>{stopScenePreview();globalThis.FocusExpedition?.leave();setNavSelection('today');},onCamp:()=>globalThis.FocusCampfireRoom?.open($('campfire-room-open')),onCity:()=>openCity($('city-open')),onClose:from=>from==='city'?openCity($('city-open')):globalThis.FocusCampfireRoom?.open($('campfire-room-open')),afterClose:()=>setTimeout(()=>{maybeDailyOpening();playNextCelebration();},0)});
 $('city-trail-open')?.addEventListener('click',event=>globalThis.FocusReturnTrail?.open(event.currentTarget,{from:'city'}));
 globalThis.FocusArcade?.init({api,toast,refresh,playSound,openPage:switchView,isVisible:()=>currentView==='achievements'});
+globalThis.FocusPetRoaming?.init();
+  globalThis.FocusCityWalkers?.init();
 if(globalThis.FocusRuntime)globalThis.FocusRuntime.start({tickClock,refresh,onWake:noteOpeningArrival,onSuspend:()=>{globalThis.FocusExpedition?.pause();globalThis.FocusExpedition?.deferResonance?.();}});
 else{tickClock();setInterval(tickClock,1000);refresh();setInterval(refresh,3000);}
